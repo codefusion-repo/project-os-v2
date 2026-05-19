@@ -1,8 +1,8 @@
-# Project OS v2 Entity Model Design
+# Project OS v2 Foundation Design
 
 ## 1. Objective
 
-Define the initial normalized Project OS v2 entity model and AI read flow as a human design/reference document.
+Define the initial Project OS v2 foundation design as a human design/reference document, including the architectural pattern, stack direction, normalized entity model, relationship model, `Resolver`, AI read flow, workflow lifecycle direction, boundaries, and future phases.
 
 This document is based on the PM-provided source files:
 
@@ -69,6 +69,7 @@ Normalization boundaries:
 
 - Do not duplicate permissions inside `Actor` if they are expressed by `Límite` or `Relación`.
 - Do not duplicate required evidence inside `Workflow` if it is expressed by `Relación`.
+- Do not duplicate execution behavior inside `Workflow` or `WorkflowStep` if it is resolved through `Actor`, `Rol`, `Acción`, `Fuente`, `Evidencia`, `Límite`, `Regla`, and `Relación`.
 - Do not create prompt and response as separate entities when `Plantilla` covers both.
 - Do not create approval as a separate entity when it is `Evidencia`.
 - Do not create context as a separate entity when it belongs to `Rol` or `Plantilla`.
@@ -76,6 +77,8 @@ Normalization boundaries:
 - Do not create policy as a separate entity when `Límite` and `Regla` cover constraints and behavior.
 
 The design favors small contracts with explicit links over large contracts that embed adjacent concepts.
+
+Execution behavior is resolved from `Actor` + `Rol` + `Acción` + `Límite` + `Regla` + `Fuente` + `Evidencia` through `Relación`. `Workflow` defines process order and lifecycle progression. `WorkflowStep` defines step order, objective, Actor/Rol delegation, transition logic, and expected artifacts. `Resolver` composes relationships and determines `Estado`.
 
 ## 6. Entity Model
 
@@ -106,11 +109,11 @@ Each base entity should become a versionable JSON contract later. This document 
 
 | Entity | Definition | Owns | Normalized attributes | Must not own | Examples |
 | --- | --- | --- | --- | --- | --- |
-| `Resolver` | Entrada única para resolver qué contratos aplican a una solicitud. | Resolver identity, version, manifest reference, policy reference, input/output schema references, fallback state reference. | `id`, `nombre`, `descripción`, `versión`, `manifest_ref`, `policy_ref`, `input_schema_ref`, `output_schema_ref`, `fallback_estado_id` | Full workflows, actor permissions, evidence bodies, GitHub state snapshots, target-project artifacts. | A future resolver contract that routes an AI request to the minimal applicable contracts. |
+| `Resolver` | Entrada única para resolver qué contratos aplican a una solicitud. | Resolver identity, version, manifest reference, policy reference, input/output schema references, fallback state reference. | `id`, `nombre`, `descripción`, `versión`, `manifest_ref`, `policy_ref`, `input_schema_ref`, `output_schema_ref`, `fallback_estado_id` | Full workflows, actor permissions, evidence bodies, GitHub state snapshots, target-project artifacts, or duplicated relationship decisions. | A future resolver contract that composes relationships and routes an AI request to the minimal applicable contracts. |
 | `Actor` | Superficie desde donde se ejecuta una acción y sus capacidades base. | Execution surface identity and base capability description. | `id`, `nombre`, `descripción`, `superficie_capacidad` | Permissions, workflow membership, role behavior, policy, or live environment state; these belong in `Límite`, `Regla`, and `Relación`. | A future actor contract representing an execution surface. |
-| `Rol` | Lente profesional aplicado a una tarea. | Professional lens and role description used to interpret a task. | `id`, `nombre`, `descripción`, `lente_profesional` | Actor identity, permissions, evidence, workflow order, or prompt text that belongs to `Plantilla`. | A future role contract representing a professional review lens. |
-| `Workflow` | Proceso iterable que coordina pasos, actores, roles, acciones, evidencia y estados. | Workflow identity, lifecycle stage, and workflow order. | `id`, `nombre`, `descripción`, `etapa_ciclo_vida`, `orden` | Embedded steps, required evidence, permissions, rules, limits, and output bodies; those are linked through `Relación`. | A future workflow contract for one lifecycle process. |
-| `WorkflowStep` | Paso ordenado dentro de un workflow. | Step identity, order, objective, and advance/repeat/block conditions. | `id`, `nombre`, `descripción`, `orden`, `objetivo`, `condición_avance`, `condición_repetición`, `condición_bloqueo` | Workflow-level policy, actor permissions, evidence content, produced artifact content, or next-step embedding; these are related by `Relación`. | A future step contract for one ordered stage inside a workflow. |
+| `Rol` | Lente profesional aplicado a una tarea. | Professional lens and role description used to interpret a task. | `id`, `nombre`, `descripción`, `lente_profesional` | Actor identity, permissions, evidence, workflow order, or prompt text that belongs to `Plantilla`. | A future role contract representing a professional review lens with related rules and templates. |
+| `Workflow` | Proceso iterable que define orden de proceso y etapa del ciclo de vida. | Workflow identity, lifecycle stage, and workflow order. | `id`, `nombre`, `descripción`, `etapa_ciclo_vida`, `orden` | Actor/role execution behavior, direct actions, direct evidence, direct limits, direct rules, or resolver-derived state. | A future workflow contract for one lifecycle process and its ordered step sequence. |
+| `WorkflowStep` | Paso ordenado con objetivo, delegación Actor/Rol y lógica de transición. | Step identity, order, objective, and advance/repeat/block conditions. | `id`, `nombre`, `descripción`, `orden`, `objetivo`, `condición_avance`, `condición_repetición`, `condición_bloqueo` | Direct action execution, evidence ownership, direct limits, direct rules, actor capability, role rules, produced artifact content, or next-step embedding. | A future step contract for one ordered stage that delegates to `Actor` and `Rol` through relationships. |
 | `Acción` | Operación concreta que se quiere realizar. | Action identity and action type. | `id`, `nombre`, `descripción`, `tipo` | Actor identity, resource details, scope, evidence, or execution result. | A future action contract for a concrete operation such as inspect, create, validate, or review. |
 | `Recurso` | Objeto sobre el que actúa una acción. | Resource identity, type, name, and location. | `id`, `tipo`, `nombre`, `ubicación` | Action semantics, scope membership, evidence verification state, or artifact generation rules. | A future resource contract pointing to a file path, issue, PR, commit, tag, or external reference. |
 | `Scope` | Alcance permitido de una tarea. | Scope identity and allowed task boundary description. | `id`, `nombre`, `descripción` | Resources by value, action permissions, actor capability, or workflow order. | A future scope contract representing the allowed boundary of a task. |
@@ -121,8 +124,8 @@ Each base entity should become a versionable JSON contract later. This document 
 | `Regla` | Norma que guía conducta o decisión. | Rule identity, condition, and expected behavior. | `id`, `nombre`, `descripción`, `condición`, `comportamiento_esperado` | Limit severity, actor identity, workflow order, evidence payloads, or static GitHub traceability. | A future rule contract defining expected behavior under a condition. |
 | `Variable` | Dato dinámico configurable. | Variable identity, type, default value, and allowed values. | `id`, `nombre`, `tipo`, `valor_default`, `valores_permitidos` | Template bodies, workflow definitions, live runtime values, or validator behavior. | A future variable contract parameterizing a template or workflow. |
 | `Plantilla` | Estructura reusable para generar prompts, respuestas, reportes o bodies. | Template identity, type, format, and required sections. | `id`, `nombre`, `tipo`, `formato`, `secciones_requeridas` | Variable definitions, workflow eligibility, live evidence state, or separate prompt/response entities. | A future template contract for a response, prompt, report, or PR body structure. |
-| `Artefacto` | Resultado producido por una acción o workflow. | Artifact identity, type, name, and reference. | `id`, `tipo`, `nombre`, `referencia` | Producing step logic, template definition, resource definition, or validation state. | A future artifact contract/reference for a design document, generated report, PR body, or validation result. |
-| `Relación` | Vínculo formal entre entidades. | Relationship identity, endpoints, relationship type, cardinality, required flag, and order. | `id`, `origen_entidad`, `origen_id`, `destino_entidad`, `destino_id`, `tipo_relación`, `cardinalidad`, `requerido`, `orden` | Duplicated attributes from either endpoint or embedded copies of related contracts. | A future relationship contract connecting a `WorkflowStep` to required `Evidencia` or next `WorkflowStep`. |
+| `Artefacto` | Resultado referenciable esperado por un paso o producido por acción/plantilla. | Artifact identity, type, name, and reference. | `id`, `tipo`, `nombre`, `referencia` | Producing step logic, template definition, resource definition, or validation state. | A future artifact contract/reference for a design document, generated report, PR body, or validation result. |
+| `Relación` | Vínculo formal entre entidades para compatibility, permission, requirement, dependency, sequencing, or restriction semantics. | Relationship identity, endpoints, relationship type, cardinality, required flag, and order. | `id`, `origen_entidad`, `origen_id`, `destino_entidad`, `destino_id`, `tipo_relación`, `cardinalidad`, `requerido`, `orden` | Duplicated attributes from either endpoint or embedded copies of related contracts. | A future relationship contract connecting `WorkflowStep` to delegated `Actor`/`Rol`, expected `Artefacto`, or next `WorkflowStep`. |
 | `Contrato` | Especificación formal/versionable de una entidad o relación. | Contract identity, entity type, version, schema reference, and state. | `id`, `nombre`, `entidad_tipo`, `versión`, `schema_ref`, `estado` | Entity-specific attributes not belonging to the contract wrapper, live GitHub evidence, or generated database rows. | A future contract file that formalizes one entity or relationship version. |
 
 ## 8. Relationship Model
@@ -133,37 +136,56 @@ The main relationship model is:
 
 | Relationship | Cardinality | Description |
 | --- | ---: | --- |
-| `Resolver` carga `Contrato` | 1:N | Un resolver usa varios contratos para resolver una solicitud. |
-| `Resolver` determina `Estado` | 1:N | Un resolver puede devolver distintos estados según evidencia y límites. |
-| `Contrato` formaliza Entidad | 1:N | Una entidad puede tener múltiples versiones de contrato. |
-| `Workflow` contiene `WorkflowStep` | 1:N | Un workflow tiene uno o más pasos ordenados. |
-| `Workflow` permite `Actor` | N:M | Varios actores pueden participar en varios workflows. |
-| `Workflow` permite `Rol` | N:M | Varios roles pueden aplicar en varios workflows. |
-| `Workflow` aplica `Límite` | N:M | Un workflow puede tener múltiples límites, y un límite puede reutilizarse. |
-| `Workflow` aplica `Regla` | N:M | Un workflow puede usar múltiples reglas, y una regla puede reutilizarse. |
-| `Workflow` produce `Estado` | N:M | Un workflow puede terminar en varios estados posibles. |
-| `Workflow` usa `Plantilla` | N:M | Un workflow puede usar varias plantillas de salida. |
-| `WorkflowStep` ejecuta `Acción` | N:1 | Muchos pasos pueden reutilizar una misma acción. |
-| `WorkflowStep` requiere `Evidencia` | N:M | Un paso puede requerir varias evidencias. |
-| `WorkflowStep` aplica `Límite` | N:M | Un paso puede tener límites propios o heredados. |
-| `WorkflowStep` aplica `Regla` | N:M | Un paso puede tener reglas propias o heredadas. |
-| `WorkflowStep` produce `Artefacto` | N:M | Un paso puede producir uno o más artefactos. |
-| `WorkflowStep` avanza a `WorkflowStep` | N:M | Un paso puede tener siguiente paso, bifurcaciones o repetición. |
-| `WorkflowStep` avanza a `Workflow` | N:M | Un paso final puede habilitar otro workflow. |
-| `Actor` ejecuta `Acción` | N:M | Un actor puede ejecutar varias acciones si sus límites lo permiten. |
-| `Actor` tiene `Límite` | N:M | Los límites del actor definen capacidad real. |
-| `Rol` aplica `Regla` | N:M | Un rol puede tener reglas de conducta o criterio profesional. |
-| `Acción` actúa sobre `Recurso` | N:M | Una acción puede operar sobre varios tipos de recurso. |
-| `Acción` ocurre dentro de `Scope` | N:M | Una acción solo es válida dentro de un alcance. |
-| `Scope` incluye `Recurso` | N:M | Un scope define qué recursos entran o quedan fuera. |
-| `Fuente` provee `Evidencia` | 1:N | Una fuente puede producir muchas evidencias. |
-| `Evidencia` refiere `Recurso` | N:M | Una evidencia puede apuntar a uno o más recursos. |
-| `Límite` falla en `Estado` | N:1 | Si un límite se rompe, lleva a un estado como blocked. |
-| `Regla` falla en `Estado` | N:1 | Si una regla no se cumple, lleva a un estado definido. |
-| `Variable` parametriza `Plantilla` | N:M | Variables rellenan o modifican plantillas. |
-| `Variable` parametriza `Workflow` | N:M | Variables pueden afectar idioma, repo, branch pattern, etc. |
-| `Plantilla` genera `Artefacto` | 1:N | Una plantilla puede generar muchos artefactos. |
-| `Artefacto` se asocia a `Recurso` | N:M | Un artefacto puede documentar o modificar recursos. |
+| Resolver carga Contrato | 1:N | Un resolver usa varios contratos para resolver una solicitud. |
+| Resolver usa Relación | 1:N | Un resolver compone relaciones para seleccionar contexto mínimo aplicable. |
+| Resolver determina Estado | 1:N | Un resolver devuelve estados derivados de relaciones, evidencia y límites. |
+| Contrato formaliza Entidad | 1:N | Una entidad puede tener múltiples versiones de contrato. |
+| Contrato formaliza Relación | 1:N | Una relación puede tener múltiples versiones de contrato. |
+| Workflow contiene WorkflowStep | 1:N | Un workflow agrupa uno o más pasos ordenados. |
+| Workflow ordena WorkflowStep | 1:N | Un workflow define el orden del proceso entre sus pasos. |
+| Workflow avanza a Workflow | N:M | Un workflow puede habilitar otro workflow dentro del ciclo de vida. |
+| Workflow usa Plantilla | N:M | Un workflow puede usar plantillas para salidas o reportes de proceso. |
+| WorkflowStep pertenece a Workflow | N:1 | Un paso pertenece a un workflow que lo contiene y ordena. |
+| WorkflowStep delega Actor | N:M | Un paso delega ejecución a actores sin copiar sus capacidades. |
+| WorkflowStep delega Rol | N:M | Un paso delega lente profesional a roles sin copiar sus reglas. |
+| WorkflowStep avanza a WorkflowStep | N:M | Un paso puede tener siguiente paso, bifurcaciones o repetición. |
+| WorkflowStep avanza a Workflow | N:M | Un paso final puede habilitar otro workflow. |
+| WorkflowStep espera Artefacto | N:M | Un paso declara artefactos esperados sin producirlos directamente. |
+| Rol aplica Regla | N:M | Un rol puede tener reglas de conducta o criterio profesional. |
+| Rol usa Plantilla | N:M | Un rol puede usar plantillas adecuadas a su lente profesional. |
+| Rol es compatible con Actor | N:M | Un rol puede ser compatible con varios actores y superficies. |
+| Actor ejecuta Acción | N:M | Un actor puede ejecutar varias acciones si sus límites lo permiten. |
+| Actor tiene Límite | N:M | Los límites del actor definen capacidad real. |
+| Actor usa Fuente | N:M | Un actor puede consultar fuentes permitidas por sus relaciones y límites. |
+| Acción actúa sobre Recurso | N:M | Una acción puede operar sobre varios tipos de recurso. |
+| Acción ocurre dentro de Scope | N:M | Una acción solo es válida dentro de un alcance. |
+| Acción produce Artefacto | N:M | Una acción puede producir artefactos como resultado de ejecución. |
+| Scope incluye Recurso | N:M | Un scope define qué recursos entran o quedan fuera. |
+| Fuente provee Evidencia | 1:N | Una fuente puede producir muchas evidencias. |
+| Evidencia refiere Recurso | N:M | Una evidencia puede apuntar a uno o más recursos. |
+| Límite falla en Estado | N:1 | Si un límite se rompe, lleva a un estado como blocked. |
+| Regla falla en Estado | N:1 | Si una regla no se cumple, lleva a un estado definido. |
+| Variable parametriza Plantilla | N:M | Variables rellenan o modifican plantillas. |
+| Variable parametriza Workflow | N:M | Variables pueden afectar idioma, repo, branch pattern, etc. |
+| Variable parametriza Contrato | N:M | Variables pueden parametrizar contratos sin duplicar su estructura. |
+| Plantilla genera Artefacto | 1:N | Una plantilla puede generar muchos artefactos. |
+| Artefacto se asocia a Recurso | N:M | Un artefacto puede documentar o modificar recursos. |
+
+## Relationship Normalization Correction
+
+This correction removes direct process-to-execution ownership from the model.
+
+- Workflow does not own actor/role execution behavior.
+- Workflow does not own limits/rules directly.
+- WorkflowStep does not execute actions directly.
+- WorkflowStep does not own evidence directly.
+- WorkflowStep delegates Actor and Rol.
+- WorkflowStep controls ordering, transitions, repeat/block/advance conditions, and expected artifacts.
+- Actor relationships define execution surface, available actions, limits, and sources.
+- Rol relationships define professional lens, rules, compatible actors, and templates.
+- Resolver composes relationships to determine applicable action, evidence, limits, rules, state, and output.
+
+The rationale is that `Workflow` and `WorkflowStep` define process order, lifecycle sequencing, delegation, and transition. `Actor` and `Rol`, plus their related entities, define how work is executed. This keeps the model reusable, scalable, normalized, and maintainable.
 
 ## 9. Cardinality Model
 
@@ -173,7 +195,7 @@ Cardinality defines the allowed relationship shape, not embedded ownership.
 - `N:1` means many sources can reuse or converge on one target.
 - `N:M` means both sides can participate in many relationships, and the relationship contract carries the meaning, requirement flag, and order.
 
-The cardinality model keeps reusable concepts reusable. For example, a `Regla` can be applied to multiple `Workflow` and `WorkflowStep` contracts; a `Límite` can be shared by multiple actors or workflows; a `Plantilla` can generate multiple `Artefacto` records; and a `WorkflowStep` can advance to multiple next steps or workflows when branching or repetition is allowed.
+The cardinality model keeps reusable concepts reusable. For example, a `Regla` can be applied to multiple `Rol` contracts; a `Límite` can be shared by multiple actors; a `Fuente` can provide many `Evidencia` references; a `Plantilla` can generate multiple `Artefacto` records; and a `WorkflowStep` can delegate multiple actors or roles, expect multiple artifacts, and advance to multiple next steps or workflows when branching or repetition is allowed.
 
 ## 10. Resolver as Single AI Read Entrypoint
 
@@ -187,10 +209,11 @@ The `Resolver` should eventually load:
 - policy/index references needed for routing
 - selector definitions
 - the applicable `Contrato` records
+- applicable `Relación` records
 - related `Actor`, `Rol`, `Workflow`, `WorkflowStep`, `Límite`, `Regla`, `Plantilla`, `Variable`, `Fuente`, and `Evidencia` contracts
-- relationship contracts needed to connect the selected set
+- related `Acción`, `Recurso`, `Scope`, and `Artefacto` contracts when required by the selected relationships
 
-The result is `ResolverOutput`: a minimal selected context that tells the AI what state applies, what workflow or step is active, what evidence is required or available, what limits/rules bind the response, and which template should structure the answer.
+The result is `ResolverOutput`: a minimal selected context that tells the AI what state applies, what workflow or step is active, what actor/role delegation applies, what action is available, what evidence is required or available through sources, what limits/rules bind the response, and which template should structure the answer.
 
 ## 11. Selector / Routing Concept
 
@@ -212,26 +235,24 @@ Selectors should point to contracts and relationships. They should not become a 
 
 ## 12. Workflow and WorkflowStep Model
 
-`Workflow` is an iterable software lifecycle process. It coordinates steps, actors, roles, actions, evidence, limits, rules, artifacts, templates, and states through relationships.
+`Workflow` is an iterable software lifecycle process. It owns lifecycle stage, process order, and ordered `WorkflowStep` membership. It does not own execution behavior; execution is resolved by `Resolver` through step delegation and related actors, roles, actions, sources, evidence, limits, rules, templates, artifacts, and states.
 
-`WorkflowStep` is explicitly modeled as the ordered unit of workflow execution. A step must be able to describe:
+`WorkflowStep` is explicitly modeled as the ordered unit of workflow progression. A step must be able to describe:
 
 - ordered step
 - objective
-- action
-- required evidence
-- limits
-- rules
-- produced artifacts
+- delegated `Actor`
+- delegated `Rol`
+- expected artifacts
 - condition to advance
 - condition to repeat
 - condition to block
 - next `WorkflowStep`
 - next `Workflow`
 
-`WorkflowStep` owns only its normalized step attributes. It does not embed the action, evidence, limits, rules, artifacts, next step, or next workflow. Those are linked by `Relación`.
+`WorkflowStep` owns only its normalized step attributes: identity, order, objective, and transition conditions. It delegates `Actor` and `Rol` through `Relación`. It does not embed action execution, evidence ownership, limits, rules, artifact content, next step, or next workflow. Those are linked by `Relación` and composed by `Resolver`.
 
-This makes a workflow iterable: a step can advance, repeat, block, branch to another step, or enable another workflow based on evidence, limits, rules, and state.
+This makes a workflow iterable: a step can advance, repeat, block, branch to another step, or enable another workflow based on resolver-composed evidence, limits, rules, and state.
 
 ## 13. Software Lifecycle Workflow Direction
 
@@ -255,7 +276,7 @@ The intended AI read flow is:
 3. AI enters through `Resolver`.
 4. `Resolver` reads manifest/policy/indexes/selectors.
 5. `Resolver` selects only applicable contracts.
-6. `Resolver` loads related `Actor`, `Rol`, `Workflow`, `WorkflowStep`, `Límite`, `Regla`, `Plantilla`, `Variable`, `Fuente`, and `Evidencia` contracts.
+6. `Resolver` loads applicable `Relación` contracts and related `Actor`, `Rol`, `Workflow`, `WorkflowStep`, `Acción`, `Recurso`, `Scope`, `Límite`, `Regla`, `Plantilla`, `Variable`, `Fuente`, `Evidencia`, and `Artefacto` contracts.
 7. `Resolver` returns `ResolverOutput`.
 8. AI responds using the selected `Estado` and `Plantilla`.
 9. GitHub remains live evidence for issue/PR/commit/review/tag/validation state.
@@ -274,9 +295,10 @@ Recommended later loading order:
 4. Select candidate contracts by request type, scope, actor surface, role lens, lifecycle stage, and resource type.
 5. Expand through required `Relación` records.
 6. Load only the related entity contracts needed for the selected path.
-7. Resolve state through `Estado`, `Límite`, `Regla`, `Fuente`, and `Evidencia`.
-8. Select `Plantilla` and `Variable` contracts needed for output.
-9. Return a compact `ResolverOutput`.
+7. Resolve execution behavior through delegated `Actor`, `Rol`, available `Acción`, permitted `Fuente`, referenced `Evidencia`, applicable `Límite`, and applicable `Regla`.
+8. Determine `Estado` from the composed relationship set.
+9. Select `Plantilla` and `Variable` contracts needed for output.
+10. Return a compact `ResolverOutput`.
 
 The loading strategy should support generated indexes later, but the canonical information should remain in JSON contracts.
 
@@ -286,6 +308,7 @@ JSON contracts should contain stable, versionable structure:
 
 - normalized entity attributes from the base model
 - relationship endpoints and cardinality
+- normalized delegation, compatibility, requirement, dependency, sequencing, and restriction relationships
 - schema references
 - lifecycle definitions at the contract level
 - reusable limits and rules
@@ -311,6 +334,7 @@ JSON contracts should not contain:
 - panel/UI state
 - target-project generated artifacts
 - write authorization decisions
+- direct workflow or step copies of actor/role execution behavior
 - duplicated permissions, requirements, dependencies, sequencing, or restrictions that belong in `Relación`
 
 Contracts should reference evidence and sources where appropriate, but live state should remain live.
@@ -380,6 +404,7 @@ None of these phases are implemented in this issue.
 Risks:
 
 - Overloading `Workflow` with embedded behavior would weaken normalization.
+- Reintroducing direct workflow or step ownership of execution behavior would duplicate Actor/Rol/Acción/Fuente/Evidencia/Límite/Regla relationships.
 - Treating Markdown as contract data would create multiple human documentation surfaces and competing sources of truth.
 - Copying GitHub live evidence into static contracts or docs would make traceability stale.
 - Creating database state too early could invert the intended source-of-truth model.
@@ -392,7 +417,7 @@ Open questions:
 - What exact contract directory structure should be used when JSON contracts are introduced?
 - How should `ResolverInput` and `ResolverOutput` be shaped when schemas are created?
 - Which selector dimensions should be mandatory versus optional?
-- What minimum evidence references should be required before a `WorkflowStep` can advance?
+- What minimum evidence references should `Resolver` require through sources before a `WorkflowStep` can advance?
 - How should PM approval be represented as `Evidencia` without becoming a separate approval entity?
 - Which generated read model, if any, should be introduced first?
 - What semantic validator language and execution environment should be approved?
