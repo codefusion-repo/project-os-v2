@@ -5,11 +5,11 @@
 | Resolver determina Estado          |          1:N | Un resolver devuelve estados derivados de relaciones, evidencia y límites.   |
 | Contrato formaliza Entidad         |          1:N | Una entidad puede tener múltiples versiones de contrato.                    |
 | Contrato formaliza Relación        |          1:N | Una relación puede tener múltiples versiones de contrato.                   |
-| Workflow contiene WorkflowStep     |          1:N | Un workflow agrupa uno o más pasos ordenados.                               |
-| Workflow ordena WorkflowStep       |          1:N | Un workflow define el orden del proceso entre sus pasos.                    |
+| Workflow compone WorkflowStep      |          N:M | Un workflow compone bloques reutilizables de proceso.                       |
+| Workflow ordena WorkflowStep       |          N:M | Un workflow ubica sus pasos mediante relación.                              |
 | Workflow avanza a Workflow         |          N:M | Un workflow puede habilitar otro workflow dentro del ciclo de vida.         |
 | Workflow usa Plantilla             |          N:M | Un workflow puede usar plantillas para salidas o reportes de proceso.       |
-| WorkflowStep pertenece a Workflow  |          N:1 | Un paso pertenece a un workflow que lo contiene y ordena.                   |
+| WorkflowStep participa en Workflow |          N:M | Un bloque reutilizable puede participar en varios workflows.                |
 | WorkflowStep delega Actor          |          N:M | Un paso delega ejecución a actores sin copiar sus capacidades.              |
 | WorkflowStep delega Rol            |          N:M | Un paso delega lente profesional a roles sin copiar sus reglas.             |
 | WorkflowStep avanza a WorkflowStep |          N:M | Un paso puede tener siguiente paso, bifurcaciones o repetición.             |

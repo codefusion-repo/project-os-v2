@@ -2,7 +2,7 @@
 
 ## 1. Objective
 
-Define the initial Project OS v2 foundation design as a human design/reference document, including the architectural pattern, stack direction, normalized entity model, relationship model, `Resolver`, AI read flow, workflow lifecycle direction, boundaries, and future phases.
+Define the initial Project OS v2 foundation design as a human design/reference document, including the architectural pattern, stack direction, normalized entity model, relationship model, `Resolver`, AI read flow, workflow lifecycle direction, boundaries, and future work.
 
 This document is based on the PM-provided source files:
 
@@ -52,12 +52,10 @@ This stack is a design direction only, not an implementation commitment for this
 - JSON contracts are the canonical stable structure for entities and relationships.
 - JSON Schema should validate contract shape later.
 - Semantic validators should be added later, likely in Python, to validate cross-contract rules and relationships.
-- An optional generated read model may be created later for faster lookup and AI retrieval.
-- SQLite, PostgreSQL, or a graph database may later be used as a projection, not as the source of truth.
 - Markdown is only for human design/reference.
 - GitHub issues, PRs, commits, comments, reviews, tags, and validation outputs are live evidence.
 
-The source of truth direction is: JSON contracts first, live GitHub evidence for operational traceability, Markdown for explanation, and database/read-model projections only as generated views.
+The source of truth direction is: JSON contracts first, live GitHub evidence for operational traceability, and Markdown for explanation. Storage and execution implementation concerns are outside this foundational design issue.
 
 ## 5. Normalization Principles
 
@@ -78,7 +76,7 @@ Normalization boundaries:
 
 The design favors small contracts with explicit links over large contracts that embed adjacent concepts.
 
-Execution behavior is resolved from `Actor` + `Rol` + `Acción` + `Límite` + `Regla` + `Fuente` + `Evidencia` through `Relación`. `Workflow` defines process order and lifecycle progression. `WorkflowStep` defines step order, objective, Actor/Rol delegation, transition logic, and expected artifacts. `Resolver` composes relationships and determines `Estado`.
+Execution behavior is resolved from `Actor` + `Rol` + `Acción` + `Límite` + `Regla` + `Fuente` + `Evidencia` through `Relación`. `Workflow` defines lifecycle/process composition. `WorkflowStep` defines reusable step identity, objective, base conditions, Actor/Rol delegation, transition logic, and expected artifacts. `Resolver` composes relationships and determines `Estado`.
 
 ## 6. Entity Model
 
@@ -112,8 +110,8 @@ Each base entity should become a versionable JSON contract later. This document 
 | `Resolver` | Entrada única para resolver qué contratos aplican a una solicitud. | Resolver identity, version, manifest reference, policy reference, input/output schema references, fallback state reference. | `id`, `nombre`, `descripción`, `versión`, `manifest_ref`, `policy_ref`, `input_schema_ref`, `output_schema_ref`, `fallback_estado_id` | Full workflows, actor permissions, evidence bodies, GitHub state snapshots, target-project artifacts, or duplicated relationship decisions. | A future resolver contract that composes relationships and routes an AI request to the minimal applicable contracts. |
 | `Actor` | Superficie desde donde se ejecuta una acción y sus capacidades base. | Execution surface identity and base capability description. | `id`, `nombre`, `descripción`, `superficie_capacidad` | Permissions, workflow membership, role behavior, policy, or live environment state; these belong in `Límite`, `Regla`, and `Relación`. | A future actor contract representing an execution surface. |
 | `Rol` | Lente profesional aplicado a una tarea. | Professional lens and role description used to interpret a task. | `id`, `nombre`, `descripción`, `lente_profesional` | Actor identity, permissions, evidence, workflow order, or prompt text that belongs to `Plantilla`. | A future role contract representing a professional review lens with related rules and templates. |
-| `Workflow` | Proceso iterable que define orden de proceso y etapa del ciclo de vida. | Workflow identity, lifecycle stage, and workflow order. | `id`, `nombre`, `descripción`, `etapa_ciclo_vida`, `orden` | Actor/role execution behavior, direct actions, direct evidence, direct limits, direct rules, or resolver-derived state. | A future workflow contract for one lifecycle process and its ordered step sequence. |
-| `WorkflowStep` | Paso ordenado con objetivo, delegación Actor/Rol y lógica de transición. | Step identity, order, objective, and advance/repeat/block conditions. | `id`, `nombre`, `descripción`, `orden`, `objetivo`, `condición_avance`, `condición_repetición`, `condición_bloqueo` | Direct action execution, evidence ownership, direct limits, direct rules, actor capability, role rules, produced artifact content, or next-step embedding. | A future step contract for one ordered stage that delegates to `Actor` and `Rol` through relationships. |
+| `Workflow` | Proceso iterable que define orden de proceso y etapa del ciclo de vida. | Workflow identity, lifecycle stage, and process composition. | `id`, `nombre`, `descripción`, `etapa_ciclo_vida`, `orden` | Actor/role execution behavior, direct actions, direct evidence, direct limits, direct rules, or resolver-derived state. | A future workflow contract for one lifecycle process assembled from reusable steps. |
+| `WorkflowStep` | Bloque reutilizable de proceso usado dentro de workflows. | Reusable step identity, objective, and base advance/repeat/block conditions. | `id`, `nombre`, `descripción`, `objetivo`, `condición_base_avance`, `condición_base_repetición`, `condición_base_bloqueo` | Direct action execution, evidence ownership, direct limits, direct rules, actor capability, role rules, produced artifact content, or workflow-specific sequencing values. | A future reusable process block that delegates to `Actor` and `Rol` through relationships. |
 | `Acción` | Operación concreta que se quiere realizar. | Action identity and action type. | `id`, `nombre`, `descripción`, `tipo` | Actor identity, resource details, scope, evidence, or execution result. | A future action contract for a concrete operation such as inspect, create, validate, or review. |
 | `Recurso` | Objeto sobre el que actúa una acción. | Resource identity, type, name, and location. | `id`, `tipo`, `nombre`, `ubicación` | Action semantics, scope membership, evidence verification state, or artifact generation rules. | A future resource contract pointing to a file path, issue, PR, commit, tag, or external reference. |
 | `Scope` | Alcance permitido de una tarea. | Scope identity and allowed task boundary description. | `id`, `nombre`, `descripción` | Resources by value, action permissions, actor capability, or workflow order. | A future scope contract representing the allowed boundary of a task. |
@@ -125,8 +123,8 @@ Each base entity should become a versionable JSON contract later. This document 
 | `Variable` | Dato dinámico configurable. | Variable identity, type, default value, and allowed values. | `id`, `nombre`, `tipo`, `valor_default`, `valores_permitidos` | Template bodies, workflow definitions, live runtime values, or validator behavior. | A future variable contract parameterizing a template or workflow. |
 | `Plantilla` | Estructura reusable para generar prompts, respuestas, reportes o bodies. | Template identity, type, format, and required sections. | `id`, `nombre`, `tipo`, `formato`, `secciones_requeridas` | Variable definitions, workflow eligibility, live evidence state, or separate prompt/response entities. | A future template contract for a response, prompt, report, or PR body structure. |
 | `Artefacto` | Resultado referenciable esperado por un paso o producido por acción/plantilla. | Artifact identity, type, name, and reference. | `id`, `tipo`, `nombre`, `referencia` | Producing step logic, template definition, resource definition, or validation state. | A future artifact contract/reference for a design document, generated report, PR body, or validation result. |
-| `Relación` | Vínculo formal entre entidades para compatibility, permission, requirement, dependency, sequencing, or restriction semantics. | Relationship identity, endpoints, relationship type, cardinality, required flag, and order. | `id`, `origen_entidad`, `origen_id`, `destino_entidad`, `destino_id`, `tipo_relación`, `cardinalidad`, `requerido`, `orden` | Duplicated attributes from either endpoint or embedded copies of related contracts. | A future relationship contract connecting `WorkflowStep` to delegated `Actor`/`Rol`, expected `Artefacto`, or next `WorkflowStep`. |
-| `Contrato` | Especificación formal/versionable de una entidad o relación. | Contract identity, entity type, version, schema reference, and state. | `id`, `nombre`, `entidad_tipo`, `versión`, `schema_ref`, `estado` | Entity-specific attributes not belonging to the contract wrapper, live GitHub evidence, or generated database rows. | A future contract file that formalizes one entity or relationship version. |
+| `Relación` | Vínculo formal entre entidades para compatibility, permission, requirement, dependency, sequencing, or restriction semantics. | Relationship identity, endpoints, relationship type, cardinality, required flag, and order. | `id`, `origen_entidad`, `origen_id`, `destino_entidad`, `destino_id`, `tipo_relación`, `cardinalidad`, `requerido`, `orden` | Duplicated attributes from either endpoint or embedded copies of related contracts. | A future relationship contract that composes workflow steps, delegates `Actor`/`Rol`, expects `Artefacto`, or points to the next step. |
+| `Contrato` | Especificación formal/versionable de una entidad o relación. | Contract identity, entity type, version, schema reference, and state. | `id`, `nombre`, `entidad_tipo`, `versión`, `schema_ref`, `estado` | Entity-specific attributes not belonging to the contract wrapper, live GitHub evidence, or generated implementation state. | A future contract file that formalizes one entity or relationship version. |
 
 ## 8. Relationship Model
 
@@ -141,11 +139,11 @@ The main relationship model is:
 | Resolver determina Estado | 1:N | Un resolver devuelve estados derivados de relaciones, evidencia y límites. |
 | Contrato formaliza Entidad | 1:N | Una entidad puede tener múltiples versiones de contrato. |
 | Contrato formaliza Relación | 1:N | Una relación puede tener múltiples versiones de contrato. |
-| Workflow contiene WorkflowStep | 1:N | Un workflow agrupa uno o más pasos ordenados. |
-| Workflow ordena WorkflowStep | 1:N | Un workflow define el orden del proceso entre sus pasos. |
+| Workflow compone WorkflowStep | N:M | Un workflow compone bloques reutilizables de proceso. |
+| Workflow ordena WorkflowStep | N:M | Un workflow ubica sus pasos mediante relación. |
 | Workflow avanza a Workflow | N:M | Un workflow puede habilitar otro workflow dentro del ciclo de vida. |
 | Workflow usa Plantilla | N:M | Un workflow puede usar plantillas para salidas o reportes de proceso. |
-| WorkflowStep pertenece a Workflow | N:1 | Un paso pertenece a un workflow que lo contiene y ordena. |
+| WorkflowStep participa en Workflow | N:M | Un bloque reutilizable puede participar en varios workflows. |
 | WorkflowStep delega Actor | N:M | Un paso delega ejecución a actores sin copiar sus capacidades. |
 | WorkflowStep delega Rol | N:M | Un paso delega lente profesional a roles sin copiar sus reglas. |
 | WorkflowStep avanza a WorkflowStep | N:M | Un paso puede tener siguiente paso, bifurcaciones o repetición. |
@@ -180,12 +178,46 @@ This correction removes direct process-to-execution ownership from the model.
 - WorkflowStep does not execute actions directly.
 - WorkflowStep does not own evidence directly.
 - WorkflowStep delegates Actor and Rol.
-- WorkflowStep controls ordering, transitions, repeat/block/advance conditions, and expected artifacts.
+- WorkflowStep owns reusable objective and base repeat/block/advance conditions.
 - Actor relationships define execution surface, available actions, limits, and sources.
 - Rol relationships define professional lens, rules, compatible actors, and templates.
 - Resolver composes relationships to determine applicable action, evidence, limits, rules, state, and output.
 
-The rationale is that `Workflow` and `WorkflowStep` define process order, lifecycle sequencing, delegation, and transition. `Actor` and `Rol`, plus their related entities, define how work is executed. This keeps the model reusable, scalable, normalized, and maintainable.
+The rationale is that `Workflow` defines lifecycle sequencing and composition while reusable step blocks define objective and base transition semantics. `Actor` and `Rol`, plus their related entities, define how work is executed. This keeps the model reusable, scalable, normalized, and maintainable.
+
+## Reusable WorkflowStep Composition
+
+WorkflowStep is a reusable process block.
+
+- WorkflowStep can be used by multiple Workflows.
+- Workflow composes WorkflowSteps through Relación.
+- The order of a WorkflowStep inside a Workflow is not owned by WorkflowStep.
+- The order is stored in Relación.orden.
+- El orden específico del workflow vive en Relación.orden.
+- WorkflowStep delegates Actor and Rol.
+- A WorkflowStep can be reused with different order, required flag, delegated Actor, delegated Rol, expected Artefacto, and transition conditions depending on the Workflow.
+- WorkflowStep is analogous to a reusable puzzle piece.
+- Workflow is the assembled puzzle for a specific software lifecycle process.
+
+Workflow is lifecycle/process composition. WorkflowStep is the reusable process block being composed. Workflow-specific order lives in Relación, not in WorkflowStep. Workflow-specific required/optional state lives in `Relación.requerido`. Workflow-specific transition order lives in `Relación` between `Workflow`, `WorkflowStep`, and the next `WorkflowStep`. Workflow-specific Actor/Rol delegation can also be represented through `Relación`. Base conditions on WorkflowStep are generic defaults, not workflow-specific truth.
+
+Conceptual example:
+
+`workflow.design` may compose:
+
+- `workflow_step.preflight`
+- `workflow_step.investigation`
+- `workflow_step.base_design`
+- `workflow_step.human_qa_checklist`
+
+`workflow.implementation` may compose:
+
+- `workflow_step.preflight`
+- `workflow_step.implementation`
+- `workflow_step.validation`
+- `workflow_step.review_before_close`
+
+The same `workflow_step.preflight` can be reused in both workflows with different order and delegated Actor/Rol through Relación.
 
 ## 9. Cardinality Model
 
@@ -235,22 +267,21 @@ Selectors should point to contracts and relationships. They should not become a 
 
 ## 12. Workflow and WorkflowStep Model
 
-`Workflow` is an iterable software lifecycle process. It owns lifecycle stage, process order, and ordered `WorkflowStep` membership. It does not own execution behavior; execution is resolved by `Resolver` through step delegation and related actors, roles, actions, sources, evidence, limits, rules, templates, artifacts, and states.
+`Workflow` is an iterable software lifecycle process. It owns lifecycle stage and process composition. It does not own execution behavior; execution is resolved by `Resolver` through reusable step composition, delegation, and related actors, roles, actions, sources, evidence, limits, rules, templates, artifacts, and states.
 
-`WorkflowStep` is explicitly modeled as the ordered unit of workflow progression. A step must be able to describe:
+`WorkflowStep` is explicitly modeled as a reusable process block. A step must be able to describe:
 
-- ordered step
 - objective
+- base condition to advance
+- base condition to repeat
+- base condition to block
 - delegated `Actor`
 - delegated `Rol`
 - expected artifacts
-- condition to advance
-- condition to repeat
-- condition to block
 - next `WorkflowStep`
 - next `Workflow`
 
-`WorkflowStep` owns only its normalized step attributes: identity, order, objective, and transition conditions. It delegates `Actor` and `Rol` through `Relación`. It does not embed action execution, evidence ownership, limits, rules, artifact content, next step, or next workflow. Those are linked by `Relación` and composed by `Resolver`.
+`WorkflowStep` owns only its normalized reusable attributes: identity, objective, and base transition conditions. It delegates `Actor` and `Rol` through `Relación`. It does not embed action execution, evidence ownership, limits, rules, artifact content, next step, next workflow, or workflow-specific sequencing. Those are linked by `Relación` and composed by `Resolver`.
 
 This makes a workflow iterable: a step can advance, repeat, block, branch to another step, or enable another workflow based on resolver-composed evidence, limits, rules, and state.
 
@@ -327,7 +358,6 @@ JSON contracts should not contain:
 - live PR state copied as static data
 - commit review status copied as static data
 - validation output bodies copied as canonical facts
-- generated database projection rows
 - runtime cache data
 - parser output
 - automation execution logs
@@ -371,35 +401,21 @@ Markdown may describe:
 
 Markdown should not become a second contract system. It should not duplicate live evidence, encode runtime behavior, or act as the source of truth for actors, roles, workflows, limits, or rules once JSON contracts exist.
 
-## 20. Future Database / Read-Model Direction
+## 20. Future Work
 
-A database or read model may later be generated to speed up lookup and AI retrieval.
-
-Acceptable projection targets may include:
-
-- SQLite for local generated indexes
-- PostgreSQL for shared/queryable projection
-- graph database storage for relationship traversal
-- vector/search indexes for retrieval support
-
-These are projections only. The source of truth remains JSON contracts plus GitHub live evidence for operational state. Any database/read-model projection should be reproducible from contracts and live evidence references.
-
-## 21. Future Implementation Phases
-
-Potential future phases:
+Potential future work:
 
 1. Define JSON contract directory layout and naming conventions.
 2. Create JSON Schema files for contract shape validation.
 3. Create initial entity and relationship contracts from approved model decisions.
 4. Add semantic validators for cross-contract consistency.
 5. Add resolver manifest/index/selector contracts.
-6. Add generated read model or database projection.
-7. Add controlled runtime behavior only after contract and validation foundations are approved.
-8. Add panel, automation, runners, context packs, or write authorization only as explicitly scoped future work.
+6. Add controlled runtime behavior only after contract and validation foundations are approved.
+7. Add panel, automation, runners, context packs, or write authorization only as explicitly scoped future work.
 
-None of these phases are implemented in this issue.
+None of this future work is implemented in this issue.
 
-## 22. Risks and Open Questions
+## 21. Risks and Open Questions
 
 Risks:
 
@@ -407,7 +423,6 @@ Risks:
 - Reintroducing direct workflow or step ownership of execution behavior would duplicate Actor/Rol/Acción/Fuente/Evidencia/Límite/Regla relationships.
 - Treating Markdown as contract data would create multiple human documentation surfaces and competing sources of truth.
 - Copying GitHub live evidence into static contracts or docs would make traceability stale.
-- Creating database state too early could invert the intended source-of-truth model.
 - Under-specifying selectors could force AI agents to load too many contracts.
 - Over-specifying selectors before implementation could prematurely lock in runtime behavior.
 - Ambiguous boundaries between `Límite` and `Regla` could cause constraints and guidance to drift.
@@ -419,5 +434,4 @@ Open questions:
 - Which selector dimensions should be mandatory versus optional?
 - What minimum evidence references should `Resolver` require through sources before a `WorkflowStep` can advance?
 - How should PM approval be represented as `Evidencia` without becoming a separate approval entity?
-- Which generated read model, if any, should be introduced first?
 - What semantic validator language and execution environment should be approved?
