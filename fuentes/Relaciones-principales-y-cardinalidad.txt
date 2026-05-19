@@ -1,0 +1,33 @@
+| Relación                           | Cardinalidad | Descripción                                                                |
+| ---------------------------------- | -----------: | -------------------------------------------------------------------------- |
+| Resolver carga Contrato            |          1:N | Un resolver usa varios contratos para resolver una solicitud.              |
+| Resolver determina Estado          |          1:N | Un resolver puede devolver distintos estados según evidencia y límites.    |
+| Contrato formaliza Entidad         |          1:N | Una entidad puede tener múltiples versiones de contrato.                   |
+| Workflow contiene WorkflowStep     |          1:N | Un workflow tiene uno o más pasos ordenados.                               |
+| Workflow permite Actor             |          N:M | Varios actores pueden participar en varios workflows.                      |
+| Workflow permite Rol               |          N:M | Varios roles pueden aplicar en varios workflows.                           |
+| Workflow aplica Límite             |          N:M | Un workflow puede tener múltiples límites, y un límite puede reutilizarse. |
+| Workflow aplica Regla              |          N:M | Un workflow puede usar múltiples reglas, y una regla puede reutilizarse.   |
+| Workflow produce Estado            |          N:M | Un workflow puede terminar en varios estados posibles.                     |
+| Workflow usa Plantilla             |          N:M | Un workflow puede usar varias plantillas de salida.                        |
+| WorkflowStep ejecuta Acción        |          N:1 | Muchos pasos pueden reutilizar una misma acción.                           |
+| WorkflowStep requiere Evidencia    |          N:M | Un paso puede requerir varias evidencias.                                  |
+| WorkflowStep aplica Límite         |          N:M | Un paso puede tener límites propios o heredados.                           |
+| WorkflowStep aplica Regla          |          N:M | Un paso puede tener reglas propias o heredadas.                            |
+| WorkflowStep produce Artefacto     |          N:M | Un paso puede producir uno o más artefactos.                               |
+| WorkflowStep avanza a WorkflowStep |          N:M | Un paso puede tener siguiente paso, bifurcaciones o repetición.            |
+| WorkflowStep avanza a Workflow     |          N:M | Un paso final puede habilitar otro workflow.                               |
+| Actor ejecuta Acción               |          N:M | Un actor puede ejecutar varias acciones si sus límites lo permiten.        |
+| Actor tiene Límite                 |          N:M | Los límites del actor definen capacidad real.                              |
+| Rol aplica Regla                   |          N:M | Un rol puede tener reglas de conducta o criterio profesional.              |
+| Acción actúa sobre Recurso         |          N:M | Una acción puede operar sobre varios tipos de recurso.                     |
+| Acción ocurre dentro de Scope      |          N:M | Una acción solo es válida dentro de un alcance.                            |
+| Scope incluye Recurso              |          N:M | Un scope define qué recursos entran o quedan fuera.                        |
+| Fuente provee Evidencia            |          1:N | Una fuente puede producir muchas evidencias.                               |
+| Evidencia refiere Recurso          |          N:M | Una evidencia puede apuntar a uno o más recursos.                          |
+| Límite falla en Estado             |          N:1 | Si un límite se rompe, lleva a un estado como `blocked`.                   |
+| Regla falla en Estado              |          N:1 | Si una regla no se cumple, lleva a un estado definido.                     |
+| Variable parametriza Plantilla     |          N:M | Variables rellenan o modifican plantillas.                                 |
+| Variable parametriza Workflow      |          N:M | Variables pueden afectar idioma, repo, branch pattern, etc.                |
+| Plantilla genera Artefacto         |          1:N | Una plantilla puede generar muchos artefactos.                             |
+| Artefacto se asocia a Recurso      |          N:M | Un artefacto puede documentar o modificar recursos.                        |
