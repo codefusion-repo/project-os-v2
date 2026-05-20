@@ -1,0 +1,16 @@
+{
+  "id": "workflow.placeholder_workflow.v1",
+  "entity_family": "workflow",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": null,
+    "etapa_ciclo_vida": null
+  }
+}

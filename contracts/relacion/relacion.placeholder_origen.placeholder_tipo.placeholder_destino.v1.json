@@ -1,0 +1,22 @@
+{
+  "id": "relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": null,
+    "origen_id": null,
+    "destino_entidad": null,
+    "destino_id": null,
+    "tipo_relacion": null,
+    "cardinalidad": null,
+    "requerido": null,
+    "orden": null
+  }
+}

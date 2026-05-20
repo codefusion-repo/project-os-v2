@@ -1,0 +1,20 @@
+{
+  "id": "resolver.placeholder_resolver.v1",
+  "entity_family": "resolver",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": null,
+    "manifest_ref": null,
+    "policy_ref": null,
+    "input_schema_ref": null,
+    "output_schema_ref": null,
+    "fallback_estado_id": null
+  }
+}
