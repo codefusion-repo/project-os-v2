@@ -10,13 +10,23 @@ This document is based on the PM-provided source files:
 - `fuentes/Modelo-base-con-definiciones-y-atributos-normalizados.txt`
 - `fuentes/Relaciones-principales-y-cardinalidad.txt`
 
-This issue creates documentation only. It does not create JSON contracts, schemas, validators, runtime behavior, parser behavior, automation, panels, context packs, target-project artifacts, release behavior, or write authorization behavior.
+This issue creates documentation only. It does not create JSON contracts, schemas, validators, runtime behavior, parser behavior, automation, APIs, panels, runners, context packs, target-project artifacts, database/read-model direction, release behavior, or write authorization behavior.
 
 ## 2. Problem Statement
 
 Project OS v2 needs a stable model that lets humans and AI agents reason about project behavior without loading every possible rule, workflow, role, source, and artifact at once. The model must support highly normalized contracts, explicit relationships, evidence-based decisions, and GitHub traceability while keeping static documentation separate from live operational state.
 
 The core problem is not how to execute the system yet. The core problem is defining the entities, attributes, relationships, and read path that later implementations can validate, project, and execute without duplicating concepts across contracts.
+
+## Operational Design Principles
+
+Project OS v2 treats project work as a complex operation that must be organized from a normalized base structure. Its design starts by organizing complex project operations through explicit entities and relationships, anticipating logistical problems before execution instead of discovering every dependency inside runtime code.
+
+The system assigns execution surfaces, professional lenses, resources, limits, rules, and workflows with precision through `Actor`, `Rol`, `Recurso`, `Límite`, `Regla`, `Workflow`, and `Relación`. It coordinates reusable `WorkflowStep` components across different project environments by composing them through `Relación`, so steps can be reused without copying workflow-specific order, delegation, evidence, or constraints into the step itself.
+
+Execution plans should remain flexible when real evidence differs from the plan. Project OS v2 adapts through `Resolver`, `Estado`, `Evidencia`, and `Relación`, not through hardcoded behavior. This is an operational design principle, not a new model entity.
+
+The immediate implementation direction is contract structure and contract data, not code-heavy test infrastructure. Runtime behavior, parser behavior, automation, APIs, panels, context packs, target-project artifacts, database/read-model direction, write authorization behavior, schema files, and validator work are not the next step; validators may become future tooling only after contracts exist and the model proves automated checks are needed.
 
 ## 3. Architectural Pattern
 
@@ -50,8 +60,10 @@ The intended pattern is:
 This stack is a design direction only, not an implementation commitment for this issue.
 
 - JSON contracts are the canonical stable structure for entities and relationships.
-- JSON Schema should validate contract shape later.
-- Semantic validators should be added later, likely in Python, to validate cross-contract rules and relationships.
+- The immediate next direction is JSON contract structure and contract data.
+- JSON Schema may validate contract shape later, after the contract structure exists and the model proves shape checks are needed.
+- Semantic validators may be future tooling only after contracts exist and the model proves cross-contract automated checks are needed.
+- Runtime behavior, parser behavior, automation, APIs, panels, runners, context packs, target-project artifacts, database/read-model direction, schema files, and write authorization behavior are not the next step.
 - Markdown is only for human design/reference.
 - GitHub issues, PRs, commits, comments, reviews, tags, and validation outputs are live evidence.
 
@@ -406,12 +418,13 @@ Markdown should not become a second contract system. It should not duplicate liv
 Potential future work:
 
 1. Define JSON contract directory layout and naming conventions.
-2. Create JSON Schema files for contract shape validation.
-3. Create initial entity and relationship contracts from approved model decisions.
-4. Add semantic validators for cross-contract consistency.
-5. Add resolver manifest/index/selector contracts.
-6. Add controlled runtime behavior only after contract and validation foundations are approved.
-7. Add panel, automation, runners, context packs, or write authorization only as explicitly scoped future work.
+2. Create initial entity and relationship contract data from approved model decisions.
+3. Refine `ResolverInput` and `ResolverOutput` contract structure.
+4. Add resolver manifest/index/selector contracts.
+5. Consider JSON Schema files for contract shape validation only after contract structure stabilizes.
+6. Consider semantic validators for cross-contract consistency only after contracts exist and the model proves automated checks are needed.
+7. Add controlled runtime behavior only after contract structure, contract data, and any approved validation foundations are complete.
+8. Add APIs, panels, automation, runners, context packs, or write authorization only as explicitly scoped future work.
 
 None of this future work is implemented in this issue.
 
