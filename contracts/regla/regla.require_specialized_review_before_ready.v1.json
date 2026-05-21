@@ -1,0 +1,17 @@
+{
+  "id": "regla.require_specialized_review_before_ready.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "require_specialized_review_before_ready",
+    "condicion": "when_pr_changes_contract_structure_or_population",
+    "comportamiento_esperado": "obtain_review_result_before_ready_or_merge"
+  }
+}

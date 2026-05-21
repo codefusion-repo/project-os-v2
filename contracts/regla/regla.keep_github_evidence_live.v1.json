@@ -1,0 +1,17 @@
+{
+  "id": "regla.keep_github_evidence_live.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "keep_github_evidence_live",
+    "condicion": "when_contract_data_references_github_state",
+    "comportamiento_esperado": "reference_live_evidence_without_copying_mutable_state"
+  }
+}
