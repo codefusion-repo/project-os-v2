@@ -1,5 +1,5 @@
 {
-  "id": "plantilla.agent_execution_report.v1",
+  "id": "plantilla.project_os_v2_response.v1",
   "entity_family": "plantilla",
   "contract_kind": "entity",
   "version": {
@@ -10,22 +10,18 @@
   "descripcion": null,
   "source_refs": [],
   "payload": {
-    "nombre": "agent_execution_report",
-    "tipo": "report",
+    "nombre": "project_os_v2_response",
+    "tipo": "resolver_response_template",
     "formato": "markdown",
     "secciones_requeridas": [
-      "issue",
-      "repository",
-      "branch",
-      "head_before",
-      "head_after",
-      "files_changed",
-      "evidence_reviewed",
-      "summary",
+      "resolver_context",
+      "resolver_status",
+      "output_contract",
+      "response",
+      "evidence",
       "validation",
       "risks_limitations",
-      "remaining_work",
-      "pr_link",
+      "next_step",
       "boundary_confirmation"
     ]
   }
