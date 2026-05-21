@@ -1,0 +1,32 @@
+{
+  "id": "plantilla.agent_execution_report.v1",
+  "entity_family": "plantilla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "agent_execution_report",
+    "tipo": "report",
+    "formato": "markdown",
+    "secciones_requeridas": [
+      "issue",
+      "repository",
+      "branch",
+      "head_before",
+      "head_after",
+      "files_changed",
+      "evidence_reviewed",
+      "summary",
+      "validation",
+      "risks_limitations",
+      "remaining_work",
+      "pr_link",
+      "boundary_confirmation"
+    ]
+  }
+}
