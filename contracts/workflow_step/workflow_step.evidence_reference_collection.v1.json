@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.evidence_reference_collection.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "evidence_reference_collection",
+    "objetivo": "identificar_evidencia_requerida_y_disponible_por_referencia",
+    "condicion_base_avance": "evidencia_disponible_y_faltante_listada_por_referencia",
+    "condicion_base_repeticion": "faltan_referencias_obtenibles_o_cambia_fuente_de_verdad",
+    "condicion_base_bloqueo": "evidencia_requerida_no_disponible_y_no_se_puede_avanzar_sin_inventarla"
+  }
+}

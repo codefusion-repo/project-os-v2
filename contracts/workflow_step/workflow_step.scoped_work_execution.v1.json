@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.scoped_work_execution.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "scoped_work_execution",
+    "objetivo": "coordinar_trabajo_acotado_dentro_de_limites_aprobados",
+    "condicion_base_avance": "resultado_y_evidencia_del_trabajo_disponible",
+    "condicion_base_repeticion": "validacion_falla_se_piden_correcciones_o_cambia_scope",
+    "condicion_base_bloqueo": "falta_autorizacion_branch_preflight_alcance_actor_compatible_o_evidencia"
+  }
+}

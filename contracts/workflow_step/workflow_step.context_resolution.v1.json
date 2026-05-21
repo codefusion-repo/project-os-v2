@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.context_resolution.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "context_resolution",
+    "objetivo": "establecer_contexto_minimo_aplicable",
+    "condicion_base_avance": "contexto_alcance_y_evidencia_minima_identificados",
+    "condicion_base_repeticion": "cambia_solicitud_repositorio_issue_pr_fuente_o_limite",
+    "condicion_base_bloqueo": "falta_contexto_minimo_o_hay_conflicto_de_autoridad"
+  }
+}

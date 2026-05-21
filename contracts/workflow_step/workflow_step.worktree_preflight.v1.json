@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.worktree_preflight.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "worktree_preflight",
+    "objetivo": "confirmar_estado_del_worktree_antes_de_trabajo_local_o_revision",
+    "condicion_base_avance": "worktree_limpio_o_estado_sucio_aceptable_y_explicado",
+    "condicion_base_repeticion": "aparecen_cambios_nuevos_o_no_verificados",
+    "condicion_base_bloqueo": "cambios_no_relacionados_estado_ambiguo_o_riesgo_de_overwrite"
+  }
+}

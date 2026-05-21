@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.request_routing.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "request_routing",
+    "objetivo": "clasificar_y_enrutar_solicitud_hacia_workflow_rol_actor_o_siguiente_bloque",
+    "condicion_base_avance": "ruta_recomendada_identificada_con_razon_y_limites",
+    "condicion_base_repeticion": "hay_rutas_viables_con_evidencia_incompleta_o_cambia_objetivo",
+    "condicion_base_bloqueo": "actor_rol_workflow_o_autoridad_de_ruta_incompatible_o_desconocida"
+  }
+}
