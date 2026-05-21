@@ -1,0 +1,16 @@
+{
+  "id": "accion.prepare_release_packet.v1",
+  "entity_family": "accion",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "prepare_release_packet",
+    "tipo": "release_preparation"
+  }
+}
