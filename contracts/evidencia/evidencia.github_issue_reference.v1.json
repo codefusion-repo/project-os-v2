@@ -1,0 +1,18 @@
+{
+  "id": "evidencia.github_issue_reference.v1",
+  "entity_family": "evidencia",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "tipo": "github_issue_reference",
+    "referencia": null,
+    "estado_verificacion": null,
+    "observado_en": null
+  }
+}
