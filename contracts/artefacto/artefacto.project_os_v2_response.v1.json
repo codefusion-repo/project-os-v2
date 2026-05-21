@@ -1,0 +1,17 @@
+{
+  "id": "artefacto.project_os_v2_response.v1",
+  "entity_family": "artefacto",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "tipo": "project_os_v2_response",
+    "nombre": "project_os_v2_response",
+    "referencia": null
+  }
+}
