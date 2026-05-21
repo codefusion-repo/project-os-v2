@@ -1,0 +1,22 @@
+{
+  "id": "relacion.accion.actua_sobre.recurso.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "accion",
+    "origen_id": null,
+    "destino_entidad": "recurso",
+    "destino_id": null,
+    "tipo_relacion": "actua_sobre",
+    "cardinalidad": "N:M",
+    "requerido": null,
+    "orden": null
+  }
+}

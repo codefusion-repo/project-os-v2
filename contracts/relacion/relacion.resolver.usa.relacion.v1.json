@@ -1,0 +1,22 @@
+{
+  "id": "relacion.resolver.usa.relacion.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "resolver",
+    "origen_id": null,
+    "destino_entidad": "relacion",
+    "destino_id": null,
+    "tipo_relacion": "usa",
+    "cardinalidad": "1:N",
+    "requerido": null,
+    "orden": null
+  }
+}

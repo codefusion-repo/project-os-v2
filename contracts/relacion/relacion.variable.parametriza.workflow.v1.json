@@ -1,0 +1,22 @@
+{
+  "id": "relacion.variable.parametriza.workflow.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "variable",
+    "origen_id": null,
+    "destino_entidad": "workflow",
+    "destino_id": null,
+    "tipo_relacion": "parametriza",
+    "cardinalidad": "N:M",
+    "requerido": null,
+    "orden": null
+  }
+}
