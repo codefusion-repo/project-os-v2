@@ -1,0 +1,16 @@
+{
+  "id": "contrato.formaliza.regla.v1",
+  "entity_family": "contrato",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "contrato_formaliza_regla",
+    "entidad_tipo": "regla"
+  }
+}
