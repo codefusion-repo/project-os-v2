@@ -1,0 +1,19 @@
+{
+  "id": "fuente.repository_file.v1",
+  "entity_family": "fuente",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "tipo": "repository_file",
+    "nombre": "repository_file",
+    "ubicacion": "repository_path",
+    "nivel_autoridad": "versioned_primary",
+    "frescura_requerida": "by_ref_or_head"
+  }
+}

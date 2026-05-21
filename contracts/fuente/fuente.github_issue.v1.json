@@ -1,0 +1,19 @@
+{
+  "id": "fuente.github_issue.v1",
+  "entity_family": "fuente",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "tipo": "github_issue",
+    "nombre": "github_issue",
+    "ubicacion": "github_issue_url",
+    "nivel_autoridad": "live_primary",
+    "frescura_requerida": "must_fetch_live"
+  }
+}
