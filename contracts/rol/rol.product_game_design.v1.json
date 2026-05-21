@@ -1,0 +1,16 @@
+{
+  "id": "rol.product_game_design.v1",
+  "entity_family": "rol",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "product_game_design",
+    "lente_profesional": "product_game_design_lens"
+  }
+}
