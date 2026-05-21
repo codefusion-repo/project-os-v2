@@ -1,0 +1,17 @@
+{
+  "id": "artefacto.validation_report.v1",
+  "entity_family": "artefacto",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "tipo": "response_component",
+    "nombre": "validation_report",
+    "referencia": null
+  }
+}

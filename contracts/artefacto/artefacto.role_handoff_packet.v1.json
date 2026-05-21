@@ -1,0 +1,17 @@
+{
+  "id": "artefacto.role_handoff_packet.v1",
+  "entity_family": "artefacto",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "tipo": "response_component",
+    "nombre": "role_handoff_packet",
+    "referencia": null
+  }
+}
