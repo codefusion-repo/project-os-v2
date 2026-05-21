@@ -1,0 +1,15 @@
+{
+  "id": "estado.needs_context.v1",
+  "entity_family": "estado",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "needs_context"
+  }
+}
