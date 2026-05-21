@@ -1,0 +1,19 @@
+{
+  "id": "fuente.pm_source_file.v1",
+  "entity_family": "fuente",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "tipo": "pm_source_file",
+    "nombre": "pm_source_file",
+    "ubicacion": "fuentes_path",
+    "nivel_autoridad": "pm_source_reference",
+    "frescura_requerida": "repository_current"
+  }
+}
