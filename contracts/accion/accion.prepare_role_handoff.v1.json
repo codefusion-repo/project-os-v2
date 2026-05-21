@@ -1,0 +1,16 @@
+{
+  "id": "accion.prepare_role_handoff.v1",
+  "entity_family": "accion",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "prepare_role_handoff",
+    "tipo": "handoff_preparation"
+  }
+}
