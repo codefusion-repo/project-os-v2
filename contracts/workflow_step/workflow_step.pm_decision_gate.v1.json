@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.pm_decision_gate.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "pm_decision_gate",
+    "objetivo": "elevar_decision_pm_por_alcance_prioridad_riesgo_o_autoridad",
+    "condicion_base_avance": "decision_pm_solicitada_o_registrada_como_evidencia_externa",
+    "condicion_base_repeticion": "decision_cambia_o_aparecen_nuevas_opciones",
+    "condicion_base_bloqueo": "decision_pm_requerida_no_existe_o_no_cubre_objetivo_exacto"
+  }
+}

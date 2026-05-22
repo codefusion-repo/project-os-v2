@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.validation_check.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "validation_check",
+    "objetivo": "revisar_o_producir_evidencia_de_validacion",
+    "condicion_base_avance": "validacion_reportada_o_evidencia_identificada",
+    "condicion_base_repeticion": "fallan_checks_o_cambia_criterio_de_aceptacion",
+    "condicion_base_bloqueo": "validacion_requerida_falta_falla_o_no_es_confiable"
+  }
+}

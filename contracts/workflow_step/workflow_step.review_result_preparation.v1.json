@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.review_result_preparation.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "review_result_preparation",
+    "objetivo": "preparar_resultado_de_revision_con_veredicto_y_evidencia",
+    "condicion_base_avance": "review_result_listo_para_pm_reviewer_o_siguiente_workflow",
+    "condicion_base_repeticion": "se_requiere_evidencia_adicional_o_correccion",
+    "condicion_base_bloqueo": "no_se_puede_emitir_veredicto_por_falta_o_conflicto_de_evidencia"
+  }
+}

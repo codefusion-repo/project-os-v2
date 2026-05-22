@@ -1,0 +1,19 @@
+{
+  "id": "workflow_step.release_packet_preparation.v1",
+  "entity_family": "workflow_step",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "release_packet_preparation",
+    "objetivo": "preparar_paquete_de_release_o_deployment",
+    "condicion_base_avance": "release_packet_listo_para_revision_o_decision",
+    "condicion_base_repeticion": "cambia_evidencia_de_release_validacion_riesgo_o_aprobacion",
+    "condicion_base_bloqueo": "falta_readiness_rollback_validacion_aprobacion_o_evidencia_segura"
+  }
+}
