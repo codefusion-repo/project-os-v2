@@ -1,0 +1,22 @@
+{
+  "id": "relacion.scope.validation.incluye.recurso.validation_output.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "scope",
+    "origen_id": "scope.validation.v1",
+    "destino_entidad": "recurso",
+    "destino_id": "recurso.validation_output.v1",
+    "tipo_relacion": "incluye",
+    "cardinalidad": "N:M",
+    "requerido": true,
+    "orden": null
+  }
+}
