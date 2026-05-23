@@ -1,0 +1,22 @@
+{
+  "id": "relacion.plantilla.project_os_v2_response.genera.artefacto.pm_decision_request.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "plantilla",
+    "origen_id": "plantilla.project_os_v2_response.v1",
+    "destino_entidad": "artefacto",
+    "destino_id": "artefacto.pm_decision_request.v1",
+    "tipo_relacion": "genera",
+    "cardinalidad": "1:N",
+    "requerido": true,
+    "orden": null
+  }
+}
