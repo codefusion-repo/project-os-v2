@@ -1,0 +1,22 @@
+{
+  "id": "relacion.rol.gtm_community_operations.es_compatible_con.actor.terminal_agent.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "rol",
+    "origen_id": "rol.gtm_community_operations.v1",
+    "destino_entidad": "actor",
+    "destino_id": "actor.terminal_agent.v1",
+    "tipo_relacion": "es_compatible_con",
+    "cardinalidad": "N:M",
+    "requerido": true,
+    "orden": null
+  }
+}

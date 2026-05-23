@@ -1,0 +1,22 @@
+{
+  "id": "relacion.actor.terminal_agent.tiene.limite.no_parser_behavior_without_planned_issue.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "actor",
+    "origen_id": "actor.terminal_agent.v1",
+    "destino_entidad": "limite",
+    "destino_id": "limite.no_parser_behavior_without_planned_issue.v1",
+    "tipo_relacion": "tiene",
+    "cardinalidad": "N:M",
+    "requerido": true,
+    "orden": null
+  }
+}
