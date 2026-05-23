@@ -1,0 +1,22 @@
+{
+  "id": "relacion.workflow.technical_planning.usa.plantilla.project_os_v2_response.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "workflow",
+    "origen_id": "workflow.technical_planning.v1",
+    "destino_entidad": "plantilla",
+    "destino_id": "plantilla.project_os_v2_response.v1",
+    "tipo_relacion": "usa",
+    "cardinalidad": "N:M",
+    "requerido": true,
+    "orden": null
+  }
+}
