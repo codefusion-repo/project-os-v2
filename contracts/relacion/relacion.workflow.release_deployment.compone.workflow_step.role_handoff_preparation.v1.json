@@ -1,0 +1,22 @@
+{
+  "id": "relacion.workflow.release_deployment.compone.workflow_step.role_handoff_preparation.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "workflow",
+    "origen_id": "workflow.release_deployment.v1",
+    "destino_entidad": "workflow_step",
+    "destino_id": "workflow_step.role_handoff_preparation.v1",
+    "tipo_relacion": "compone",
+    "cardinalidad": "N:M",
+    "requerido": true,
+    "orden": 8
+  }
+}
