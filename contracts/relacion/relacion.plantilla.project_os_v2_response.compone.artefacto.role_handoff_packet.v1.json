@@ -1,5 +1,5 @@
 {
-  "id": "relacion.plantilla.project_os_v2_response.genera.artefacto.role_handoff_packet.v1",
+  "id": "relacion.plantilla.project_os_v2_response.compone.artefacto.role_handoff_packet.v1",
   "entity_family": "relacion",
   "contract_kind": "relationship",
   "version": {
@@ -14,7 +14,7 @@
     "origen_id": "plantilla.project_os_v2_response.v1",
     "destino_entidad": "artefacto",
     "destino_id": "artefacto.role_handoff_packet.v1",
-    "tipo_relacion": "genera",
+    "tipo_relacion": "compone",
     "cardinalidad": "1:N",
     "requerido": true,
     "orden": null

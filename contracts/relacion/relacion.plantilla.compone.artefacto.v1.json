@@ -1,5 +1,5 @@
 {
-  "id": "relacion.plantilla.project_os_v2_response.genera.artefacto.review_result.v1",
+  "id": "relacion.plantilla.compone.artefacto.v1",
   "entity_family": "relacion",
   "contract_kind": "relationship",
   "version": {
@@ -11,12 +11,12 @@
   "source_refs": [],
   "payload": {
     "origen_entidad": "plantilla",
-    "origen_id": "plantilla.project_os_v2_response.v1",
+    "origen_id": null,
     "destino_entidad": "artefacto",
-    "destino_id": "artefacto.review_result.v1",
-    "tipo_relacion": "genera",
+    "destino_id": null,
+    "tipo_relacion": "compone",
     "cardinalidad": "1:N",
-    "requerido": true,
+    "requerido": null,
     "orden": null
   }
 }
