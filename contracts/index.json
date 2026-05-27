@@ -1,0 +1,474 @@
+{
+  "id": "index.project_os_v2_core.v1",
+  "classification": "non_entity_static_reference_bundle",
+  "contract_kind": "index",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [
+    "github_issue:83",
+    "github_issue:81",
+    "github_pr:82",
+    "github_issue:80",
+    "github_issue:79",
+    "github_issue:78",
+    "github_issue:47",
+    "doc:docs/PROJECT_OS_V2_FOUNDATION_DESIGN.md",
+    "doc:docs/PROJECT_OS_V2_CONTRACT_STRUCTURE.md",
+    "doc:docs/PROJECT_OS_V2_CONTRACT_ENVELOPE.md",
+    "doc:docs/PROJECT_OS_V2_CONTRACT_SKELETON_PATTERNS.md",
+    "doc:docs/PROJECT_OS_V2_RESOLVER_CONTRACT_SHAPE.md",
+    "doc:docs/PROJECT_OS_V2_MANIFEST_INDEX_SELECTOR_SHAPE.md",
+    "source:fuentes/Modelo-de-entidades-base.txt",
+    "source:fuentes/Modelo-base-con-definiciones-y-atributos-normalizados.txt",
+    "source:fuentes/Relaciones-principales-y-cardinalidad.txt"
+  ],
+  "payload": {
+    "nombre": "project_os_v2_core_index",
+    "index_kind": "static_curated_discoverability_index",
+    "source_of_truth_policy": "derived_from_manifest_and_contract_files_not_canonical",
+    "manifest_ref": "manifest.project_os_v2_core.v1",
+    "policy_ref": "policy.project_os_v2_core.v1",
+    "selector_refs": [
+      "selector.project_os_v2_core.v1"
+    ],
+    "resolver_refs": [
+      "resolver.project_os_v2_contract_resolver.v1"
+    ],
+    "lookup_groups": [
+      {
+        "lookup_group": "by_contract_id",
+        "lookup_source_ref": "manifest.contract_entries.contract_id",
+        "entries": [
+          {
+            "lookup_key": "resolver.project_os_v2_contract_resolver.v1",
+            "contract_refs": [
+              "resolver.project_os_v2_contract_resolver.v1"
+            ]
+          },
+          {
+            "lookup_key": "policy.project_os_v2_core.v1",
+            "contract_refs": [
+              "policy.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "manifest.project_os_v2_core.v1",
+            "contract_refs": [
+              "manifest.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "index.project_os_v2_core.v1",
+            "contract_refs": [
+              "index.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "selector.project_os_v2_core.v1",
+            "contract_refs": [
+              "selector.project_os_v2_core.v1"
+            ]
+          }
+        ]
+      },
+      {
+        "lookup_group": "by_path",
+        "lookup_source_ref": "manifest.contract_entries.path",
+        "entries": [
+          {
+            "lookup_key": "contracts/resolver/resolver.project_os_v2_contract_resolver.v1.json",
+            "contract_refs": [
+              "resolver.project_os_v2_contract_resolver.v1"
+            ]
+          },
+          {
+            "lookup_key": "contracts/policy/policy.project_os_v2_core.v1.json",
+            "contract_refs": [
+              "policy.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "contracts/manifest.json",
+            "contract_refs": [
+              "manifest.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "contracts/index.json",
+            "contract_refs": [
+              "index.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "contracts/selector/selector.project_os_v2_core.v1.json",
+            "contract_refs": [
+              "selector.project_os_v2_core.v1"
+            ]
+          }
+        ]
+      },
+      {
+        "lookup_group": "by_entity_family",
+        "lookup_source_ref": "manifest.contract_family_entries.entity_family",
+        "entries": [
+          {
+            "lookup_key": "resolver",
+            "contract_family_refs": [
+              "resolver"
+            ]
+          },
+          {
+            "lookup_key": "actor",
+            "contract_family_refs": [
+              "actor"
+            ]
+          },
+          {
+            "lookup_key": "rol",
+            "contract_family_refs": [
+              "rol"
+            ]
+          },
+          {
+            "lookup_key": "workflow",
+            "contract_family_refs": [
+              "workflow"
+            ]
+          },
+          {
+            "lookup_key": "workflow_step",
+            "contract_family_refs": [
+              "workflow_step"
+            ]
+          },
+          {
+            "lookup_key": "accion",
+            "contract_family_refs": [
+              "accion"
+            ]
+          },
+          {
+            "lookup_key": "recurso",
+            "contract_family_refs": [
+              "recurso"
+            ]
+          },
+          {
+            "lookup_key": "scope",
+            "contract_family_refs": [
+              "scope"
+            ]
+          },
+          {
+            "lookup_key": "fuente",
+            "contract_family_refs": [
+              "fuente"
+            ]
+          },
+          {
+            "lookup_key": "evidencia",
+            "contract_family_refs": [
+              "evidencia"
+            ]
+          },
+          {
+            "lookup_key": "estado",
+            "contract_family_refs": [
+              "estado"
+            ]
+          },
+          {
+            "lookup_key": "limite",
+            "contract_family_refs": [
+              "limite"
+            ]
+          },
+          {
+            "lookup_key": "regla",
+            "contract_family_refs": [
+              "regla"
+            ]
+          },
+          {
+            "lookup_key": "variable",
+            "contract_family_refs": [
+              "variable"
+            ]
+          },
+          {
+            "lookup_key": "plantilla",
+            "contract_family_refs": [
+              "plantilla"
+            ]
+          },
+          {
+            "lookup_key": "artefacto",
+            "contract_family_refs": [
+              "artefacto"
+            ]
+          },
+          {
+            "lookup_key": "relacion",
+            "contract_family_refs": [
+              "relacion"
+            ]
+          },
+          {
+            "lookup_key": "contrato",
+            "contract_family_refs": [
+              "contrato"
+            ]
+          },
+          {
+            "lookup_key": "policy",
+            "contract_family_refs": [
+              "policy"
+            ]
+          },
+          {
+            "lookup_key": "manifest",
+            "contract_family_refs": [
+              "manifest"
+            ]
+          },
+          {
+            "lookup_key": "index",
+            "contract_family_refs": [
+              "index"
+            ]
+          },
+          {
+            "lookup_key": "selector",
+            "contract_family_refs": [
+              "selector"
+            ]
+          }
+        ]
+      },
+      {
+        "lookup_group": "by_contract_kind",
+        "lookup_source_ref": "manifest.contract_family_entries.contract_kind",
+        "entries": [
+          {
+            "lookup_key": "entity",
+            "contract_family_refs": [
+              "resolver",
+              "actor",
+              "rol",
+              "workflow",
+              "workflow_step",
+              "accion",
+              "recurso",
+              "scope",
+              "fuente",
+              "evidencia",
+              "estado",
+              "limite",
+              "regla",
+              "variable",
+              "plantilla",
+              "artefacto",
+              "contrato"
+            ]
+          },
+          {
+            "lookup_key": "relationship",
+            "contract_family_refs": [
+              "relacion"
+            ]
+          },
+          {
+            "lookup_key": "reference_bundle",
+            "contract_refs": [
+              "policy.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "manifest",
+            "contract_refs": [
+              "manifest.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "index",
+            "contract_refs": [
+              "index.project_os_v2_core.v1"
+            ]
+          },
+          {
+            "lookup_key": "selector",
+            "contract_refs": [
+              "selector.project_os_v2_core.v1"
+            ]
+          }
+        ]
+      },
+      {
+        "lookup_group": "by_status",
+        "lookup_source_ref": "manifest.contract_entries.status",
+        "entries": [
+          {
+            "lookup_key": "draft",
+            "manifest_ref": "manifest.project_os_v2_core.v1"
+          }
+        ]
+      },
+      {
+        "lookup_group": "by_major_version",
+        "lookup_source_ref": "manifest.contract_entries.version.major",
+        "entries": [
+          {
+            "lookup_key": "1",
+            "manifest_ref": "manifest.project_os_v2_core.v1"
+          }
+        ]
+      },
+      {
+        "lookup_group": "by_relationship_type",
+        "lookup_source_ref": "manifest.relationship_family_entries.relationship_type_ref",
+        "entries": [
+          {
+            "lookup_key": "relationship_type_refs",
+            "relationship_type_refs_source": "manifest.relationship_family_entries.relationship_type_ref"
+          }
+        ]
+      },
+      {
+        "lookup_group": "by_relationship_endpoint_family",
+        "lookup_source_ref": "contracts/relacion/* relationship contract references",
+        "entries": [
+          {
+            "lookup_key": "endpoint_family_refs",
+            "contract_family_refs": [
+              "resolver",
+              "actor",
+              "rol",
+              "workflow",
+              "workflow_step",
+              "accion",
+              "recurso",
+              "scope",
+              "fuente",
+              "evidencia",
+              "estado",
+              "limite",
+              "regla",
+              "variable",
+              "plantilla",
+              "artefacto",
+              "relacion",
+              "contrato"
+            ]
+          }
+        ]
+      },
+      {
+        "lookup_group": "by_selector_dimension",
+        "lookup_source_ref": "selector.dimension_contract_family_map",
+        "entries": [
+          {
+            "lookup_key": "actor_type",
+            "contract_family_refs": [
+              "actor"
+            ]
+          },
+          {
+            "lookup_key": "role",
+            "contract_family_refs": [
+              "rol"
+            ]
+          },
+          {
+            "lookup_key": "workflow",
+            "contract_family_refs": [
+              "workflow",
+              "workflow_step"
+            ]
+          },
+          {
+            "lookup_key": "action",
+            "contract_family_refs": [
+              "accion"
+            ]
+          },
+          {
+            "lookup_key": "resource",
+            "contract_family_refs": [
+              "recurso"
+            ]
+          },
+          {
+            "lookup_key": "scope",
+            "contract_family_refs": [
+              "scope"
+            ]
+          },
+          {
+            "lookup_key": "evidence_requirement",
+            "contract_family_refs": [
+              "evidencia"
+            ]
+          },
+          {
+            "lookup_key": "source_authority",
+            "contract_family_refs": [
+              "fuente"
+            ]
+          },
+          {
+            "lookup_key": "output_artifact",
+            "contract_family_refs": [
+              "artefacto"
+            ]
+          },
+          {
+            "lookup_key": "template",
+            "contract_family_refs": [
+              "plantilla"
+            ]
+          },
+          {
+            "lookup_key": "variable",
+            "contract_family_refs": [
+              "variable"
+            ]
+          },
+          {
+            "lookup_key": "state",
+            "contract_family_refs": [
+              "estado"
+            ]
+          },
+          {
+            "lookup_key": "limit",
+            "contract_family_refs": [
+              "limite"
+            ]
+          },
+          {
+            "lookup_key": "rule",
+            "contract_family_refs": [
+              "regla"
+            ]
+          },
+          {
+            "lookup_key": "policy_ref",
+            "contract_family_refs": [
+              "policy"
+            ]
+          }
+        ]
+      }
+    ],
+    "body_inclusion_policy": "references_only_no_payload_duplication",
+    "generation_policy": {
+      "generated": false,
+      "static_curated": true,
+      "generator_ref": null
+    }
+  }
+}

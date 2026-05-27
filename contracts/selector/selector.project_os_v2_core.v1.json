@@ -1,0 +1,287 @@
+{
+  "id": "selector.project_os_v2_core.v1",
+  "classification": "non_entity_static_reference_bundle",
+  "contract_kind": "selector",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [
+    "github_issue:83",
+    "github_issue:81",
+    "github_pr:82",
+    "github_issue:80",
+    "github_issue:79",
+    "github_issue:78",
+    "github_issue:47",
+    "doc:docs/PROJECT_OS_V2_FOUNDATION_DESIGN.md",
+    "doc:docs/PROJECT_OS_V2_CONTRACT_STRUCTURE.md",
+    "doc:docs/PROJECT_OS_V2_CONTRACT_ENVELOPE.md",
+    "doc:docs/PROJECT_OS_V2_CONTRACT_SKELETON_PATTERNS.md",
+    "doc:docs/PROJECT_OS_V2_RESOLVER_CONTRACT_SHAPE.md",
+    "doc:docs/PROJECT_OS_V2_MANIFEST_INDEX_SELECTOR_SHAPE.md",
+    "source:fuentes/Modelo-de-entidades-base.txt",
+    "source:fuentes/Modelo-base-con-definiciones-y-atributos-normalizados.txt",
+    "source:fuentes/Relaciones-principales-y-cardinalidad.txt"
+  ],
+  "payload": {
+    "nombre": "project_os_v2_core_selector",
+    "selector_kind": "static_candidate_reference_selector",
+    "manifest_ref": "manifest.project_os_v2_core.v1",
+    "index_ref": "index.project_os_v2_core.v1",
+    "policy_ref": "policy.project_os_v2_core.v1",
+    "resolver_ref": "resolver.project_os_v2_contract_resolver.v1",
+    "allowed_dimensions": [
+      "actor_type",
+      "role",
+      "workflow",
+      "action",
+      "resource",
+      "scope",
+      "evidence_requirement",
+      "source_authority",
+      "output_artifact",
+      "template",
+      "variable",
+      "state",
+      "limit",
+      "rule",
+      "policy_ref"
+    ],
+    "dimension_contract_family_map": {
+      "actor_type": [
+        "actor"
+      ],
+      "role": [
+        "rol"
+      ],
+      "workflow": [
+        "workflow",
+        "workflow_step"
+      ],
+      "action": [
+        "accion"
+      ],
+      "resource": [
+        "recurso"
+      ],
+      "scope": [
+        "scope"
+      ],
+      "evidence_requirement": [
+        "evidencia"
+      ],
+      "source_authority": [
+        "fuente"
+      ],
+      "output_artifact": [
+        "artefacto"
+      ],
+      "template": [
+        "plantilla"
+      ],
+      "variable": [
+        "variable"
+      ],
+      "state": [
+        "estado"
+      ],
+      "limit": [
+        "limite"
+      ],
+      "rule": [
+        "regla"
+      ],
+      "policy_ref": [
+        "policy"
+      ]
+    },
+    "selector_entries": [
+      {
+        "dimension": "actor_type",
+        "candidate_contract_family_refs": [
+          "actor"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_actor_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "role",
+        "candidate_contract_family_refs": [
+          "rol"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_rol_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "workflow",
+        "candidate_contract_family_refs": [
+          "workflow",
+          "workflow_step"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_workflow_refs",
+          "selected_workflow_step_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "action",
+        "candidate_contract_family_refs": [
+          "accion"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_accion_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "resource",
+        "candidate_contract_family_refs": [
+          "recurso"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_recurso_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "scope",
+        "candidate_contract_family_refs": [
+          "scope"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_scope_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "evidence_requirement",
+        "candidate_contract_family_refs": [
+          "evidencia"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_evidencia_refs",
+          "required_evidence_refs",
+          "missing_evidence_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "source_authority",
+        "candidate_contract_family_refs": [
+          "fuente"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_fuente_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "output_artifact",
+        "candidate_contract_family_refs": [
+          "artefacto"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_artefacto_refs",
+          "response_shape_ref",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "template",
+        "candidate_contract_family_refs": [
+          "plantilla"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_plantilla_refs",
+          "output_template_ref",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "variable",
+        "candidate_contract_family_refs": [
+          "variable"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_variable_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "state",
+        "candidate_contract_family_refs": [
+          "estado"
+        ],
+        "candidate_output_ref_groups": [
+          "estado_ref",
+          "fallback_estado_ref",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "limit",
+        "candidate_contract_family_refs": [
+          "limite"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_limite_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "rule",
+        "candidate_contract_family_refs": [
+          "regla"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_regla_refs",
+          "selected_relacion_refs"
+        ]
+      },
+      {
+        "dimension": "policy_ref",
+        "candidate_contract_family_refs": [
+          "policy"
+        ],
+        "candidate_output_ref_groups": [
+          "selected_contrato_refs",
+          "selected_relacion_refs"
+        ]
+      }
+    ],
+    "output_ref_groups": [
+      "estado_ref",
+      "fallback_estado_ref",
+      "selected_actor_refs",
+      "selected_rol_refs",
+      "selected_workflow_refs",
+      "selected_workflow_step_refs",
+      "selected_accion_refs",
+      "selected_recurso_refs",
+      "selected_scope_refs",
+      "selected_fuente_refs",
+      "selected_evidencia_refs",
+      "selected_limite_refs",
+      "selected_regla_refs",
+      "selected_variable_refs",
+      "selected_plantilla_refs",
+      "selected_artefacto_refs",
+      "selected_relacion_refs",
+      "selected_contrato_refs",
+      "required_evidence_refs",
+      "missing_evidence_refs",
+      "output_template_ref",
+      "response_shape_ref"
+    ],
+    "body_inclusion_policy": "references_only_no_entity_or_relationship_payloads",
+    "execution_policy": "no_runtime_no_permission_no_tool_execution"
+  }
+}
