@@ -1,0 +1,50 @@
+{
+  "id": "policy.project_os_v2_core.v1",
+  "classification": "non_entity_static_reference_bundle",
+  "contract_kind": "reference_bundle",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [
+    "github_issue:80",
+    "github_issue:79",
+    "github_issue:78",
+    "github_issue:47",
+    "github_pr:77",
+    "doc:docs/PROJECT_OS_V2_FOUNDATION_DESIGN.md",
+    "doc:docs/PROJECT_OS_V2_RESOLVER_CONTRACT_SHAPE.md",
+    "doc:docs/PROJECT_OS_V2_MANIFEST_INDEX_SELECTOR_SHAPE.md"
+  ],
+  "payload": {
+    "nombre": "project_os_v2_core_policy_bundle",
+    "bundle_kind": "policy_reference_bundle",
+    "applies_to_resolver_refs": [
+      "resolver.project_os_v2_contract_resolver.v1"
+    ],
+    "allowed_actor_refs": [
+      "actor.browser_chat.v1",
+      "actor.terminal_agent.v1"
+    ],
+    "limit_refs": [],
+    "rule_refs": [],
+    "state_refs": [],
+    "source_authority_refs": [],
+    "evidence_category_refs": [],
+    "relationship_type_refs": [],
+    "relationship_instance_refs": {
+      "actor_limit_refs": [],
+      "role_rule_refs": [],
+      "limit_failure_state_refs": [],
+      "rule_failure_state_refs": []
+    },
+    "tooling_gate_refs": [],
+    "fallback_estado_ref": "estado.blocked.v1",
+    "schema_ref_policy": {
+      "input_schema_ref": null,
+      "output_schema_ref": null
+    }
+  }
+}
