@@ -11,6 +11,6 @@
   "source_refs": [],
   "payload": {
     "nombre": "browser_chat",
-    "superficie_capacidad": "interactive_chat_surface_no_repo_mutation"
+    "superficie_capacidad": "interactive_chat_surface"
   }
 }
