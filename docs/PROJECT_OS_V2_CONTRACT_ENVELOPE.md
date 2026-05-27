@@ -2,15 +2,15 @@
 
 ## 1. Objective
 
-Define the structure-only base contract envelope for future Project OS v2 JSON contracts and the placeholder-safe skeleton policy that future skeleton issues must follow.
+Define the structure-only base contract envelope for later, explicitly scoped Project OS v2 JSON contracts and the placeholder-safe skeleton policy that later skeleton or population issues must follow.
 
-This document defines the shared wrapper and metadata boundary only. It does not create JSON contract files, populated contract data, JSON schemas, validators, runtime behavior, parser behavior, automation, API, panel, runners, context packs, target-project artifacts, database/read-model direction, write authorization behavior, or Resolver behavior.
+This document defines the shared wrapper and metadata boundary only. R0.01 updates it as docs-only rebaseline work. It does not create JSON contract files, populated contract data, JSON schemas, validators, runtime behavior, parser behavior, automation, API, panel, runners, context packs, target-project artifacts, database/read-model direction, write authorization behavior, or Resolver behavior.
 
 ## 2. Scope
 
-Every future contract file should use the same base envelope so contract identity, lifecycle metadata, source references, schema references, and payload placement are predictable.
+Every later explicitly scoped contract file should use the same base envelope so contract identity, lifecycle metadata, source references, schema references, and payload placement are predictable.
 
-This issue is documentation-only and structure-only. It does not create:
+This document is documentation-only and structure-only. It does not create:
 
 - the `contracts/` directory
 - contract skeleton files
@@ -30,6 +30,21 @@ This issue is documentation-only and structure-only. It does not create:
 - projection architecture
 - write authorization behavior
 - Resolver behavior
+
+## R0.01 Roadmap Rebaseline Boundary
+
+The active fixed roadmap source is GitHub issue #92. Issue #47 is historical/provenance, issue #91 is completed roadmap rebaseline evidence, and issue #90 is open/paused tooling-readiness evidence. This document must not imply that #47 remains the active roadmap.
+
+Stage-scoped permissions apply:
+
+- Planning issues do not create contracts.
+- Docs issues may modify only approved docs.
+- Contract population issues may create or update contracts only when explicitly scoped.
+- Schema issues may create schemas only after schema strategy approval.
+- Validator issues may create validators only after schema implementation.
+- Loader, Resolver, runtime, panel, and write authorization remain blocked until their explicit roadmap IDs or later PM-approved roadmap amendments.
+
+Under #92, schemas and validators happen after normalization and before Project OS inventory, mapping, and migration. Migrated baseline contracts are reviewed with schemas and validators before loader or Resolver work. Until Base v0.1 is certified dogfood-ready, Project OS v2 remains in project-os-supported bootstrap and migration; panel work is not part of the fixed execution backlog.
 
 ## 3. Base Contract Envelope Purpose
 
@@ -76,12 +91,12 @@ Boundary rules:
 - `id` in the envelope is the contract ID, not a second copy of an entity-local attribute.
 - `descripcion` in the envelope is the contract-level description. A future skeleton issue must avoid storing the same description again in payload.
 - Live GitHub evidence must not be copied into envelope fields.
-- GitHub issues, PRs, comments, commits, reviews, tags, and validation outputs may be referenced later, but their mutable state must remain live evidence.
+- GitHub issues, PRs, comments, commits, reviews, tags, branches, roadmap state, and validation outputs may be referenced later, but their mutable state must remain live evidence.
 - `schema_ref` is a reference only. No schema files are created by this issue.
 
 ## 5. Required Envelope Fields
 
-Future contracts should use these required envelope fields.
+Later explicitly scoped contracts should use these required envelope fields.
 
 | Field | Required | Purpose | Placeholder-safe skeleton value |
 | --- | --- | --- | --- |
@@ -178,7 +193,7 @@ Unsafe placeholder values:
 - real templates
 - real artifacts
 - real relationships
-- copied issue bodies, PR bodies, comments, review text, commit metadata, validation output, or branch state
+- copied issue bodies, PR bodies, comments, review text, commit metadata, validation output, branch state, or roadmap state
 - empty strings
 
 Placeholder tokens should be obviously non-real, for example `placeholder_actor`, `placeholder_step`, `placeholder_origen`, `placeholder_destino`, or `example_only`.
@@ -243,16 +258,21 @@ Allowed future reference types may include:
 - GitHub PR references
 - GitHub comment references
 - GitHub commit references
+- GitHub branch references
+- GitHub review references
+- validation references
 - contract ID references
 - external authority references approved by a later issue
 
 Rules:
 
 - Do not copy live GitHub evidence into `source_refs`.
-- Do not copy issue bodies, PR bodies, comments, reviews, validation output, or mutable status values into envelope fields.
+- Do not copy issue bodies, PR bodies, comments, reviews, validation output, branch state, roadmap state, or mutable status values into envelope fields.
 - Do not use `source_refs` to replace `Fuente` or `Evidencia` contracts.
 - Use `[]` when no references are intentionally attached.
 - Use references to explain provenance, not to store operational state.
+
+`Fuente` and `Evidencia` contracts are stable references/categories, not live snapshots. Issue, PR, branch, commit, review, validation, and roadmap state must be checked live when needed.
 
 ## 14. Schema Reference Handling
 
@@ -265,7 +285,7 @@ Rules:
 - `schema_ref` does not create a schema file.
 - `schema_ref` does not imply validators exist.
 - `schema_ref` does not define parser behavior.
-- This issue creates no schema files and no validator behavior.
+- This document creates no schema files and no validator behavior. Under #92, schema issues happen after normalization and validator issues happen after schema implementation.
 
 ## 15. No-Population Rule
 
@@ -402,9 +422,9 @@ relacion
 contrato
 ```
 
-## 20. Next Issue Readiness
+## 20. Roadmap Readiness
 
-This document is intended to let the next skeleton pattern issue proceed without re-deciding:
+This document is intended to let later explicitly scoped skeleton, schema, validator, and population work proceed without re-deciding:
 
 - base envelope purpose
 - envelope vs payload boundary
@@ -422,4 +442,4 @@ This document is intended to let the next skeleton pattern issue proceed without
 - non-canonical example policy
 - alignment with the approved contract structure
 
-The next issue should still define entity and relationship skeleton patterns before any JSON files are created.
+The next roadmap item after R0.01 is R0.02 roadmap hygiene. Contract creation, schema work, validator work, loader behavior, Resolver behavior, runtime behavior, panel work, and write authorization remain unavailable unless a later explicit roadmap ID or PM-approved amendment scopes them.

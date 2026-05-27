@@ -2,11 +2,11 @@
 
 ## 1. Objective
 
-Define the structure-only skeleton patterns for future Project OS v2 entity and relationship JSON contracts.
+Define the structure-only skeleton patterns for later, explicitly scoped Project OS v2 entity and relationship JSON contracts.
 
-This document decides how future placeholder-safe skeletons should use the approved contract envelope, where family-specific payload fields belong, how relationship semantics stay normalized, and how skeletons remain fillable without looking complete.
+This document decides how later placeholder-safe skeletons should use the approved contract envelope, where family-specific payload fields belong, how relationship semantics stay normalized, and how skeletons remain fillable without looking complete.
 
-This document does not create JSON contract files.
+R0.01 updates this document as docs-only rebaseline work. This document does not create JSON contract files.
 
 ## 2. Scope
 
@@ -26,6 +26,21 @@ It defines future skeleton patterns for:
 
 The target future skeleton files are still out of scope. This document prepares the pattern those files should follow later.
 
+## R0.01 Roadmap Rebaseline Boundary
+
+The active fixed roadmap source is GitHub issue #92. Issue #47 is historical/provenance, issue #91 is completed roadmap rebaseline evidence, and issue #90 is open/paused tooling-readiness evidence. This document must not imply that #47 remains the active roadmap.
+
+Stage-scoped permissions apply:
+
+- Planning issues do not create contracts.
+- Docs issues may modify only approved docs.
+- Contract population issues may create or update contracts only when explicitly scoped.
+- Schema issues may create schemas only after schema strategy approval.
+- Validator issues may create validators only after schema implementation.
+- Loader, Resolver, runtime, panel, and write authorization remain blocked until their explicit roadmap IDs or later PM-approved roadmap amendments.
+
+Under #92, schemas and validators happen after normalization and before Project OS inventory, mapping, and migration. Migrated baseline contracts are reviewed with schemas and validators before loader or Resolver work. Until Base v0.1 is certified dogfood-ready, Project OS v2 remains in project-os-supported bootstrap and migration. Migration/import/baseline population must not be labeled as dogfood, and panel planning/implementation is outside the fixed backlog.
+
 ## 3. Relationship to foundation / structure / envelope docs
 
 This document depends on and does not replace:
@@ -41,12 +56,14 @@ Foundation decisions preserved here:
 
 - Entities store their own normalized attributes.
 - `Relación` owns compatibility, permission, requirement, dependency, sequencing, and restriction semantics.
+- `Relación` owns cross-entity graph semantics, including current `plantilla compone artefacto` links.
 - `WorkflowStep` is a reusable process block.
 - `Workflow` composes `WorkflowStep` through `Relación`.
 - Workflow-specific order lives in `Relación.orden`.
 - `WorkflowStep` delegates `Actor` and `Rol` through `Relación`.
 - A `WorkflowStep` can participate in many `Workflow` contracts.
 - GitHub remains live evidence.
+- Durable JSON must not store mutable GitHub truth.
 - Markdown remains human design/reference until equivalent reviewed contracts exist.
 
 Structure decisions preserved here:
@@ -57,10 +74,11 @@ Structure decisions preserved here:
 - One file represents one contract version.
 - Family directories are singular, lower_snake_case, ASCII-only, and unaccented.
 - Relationship contracts live under `contracts/relacion/`.
+- Policy, manifest, index, and selector are non-entity static support bundles, not members of the 18 base entity families; they support Resolver discovery/reference behavior without implementing runtime behavior.
 
 Envelope decisions preserved here:
 
-- Future contracts use the common envelope fields `id`, `entity_family`, `contract_kind`, `version`, `status`, `schema_ref`, `descripcion`, `source_refs`, and `payload`.
+- Later explicitly scoped contracts use the common envelope fields `id`, `entity_family`, `contract_kind`, `version`, `status`, `schema_ref`, `descripcion`, `source_refs`, and `payload`.
 - Envelope metadata and payload data must not duplicate each other.
 - Entity-specific attributes live in `payload`.
 - Relationship endpoints, relationship type, cardinality, required flag, and order live in `payload`.
@@ -178,6 +196,7 @@ Reusable `WorkflowStep` model preservation:
 - `WorkflowStep` can participate in many `Workflow` contracts.
 - Workflow-specific required or optional state lives in `Relación.requerido`.
 - Expected artifacts, next steps, next workflows, and delegated actors or roles are linked through `Relación`, not copied into the `WorkflowStep` payload.
+- `Plantilla` composes `Artefacto` output shape/format/body conventions through `Relación`; skeletons must not imply runtime generation, rendering, interpolation, body-file generation, generated-output behavior, or permission.
 
 Documentation-only, non-canonical relationship example:
 
@@ -230,8 +249,8 @@ The table below defines the family token, contract kind, and payload ownership d
 | `Límite` | `limite` | `entity` | `nombre`, `tipo`, `severidad` |
 | `Regla` | `regla` | `entity` | `nombre`, `condicion`, `comportamiento_esperado` |
 | `Variable` | `variable` | `entity` | `nombre`, `tipo`, `valor_default`, `valores_permitidos` |
-| `Plantilla` | `plantilla` | `entity` | `nombre`, `tipo`, `formato`, `secciones_requeridas` |
-| `Artefacto` | `artefacto` | `entity` | `tipo`, `nombre`, `referencia` |
+| `Plantilla` | `plantilla` | `entity` | `nombre`, `tipo`, `formato`, `secciones_requeridas`; owns output shape/format/body conventions, not permission or rendering behavior |
+| `Artefacto` | `artefacto` | `entity` | `tipo`, `nombre`, `referencia`; owns artifact identity/reference, not template definition or generation behavior |
 | `Relación` | `relacion` | `relationship` | `origen_entidad`, `origen_id`, `destino_entidad`, `destino_id`, `tipo_relacion`, `cardinalidad`, `requerido`, `orden` |
 | `Contrato` | `contrato` | `entity` | `nombre`, `entidad_tipo`; `schema_ref`, `version`, and `estado` map to envelope fields when they have the same meaning |
 
@@ -318,6 +337,7 @@ Disallowed values:
 - copied commit metadata
 - copied validation output
 - live issue, PR, branch, review, tag, or validation state captured as static data
+- live roadmap state captured as static data
 - populated operational content
 - target-project artifacts
 
@@ -393,7 +413,7 @@ Later role, after equivalent JSON contracts exist and are reviewed:
 - Markdown must not become a parallel contract system.
 - Markdown must not duplicate live operational evidence or contract data.
 
-This issue does not create archive behavior, migration behavior, loaders, or archival rules. It only states the lifecycle expectation for documentation versus future contracts.
+This document does not create archive behavior, migration behavior, loaders, or archival rules. It only states the lifecycle expectation for documentation versus later explicitly scoped contracts.
 
 ## 14. No-population rule
 
@@ -447,6 +467,11 @@ This issue explicitly does not create or implement:
 - projection architecture
 - write authorization behavior
 - Resolver behavior
+- template rendering behavior
+- variable interpolation behavior
+- generated-output behavior
+- body-file generation behavior
+- command execution behavior
 - actual skeleton files
 - manifest shape
 - index shape
@@ -457,9 +482,9 @@ This issue explicitly does not create or implement:
 
 This document defines structure-only skeleton patterns. It does not introduce execution, loading, validation, generation, UI, storage, or authorization behavior.
 
-## 16. Readiness for first JSON skeleton issue
+## 16. Roadmap Readiness
 
-This document is intended to let the first JSON skeleton issue proceed without re-deciding:
+This document is intended to let later explicitly scoped skeleton, schema, validator, and population work proceed without re-deciding:
 
 - entity skeleton pattern
 - relationship skeleton pattern
@@ -475,4 +500,4 @@ This document is intended to let the first JSON skeleton issue proceed without r
 - Markdown scaffolding lifecycle
 - no-population rule
 
-The first JSON skeleton issue should still decide concrete file creation scope, exact placeholder IDs, exact family-by-family payload field lists, and whether source references are attached as references. It must not populate real operational values unless a later population issue explicitly scopes that work.
+The next roadmap item after R0.01 is R0.02 roadmap hygiene. Contract creation, schema work, validator work, loader behavior, Resolver behavior, runtime behavior, panel work, and write authorization remain unavailable unless a later explicit roadmap ID or PM-approved amendment scopes them. Any later skeleton or population issue must still decide concrete file creation scope, exact placeholder IDs, exact family-by-family payload field lists, and whether source references are attached as references.

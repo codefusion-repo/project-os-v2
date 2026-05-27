@@ -2,9 +2,9 @@
 
 ## 1. Objective
 
-Define the structure-only shape for future Project OS v2 `ResolverInput` and `ResolverOutput` contracts.
+Define the structure-only shape for later, explicitly scoped Project OS v2 `ResolverInput` and `ResolverOutput` contracts.
 
-This document decides what information the future Resolver input should carry and what selected-context references the future Resolver output should return. It does not create JSON contract files, populated contract data, JSON schemas, validators, runtime behavior, parser behavior, automation, API, panel, runners, context packs, target-project artifacts, database/read-model direction, write authorization behavior, or Resolver behavior.
+This document decides what information the later Resolver input should carry and what selected-context references the later Resolver output should return. R0.01 updates it as docs-only rebaseline work. It does not create JSON contract files, populated contract data, JSON schemas, validators, runtime behavior, parser behavior, automation, API, panel, runners, context packs, target-project artifacts, database/read-model direction, write authorization behavior, or Resolver behavior.
 
 ## 2. Scope
 
@@ -24,6 +24,21 @@ It defines future static shapes for:
 10. relationship to the approved structure, envelope, and skeleton pattern documents
 
 The shapes in this document are not contract instances. They are field-group decisions that later issues may convert into reviewed contract skeletons or schema references only after that work is explicitly scoped.
+
+## R0.01 Roadmap Rebaseline Boundary
+
+The active fixed roadmap source is GitHub issue #92. Issue #47 is historical/provenance, issue #91 is completed roadmap rebaseline evidence, and issue #90 is open/paused tooling-readiness evidence. This document must not imply that #47 remains the active roadmap.
+
+Stage-scoped permissions apply:
+
+- Planning issues do not create contracts.
+- Docs issues may modify only approved docs.
+- Contract population issues may create or update contracts only when explicitly scoped.
+- Schema issues may create schemas only after schema strategy approval.
+- Validator issues may create validators only after schema implementation.
+- Loader, Resolver, runtime, panel, and write authorization remain blocked until their explicit roadmap IDs or later PM-approved roadmap amendments.
+
+Under #92, schemas and validators happen after normalization and before Project OS inventory, mapping, and migration. Migrated baseline contracts are reviewed with schemas and validators before loader or Resolver work. Read-only loader work is R10, read-only Resolver work is R11, and Base v0.1 dogfood-ready certification is R12. Dogfood begins only after certification; panel planning/implementation is outside the fixed backlog.
 
 ## 3. Relationship to foundation / structure / envelope / skeleton docs
 
@@ -46,6 +61,7 @@ Foundation decisions preserved here:
 - `Estado` represents the result of resolution or execution.
 - `Evidencia` stores evidence references and verification shape, not copied mutable GitHub state.
 - GitHub remains live evidence for issues, PRs, commits, comments, reviews, tags, and validation outputs.
+- Durable JSON must not store mutable GitHub truth.
 - Markdown remains human design/reference until equivalent reviewed contracts exist.
 
 Structure decisions preserved here:
@@ -60,7 +76,7 @@ Structure decisions preserved here:
 
 Envelope decisions preserved here:
 
-- Future contracts use the common envelope fields `id`, `entity_family`, `contract_kind`, `version`, `status`, `schema_ref`, `descripcion`, `source_refs`, and `payload`.
+- Later explicitly scoped contracts use the common envelope fields `id`, `entity_family`, `contract_kind`, `version`, `status`, `schema_ref`, `descripcion`, `source_refs`, and `payload`.
 - Envelope metadata and payload data must not duplicate each other.
 - Entity-owned attributes live in `payload`.
 - Relationship endpoints and relationship semantics live in `payload`.
@@ -83,6 +99,22 @@ The Resolver contract shape defines the boundary between an incoming request and
 `ResolverOutput` should return selected references only. It should tell the AI which selected contracts and relationships apply, which evidence references are required or missing, which boundary notes apply, and which output or response shape should be used. It should not embed full entity contracts, relationship bodies, live evidence bodies, or execution behavior.
 
 This document defines shape only. It does not define a parser, selector algorithm, loading order, routing implementation, scoring model, execution rule, or response-generation behavior.
+
+Deterministic Resolver inheritance order:
+
+1. Actor hard limits.
+2. Actor output boundaries.
+3. Role lens constraints.
+4. Workflow requirements.
+5. WorkflowStep requirements.
+6. Action/resource/scope requirements.
+7. Evidence/source requirements.
+8. Template/artifact output shape.
+9. State/failure rules.
+
+No lower layer may weaken an Actor hard limit. `ResolverOutput` materializes effective inherited context and should include source/provenance refs for effective facts. If an `Actor` has a `Límite`, and a `Workflow` uses that `Actor`, the `Workflow` must not duplicate that actor-level `Límite`; Resolver inheritance derives it.
+
+Future panel surfaces, if approved after Base v0.1 certification and dogfood pilot evidence, must consume `ResolverOutput`/effective context and must not reconstruct scattered rules from duplicated fields.
 
 ## 5. ResolverInput shape
 
@@ -139,6 +171,8 @@ The field groups below are recommended structural groups. Field names are shape 
 | next-step recommendation | `next_step_recommendation` | Carry the next-step recommendation as data shape only. | It is not routing, automation, workflow composition, or execution. |
 
 `ResolverOutput` should be compact. It should carry references to selected `Actor`, `Rol`, `Workflow`, `WorkflowStep`, `Acción`, `Recurso`, `Scope`, `Fuente`, `Evidencia`, `Estado`, `Límite`, `Regla`, `Variable`, `Plantilla`, `Artefacto`, `Relación`, and `Contrato` only when needed by the selected context.
+
+`Plantilla` references describe output shape, format, required sections, and body conventions. They do not implement rendering, interpolation, body-file generation, generated-output behavior, command execution, or permission.
 
 ## 7. Estado / status reference handling
 
@@ -201,11 +235,13 @@ Evidence handling stays reference-based.
 Rules:
 
 - GitHub remains live evidence.
-- Static Resolver shape must not copy issue bodies, PR bodies, comments, reviews, commit metadata, validation output, or branch state.
+- Static Resolver shape must not copy issue bodies, PR bodies, comments, reviews, commit metadata, validation output, branch state, roadmap state, or mutable GitHub truth.
 - Static Resolver shape must not create live evidence collection behavior.
 - `Evidencia` references can point to future evidence contracts or live evidence references, depending on later approved contract work.
 - `Fuente` references identify authority sources; they do not replace `Evidencia`.
 - Missing evidence is represented by reference shape, not by invented evidence content.
+
+Issue, PR, branch, commit, review, validation, and roadmap state must be checked live when needed.
 
 ## 10. Boundary and failure shape
 
@@ -315,6 +351,11 @@ This issue explicitly does not create or implement:
 - projection architecture
 - write authorization behavior
 - Resolver behavior
+- template rendering behavior
+- variable interpolation behavior
+- generated-output behavior
+- body-file generation behavior
+- command execution behavior
 - manifest shape
 - index shape
 - selector shape
@@ -325,9 +366,9 @@ This issue explicitly does not create or implement:
 
 This document also does not define runtime routing, parser rules, selector execution, contract loading order, evidence collection, response rendering, PR creation behavior, validation behavior, or write permissions.
 
-## 15. Readiness for manifest/index/selector shape issue
+## 15. Roadmap Readiness
 
-This document is intended to let a future manifest/index/selector shape issue proceed without re-deciding:
+This document is intended to let later explicitly scoped manifest/index/selector, loader, Resolver, schema, validator, and population work proceed without re-deciding:
 
 - what `ResolverInput` carries for request identity
 - how current actor surface is represented as classification context
@@ -342,4 +383,4 @@ This document is intended to let a future manifest/index/selector shape issue pr
 - why examples must be placeholder-safe and non-canonical
 - why no runtime behavior or Resolver behavior is introduced here
 
-A future manifest/index/selector issue should still define manifest shape, index shape, selector shape, and any contract inventory references as data shape only. It must not use this document to introduce contract loader behavior, runtime behavior, parser behavior, automation, validators, API, panel, database/read-model direction, write authorization behavior, workflow composition, or relationship population.
+The next roadmap item after R0.01 is R0.02 roadmap hygiene. Contract creation, schema work, validator work, loader behavior, Resolver behavior, runtime behavior, panel work, and write authorization remain unavailable unless a later explicit roadmap ID or PM-approved amendment scopes them. Later manifest/index/selector work must still define manifest shape, index shape, selector shape, and any contract inventory references as data shape only; it must not introduce contract loader behavior, runtime behavior, parser behavior, automation, validators, API, panel, database/read-model direction, write authorization behavior, workflow composition, or relationship population.

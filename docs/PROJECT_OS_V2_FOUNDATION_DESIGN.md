@@ -2,7 +2,9 @@
 
 ## 1. Objective
 
-Define the initial Project OS v2 foundation design as a human design/reference document, including the architectural pattern, stack direction, normalized entity model, relationship model, `Resolver`, AI read flow, workflow lifecycle direction, boundaries, and future work.
+Define the Project OS v2 foundation design as a human design/reference document for the active fixed roadmap. Project OS v2 is a contract-first operational coordination system that represents actors, roles, workflows, actions, resources, scopes, sources, evidence, states, limits, rules, variables, templates, artifacts, relationships, contracts, and Resolver entrypoints as normalized, versioned, inspectable contracts.
+
+Project OS v2 coordinates operational work through contracts before runtime. It keeps one canonical owner per operational fact, derives effective context deterministically through Resolver inheritance, reduces AI context surface by selecting only applicable contracts and relationships, keeps GitHub as live evidence for issues, PRs, commits, reviews, validation, branch, and roadmap state, migrates proven Project OS behavior by normalization rather than copy-paste, certifies Project OS v2 Base v0.1 before dogfooding, and uses Base v0.1 to coordinate Project OS v2 work only after that certification.
 
 This document is based on the PM-provided source files:
 
@@ -10,7 +12,52 @@ This document is based on the PM-provided source files:
 - `fuentes/Modelo-base-con-definiciones-y-atributos-normalizados.txt`
 - `fuentes/Relaciones-principales-y-cardinalidad.txt`
 
-This issue creates documentation only. It does not create JSON contracts, schemas, validators, runtime behavior, parser behavior, automation, APIs, panels, runners, context packs, target-project artifacts, database/read-model direction, release behavior, or write authorization behavior.
+## R0.01 Roadmap Rebaseline
+
+The active fixed roadmap source is GitHub issue #92. Issue #47 is historical/provenance for the earlier fixed roadmap, issue #91 is completed roadmap rebaseline evidence, and issue #90 is open/paused tooling-readiness evidence. Future agents must not treat #47 as the active roadmap. GitHub remains live evidence, so issue, PR, branch, commit, review, validation, and roadmap state must be checked live when needed.
+
+Current roadmap vocabulary:
+
+- Bootstrap: Project OS v2 is still being built with guidance from `project-os` and PM/browser/terminal workflows.
+- Migration: Project OS behavior is inventoried and mapped into normalized Project OS v2 families.
+- Baseline population: Project OS v2 contracts are populated from approved migration mappings.
+- Base v0.1: the first certified read-only Project OS v2 base that can coordinate Project OS v2 development itself.
+- Dogfood: begins only after Project OS v2 Base v0.1 is certified dogfood-ready.
+- Panel: a post-Base-v0.1 candidate surface, not part of the current fixed execution backlog.
+
+Until Base v0.1 is certified dogfood-ready, Project OS v2 is still being built through project-os-supported bootstrap and migration. Migration, import, and baseline population issues must not be labeled as dogfood. Panel planning and implementation are intentionally excluded from the fixed backlog until Base v0.1 certification and dogfood pilot evidence justify them.
+
+Stage-scoped permissions replace earlier ambiguous wording such as "do not create JSON contracts," "future contracts," or "no JSON yet":
+
+- Planning issues do not create contracts.
+- Docs issues may modify only approved docs.
+- Contract population issues may create or update contracts only when explicitly scoped.
+- Schema issues may create schemas only after schema strategy approval.
+- Validator issues may create validators only after schema implementation.
+- Loader, Resolver, runtime, panel, and write authorization remain blocked until their explicit roadmap IDs or later PM-approved roadmap amendments.
+
+This R0.01 issue creates documentation only. It does not create contracts, schemas, validators, runtime behavior, parser behavior, automation, APIs, panels, runners, context packs, target-project artifacts, database/read-model direction, release behavior, template rendering behavior, variable interpolation behavior, generated-output behavior, body-file generation behavior, command execution behavior, or write authorization behavior.
+
+## Current Fixed Roadmap Order
+
+The fixed roadmap order from #92 is:
+
+1. R0.01 docs rebaseline.
+2. R0.02 roadmap hygiene.
+3. R1 normalization audit, ownership policy, corrections, schemas, validators, and pre-migration validation readiness.
+4. R2 project-os inventory, mapping, and migration plan.
+5. R3 baseline limits, rules, states, and actor boundary relations.
+6. R4 baseline roles, review/PM rules, evidence, and sources.
+7. R5 baseline workflows, workflow steps, workflow composition, and terminal-agent workflow.
+8. R6 baseline actions, resources, scopes, and action/resource/scope/evidence relations.
+9. R7 baseline artifacts, templates, heredoc/body-file templates, variables, and template relations.
+10. R10 post-migration baseline validation review and read-only loader.
+11. R11 read-only Resolver.
+12. R12 Base v0.1 dogfood-ready certification.
+13. R13 dogfood pilot and pilot review.
+14. R14 runtime/write-gate/automation planning only if PM approves.
+
+Schemas and validators happen after normalization and before Project OS inventory, mapping, and migration. Migrated baseline contracts are reviewed with schemas and validators before loader or Resolver work. Panel work is not part of this fixed execution backlog and must not start before Base v0.1 certification and dogfood pilot evidence justify later PM approval.
 
 ## 2. Problem Statement
 
@@ -26,7 +73,7 @@ The system assigns execution surfaces, professional lenses, resources, limits, r
 
 Execution plans should remain flexible when real evidence differs from the plan. Project OS v2 adapts through `Resolver`, `Estado`, `Evidencia`, and `Relación`, not through hardcoded behavior. This is an operational design principle, not a new model entity.
 
-The immediate implementation direction is contract structure and contract data, not code-heavy test infrastructure. Runtime behavior, parser behavior, automation, APIs, panels, context packs, target-project artifacts, database/read-model direction, write authorization behavior, schema files, and validator work are not the next step; validators may become future tooling only after contracts exist and the model proves automated checks are needed.
+The immediate implementation direction is the #92 staged roadmap: docs rebaseline, roadmap hygiene, normalization audit and ownership policy, schema and validator readiness, then Project OS inventory/mapping/migration. Runtime behavior, parser behavior, automation, APIs, panels, context packs, target-project artifacts, database/read-model direction, write authorization behavior, loader work, and Resolver behavior remain blocked until their explicit roadmap IDs or later PM-approved roadmap amendments.
 
 ## 3. Architectural Pattern
 
@@ -59,15 +106,15 @@ The intended pattern is:
 
 This stack is a design direction only, not an implementation commitment for this issue.
 
-- JSON contracts are the canonical stable structure for entities and relationships.
-- The immediate next direction is JSON contract structure and contract data.
-- JSON Schema may validate contract shape later, after the contract structure exists and the model proves shape checks are needed.
-- Semantic validators may be future tooling only after contracts exist and the model proves cross-contract automated checks are needed.
-- Runtime behavior, parser behavior, automation, APIs, panels, runners, context packs, target-project artifacts, database/read-model direction, schema files, and write authorization behavior are not the next step.
+- JSON contracts are the canonical stable structure for entities and relationships once contract population issues explicitly scope them.
+- The immediate next direction is R0.02 roadmap hygiene, then R1 normalization audit, ownership policy, corrections, schemas, validators, and pre-migration validation readiness.
+- JSON Schema work happens only after schema strategy approval and after normalization decisions are ready to validate.
+- Semantic validators happen only after schema implementation and within explicitly scoped validator issues.
+- Runtime behavior, parser behavior, automation, APIs, panels, runners, context packs, target-project artifacts, database/read-model direction, loader work, Resolver behavior, and write authorization behavior are blocked until their explicit roadmap IDs or later PM-approved roadmap amendments.
 - Markdown is only for human design/reference.
 - GitHub issues, PRs, commits, comments, reviews, tags, and validation outputs are live evidence.
 
-The source of truth direction is: JSON contracts first, live GitHub evidence for operational traceability, and Markdown for explanation. Storage and execution implementation concerns are outside this foundational design issue.
+The source of truth direction is: normalized contracts for stable operational structure once explicitly populated, live GitHub evidence for operational traceability, and Markdown for explanation. Storage and execution implementation concerns are outside this foundational design issue.
 
 ## 5. Normalization Principles
 
@@ -75,11 +122,24 @@ Project OS v2 preserves maximum normalization.
 
 Required rule: entities store their own attributes. Compatibility, permission, requirement, dependency, sequencing, and restriction live in `Relación`.
 
+Normalization model:
+
+- 1NF: payloads are atomic enough for machine reading.
+- 2NF: each family owns only its own facts.
+- 3NF: no duplicated transitive facts.
+- Canonical ownership: every operational fact has exactly one canonical owner.
+- Relationship ownership: `Relación` owns cross-entity graph semantics.
+- Actor boundary rule: actor-level limits must not be duplicated into workflows, actions, templates, artifacts, or roles.
+- Role lens rule: `Rol` is a professional lens only and never grants write permission.
+- Template authority rule: `Plantilla` owns output shape, format, and body conventions, not permission.
+- Durable evidence rule: durable JSON must not store mutable GitHub truth.
+
 Normalization boundaries:
 
 - Do not duplicate permissions inside `Actor` if they are expressed by `Límite` or `Relación`.
 - Do not duplicate required evidence inside `Workflow` if it is expressed by `Relación`.
 - Do not duplicate execution behavior inside `Workflow` or `WorkflowStep` if it is resolved through `Actor`, `Rol`, `Acción`, `Fuente`, `Evidencia`, `Límite`, `Regla`, and `Relación`.
+- Do not duplicate actor-level limits inside `Workflow`, `Acción`, `Plantilla`, `Artefacto`, or `Rol`.
 - Do not create prompt and response as separate entities when `Plantilla` covers both.
 - Do not create approval as a separate entity when it is `Evidencia`.
 - Do not create context as a separate entity when it belongs to `Rol` or `Plantilla`.
@@ -89,6 +149,8 @@ Normalization boundaries:
 The design favors small contracts with explicit links over large contracts that embed adjacent concepts.
 
 Execution behavior is resolved from `Actor` + `Rol` + `Acción` + `Límite` + `Regla` + `Fuente` + `Evidencia` through `Relación`. `Workflow` defines lifecycle/process composition. `WorkflowStep` defines reusable step identity, objective, base conditions, Actor/Rol delegation, transition logic, and expected artifacts. `Resolver` composes relationships and determines `Estado`.
+
+If an `Actor` has a `Límite`, and a `Workflow` uses that `Actor`, the `Workflow` must not duplicate that actor-level `Límite`. The `Resolver` derives it from the selected actor and relationship graph.
 
 ## 6. Entity Model
 
@@ -113,7 +175,34 @@ The PM-provided base entity model is preserved exactly:
 17. `Relación`
 18. `Contrato`
 
-Each base entity should become a versionable JSON contract later. This document does not create those contracts.
+Each base entity should become a versionable JSON contract only when a later contract population issue explicitly scopes that work. This document does not create those contracts.
+
+## Canonical Ownership by Family
+
+Canonical ownership for the 18 base entity families:
+
+| Family | Canonical ownership |
+| --- | --- |
+| `Resolver` | Single AI read entrypoint identity, selected-context resolution boundary, manifest/policy/schema reference pointers, and fallback state reference. |
+| `Actor` | Execution surface identity and base capability description. Actor hard limits are linked through `Relación` to `Límite` and must not be copied into workflows, actions, templates, artifacts, or roles. |
+| `Rol` | Professional lens and review/interpretation perspective. A role never grants write permission. |
+| `Workflow` | Lifecycle/process identity and composition boundary. It does not own actor limits, role permissions, action execution, evidence bodies, or template output shape. |
+| `WorkflowStep` | Reusable process-block identity, objective, and base advance/repeat/block conditions. Workflow-specific order, required state, delegated actor/role, expected artifacts, and next-step links live in `Relación`. |
+| `Acción` | Concrete operation identity and action type. Execution authority comes from selected actor limits, scope, resource, evidence, and relationships. |
+| `Recurso` | Object being acted on, including resource type, name, and stable location/reference. |
+| `Scope` | Permitted task boundary. Scope does not grant actor permission by itself. |
+| `Fuente` | Authority/source category, location, authority level, and freshness requirement. It does not store mutable evidence observations. |
+| `Evidencia` | Evidence reference shape and verification metadata. Durable evidence contracts must not store mutable GitHub truth. |
+| `Estado` | State identity and meaning. Rules, limits, and evidence that cause a state remain separate. |
+| `Límite` | Mandatory boundary, type, and severity. Actor-level limits are inherited by Resolver and are not duplicated into lower layers. |
+| `Regla` | Conditional guidance and expected behavior. Rules do not replace hard limits or permissions. |
+| `Variable` | Configurable data shape, defaults, and allowed values for templates or workflows. Variables do not perform interpolation. |
+| `Plantilla` | Output shape, format, required sections, and body conventions. A template does not grant permission and does not implement rendering. |
+| `Artefacto` | Expected or produced artifact identity, type, name, and reference. Artifact contracts do not own template definitions or producing logic. |
+| `Relación` | Cross-entity graph semantics: compatibility, permission, requirement, dependency, sequencing, restriction, delegation, composition, and output links. |
+| `Contrato` | Formal/versionable wrapper identity for an entity or relationship contract, including version, schema reference, and lifecycle state. |
+
+Policy, manifest, index, and selector are non-entity static support bundles. They are not members of the 18 base entity families. They support Resolver discovery/reference behavior and must not implement runtime behavior, selector runtime, contract loader behavior, write authorization, or duplicated entity facts.
 
 ## 7. Entity Attributes
 
@@ -125,7 +214,7 @@ Each base entity should become a versionable JSON contract later. This document 
 | `Workflow` | Proceso iterable que define orden de proceso y etapa del ciclo de vida. | Workflow identity, lifecycle stage, and process composition. | `id`, `nombre`, `descripción`, `etapa_ciclo_vida`, `orden` | Actor/role execution behavior, direct actions, direct evidence, direct limits, direct rules, or resolver-derived state. | A future workflow contract for one lifecycle process assembled from reusable steps. |
 | `WorkflowStep` | Bloque reutilizable de proceso usado dentro de workflows. | Reusable step identity, objective, and base advance/repeat/block conditions. | `id`, `nombre`, `descripción`, `objetivo`, `condición_base_avance`, `condición_base_repetición`, `condición_base_bloqueo` | Direct action execution, evidence ownership, direct limits, direct rules, actor capability, role rules, produced artifact content, or workflow-specific sequencing values. | A future reusable process block that delegates to `Actor` and `Rol` through relationships. |
 | `Acción` | Operación concreta que se quiere realizar. | Action identity and action type. | `id`, `nombre`, `descripción`, `tipo` | Actor identity, resource details, scope, evidence, or execution result. | A future action contract for a concrete operation such as inspect, create, validate, or review. |
-| `Recurso` | Objeto sobre el que actúa una acción. | Resource identity, type, name, and location. | `id`, `tipo`, `nombre`, `ubicación` | Action semantics, scope membership, evidence verification state, or artifact generation rules. | A future resource contract pointing to a file path, issue, PR, commit, tag, or external reference. |
+| `Recurso` | Objeto sobre el que actúa una acción. | Resource identity, type, name, and location. | `id`, `tipo`, `nombre`, `ubicación` | Action semantics, scope membership, evidence verification state, or artifact composition rules. | A future resource contract pointing to a file path, issue, PR, commit, tag, or external reference. |
 | `Scope` | Alcance permitido de una tarea. | Scope identity and allowed task boundary description. | `id`, `nombre`, `descripción` | Resources by value, action permissions, actor capability, or workflow order. | A future scope contract representing the allowed boundary of a task. |
 | `Fuente` | Origen de autoridad o verdad. | Source identity, type, location, authority level, and freshness requirement. | `id`, `tipo`, `nombre`, `ubicación`, `nivel_autoridad`, `frescura_requerida` | Evidence observations, verification state, resource ownership, or workflow decisions. | A future source contract for an authoritative origin such as a PM file or live GitHub object category. |
 | `Evidencia` | Información verificable usada para decidir o validar. | Evidence identity, type, reference, verification state, and observation timestamp. | `id`, `tipo`, `referencia`, `estado_verificación`, `observado_en` | Source authority, workflow policy, approval as an entity, or static copies of mutable GitHub state. | A future evidence contract/reference for an observed issue, PR, commit, review, validation output, or source file observation. |
@@ -133,8 +222,8 @@ Each base entity should become a versionable JSON contract later. This document 
 | `Límite` | Restricción obligatoria que no debe romperse. | Limit identity, type, severity, and constraint description. | `id`, `nombre`, `descripción`, `tipo`, `severidad` | Actor permissions by embedding, workflow membership, rule behavior, or failure evidence. | A future limit contract defining a hard boundary. |
 | `Regla` | Norma que guía conducta o decisión. | Rule identity, condition, and expected behavior. | `id`, `nombre`, `descripción`, `condición`, `comportamiento_esperado` | Limit severity, actor identity, workflow order, evidence payloads, or static GitHub traceability. | A future rule contract defining expected behavior under a condition. |
 | `Variable` | Dato dinámico configurable. | Variable identity, type, default value, and allowed values. | `id`, `nombre`, `tipo`, `valor_default`, `valores_permitidos` | Template bodies, workflow definitions, live runtime values, or validator behavior. | A future variable contract parameterizing a template or workflow. |
-| `Plantilla` | Estructura reusable para generar prompts, respuestas, reportes o bodies. | Template identity, type, format, and required sections. | `id`, `nombre`, `tipo`, `formato`, `secciones_requeridas` | Variable definitions, workflow eligibility, live evidence state, or separate prompt/response entities. | A future template contract for a response, prompt, report, or PR body structure. |
-| `Artefacto` | Resultado referenciable esperado por un paso o producido por acción/plantilla. | Artifact identity, type, name, and reference. | `id`, `tipo`, `nombre`, `referencia` | Producing step logic, template definition, resource definition, or validation state. | A future artifact contract/reference for a design document, generated report, PR body, or validation result. |
+| `Plantilla` | Estructura reusable para componer prompts, respuestas, reportes o bodies como formato esperado. | Template identity, type, format, required sections, and body conventions. | `id`, `nombre`, `tipo`, `formato`, `secciones_requeridas` | Variable definitions, workflow eligibility, live evidence state, permission, runtime rendering, interpolation, or separate prompt/response entities. | A future template contract for a response, prompt, report, or PR body structure. |
+| `Artefacto` | Resultado referenciable esperado por un paso o asociado a una acción/plantilla. | Artifact identity, type, name, and reference. | `id`, `tipo`, `nombre`, `referencia` | Producing step logic, template definition, resource definition, rendering behavior, or validation state. | A future artifact contract/reference for a design document, report, PR body, or validation result. |
 | `Relación` | Vínculo formal entre entidades para compatibility, permission, requirement, dependency, sequencing, or restriction semantics. | Relationship identity, endpoints, relationship type, cardinality, required flag, and order. | `id`, `origen_entidad`, `origen_id`, `destino_entidad`, `destino_id`, `tipo_relación`, `cardinalidad`, `requerido`, `orden` | Duplicated attributes from either endpoint or embedded copies of related contracts. | A future relationship contract that composes workflow steps, delegates `Actor`/`Rol`, expects `Artefacto`, or points to the next step. |
 | `Contrato` | Especificación formal/versionable de una entidad o relación. | Contract identity, entity type, version, schema reference, and state. | `id`, `nombre`, `entidad_tipo`, `versión`, `schema_ref`, `estado` | Entity-specific attributes not belonging to the contract wrapper, live GitHub evidence, or generated implementation state. | A future contract file that formalizes one entity or relationship version. |
 
@@ -178,8 +267,10 @@ The main relationship model is:
 | Variable parametriza Plantilla | N:M | Variables rellenan o modifican plantillas. |
 | Variable parametriza Workflow | N:M | Variables pueden afectar idioma, repo, branch pattern, etc. |
 | Variable parametriza Contrato | N:M | Variables pueden parametrizar contratos sin duplicar su estructura. |
-| Plantilla genera Artefacto | 1:N | Una plantilla puede generar muchos artefactos. |
+| Plantilla compone Artefacto | 1:N | Una plantilla puede definir la forma de muchos artefactos sin implementar generación, rendering, interpolation, body-file generation, or generated-output behavior. |
 | Artefacto se asocia a Recurso | N:M | Un artefacto puede documentar o modificar recursos. |
+
+Current Project OS v2 semantics use `plantilla compone artefacto`. Old `plantilla genera artefacto` language is historical/provenance or reserved legacy wording only; it must not be read as runtime generation, template rendering, variable interpolation, body-file generation, generated-output behavior, or permission.
 
 ## Relationship Normalization Correction
 
@@ -239,7 +330,7 @@ Cardinality defines the allowed relationship shape, not embedded ownership.
 - `N:1` means many sources can reuse or converge on one target.
 - `N:M` means both sides can participate in many relationships, and the relationship contract carries the meaning, requirement flag, and order.
 
-The cardinality model keeps reusable concepts reusable. For example, a `Regla` can be applied to multiple `Rol` contracts; a `Límite` can be shared by multiple actors; a `Fuente` can provide many `Evidencia` references; a `Plantilla` can generate multiple `Artefacto` records; and a `WorkflowStep` can delegate multiple actors or roles, expect multiple artifacts, and advance to multiple next steps or workflows when branching or repetition is allowed.
+The cardinality model keeps reusable concepts reusable. For example, a `Regla` can be applied to multiple `Rol` contracts; a `Límite` can be shared by multiple actors; a `Fuente` can provide many `Evidencia` references; a `Plantilla` can compose the expected shape of multiple `Artefacto` records; and a `WorkflowStep` can delegate multiple actors or roles, expect multiple artifacts, and advance to multiple next steps or workflows when branching or repetition is allowed.
 
 ## 10. Resolver as Single AI Read Entrypoint
 
@@ -258,6 +349,20 @@ The `Resolver` should eventually load:
 - related `Acción`, `Recurso`, `Scope`, and `Artefacto` contracts when required by the selected relationships
 
 The result is `ResolverOutput`: a minimal selected context that tells the AI what state applies, what workflow or step is active, what actor/role delegation applies, what action is available, what evidence is required or available through sources, what limits/rules bind the response, and which template should structure the answer.
+
+Deterministic Resolver inheritance order:
+
+1. Actor hard limits.
+2. Actor output boundaries.
+3. Role lens constraints.
+4. Workflow requirements.
+5. WorkflowStep requirements.
+6. Action/resource/scope requirements.
+7. Evidence/source requirements.
+8. Template/artifact output shape.
+9. State/failure rules.
+
+No lower layer may weaken an Actor hard limit. `ResolverOutput` materializes effective inherited context and should include source/provenance refs for effective facts. Future panel surfaces, if approved later, must consume `ResolverOutput`/effective context and must not reconstruct scattered rules from duplicated fields.
 
 ## 11. Selector / Routing Concept
 
@@ -326,11 +431,57 @@ The intended AI read flow is:
 
 The AI should use selected contracts and relationships as the active context. It should not infer missing permissions, skipped evidence, or lifecycle advancement from static Markdown alone.
 
+## Base v0.1 Definition
+
+Base v0.1 is the first certified read-only Project OS v2 base usable to coordinate Project OS v2 development itself. It is not dogfood until certification is complete.
+
+Base v0.1 includes:
+
+- normalized contracts
+- canonical ownership
+- deterministic Resolver inheritance
+- migrated operational behavior from `project-os` as normalized contract data
+- reference validation
+- schema coverage for contract shapes
+- validator coverage for schema, reference, and ownership checks
+- read-only contract loader
+- read-only `ResolverOutput` / effective context
+- prompt, command, review, and PM decision drafting support
+
+Base v0.1 excludes:
+
+- autonomous writes
+- merge automation
+- issue closure automation
+- destructive panel actions
+- target-project automation
+- write authorization runtime
+- direct Project OS copy-paste imports
+- panel implementation
+
+Dogfood begins only after Project OS v2 Base v0.1 is certified dogfood-ready. Project OS v2 Base v0.1 may coordinate Project OS v2 work using Project OS v2 itself only after certification.
+
+## Project OS to Project OS v2 Migration Policy
+
+Project OS behavior is source evidence, not structure to copy directly. Migration must happen in granular clusters, and each behavior must map to exactly one canonical owner.
+
+Migration ownership rules:
+
+- Actor-level behavior stays actor-level.
+- Browser-chat no-write/copy-safe behavior belongs to Actor/Límite or Actor/Regla relations, not workflows, actions, or templates.
+- Heredoc and multiline body conventions belong to Plantilla/Formato and do not grant permission.
+- Branch preflight belongs to workflow/evidence/status gates.
+- Review quality belongs to role/workflow/evidence/output contracts.
+- Source authority belongs to Fuente/Evidencia.
+- Output shape belongs to Plantilla/Artefacto/Variable as applicable.
+
+Direct Project OS copy-paste imports are excluded from Base v0.1. Proven behavior must be normalized into the Project OS v2 ownership and relationship model before baseline population.
+
 ## 15. Contract Loading Strategy
 
-Contract loading should be minimal, layered, and relationship-aware.
+Contract loading should be minimal, layered, and relationship-aware when read-only loader work is explicitly scoped. This section is conceptual design only; it does not create contract loader behavior, Resolver behavior, generated indexes, selector runtime, parser behavior, runtime behavior, or write authorization.
 
-Recommended later loading order:
+Conceptual later reference flow:
 
 1. Load the `Resolver` contract.
 2. Load a manifest/index of available `Contrato` records.
@@ -343,7 +494,7 @@ Recommended later loading order:
 9. Select `Plantilla` and `Variable` contracts needed for output.
 10. Return a compact `ResolverOutput`.
 
-The loading strategy should support generated indexes later, but the canonical information should remain in JSON contracts.
+The loading strategy may support generated indexes only if a later roadmap item explicitly scopes that work, but canonical information should remain in JSON contracts.
 
 ## 16. What Belongs in JSON Contracts
 
@@ -352,7 +503,7 @@ JSON contracts should contain stable, versionable structure:
 - normalized entity attributes from the base model
 - relationship endpoints and cardinality
 - normalized delegation, compatibility, requirement, dependency, sequencing, and restriction relationships
-- schema references
+- schema references after schema strategy approval
 - lifecycle definitions at the contract level
 - reusable limits and rules
 - template structure and required sections
@@ -368,6 +519,8 @@ JSON contracts should not contain:
 
 - live GitHub issue state copied as static data
 - live PR state copied as static data
+- live branch state copied as static data
+- live roadmap state copied as static data
 - commit review status copied as static data
 - validation output bodies copied as canonical facts
 - runtime cache data
@@ -392,9 +545,11 @@ GitHub live evidence includes mutable operational traceability:
 - reviews
 - tags
 - validation outputs
+- branches and branch state
+- roadmap state
 - references to changed files or generated artifacts
 
-GitHub should remain the live evidence layer for execution, review, readiness, release, and validation state. Static docs should not encode live GitHub traceability as if it were canonical system state.
+GitHub should remain the live evidence layer for execution, review, readiness, release, validation, branch, and roadmap state. Static docs and durable JSON should not encode live GitHub traceability as if it were canonical system state. `Fuente` and `Evidencia` contracts are stable references/categories, not live snapshots; issue, PR, branch, commit, review, validation, and roadmap state must be checked live when needed.
 
 ## 19. What Belongs in Markdown Docs
 
@@ -413,20 +568,23 @@ Markdown may describe:
 
 Markdown should not become a second contract system. It should not duplicate live evidence, encode runtime behavior, or act as the source of truth for actors, roles, workflows, limits, or rules once JSON contracts exist.
 
-## 20. Future Work
+## 20. Roadmap Execution Boundary
 
-Potential future work:
+The active fixed roadmap is #92, not #47. The next roadmap item after R0.01 is R0.02 roadmap hygiene.
 
-1. Define JSON contract directory layout and naming conventions.
-2. Create initial entity and relationship contract data from approved model decisions.
-3. Refine `ResolverInput` and `ResolverOutput` contract structure.
-4. Add resolver manifest/index/selector contracts.
-5. Consider JSON Schema files for contract shape validation only after contract structure stabilizes.
-6. Consider semantic validators for cross-contract consistency only after contracts exist and the model proves automated checks are needed.
-7. Add controlled runtime behavior only after contract structure, contract data, and any approved validation foundations are complete.
-8. Add APIs, panels, automation, runners, context packs, or write authorization only as explicitly scoped future work.
+Roadmap execution must preserve these order constraints:
 
-None of this future work is implemented in this issue.
+- Schemas and validators happen after normalization and before Project OS inventory, mapping, and migration.
+- Project OS behavior is inventoried and mapped before baseline contracts are populated.
+- Migrated baseline contracts are reviewed with schemas and validators before loader or Resolver work.
+- Loader work starts at R10 only after post-migration baseline validation review.
+- Resolver work starts at R11 only after read-only loader readiness.
+- Base v0.1 certification is R12.
+- Dogfood pilot starts at R13 only after Base v0.1 certification.
+- Runtime/write-gate/automation planning is R14 only if PM approves.
+- Panel is outside the fixed execution backlog and must not be implied before Base v0.1 certification.
+
+None of that later work is implemented in this issue.
 
 ## 21. Risks and Open Questions
 
