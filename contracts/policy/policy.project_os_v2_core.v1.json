@@ -45,6 +45,13 @@
     "schema_ref_policy": {
       "input_schema_ref": null,
       "output_schema_ref": null
+    },
+    "static_data_refs": {
+      "manifest_ref": "manifest.project_os_v2_core.v1",
+      "index_ref": "index.project_os_v2_core.v1",
+      "selector_refs": [
+        "selector.project_os_v2_core.v1"
+      ]
     }
   }
 }
