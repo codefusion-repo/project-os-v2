@@ -2,9 +2,9 @@
 
 ## 1. Objective
 
-Define the structure-only shape for future Project OS v2 manifest, index, selector, and loading metadata contracts.
+Define the structure-only shape for later, explicitly scoped Project OS v2 manifest, index, selector, and loading metadata support bundles.
 
-This document defines static data shapes that can later help `Resolver` discover and select candidate contracts without loading the entire system. It does not create JSON contract files, populated contract data, JSON schemas, validators, runtime behavior, parser behavior, automation, API, panel, runners, context packs, target-project artifacts, database/read-model direction, generated indexes, selector runtime, contract loader behavior, write authorization behavior, or Resolver behavior.
+This document defines static data shapes that can later help `Resolver` discover and select candidate contracts without loading the entire system. R0.01 updates it as docs-only rebaseline work. It does not create JSON contract files, populated contract data, JSON schemas, validators, runtime behavior, parser behavior, automation, API, panel, runners, context packs, target-project artifacts, database/read-model direction, generated indexes, selector runtime, contract loader behavior, write authorization behavior, or Resolver behavior.
 
 ## 2. Scope
 
@@ -24,6 +24,23 @@ It defines future static shapes for:
 10. readiness for the first JSON skeleton issue
 
 The shapes in this document are field-group decisions only. They are not contract instances, JSON schemas, generated indexes, loader instructions, parser rules, or executable selection behavior.
+
+## R0.01 Roadmap Rebaseline Boundary
+
+The active fixed roadmap source is GitHub issue #92. Issue #47 is historical/provenance, issue #91 is completed roadmap rebaseline evidence, and issue #90 is open/paused tooling-readiness evidence. This document must not imply that #47 remains the active roadmap.
+
+Stage-scoped permissions apply:
+
+- Planning issues do not create contracts.
+- Docs issues may modify only approved docs.
+- Contract population issues may create or update contracts only when explicitly scoped.
+- Schema issues may create schemas only after schema strategy approval.
+- Validator issues may create validators only after schema implementation.
+- Loader, Resolver, runtime, panel, and write authorization remain blocked until their explicit roadmap IDs or later PM-approved roadmap amendments.
+
+Under #92, schemas and validators happen after normalization and before Project OS inventory, mapping, and migration. Migrated baseline contracts are reviewed with schemas and validators before loader or Resolver work. Read-only loader work is R10, read-only Resolver work is R11, Base v0.1 dogfood-ready certification is R12, and dogfood begins only after certification. Panel planning/implementation is outside the fixed backlog.
+
+Policy, manifest, index, and selector are non-entity static support bundles. They are not members of the 18 base entity families. They support Resolver discovery/reference behavior but do not implement runtime behavior, generated indexes, selector runtime, contract loader behavior, Resolver behavior, or write authorization.
 
 ## 3. Relationship to foundation / structure / envelope / skeleton / resolver shape docs
 
@@ -46,6 +63,7 @@ Foundation decisions preserved here:
 - `WorkflowStep` remains a reusable process block.
 - `Workflow` composes `WorkflowStep` through `Relación`.
 - GitHub remains live evidence for issues, PRs, commits, comments, reviews, tags, and validation outputs.
+- Durable JSON must not store mutable GitHub truth.
 - Markdown remains human design/reference until equivalent reviewed contracts exist.
 
 Structure decisions preserved here:
@@ -58,7 +76,7 @@ Structure decisions preserved here:
 
 Envelope and skeleton decisions preserved here:
 
-- Future contracts use the common envelope boundary for metadata and `payload`.
+- Later explicitly scoped contracts use the common envelope boundary for metadata and `payload`.
 - Envelope metadata and payload data must not duplicate each other.
 - Future skeleton values must be placeholder-safe.
 - Examples must be non-canonical and documentation-only.
@@ -70,6 +88,8 @@ Resolver shape decisions preserved here:
 - `ResolverOutput` returns selected-context references only.
 - `ResolverOutput` carries both `status_token` and `estado_ref`, with `estado_ref` becoming the future canonical `Estado` reference when approved `Estado` contracts exist.
 - Selected `Relación` references remain reference-based and are not embedded as full relationship bodies.
+- `ResolverOutput` materializes effective inherited context in deterministic order: Actor hard limits, Actor output boundaries, Role lens constraints, Workflow requirements, WorkflowStep requirements, action/resource/scope requirements, evidence/source requirements, template/artifact output shape, and state/failure rules.
+- No lower layer may weaken an Actor hard limit.
 
 ## 4. Manifest shape
 
@@ -206,7 +226,7 @@ Allowed selector dimensions include:
 | repository/project reference | `repository_ref`, `target_project_ref` | Scope candidates to a project/repository reference. | Does not copy repository state. |
 | resource type | `resource_type_ref`, `resource_refs` | Narrow candidates by resource category. | Does not copy file contents or live resource state. |
 | issue / PR / resource references | `issue_refs`, `pr_refs`, `resource_refs` | Point to live or static resources mentioned by the request. | References only; no body text is copied. |
-| output shape | `requested_output_contract_ref`, `response_shape_ref`, `output_template_hint` | Narrow candidates by requested output/report/body shape. | Does not select or expand a template by behavior. |
+| output shape | `requested_output_contract_ref`, `response_shape_ref`, `output_template_hint` | Narrow candidates by requested output/report/body shape. | Does not select or expand a template by behavior; Plantilla owns shape/format/body conventions, not permission or rendering. |
 | evidence availability | `available_evidence_refs`, `available_source_refs` | Represent already-known evidence references. | Does not collect or verify evidence. |
 | missing evidence | `missing_evidence_refs`, `required_evidence_refs` | Represent references required but unavailable. | Does not invent evidence. |
 | workflow lifecycle stage | `lifecycle_hint`, `workflow_stage_ref` | Narrow candidates by lifecycle stage references. | Does not compose workflows. |
@@ -261,12 +281,15 @@ Rules:
 - Manifest, index, selector, and loading metadata shapes may reference evidence categories or evidence refs.
 - Static shapes must not copy issue bodies, PR bodies, comments, reviews, commit metadata, validation output, or branch state.
 - Static shapes must not copy live GitHub issue state, PR state, review state, tag state, branch state, or validation state.
+- Static shapes must not copy live roadmap state or durable GitHub truth into JSON.
 - `Evidencia` references can point to future evidence contracts or live evidence references, depending on later approved contract work.
 - `Fuente` references identify authority sources; they do not replace `Evidencia`.
 - Missing evidence may be represented as missing evidence references or categories, not invented evidence content.
 - No live evidence collection behavior is created by this document.
 
 The manifest can list references to evidence categories only when needed for inventory provenance. The index can expose evidence-related dimensions only as non-canonical discovery hints. The selector can include evidence availability and missing evidence dimensions only as reference hints. Loading metadata can carry required or missing evidence reference groups only as static guidance.
+
+Issue, PR, branch, commit, review, validation, and roadmap state must be checked live when needed. `Fuente` and `Evidencia` contracts are stable references/categories, not live snapshots.
 
 ## 12. Placeholder-safe examples policy
 
@@ -362,6 +385,11 @@ This issue explicitly does not create or implement:
 - contract loader behavior
 - write authorization behavior
 - Resolver behavior
+- template rendering behavior
+- variable interpolation behavior
+- generated-output behavior
+- body-file generation behavior
+- command execution behavior
 - actual skeleton files
 - workflow composition
 - relationship population
@@ -374,9 +402,9 @@ This issue explicitly does not create or implement:
 
 This document also does not define a selector algorithm, scoring model, file loading order implementation, parser rule, JSON reader, cache, index generator, database projection, API endpoint, UI panel, runner, context-pack generator, target-project artifact writer, or authorization layer.
 
-## 16. Readiness for first JSON skeleton issue
+## 16. Roadmap Readiness
 
-This document is intended to let the first JSON skeleton issue proceed without re-deciding:
+This document is intended to let later explicitly scoped manifest/index/selector, skeleton, schema, validator, loader, Resolver, and population work proceed without re-deciding:
 
 - manifest shape as contract inventory
 - index shape as discoverability metadata
@@ -395,4 +423,4 @@ This document is intended to let the first JSON skeleton issue proceed without r
 - no-population rule
 - no-runtime, no-loader, and no-parser boundaries
 
-The first JSON skeleton issue should still decide concrete file creation scope, exact placeholder IDs, exact family-by-family payload field lists, and whether source references are attached as references. It must not use this document to create populated contract data, generated indexes, selector runtime, contract loader behavior, database/read-model direction, schemas, validators, API, panel, context packs, target-project artifacts, write authorization behavior, Resolver behavior, workflow composition, or relationship population.
+The next roadmap item after R0.01 is R0.02 roadmap hygiene. Contract creation, schema work, validator work, loader behavior, Resolver behavior, runtime behavior, panel work, and write authorization remain unavailable unless a later explicit roadmap ID or PM-approved amendment scopes them. Later skeleton or population work must still decide concrete file creation scope, exact placeholder IDs, exact family-by-family payload field lists, and whether source references are attached as references. It must not use this document to create populated contract data, generated indexes, selector runtime, contract loader behavior, database/read-model direction, schemas, validators, API, panel, context packs, target-project artifacts, write authorization behavior, Resolver behavior, workflow composition, or relationship population.

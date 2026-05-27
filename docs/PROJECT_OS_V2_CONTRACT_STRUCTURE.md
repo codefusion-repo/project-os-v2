@@ -2,15 +2,30 @@
 
 ## 1. Objective
 
-Define the structure-only layout and naming conventions for future Project OS v2 JSON contracts.
+Define the structure-only layout and naming conventions for later, explicitly scoped Project OS v2 JSON contracts.
 
 This document decides contract root, directory layout, naming convention, ID namespace, versioning, status, language, placeholder/null policy, examples policy, and no-population boundaries. It does not create populated JSON contracts.
 
 ## 2. Scope
 
-This issue is structure-only. It defines where future contract files should live and how they should be named.
+This document is structure-only. It defines where later explicitly scoped contract files should live and how they should be named.
 
-This issue does not create contract data, JSON contract skeleton files, JSON schemas, validators, runtime behavior, parser behavior, automation, API, panel, runners, context packs, target-project artifacts, database/read-model direction, write authorization behavior, or Resolver behavior.
+R0.01 updates this document as docs-only rebaseline work. It does not create contract data, JSON contract skeleton files, JSON schemas, validators, runtime behavior, parser behavior, automation, API, panel, runners, context packs, target-project artifacts, database/read-model direction, write authorization behavior, or Resolver behavior.
+
+## R0.01 Roadmap Rebaseline Boundary
+
+The active fixed roadmap source is GitHub issue #92. Issue #47 is historical/provenance, issue #91 is completed roadmap rebaseline evidence, and issue #90 is open/paused tooling-readiness evidence. This document must not imply that #47 remains the active roadmap.
+
+Stage-scoped permissions apply:
+
+- Planning issues do not create contracts.
+- Docs issues may modify only approved docs.
+- Contract population issues may create or update contracts only when explicitly scoped.
+- Schema issues may create schemas only after schema strategy approval.
+- Validator issues may create validators only after schema implementation.
+- Loader, Resolver, runtime, panel, and write authorization remain blocked until their explicit roadmap IDs or later PM-approved roadmap amendments.
+
+Until Base v0.1 is certified dogfood-ready, Project OS v2 is still being built through project-os-supported bootstrap and migration. Migration/import/baseline population work must not be labeled as dogfood. Panel planning and implementation are excluded from the fixed backlog until Base v0.1 certification and dogfood pilot evidence justify later PM approval.
 
 ## 3. Canonical Contract Root
 
@@ -20,16 +35,16 @@ The canonical contract root path for future JSON contracts is:
 contracts/
 ```
 
-The `contracts/` directory is not created by this issue. Future issues should create it only when the approved envelope or skeleton work begins.
+The `contracts/` directory is not created by this document. Later issues should create or modify it only when the approved roadmap scope explicitly allows contract skeleton, schema, validator, or population work.
 
-Future manifest and index files should be named conceptually as root-level contract inventory files:
+Later explicitly scoped manifest and index files should be named conceptually as root-level static support bundles:
 
 ```text
 contracts/manifest.json
 contracts/index.json
 ```
 
-These names are reserved as future concepts only. This issue does not define manifest shape, index shape, selector shape, generated indexes, loader behavior, or Resolver implementation.
+These names are reserved concepts only. Policy, manifest, index, and selector are non-entity static support bundles, not members of the 18 base entity families. They support Resolver discovery/reference behavior but do not implement runtime behavior, selector runtime, generated indexes, contract loader behavior, or Resolver implementation.
 
 ## 4. Directory Layout
 
@@ -131,7 +146,7 @@ These examples are placeholder-safe and non-canonical. They are not real Project
 
 ## 7. ID Namespace
 
-The stable ID namespace convention for future contracts is:
+The stable ID namespace convention for later explicitly scoped contracts is:
 
 ```text
 <entity_family>.<slug>.v<major>
@@ -317,11 +332,11 @@ This issue explicitly does not implement:
 - workflow composition
 - relationship population
 
-Schemas and validators may be considered only as future work after contract structure and contract data exist and after a later issue explicitly scopes that work.
+Schemas and validators are not created by this document. Under the #92 roadmap, schemas and validators happen after normalization and before Project OS inventory, mapping, and migration. Migrated baseline contracts are reviewed with schemas and validators before loader or Resolver work.
 
-## 16. Next Issue Readiness
+## 16. Roadmap Readiness
 
-This document is intended to let the next contract envelope or skeleton issue proceed without re-deciding:
+This document is intended to let later explicitly scoped contract work proceed without re-deciding:
 
 - contract root
 - directory layout
@@ -338,4 +353,4 @@ This document is intended to let the next contract envelope or skeleton issue pr
 - examples policy
 - no-population rule
 
-The next issue should still define the actual contract envelope or skeleton shape before any JSON files are created.
+The next roadmap item after R0.01 is R0.02 roadmap hygiene. Contract creation, schema work, validator work, loader behavior, Resolver behavior, runtime behavior, panel work, and write authorization remain unavailable unless a later explicit roadmap ID or PM-approved amendment scopes them.
