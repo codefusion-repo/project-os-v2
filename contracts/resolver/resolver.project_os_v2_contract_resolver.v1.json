@@ -11,10 +11,10 @@
   "source_refs": [],
   "payload": {
     "nombre": "project_os_v2_contract_resolver",
-    "manifest_ref": null,
-    "policy_ref": null,
+    "manifest_ref": "manifest.project_os_v2_core.v1",
+    "policy_ref": "policy.project_os_v2_core.v1",
     "input_schema_ref": null,
     "output_schema_ref": null,
-    "fallback_estado_id": null
+    "fallback_estado_id": "estado.blocked.v1"
   }
 }
