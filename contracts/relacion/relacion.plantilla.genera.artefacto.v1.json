@@ -5,9 +5,9 @@
   "version": {
     "major": 1
   },
-  "status": "draft",
+  "status": "deprecated",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Deprecated/reserved provenance-only relationship type. Project OS v2 canonical Plantilla -> Artefacto relationship semantics use compone. This genera relation type is non-canonical for active Resolver semantics and must not imply runtime generation, rendering, interpolation, body-file generation, command execution, or generated-output behavior.",
   "source_refs": [],
   "payload": {
     "origen_entidad": "plantilla",
