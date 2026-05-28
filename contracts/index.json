@@ -29,7 +29,7 @@
   "payload": {
     "nombre": "project_os_v2_core_index",
     "index_kind": "static_curated_discoverability_index",
-    "source_of_truth_policy": "derived_from_manifest_and_contract_files_not_canonical",
+    "source_of_truth_policy": "curated_from_manifest_support_entries_not_complete_inventory_not_canonical",
     "manifest_ref": "manifest.project_os_v2_core.v1",
     "policy_ref": "policy.project_os_v2_core.v1",
     "selector_refs": [
@@ -37,6 +37,29 @@
     ],
     "resolver_refs": [
       "resolver.project_os_v2_contract_resolver.v1"
+    ],
+    "index_scope_policy": {
+      "curated_support_discovery_only": true,
+      "complete_inventory": false,
+      "loader_behavior": false,
+      "runtime_behavior": false,
+      "selector_runtime_behavior": false,
+      "resolver_behavior": false,
+      "write_authorization_behavior": false
+    },
+    "deprecated_reserved_relationship_refs": [
+      {
+        "relationship_type_ref": "relacion.plantilla.genera.artefacto.v1",
+        "provenance_discoverable_only": true,
+        "active_resolver_candidate": false,
+        "canonical_replacement_ref": "relacion.plantilla.compone.artefacto.v1"
+      },
+      {
+        "relationship_type_ref": "relacion.workflow.ordena.workflow_step.v1",
+        "provenance_discoverable_only": true,
+        "active_resolver_candidate": false,
+        "canonical_replacement_ref": "relacion.workflow.compone.workflow_step.v1"
+      }
     ],
     "lookup_groups": [
       {
@@ -334,6 +357,23 @@
           {
             "lookup_key": "relationship_type_refs",
             "relationship_type_refs_source": "manifest.relationship_family_entries.relationship_type_ref"
+          },
+          {
+            "lookup_key": "active_resolver_relationship_type_refs",
+            "relationship_type_refs_source": "manifest.relationship_family_entries.relationship_type_ref",
+            "excluded_relationship_type_refs": [
+              "relacion.plantilla.genera.artefacto.v1",
+              "relacion.workflow.ordena.workflow_step.v1"
+            ],
+            "selection_policy": "exclude_deprecated_provenance_only_non_canonical_refs"
+          },
+          {
+            "lookup_key": "deprecated_provenance_relationship_type_refs",
+            "relationship_type_refs": [
+              "relacion.plantilla.genera.artefacto.v1",
+              "relacion.workflow.ordena.workflow_step.v1"
+            ],
+            "active_resolver_candidate": false
           }
         ]
       },
@@ -468,7 +508,13 @@
     "generation_policy": {
       "generated": false,
       "static_curated": true,
-      "generator_ref": null
+      "generator_ref": null,
+      "complete_inventory": false,
+      "loader_behavior": false,
+      "runtime_behavior": false,
+      "selector_runtime_behavior": false,
+      "resolver_behavior": false,
+      "write_authorization_behavior": false
     }
   }
 }

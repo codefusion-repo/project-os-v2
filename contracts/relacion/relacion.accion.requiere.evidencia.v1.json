@@ -1,0 +1,22 @@
+{
+  "id": "relacion.accion.requiere.evidencia.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "accion",
+    "origen_id": null,
+    "destino_entidad": "evidencia",
+    "destino_id": null,
+    "tipo_relacion": "requiere",
+    "cardinalidad": "N:M",
+    "requerido": null,
+    "orden": null
+  }
+}

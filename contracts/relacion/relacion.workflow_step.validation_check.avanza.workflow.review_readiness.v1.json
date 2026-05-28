@@ -1,0 +1,22 @@
+{
+  "id": "relacion.workflow_step.validation_check.avanza.workflow.review_readiness.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "workflow_step",
+    "origen_id": "workflow_step.validation_check.v1",
+    "destino_entidad": "workflow",
+    "destino_id": "workflow.review_readiness.v1",
+    "tipo_relacion": "avanza",
+    "cardinalidad": "N:M",
+    "requerido": true,
+    "orden": null
+  }
+}
