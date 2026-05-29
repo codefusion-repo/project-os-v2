@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contrato.contract.v1.schema.json",
+  "title": "Project OS v2 contrato family contract",
+  "allOf": [
+    {
+      "$ref": "../contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "contrato"
+        },
+        "id": {
+          "$ref": "../common_defs.v1.schema.json#/$defs/contratoContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "entidad_tipo": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/entityFamilyOrNull"
+            },
+            "nombre": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "nombre",
+            "entidad_tipo"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}

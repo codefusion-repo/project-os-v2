@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "plantilla.contract.v1.schema.json",
+  "title": "Project OS v2 plantilla family contract",
+  "allOf": [
+    {
+      "$ref": "../contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "plantilla"
+        },
+        "id": {
+          "$ref": "../common_defs.v1.schema.json#/$defs/plantillaContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "formato": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "nombre": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "secciones_requeridas": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/staticStringArray"
+            },
+            "tipo": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "nombre",
+            "tipo",
+            "formato",
+            "secciones_requeridas"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}

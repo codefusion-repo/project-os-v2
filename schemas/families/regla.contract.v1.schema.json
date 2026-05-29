@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "regla.contract.v1.schema.json",
+  "title": "Project OS v2 regla family contract",
+  "allOf": [
+    {
+      "$ref": "../contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "regla"
+        },
+        "id": {
+          "$ref": "../common_defs.v1.schema.json#/$defs/reglaContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "comportamiento_esperado": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "condicion": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "nombre": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "nombre",
+            "condicion",
+            "comportamiento_esperado"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}

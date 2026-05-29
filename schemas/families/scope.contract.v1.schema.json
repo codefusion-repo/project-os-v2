@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scope.contract.v1.schema.json",
+  "title": "Project OS v2 scope family contract",
+  "allOf": [
+    {
+      "$ref": "../contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "scope"
+        },
+        "id": {
+          "$ref": "../common_defs.v1.schema.json#/$defs/scopeContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "nombre": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "nombre"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}

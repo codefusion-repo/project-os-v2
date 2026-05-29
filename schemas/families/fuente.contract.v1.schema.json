@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fuente.contract.v1.schema.json",
+  "title": "Project OS v2 fuente family contract",
+  "allOf": [
+    {
+      "$ref": "../contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "fuente"
+        },
+        "id": {
+          "$ref": "../common_defs.v1.schema.json#/$defs/fuenteContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "frescura_requerida": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "nivel_autoridad": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "nombre": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "tipo": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "ubicacion": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "tipo",
+            "nombre",
+            "ubicacion",
+            "nivel_autoridad",
+            "frescura_requerida"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidencia.contract.v1.schema.json",
+  "title": "Project OS v2 evidencia family contract",
+  "allOf": [
+    {
+      "$ref": "../contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "evidencia"
+        },
+        "id": {
+          "$ref": "../common_defs.v1.schema.json#/$defs/evidenciaContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "referencia": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "tipo": {
+              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "tipo",
+            "referencia"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}
