@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.project-os-v2.local/families/rol.contract.v1.schema.json",
+  "title": "Project OS v2 rol family contract",
+  "allOf": [
+    {
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "rol"
+        },
+        "id": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/rolContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "lente_profesional": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "nombre": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "nombre",
+            "lente_profesional"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}

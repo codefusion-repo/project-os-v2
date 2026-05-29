@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.project-os-v2.local/families/artefacto.contract.v1.schema.json",
+  "title": "Project OS v2 artefacto family contract",
+  "allOf": [
+    {
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "artefacto"
+        },
+        "id": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/artefactoContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "nombre": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "referencia": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "tipo": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "tipo",
+            "nombre",
+            "referencia"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}

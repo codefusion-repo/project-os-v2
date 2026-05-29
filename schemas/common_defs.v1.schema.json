@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.project-os-v2.local/common_defs.v1.schema.json",
+  "title": "Project OS v2 common schema definitions",
+  "description": "Reusable Draft 2020-12 definitions for static Project OS v2 contract schemas. These definitions validate data shape only and do not implement loading, Resolver behavior, runtime behavior, command execution, or write authorization.",
+  "type": "object",
+  "$defs": {
+    "accionContractId": {
+      "pattern": "^accion\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "actorContractId": {
+      "pattern": "^actor\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "artefactoContractId": {
+      "pattern": "^artefacto\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "contractKind": {
+      "enum": [
+        "entity",
+        "relationship",
+        "manifest",
+        "reference_bundle",
+        "index",
+        "selector"
+      ],
+      "type": "string"
+    },
+    "contractRef": {
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+\\.v[0-9]+$",
+      "type": "string"
+    },
+    "contractRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "contratoContractId": {
+      "pattern": "^contrato\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "entityFamily": {
+      "enum": [
+        "accion",
+        "actor",
+        "artefacto",
+        "contrato",
+        "estado",
+        "evidencia",
+        "fuente",
+        "limite",
+        "plantilla",
+        "recurso",
+        "regla",
+        "relacion",
+        "resolver",
+        "rol",
+        "scope",
+        "variable",
+        "workflow",
+        "workflow_step"
+      ],
+      "type": "string"
+    },
+    "entityFamilyOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/entityFamily"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "estadoContractId": {
+      "pattern": "^estado\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "evidenciaContractId": {
+      "pattern": "^evidencia\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "fuenteContractId": {
+      "pattern": "^fuente\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "jsonScalar": {
+      "type": [
+        "string",
+        "number",
+        "integer",
+        "boolean"
+      ]
+    },
+    "jsonScalarOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/jsonScalar"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "limiteContractId": {
+      "pattern": "^limite\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "nonEmptyString": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "plantillaContractId": {
+      "pattern": "^plantilla\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "recursoContractId": {
+      "pattern": "^recurso\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "reglaContractId": {
+      "pattern": "^regla\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "resolverContractId": {
+      "pattern": "^resolver\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "rolContractId": {
+      "pattern": "^rol\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "schemaRef": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schemaRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/schemaRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scopeContractId": {
+      "pattern": "^scope\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "sourceRef": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
+        },
+        {
+          "additionalProperties": true,
+          "minProperties": 1,
+          "type": "object"
+        }
+      ]
+    },
+    "sourceRefs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/sourceRef"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "staticScalarArray": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/jsonScalar"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "staticStringArray": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "stringOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "active",
+        "deprecated",
+        "retired"
+      ],
+      "type": "string"
+    },
+    "variableContractId": {
+      "pattern": "^variable\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "versionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "major": {
+          "const": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "major"
+      ],
+      "type": "object"
+    },
+    "workflowContractId": {
+      "pattern": "^workflow\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "workflowStepContractId": {
+      "pattern": "^workflow_step\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    }
+  }
+}

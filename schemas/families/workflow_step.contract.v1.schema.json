@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.project-os-v2.local/families/workflow_step.contract.v1.schema.json",
+  "title": "Project OS v2 workflow_step family contract",
+  "allOf": [
+    {
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "workflow_step"
+        },
+        "id": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/workflowStepContractId"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "condicion_base_avance": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "condicion_base_bloqueo": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "condicion_base_repeticion": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "nombre": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            },
+            "objetivo": {
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+            }
+          },
+          "required": [
+            "nombre",
+            "objetivo",
+            "condicion_base_avance",
+            "condicion_base_repeticion",
+            "condicion_base_bloqueo"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}
