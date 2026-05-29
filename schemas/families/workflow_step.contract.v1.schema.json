@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "workflow_step.contract.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/families/workflow_step.contract.v1.schema.json",
   "title": "Project OS v2 workflow_step family contract",
   "allOf": [
     {
-      "$ref": "../contract_envelope.v1.schema.json"
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
     },
     {
       "properties": {
@@ -15,25 +15,25 @@
           "const": "workflow_step"
         },
         "id": {
-          "$ref": "../common_defs.v1.schema.json#/$defs/workflowStepContractId"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/workflowStepContractId"
         },
         "payload": {
           "additionalProperties": false,
           "properties": {
             "condicion_base_avance": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "condicion_base_bloqueo": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "condicion_base_repeticion": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "nombre": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "objetivo": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             }
           },
           "required": [

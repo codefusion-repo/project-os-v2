@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "fuente.contract.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/families/fuente.contract.v1.schema.json",
   "title": "Project OS v2 fuente family contract",
   "allOf": [
     {
-      "$ref": "../contract_envelope.v1.schema.json"
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
     },
     {
       "properties": {
@@ -15,25 +15,25 @@
           "const": "fuente"
         },
         "id": {
-          "$ref": "../common_defs.v1.schema.json#/$defs/fuenteContractId"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/fuenteContractId"
         },
         "payload": {
           "additionalProperties": false,
           "properties": {
             "frescura_requerida": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "nivel_autoridad": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "nombre": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "tipo": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "ubicacion": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             }
           },
           "required": [

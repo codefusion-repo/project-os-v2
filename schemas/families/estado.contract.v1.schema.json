@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "estado.contract.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/families/estado.contract.v1.schema.json",
   "title": "Project OS v2 estado family contract",
   "allOf": [
     {
-      "$ref": "../contract_envelope.v1.schema.json"
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
     },
     {
       "properties": {
@@ -15,13 +15,13 @@
           "const": "estado"
         },
         "id": {
-          "$ref": "../common_defs.v1.schema.json#/$defs/estadoContractId"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/estadoContractId"
         },
         "payload": {
           "additionalProperties": false,
           "properties": {
             "nombre": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             }
           },
           "required": [

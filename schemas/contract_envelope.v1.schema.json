@@ -1,36 +1,36 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "contract_envelope.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json",
   "title": "Project OS v2 contract envelope",
   "description": "Shared Project OS v2 contract envelope. This schema validates static contract shape only and does not implement loading, Resolver behavior, runtime behavior, command execution, or write authorization.",
   "additionalProperties": false,
   "properties": {
     "contract_kind": {
-      "$ref": "common_defs.v1.schema.json#/$defs/contractKind"
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractKind"
     },
     "descripcion": {
-      "$ref": "common_defs.v1.schema.json#/$defs/stringOrNull"
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
     },
     "entity_family": {
-      "$ref": "common_defs.v1.schema.json#/$defs/entityFamilyOrNull"
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/entityFamilyOrNull"
     },
     "id": {
-      "$ref": "common_defs.v1.schema.json#/$defs/contractRef"
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRef"
     },
     "payload": {
       "type": "object"
     },
     "schema_ref": {
-      "$ref": "common_defs.v1.schema.json#/$defs/schemaRefOrNull"
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/schemaRefOrNull"
     },
     "source_refs": {
-      "$ref": "common_defs.v1.schema.json#/$defs/sourceRefs"
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/sourceRefs"
     },
     "status": {
-      "$ref": "common_defs.v1.schema.json#/$defs/status"
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/status"
     },
     "version": {
-      "$ref": "common_defs.v1.schema.json#/$defs/versionV1"
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/versionV1"
     }
   },
   "required": [

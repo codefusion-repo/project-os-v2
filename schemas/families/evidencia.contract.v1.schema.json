@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "evidencia.contract.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/families/evidencia.contract.v1.schema.json",
   "title": "Project OS v2 evidencia family contract",
   "allOf": [
     {
-      "$ref": "../contract_envelope.v1.schema.json"
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
     },
     {
       "properties": {
@@ -15,16 +15,16 @@
           "const": "evidencia"
         },
         "id": {
-          "$ref": "../common_defs.v1.schema.json#/$defs/evidenciaContractId"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/evidenciaContractId"
         },
         "payload": {
           "additionalProperties": false,
           "properties": {
             "referencia": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "tipo": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             }
           },
           "required": [

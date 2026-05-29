@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "resolver.contract.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/families/resolver.contract.v1.schema.json",
   "title": "Project OS v2 resolver family contract",
   "allOf": [
     {
-      "$ref": "../contract_envelope.v1.schema.json"
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
     },
     {
       "properties": {
@@ -15,28 +15,28 @@
           "const": "resolver"
         },
         "id": {
-          "$ref": "../common_defs.v1.schema.json#/$defs/resolverContractId"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/resolverContractId"
         },
         "payload": {
           "additionalProperties": false,
           "properties": {
             "fallback_estado_id": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/contractRefOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRefOrNull"
             },
             "input_schema_ref": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/schemaRefOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/schemaRefOrNull"
             },
             "manifest_ref": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/contractRefOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRefOrNull"
             },
             "nombre": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "output_schema_ref": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/schemaRefOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/schemaRefOrNull"
             },
             "policy_ref": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/contractRefOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRefOrNull"
             }
           },
           "required": [

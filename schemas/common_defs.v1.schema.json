@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "common_defs.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/common_defs.v1.schema.json",
   "title": "Project OS v2 common schema definitions",
   "description": "Reusable Draft 2020-12 definitions for static Project OS v2 contract schemas. These definitions validate data shape only and do not implement loading, Resolver behavior, runtime behavior, command execution, or write authorization.",
   "type": "object",
@@ -35,7 +35,7 @@
     "contractRefOrNull": {
       "anyOf": [
         {
-          "$ref": "#/$defs/contractRef"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRef"
         },
         {
           "type": "null"
@@ -72,7 +72,7 @@
     "entityFamilyOrNull": {
       "anyOf": [
         {
-          "$ref": "#/$defs/entityFamily"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/entityFamily"
         },
         {
           "type": "null"
@@ -102,7 +102,7 @@
     "jsonScalarOrNull": {
       "anyOf": [
         {
-          "$ref": "#/$defs/jsonScalar"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/jsonScalar"
         },
         {
           "type": "null"
@@ -144,7 +144,7 @@
     "schemaRefOrNull": {
       "anyOf": [
         {
-          "$ref": "#/$defs/schemaRef"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/schemaRef"
         },
         {
           "type": "null"
@@ -158,7 +158,7 @@
     "sourceRef": {
       "anyOf": [
         {
-          "$ref": "#/$defs/nonEmptyString"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
         },
         {
           "additionalProperties": true,
@@ -169,21 +169,21 @@
     },
     "sourceRefs": {
       "items": {
-        "$ref": "#/$defs/sourceRef"
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/sourceRef"
       },
       "type": "array",
       "uniqueItems": true
     },
     "staticScalarArray": {
       "items": {
-        "$ref": "#/$defs/jsonScalar"
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/jsonScalar"
       },
       "type": "array",
       "uniqueItems": true
     },
     "staticStringArray": {
       "items": {
-        "$ref": "#/$defs/nonEmptyString"
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
       },
       "type": "array",
       "uniqueItems": true
@@ -191,7 +191,7 @@
     "stringOrNull": {
       "anyOf": [
         {
-          "$ref": "#/$defs/nonEmptyString"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
         },
         {
           "type": "null"

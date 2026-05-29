@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "variable.contract.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/families/variable.contract.v1.schema.json",
   "title": "Project OS v2 variable family contract",
   "allOf": [
     {
-      "$ref": "../contract_envelope.v1.schema.json"
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
     },
     {
       "properties": {
@@ -15,22 +15,22 @@
           "const": "variable"
         },
         "id": {
-          "$ref": "../common_defs.v1.schema.json#/$defs/variableContractId"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/variableContractId"
         },
         "payload": {
           "additionalProperties": false,
           "properties": {
             "nombre": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "tipo": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "valor_default": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/jsonScalarOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/jsonScalarOrNull"
             },
             "valores_permitidos": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/staticScalarArray"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticScalarArray"
             }
           },
           "required": [

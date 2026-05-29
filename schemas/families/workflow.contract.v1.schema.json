@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "workflow.contract.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/families/workflow.contract.v1.schema.json",
   "title": "Project OS v2 workflow family contract",
   "allOf": [
     {
-      "$ref": "../contract_envelope.v1.schema.json"
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
     },
     {
       "properties": {
@@ -15,16 +15,16 @@
           "const": "workflow"
         },
         "id": {
-          "$ref": "../common_defs.v1.schema.json#/$defs/workflowContractId"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/workflowContractId"
         },
         "payload": {
           "additionalProperties": false,
           "properties": {
             "etapa_ciclo_vida": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "nombre": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             }
           },
           "required": [

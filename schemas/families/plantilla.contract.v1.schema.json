@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "plantilla.contract.v1.schema.json",
+  "$id": "https://schemas.project-os-v2.local/families/plantilla.contract.v1.schema.json",
   "title": "Project OS v2 plantilla family contract",
   "allOf": [
     {
-      "$ref": "../contract_envelope.v1.schema.json"
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
     },
     {
       "properties": {
@@ -15,22 +15,22 @@
           "const": "plantilla"
         },
         "id": {
-          "$ref": "../common_defs.v1.schema.json#/$defs/plantillaContractId"
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/plantillaContractId"
         },
         "payload": {
           "additionalProperties": false,
           "properties": {
             "formato": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "nombre": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             },
             "secciones_requeridas": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/staticStringArray"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticStringArray"
             },
             "tipo": {
-              "$ref": "../common_defs.v1.schema.json#/$defs/stringOrNull"
+              "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
             }
           },
           "required": [
