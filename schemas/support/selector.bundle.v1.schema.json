@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json",
+  "title": "Project OS v2 selector support bundle",
+  "description": "Static selector candidate-reference bundle schema. This schema validates reference shape only and does not implement selector runtime, Resolver behavior, runtime behavior, command execution, or write authorization.",
+  "$defs": {
+    "contractFamilyArray": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractFamilyRef"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "dimensionContractFamilyMap": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "actor_type": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "evidence_requirement": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "limit": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "output_artifact": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "policy_ref": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "resource": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "role": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "rule": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "scope": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "source_authority": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "state": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "template": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "variable": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "workflow": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        }
+      },
+      "required": [
+        "actor_type",
+        "role",
+        "workflow",
+        "action",
+        "resource",
+        "scope",
+        "evidence_requirement",
+        "source_authority",
+        "output_artifact",
+        "template",
+        "variable",
+        "state",
+        "limit",
+        "rule",
+        "policy_ref"
+      ],
+      "type": "object"
+    },
+    "selectorEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_contract_family_refs": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/contractFamilyArray"
+        },
+        "candidate_output_ref_groups": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticStringArray"
+        },
+        "dimension": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
+        }
+      },
+      "required": [
+        "dimension",
+        "candidate_contract_family_refs",
+        "candidate_output_ref_groups"
+      ],
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "classification": {
+      "const": "non_entity_static_reference_bundle"
+    },
+    "contract_kind": {
+      "const": "selector"
+    },
+    "descripcion": {
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/stringOrNull"
+    },
+    "id": {
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/selectorContractId"
+    },
+    "payload": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_dimensions": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticStringArray"
+        },
+        "body_inclusion_policy": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
+        },
+        "dimension_contract_family_map": {
+          "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/dimensionContractFamilyMap"
+        },
+        "execution_policy": {
+          "const": "no_runtime_no_permission_no_tool_execution"
+        },
+        "index_ref": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/indexContractId"
+        },
+        "manifest_ref": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/manifestContractId"
+        },
+        "nombre": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
+        },
+        "output_ref_groups": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticStringArray"
+        },
+        "policy_ref": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/policyContractId"
+        },
+        "resolver_ref": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/resolverContractId"
+        },
+        "selector_entries": {
+          "items": {
+            "$ref": "https://schemas.project-os-v2.local/support/selector.bundle.v1.schema.json#/$defs/selectorEntry"
+          },
+          "type": "array"
+        },
+        "selector_kind": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
+        }
+      },
+      "required": [
+        "nombre",
+        "selector_kind",
+        "manifest_ref",
+        "index_ref",
+        "policy_ref",
+        "resolver_ref",
+        "allowed_dimensions",
+        "dimension_contract_family_map",
+        "selector_entries",
+        "output_ref_groups",
+        "body_inclusion_policy",
+        "execution_policy"
+      ],
+      "type": "object"
+    },
+    "schema_ref": {
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/schemaRefOrNull"
+    },
+    "source_refs": {
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/sourceRefs"
+    },
+    "status": {
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/status"
+    },
+    "version": {
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/versionV1"
+    }
+  },
+  "required": [
+    "id",
+    "classification",
+    "contract_kind",
+    "version",
+    "status",
+    "schema_ref",
+    "descripcion",
+    "source_refs",
+    "payload"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.project-os-v2.local/families/relacion.contract.v1.schema.json",
+  "title": "Project OS v2 relacion family contract",
+  "description": "Relación contract schema for static relationship type, relationship instance, and placeholder-safe relationship records. This schema validates data shape only and does not validate endpoint existence, implement Resolver behavior, selector runtime, command execution, or write authorization.",
+  "allOf": [
+    {
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "relationship"
+        },
+        "entity_family": {
+          "const": "relacion"
+        },
+        "id": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relacionContractId"
+        },
+        "payload": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "description": "Relationship type contract: endpoint families and relationship type are populated, endpoint IDs are null.",
+              "properties": {
+                "cardinalidad": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipCardinality"
+                },
+                "destino_entidad": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipEndpointFamily"
+                },
+                "destino_id": {
+                  "type": "null"
+                },
+                "orden": {
+                  "type": "null"
+                },
+                "origen_entidad": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipEndpointFamily"
+                },
+                "origen_id": {
+                  "type": "null"
+                },
+                "requerido": {
+                  "type": "null"
+                },
+                "tipo_relacion": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipTypeToken"
+                }
+              },
+              "required": [
+                "origen_entidad",
+                "origen_id",
+                "destino_entidad",
+                "destino_id",
+                "tipo_relacion",
+                "cardinalidad",
+                "requerido",
+                "orden"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "description": "Relationship instance contract: endpoint families, endpoint IDs, relationship type, cardinality, and required flag are populated.",
+              "properties": {
+                "cardinalidad": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipCardinality"
+                },
+                "destino_entidad": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipEndpointFamily"
+                },
+                "destino_id": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRef"
+                },
+                "orden": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonNegativeIntegerOrNull"
+                },
+                "origen_entidad": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipEndpointFamily"
+                },
+                "origen_id": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRef"
+                },
+                "requerido": {
+                  "type": "boolean"
+                },
+                "tipo_relacion": {
+                  "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipTypeToken"
+                }
+              },
+              "required": [
+                "origen_entidad",
+                "origen_id",
+                "destino_entidad",
+                "destino_id",
+                "tipo_relacion",
+                "cardinalidad",
+                "requerido",
+                "orden"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "description": "Placeholder-safe relationship contract: all relationship payload fields are null.",
+              "properties": {
+                "cardinalidad": {
+                  "type": "null"
+                },
+                "destino_entidad": {
+                  "type": "null"
+                },
+                "destino_id": {
+                  "type": "null"
+                },
+                "orden": {
+                  "type": "null"
+                },
+                "origen_entidad": {
+                  "type": "null"
+                },
+                "origen_id": {
+                  "type": "null"
+                },
+                "requerido": {
+                  "type": "null"
+                },
+                "tipo_relacion": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "origen_entidad",
+                "origen_id",
+                "destino_entidad",
+                "destino_id",
+                "tipo_relacion",
+                "cardinalidad",
+                "requerido",
+                "orden"
+              ],
+              "type": "object"
+            }
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}

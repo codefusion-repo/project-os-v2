@@ -1,0 +1,362 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json",
+  "title": "Project OS v2 ResolverOutput data shape",
+  "description": "Standalone ResolverOutput data-shape schema for reference-based effective context materialization. This schema validates output shape only and does not implement Resolver behavior, loading, selector runtime, command execution, or write authorization.",
+  "$defs": {
+    "artefactoRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/artefactoContractId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "estadoRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/estadoContractId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "indexRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/indexContractId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "manifestRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/manifestContractId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "plantillaRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/plantillaContractId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "policyRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/policyContractId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reasonGroups": {
+      "additionalProperties": false,
+      "properties": {
+        "blocked": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticStringArray"
+        },
+        "needs_context": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticStringArray"
+        },
+        "needs_pm_decision": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticStringArray"
+        }
+      },
+      "required": [
+        "blocked",
+        "needs_context",
+        "needs_pm_decision"
+      ],
+      "type": "object"
+    },
+    "resolverRefOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/resolverContractId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "traceEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "notes": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/staticStringArray"
+        },
+        "selected_refs": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRefArray"
+        },
+        "source_refs": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/sourceRefs"
+        },
+        "step_id": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/nonEmptyString"
+        }
+      },
+      "required": [
+        "step_id",
+        "selected_refs",
+        "source_refs",
+        "notes"
+      ],
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "allowed_output_contract_ref": {
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRefOrNull"
+    },
+    "effective_limite_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/limiteContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "effective_regla_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/reglaContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "estado_ref": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/estadoRefOrNull"
+    },
+    "fallback_estado_ref": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/estadoRefOrNull"
+    },
+    "index_ref": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/indexRefOrNull"
+    },
+    "manifest_ref": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/manifestRefOrNull"
+    },
+    "missing_evidence_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/evidenciaContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "output_template_ref": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/plantillaRefOrNull"
+    },
+    "policy_ref": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/policyRefOrNull"
+    },
+    "reasons": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/reasonGroups"
+    },
+    "required_evidence_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/evidenciaContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "resolution_trace": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/traceEntry"
+      },
+      "type": "array"
+    },
+    "resolver_ref": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/resolverRefOrNull"
+    },
+    "response_shape_ref": {
+      "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json#/$defs/artefactoRefOrNull"
+    },
+    "selected_accion_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/accionContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_actor_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/actorContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_artefacto_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/artefactoContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_contrato_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contratoContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_estado_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/estadoContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_evidencia_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/evidenciaContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_fuente_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/fuenteContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_limite_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/limiteContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_plantilla_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/plantillaContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_recurso_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/recursoContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_regla_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/reglaContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_relacion_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relacionContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_rol_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/rolContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_scope_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/scopeContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_variable_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/variableContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_workflow_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/workflowContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selected_workflow_step_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/workflowStepContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "selector_refs": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/selectorContractId"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "source_provenance_refs": {
+      "additionalProperties": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/sourceRefs"
+      },
+      "type": "object"
+    },
+    "status": {
+      "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/resolverOutputStatus"
+    }
+  },
+  "required": [
+    "status",
+    "resolver_ref",
+    "manifest_ref",
+    "policy_ref",
+    "index_ref",
+    "selector_refs",
+    "estado_ref",
+    "fallback_estado_ref",
+    "selected_actor_refs",
+    "selected_rol_refs",
+    "selected_workflow_refs",
+    "selected_workflow_step_refs",
+    "selected_accion_refs",
+    "selected_recurso_refs",
+    "selected_scope_refs",
+    "selected_fuente_refs",
+    "selected_evidencia_refs",
+    "selected_estado_refs",
+    "selected_limite_refs",
+    "selected_regla_refs",
+    "selected_variable_refs",
+    "selected_plantilla_refs",
+    "selected_artefacto_refs",
+    "selected_relacion_refs",
+    "selected_contrato_refs",
+    "required_evidence_refs",
+    "missing_evidence_refs",
+    "effective_limite_refs",
+    "effective_regla_refs",
+    "allowed_output_contract_ref",
+    "output_template_ref",
+    "response_shape_ref",
+    "source_provenance_refs",
+    "resolution_trace",
+    "reasons"
+  ],
+  "type": "object"
+}
