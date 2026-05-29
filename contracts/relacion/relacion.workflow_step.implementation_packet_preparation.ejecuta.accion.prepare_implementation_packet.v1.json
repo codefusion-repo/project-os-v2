@@ -1,0 +1,22 @@
+{
+  "id": "relacion.workflow_step.implementation_packet_preparation.ejecuta.accion.prepare_implementation_packet.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "workflow_step",
+    "origen_id": "workflow_step.implementation_packet_preparation.v1",
+    "destino_entidad": "accion",
+    "destino_id": "accion.prepare_implementation_packet.v1",
+    "tipo_relacion": "ejecuta",
+    "cardinalidad": "N:M",
+    "requerido": true,
+    "orden": null
+  }
+}

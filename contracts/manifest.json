@@ -28,9 +28,32 @@
   ],
   "payload": {
     "nombre": "project_os_v2_core_manifest",
-    "manifest_kind": "static_contract_inventory",
+    "manifest_kind": "curated_static_support_discovery_bundle",
     "contract_root_path": "contracts/",
-    "inventory_scope": "project_os_v2_core",
+    "inventory_scope": "curated_support_discovery_subset_not_complete_inventory",
+    "support_discovery_policy": {
+      "curated_support_discovery_only": true,
+      "complete_inventory": false,
+      "loader_behavior": false,
+      "runtime_behavior": false,
+      "selector_runtime_behavior": false,
+      "resolver_behavior": false,
+      "write_authorization_behavior": false
+    },
+    "deprecated_reserved_relationship_refs": [
+      {
+        "relationship_type_ref": "relacion.plantilla.genera.artefacto.v1",
+        "provenance_discoverable_only": true,
+        "active_resolver_candidate": false,
+        "canonical_replacement_ref": "relacion.plantilla.compone.artefacto.v1"
+      },
+      {
+        "relationship_type_ref": "relacion.workflow.ordena.workflow_step.v1",
+        "provenance_discoverable_only": true,
+        "active_resolver_candidate": false,
+        "canonical_replacement_ref": "relacion.workflow.compone.workflow_step.v1"
+      }
+    ],
     "resolver_refs": [
       "resolver.project_os_v2_contract_resolver.v1"
     ],
@@ -269,13 +292,37 @@
         "status_policy": "draft_relationship_type_reference_only"
       },
       {
+        "relationship_type_ref": "relacion.accion.requiere.evidencia.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
         "relationship_type_ref": "relacion.accion.produce.artefacto.v1",
         "directory_path": "contracts/relacion/",
         "contract_kind": "relationship",
         "status_policy": "draft_relationship_type_reference_only"
       },
       {
+        "relationship_type_ref": "relacion.accion.usa.fuente.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
+        "relationship_type_ref": "relacion.actor.aplica.regla.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
         "relationship_type_ref": "relacion.actor.ejecuta.accion.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
+        "relationship_type_ref": "relacion.actor.falla_en.estado.v1",
         "directory_path": "contracts/relacion/",
         "contract_kind": "relationship",
         "status_policy": "draft_relationship_type_reference_only"
@@ -341,10 +388,16 @@
         "status_policy": "draft_relationship_type_reference_only"
       },
       {
-        "relationship_type_ref": "relacion.plantilla.genera.artefacto.v1",
+        "relationship_type_ref": "relacion.plantilla.usa.variable.v1",
         "directory_path": "contracts/relacion/",
         "contract_kind": "relationship",
         "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
+        "relationship_type_ref": "relacion.plantilla.genera.artefacto.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "deprecated_provenance_only_non_canonical_not_active_resolver_candidate"
       },
       {
         "relationship_type_ref": "relacion.regla.falla_en.estado.v1",
@@ -407,6 +460,12 @@
         "status_policy": "draft_relationship_type_reference_only"
       },
       {
+        "relationship_type_ref": "relacion.variable.parametriza.resolver.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
         "relationship_type_ref": "relacion.variable.parametriza.workflow.v1",
         "directory_path": "contracts/relacion/",
         "contract_kind": "relationship",
@@ -425,7 +484,31 @@
         "status_policy": "draft_relationship_type_reference_only"
       },
       {
+        "relationship_type_ref": "relacion.workflow.ejecuta.accion.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
+        "relationship_type_ref": "relacion.workflow.falla_en.estado.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
         "relationship_type_ref": "relacion.workflow.ordena.workflow_step.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "deprecated_provenance_only_non_canonical_not_active_resolver_candidate"
+      },
+      {
+        "relationship_type_ref": "relacion.workflow.requiere.evidencia.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
+        "relationship_type_ref": "relacion.workflow.usa.fuente.v1",
         "directory_path": "contracts/relacion/",
         "contract_kind": "relationship",
         "status_policy": "draft_relationship_type_reference_only"
@@ -461,13 +544,37 @@
         "status_policy": "draft_relationship_type_reference_only"
       },
       {
+        "relationship_type_ref": "relacion.workflow_step.ejecuta.accion.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
         "relationship_type_ref": "relacion.workflow_step.espera.artefacto.v1",
         "directory_path": "contracts/relacion/",
         "contract_kind": "relationship",
         "status_policy": "draft_relationship_type_reference_only"
       },
       {
+        "relationship_type_ref": "relacion.workflow_step.falla_en.estado.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
         "relationship_type_ref": "relacion.workflow_step.participa.workflow.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
+        "relationship_type_ref": "relacion.workflow_step.requiere.evidencia.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
+        "relationship_type_ref": "relacion.workflow_step.usa.fuente.v1",
         "directory_path": "contracts/relacion/",
         "contract_kind": "relationship",
         "status_policy": "draft_relationship_type_reference_only"
@@ -493,6 +600,15 @@
         "status": "draft"
       },
       {
+        "contract_id": "relacion.accion.requiere.evidencia.v1",
+        "path": "contracts/relacion/relacion.accion.requiere.evidencia.v1.json",
+        "relationship_type_ref": "relacion.accion.requiere.evidencia.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
         "contract_id": "relacion.accion.produce.artefacto.v1",
         "path": "contracts/relacion/relacion.accion.produce.artefacto.v1.json",
         "relationship_type_ref": "relacion.accion.produce.artefacto.v1",
@@ -502,9 +618,36 @@
         "status": "draft"
       },
       {
+        "contract_id": "relacion.accion.usa.fuente.v1",
+        "path": "contracts/relacion/relacion.accion.usa.fuente.v1.json",
+        "relationship_type_ref": "relacion.accion.usa.fuente.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
+        "contract_id": "relacion.actor.aplica.regla.v1",
+        "path": "contracts/relacion/relacion.actor.aplica.regla.v1.json",
+        "relationship_type_ref": "relacion.actor.aplica.regla.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
         "contract_id": "relacion.actor.ejecuta.accion.v1",
         "path": "contracts/relacion/relacion.actor.ejecuta.accion.v1.json",
         "relationship_type_ref": "relacion.actor.ejecuta.accion.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
+        "contract_id": "relacion.actor.falla_en.estado.v1",
+        "path": "contracts/relacion/relacion.actor.falla_en.estado.v1.json",
+        "relationship_type_ref": "relacion.actor.falla_en.estado.v1",
         "version": {
           "major": 1
         },
@@ -601,13 +744,24 @@
         "status": "draft"
       },
       {
+        "contract_id": "relacion.plantilla.usa.variable.v1",
+        "path": "contracts/relacion/relacion.plantilla.usa.variable.v1.json",
+        "relationship_type_ref": "relacion.plantilla.usa.variable.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
         "contract_id": "relacion.plantilla.genera.artefacto.v1",
         "path": "contracts/relacion/relacion.plantilla.genera.artefacto.v1.json",
         "relationship_type_ref": "relacion.plantilla.genera.artefacto.v1",
         "version": {
           "major": 1
         },
-        "status": "draft"
+        "status": "deprecated",
+        "active_resolver_candidate": false,
+        "provenance_discoverable_only": true
       },
       {
         "contract_id": "relacion.regla.falla_en.estado.v1",
@@ -700,6 +854,15 @@
         "status": "draft"
       },
       {
+        "contract_id": "relacion.variable.parametriza.resolver.v1",
+        "path": "contracts/relacion/relacion.variable.parametriza.resolver.v1.json",
+        "relationship_type_ref": "relacion.variable.parametriza.resolver.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
         "contract_id": "relacion.variable.parametriza.workflow.v1",
         "path": "contracts/relacion/relacion.variable.parametriza.workflow.v1.json",
         "relationship_type_ref": "relacion.variable.parametriza.workflow.v1",
@@ -727,9 +890,47 @@
         "status": "draft"
       },
       {
+        "contract_id": "relacion.workflow.ejecuta.accion.v1",
+        "path": "contracts/relacion/relacion.workflow.ejecuta.accion.v1.json",
+        "relationship_type_ref": "relacion.workflow.ejecuta.accion.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
+        "contract_id": "relacion.workflow.falla_en.estado.v1",
+        "path": "contracts/relacion/relacion.workflow.falla_en.estado.v1.json",
+        "relationship_type_ref": "relacion.workflow.falla_en.estado.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
         "contract_id": "relacion.workflow.ordena.workflow_step.v1",
         "path": "contracts/relacion/relacion.workflow.ordena.workflow_step.v1.json",
         "relationship_type_ref": "relacion.workflow.ordena.workflow_step.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "deprecated",
+        "active_resolver_candidate": false,
+        "provenance_discoverable_only": true
+      },
+      {
+        "contract_id": "relacion.workflow.requiere.evidencia.v1",
+        "path": "contracts/relacion/relacion.workflow.requiere.evidencia.v1.json",
+        "relationship_type_ref": "relacion.workflow.requiere.evidencia.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
+        "contract_id": "relacion.workflow.usa.fuente.v1",
+        "path": "contracts/relacion/relacion.workflow.usa.fuente.v1.json",
+        "relationship_type_ref": "relacion.workflow.usa.fuente.v1",
         "version": {
           "major": 1
         },
@@ -781,9 +982,27 @@
         "status": "draft"
       },
       {
+        "contract_id": "relacion.workflow_step.ejecuta.accion.v1",
+        "path": "contracts/relacion/relacion.workflow_step.ejecuta.accion.v1.json",
+        "relationship_type_ref": "relacion.workflow_step.ejecuta.accion.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
         "contract_id": "relacion.workflow_step.espera.artefacto.v1",
         "path": "contracts/relacion/relacion.workflow_step.espera.artefacto.v1.json",
         "relationship_type_ref": "relacion.workflow_step.espera.artefacto.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
+        "contract_id": "relacion.workflow_step.falla_en.estado.v1",
+        "path": "contracts/relacion/relacion.workflow_step.falla_en.estado.v1.json",
+        "relationship_type_ref": "relacion.workflow_step.falla_en.estado.v1",
         "version": {
           "major": 1
         },
@@ -797,13 +1016,37 @@
           "major": 1
         },
         "status": "draft"
+      },
+      {
+        "contract_id": "relacion.workflow_step.requiere.evidencia.v1",
+        "path": "contracts/relacion/relacion.workflow_step.requiere.evidencia.v1.json",
+        "relationship_type_ref": "relacion.workflow_step.requiere.evidencia.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
+        "contract_id": "relacion.workflow_step.usa.fuente.v1",
+        "path": "contracts/relacion/relacion.workflow_step.usa.fuente.v1.json",
+        "relationship_type_ref": "relacion.workflow_step.usa.fuente.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
       }
     ],
     "body_inclusion_policy": "references_only_no_contract_bodies",
     "live_evidence_policy": "github_live_evidence_not_copied",
     "curation_policy": {
       "generated": false,
-      "static_curated": true
+      "static_curated": true,
+      "complete_inventory": false,
+      "loader_behavior": false,
+      "runtime_behavior": false,
+      "selector_runtime_behavior": false,
+      "resolver_behavior": false,
+      "write_authorization_behavior": false
     }
   }
 }

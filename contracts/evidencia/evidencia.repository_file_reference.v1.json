@@ -11,8 +11,6 @@
   "source_refs": [],
   "payload": {
     "tipo": "repository_file_reference",
-    "referencia": null,
-    "estado_verificacion": null,
-    "observado_en": null
+    "referencia": null
   }
 }

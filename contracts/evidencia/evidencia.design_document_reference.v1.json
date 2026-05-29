@@ -11,8 +11,6 @@
   "source_refs": [],
   "payload": {
     "tipo": "design_document_reference",
-    "referencia": null,
-    "estado_verificacion": null,
-    "observado_en": null
+    "referencia": null
   }
 }

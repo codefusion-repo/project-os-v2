@@ -5,9 +5,9 @@
   "version": {
     "major": 1
   },
-  "status": "draft",
+  "status": "deprecated",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Deprecated reserved provenance-only/non-canonical relation. Kept only for historical discovery; active Resolver candidates must use workflow compone workflow_step relationships and their payload.orden field for workflow-specific order.",
   "source_refs": [],
   "payload": {
     "origen_entidad": "workflow",
