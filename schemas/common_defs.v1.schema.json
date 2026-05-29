@@ -42,6 +42,40 @@
         }
       ]
     },
+    "contractRefArray": {
+      "items": {
+        "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/contractRef"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "contractFamilyRef": {
+      "enum": [
+        "accion",
+        "actor",
+        "artefacto",
+        "contrato",
+        "estado",
+        "evidencia",
+        "fuente",
+        "index",
+        "limite",
+        "manifest",
+        "plantilla",
+        "policy",
+        "recurso",
+        "regla",
+        "relacion",
+        "resolver",
+        "rol",
+        "scope",
+        "selector",
+        "variable",
+        "workflow",
+        "workflow_step"
+      ],
+      "type": "string"
+    },
     "contratoContractId": {
       "pattern": "^contrato\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
       "type": "string"
@@ -91,6 +125,10 @@
       "pattern": "^fuente\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
       "type": "string"
     },
+    "indexContractId": {
+      "pattern": "^index\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
     "jsonScalar": {
       "type": [
         "string",
@@ -113,12 +151,31 @@
       "pattern": "^limite\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
       "type": "string"
     },
+    "manifestContractId": {
+      "pattern": "^manifest\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
     "nonEmptyString": {
       "minLength": 1,
       "type": "string"
     },
+    "nonNegativeIntegerOrNull": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "plantillaContractId": {
       "pattern": "^plantilla\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "policyContractId": {
+      "pattern": "^policy\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
       "type": "string"
     },
     "recursoContractId": {
@@ -129,8 +186,87 @@
       "pattern": "^regla\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
       "type": "string"
     },
+    "relacionContractId": {
+      "pattern": "^relacion\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "relationshipCardinality": {
+      "enum": [
+        "1:N",
+        "N:1",
+        "N:M"
+      ],
+      "type": "string"
+    },
+    "relationshipCardinalityOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipCardinality"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "relationshipEndpointFamily": {
+      "enum": [
+        "accion",
+        "actor",
+        "artefacto",
+        "contrato",
+        "entidad",
+        "estado",
+        "evidencia",
+        "fuente",
+        "limite",
+        "plantilla",
+        "recurso",
+        "regla",
+        "relacion",
+        "resolver",
+        "rol",
+        "scope",
+        "variable",
+        "workflow",
+        "workflow_step"
+      ],
+      "type": "string"
+    },
+    "relationshipEndpointFamilyOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipEndpointFamily"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "relationshipTypeToken": {
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "type": "string"
+    },
+    "relationshipTypeTokenOrNull": {
+      "anyOf": [
+        {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/relationshipTypeToken"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "resolverContractId": {
       "pattern": "^resolver\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
+    },
+    "resolverOutputStatus": {
+      "enum": [
+        "resolved",
+        "needs_context",
+        "needs_pm_decision",
+        "blocked"
+      ],
       "type": "string"
     },
     "rolContractId": {
@@ -150,6 +286,10 @@
           "type": "null"
         }
       ]
+    },
+    "selectorContractId": {
+      "pattern": "^selector\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
+      "type": "string"
     },
     "scopeContractId": {
       "pattern": "^scope\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v1$",
@@ -187,6 +327,15 @@
       },
       "type": "array",
       "uniqueItems": true
+    },
+    "supportReferenceSet": {
+      "enum": [
+        "policy",
+        "manifest",
+        "index",
+        "selector"
+      ],
+      "type": "string"
     },
     "stringOrNull": {
       "anyOf": [
