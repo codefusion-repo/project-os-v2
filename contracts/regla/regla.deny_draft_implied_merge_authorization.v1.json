@@ -1,0 +1,17 @@
+{
+  "id": "regla.deny_draft_implied_merge_authorization.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "deny_draft_implied_merge_authorization",
+    "condicion": "when_browser_chat_drafts_merge_related_output",
+    "comportamiento_esperado": "do_not_state_or_imply_merge_authorization"
+  }
+}
