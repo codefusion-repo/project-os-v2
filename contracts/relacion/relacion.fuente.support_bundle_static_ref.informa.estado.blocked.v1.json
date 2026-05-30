@@ -1,0 +1,22 @@
+{
+  "id": "relacion.fuente.support_bundle_static_ref.informa.estado.blocked.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": "Reference-only source/status link: support bundle refs inform blocked status if treated as generated, runtime, selector, or write-authorizing behavior.",
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "fuente",
+    "origen_id": "fuente.support_bundle_static_ref.v1",
+    "destino_entidad": "estado",
+    "destino_id": "estado.blocked.v1",
+    "tipo_relacion": "informa",
+    "cardinalidad": "N:M",
+    "requerido": true,
+    "orden": 5
+  }
+}

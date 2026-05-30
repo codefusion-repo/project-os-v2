@@ -7,13 +7,13 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Static category for PM-owned source references. Current scoped PM decisions remain external evidence and outrank durable contract assumptions.",
   "source_refs": [],
   "payload": {
     "tipo": "pm_source_file",
     "nombre": "pm_source_file",
     "ubicacion": "fuentes_path",
-    "nivel_autoridad": "pm_source_reference",
-    "frescura_requerida": "repository_current"
+    "nivel_autoridad": "01_current_scoped_pm_source",
+    "frescura_requerida": "must_confirm_current_scope"
   }
 }

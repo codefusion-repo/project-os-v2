@@ -7,7 +7,7 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "ResolverOutput status for unsafe authority conflicts, boundary violations, missing approval, failed validation gates, or prohibited behavior.",
   "source_refs": [],
   "payload": {
     "nombre": "blocked"

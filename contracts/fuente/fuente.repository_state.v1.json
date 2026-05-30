@@ -7,13 +7,13 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Live repository evidence category. In target-repository work, current target repository state takes precedence over Project OS assumptions.",
   "source_refs": [],
   "payload": {
     "tipo": "repository_state",
     "nombre": "repository_state",
     "ubicacion": "git_repository_state",
-    "nivel_autoridad": "live_primary",
+    "nivel_autoridad": "02_target_live_repository_evidence",
     "frescura_requerida": "must_fetch_live"
   }
 }

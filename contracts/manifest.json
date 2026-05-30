@@ -370,6 +370,12 @@
         "status_policy": "draft_relationship_type_reference_only"
       },
       {
+        "relationship_type_ref": "relacion.fuente.informa.estado.v1",
+        "directory_path": "contracts/relacion/",
+        "contract_kind": "relationship",
+        "status_policy": "draft_relationship_type_reference_only"
+      },
+      {
         "relationship_type_ref": "relacion.limite.falla_en.estado.v1",
         "directory_path": "contracts/relacion/",
         "contract_kind": "relationship",
@@ -711,6 +717,15 @@
         "contract_id": "relacion.fuente.provee.evidencia.v1",
         "path": "contracts/relacion/relacion.fuente.provee.evidencia.v1.json",
         "relationship_type_ref": "relacion.fuente.provee.evidencia.v1",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
+        "contract_id": "relacion.fuente.informa.estado.v1",
+        "path": "contracts/relacion/relacion.fuente.informa.estado.v1.json",
+        "relationship_type_ref": "relacion.fuente.informa.estado.v1",
         "version": {
           "major": 1
         },
