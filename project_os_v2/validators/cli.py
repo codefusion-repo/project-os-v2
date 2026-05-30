@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-from .core import validate_r1_10
+from .core import validate_all, validate_r1_10, validate_r1_11
 from .models import Finding, ToolingError
 
 
@@ -17,7 +17,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     validate_parser = subparsers.add_parser("validate", help="Run read-only validators")
-    validate_parser.add_argument("--phase", choices=("r1.10", "all"), required=True)
+    validate_parser.add_argument("--phase", choices=("r1.10", "r1.11", "all"), required=True)
     validate_parser.add_argument("--root", type=Path, default=Path("."))
     validate_parser.add_argument("--report-format", choices=("text", "json"), default="text")
 
@@ -39,8 +39,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _run_phase(phase: str, root: Path) -> list[Finding]:
-    if phase in {"r1.10", "all"}:
+    if phase == "r1.10":
         return validate_r1_10(root)
+    if phase == "r1.11":
+        return validate_r1_11(root)
+    if phase == "all":
+        return validate_all(root)
     raise ToolingError(f"unsupported phase: {phase}")
 
 
