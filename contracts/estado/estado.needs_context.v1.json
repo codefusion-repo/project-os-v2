@@ -7,7 +7,7 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "ResolverOutput status for missing obtainable context or current external evidence. Missing live evidence stays external and is not stored in durable JSON.",
   "source_refs": [],
   "payload": {
     "nombre": "needs_context"

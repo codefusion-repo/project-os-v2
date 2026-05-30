@@ -7,13 +7,13 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Live GitHub pull request evidence category. Durable contracts may reference this source category but must not store PR state or review results.",
   "source_refs": [],
   "payload": {
     "tipo": "github_pull_request",
     "nombre": "github_pull_request",
     "ubicacion": "github_pull_request_url",
-    "nivel_autoridad": "live_primary",
+    "nivel_autoridad": "03_live_github_traceability",
     "frescura_requerida": "must_fetch_live"
   }
 }

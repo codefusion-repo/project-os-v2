@@ -7,7 +7,7 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "ResolverOutput status for safe reference/output selection after required evidence and boundaries are satisfied. This status does not grant writes or runtime behavior.",
   "source_refs": [],
   "payload": {
     "nombre": "resolved"

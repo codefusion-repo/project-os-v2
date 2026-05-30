@@ -7,13 +7,13 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Human-reference design source category. It is lower authority than current external evidence and active JSON contracts.",
   "source_refs": [],
   "payload": {
     "tipo": "design_document",
     "nombre": "design_document",
     "ubicacion": "docs_path",
-    "nivel_autoridad": "human_reference",
+    "nivel_autoridad": "08_human_reference_only",
     "frescura_requerida": "repository_current"
   }
 }

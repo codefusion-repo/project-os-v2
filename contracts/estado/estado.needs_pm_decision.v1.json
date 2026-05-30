@@ -7,7 +7,7 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "ResolverOutput status for a material PM-only decision after available evidence is reviewed. Missing obtainable evidence remains needs_context.",
   "source_refs": [],
   "payload": {
     "nombre": "needs_pm_decision"

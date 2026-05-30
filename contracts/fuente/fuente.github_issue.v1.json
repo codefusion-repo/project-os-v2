@@ -7,13 +7,13 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Live GitHub issue evidence category. Durable contracts may reference this source category but must not store issue state or issue bodies.",
   "source_refs": [],
   "payload": {
     "tipo": "github_issue",
     "nombre": "github_issue",
     "ubicacion": "github_issue_url",
-    "nivel_autoridad": "live_primary",
+    "nivel_autoridad": "03_live_github_traceability",
     "frescura_requerida": "must_fetch_live"
   }
 }

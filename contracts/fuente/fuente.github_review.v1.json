@@ -7,13 +7,13 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Live GitHub review evidence category. Review decisions and review state remain external evidence, not durable JSON truth.",
   "source_refs": [],
   "payload": {
     "tipo": "github_review",
     "nombre": "github_review",
     "ubicacion": "github_review_url",
-    "nivel_autoridad": "live_primary",
+    "nivel_autoridad": "03_live_github_traceability",
     "frescura_requerida": "must_fetch_live"
   }
 }

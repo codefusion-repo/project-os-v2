@@ -28,17 +28,81 @@
       "actor.browser_chat.v1",
       "actor.terminal_agent.v1"
     ],
-    "limit_refs": [],
-    "rule_refs": [],
-    "state_refs": [],
-    "source_authority_refs": [],
-    "evidence_category_refs": [],
-    "relationship_type_refs": [],
+    "limit_refs": [
+      "limite.no_live_evidence_snapshot_in_static_contracts.v1",
+      "limite.no_manifest_index_without_scope.v1",
+      "limite.no_runtime_behavior_without_planned_issue.v1",
+      "limite.no_parser_behavior_without_planned_issue.v1",
+      "limite.no_schema_validator_without_planned_issue.v1",
+      "limite.no_automation_without_planned_issue.v1"
+    ],
+    "rule_refs": [
+      "regla.keep_github_evidence_live.v1",
+      "regla.treat_contracts_as_data_not_behavior.v1",
+      "regla.report_evidence_and_boundaries.v1",
+      "regla.keep_source_refs_empty_until_policy.v1",
+      "regla.preserve_entity_relationship_normalization.v1",
+      "regla.defer_concrete_relationship_instances_until_scoped.v1"
+    ],
+    "state_refs": [
+      "estado.resolved.v1",
+      "estado.needs_context.v1",
+      "estado.needs_pm_decision.v1",
+      "estado.blocked.v1"
+    ],
+    "source_authority_refs": [
+      "fuente.current_pm_decision.v1",
+      "fuente.pm_source_file.v1",
+      "fuente.target_repository_evidence.v1",
+      "fuente.repository_state.v1",
+      "fuente.github_issue.v1",
+      "fuente.github_pull_request.v1",
+      "fuente.github_review.v1",
+      "fuente.github_commit.v1",
+      "fuente.validation_output.v1",
+      "fuente.active_json_contract.v1",
+      "fuente.repository_file.v1",
+      "fuente.support_bundle_static_ref.v1",
+      "fuente.design_document.v1",
+      "fuente.archive_historical_reference.v1"
+    ],
+    "evidence_category_refs": [
+      "evidencia.github_issue_reference.v1",
+      "evidencia.github_pull_request_reference.v1",
+      "evidencia.github_review_reference.v1",
+      "evidencia.github_commit_reference.v1",
+      "evidencia.validation_output_reference.v1",
+      "evidencia.repository_state_reference.v1",
+      "evidencia.repository_file_reference.v1",
+      "evidencia.pm_source_file_reference.v1",
+      "evidencia.design_document_reference.v1"
+    ],
+    "relationship_type_refs": [
+      "relacion.fuente.provee.evidencia.v1",
+      "relacion.fuente.informa.estado.v1",
+      "relacion.resolver.determina.estado.v1",
+      "relacion.limite.falla_en.estado.v1",
+      "relacion.regla.falla_en.estado.v1"
+    ],
     "relationship_instance_refs": {
       "actor_limit_refs": [],
       "role_rule_refs": [],
-      "limit_failure_state_refs": [],
-      "rule_failure_state_refs": []
+      "limit_failure_state_refs": [
+        "relacion.limite.no_live_evidence_snapshot_in_static_contracts.falla_en.estado.blocked.v1",
+        "relacion.limite.no_manifest_index_without_scope.falla_en.estado.blocked.v1",
+        "relacion.limite.no_runtime_behavior_without_planned_issue.falla_en.estado.blocked.v1",
+        "relacion.limite.no_parser_behavior_without_planned_issue.falla_en.estado.blocked.v1",
+        "relacion.limite.no_schema_validator_without_planned_issue.falla_en.estado.blocked.v1",
+        "relacion.limite.no_automation_without_planned_issue.falla_en.estado.blocked.v1"
+      ],
+      "rule_failure_state_refs": [
+        "relacion.regla.keep_github_evidence_live.falla_en.estado.needs_context.v1",
+        "relacion.regla.report_evidence_and_boundaries.falla_en.estado.needs_context.v1",
+        "relacion.regla.keep_source_refs_empty_until_policy.falla_en.estado.needs_pm_decision.v1",
+        "relacion.regla.treat_contracts_as_data_not_behavior.falla_en.estado.blocked.v1",
+        "relacion.regla.preserve_entity_relationship_normalization.falla_en.estado.blocked.v1",
+        "relacion.regla.defer_concrete_relationship_instances_until_scoped.falla_en.estado.blocked.v1"
+      ]
     },
     "tooling_gate_refs": [],
     "fallback_estado_ref": "estado.blocked.v1",

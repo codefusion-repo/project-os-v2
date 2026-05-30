@@ -7,13 +7,13 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Live validation evidence category. Validation results remain external command evidence and are reported outside durable JSON.",
   "source_refs": [],
   "payload": {
     "tipo": "validation_output",
     "nombre": "validation_output",
     "ubicacion": "validation_command_output",
-    "nivel_autoridad": "supporting_evidence",
+    "nivel_autoridad": "04_live_validation_evidence",
     "frescura_requerida": "command_execution_time"
   }
 }

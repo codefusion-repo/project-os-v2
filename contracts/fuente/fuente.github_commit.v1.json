@@ -7,13 +7,13 @@
   },
   "status": "draft",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Live Git commit evidence category. Commit SHAs and branch state remain external evidence, not durable JSON truth.",
   "source_refs": [],
   "payload": {
     "tipo": "github_commit",
     "nombre": "github_commit",
     "ubicacion": "github_commit_sha",
-    "nivel_autoridad": "immutable_primary",
+    "nivel_autoridad": "03_live_github_traceability",
     "frescura_requerida": "by_exact_sha"
   }
 }
