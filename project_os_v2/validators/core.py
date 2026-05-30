@@ -1,4 +1,4 @@
-"""R1.10 schema and reference validators."""
+"""Read-only Project OS v2 schema, reference, and ownership validators."""
 
 from __future__ import annotations
 
@@ -64,6 +64,224 @@ FORBIDDEN_TRUE_FIELDS = {
     "generated",
 }
 STATIC_TRUE_FIELDS = {"curated_support_discovery_only", "static_curated"}
+ENTITY_PAYLOAD_ALLOWED_KEYS = {
+    "accion": {"nombre", "tipo"},
+    "actor": {"nombre", "superficie_capacidad"},
+    "artefacto": {"nombre", "referencia", "tipo"},
+    "contrato": {"entidad_tipo", "nombre"},
+    "estado": {"nombre"},
+    "evidencia": {"referencia", "tipo"},
+    "fuente": {"frescura_requerida", "nivel_autoridad", "nombre", "tipo", "ubicacion"},
+    "limite": {"nombre", "severidad", "tipo"},
+    "plantilla": {"formato", "nombre", "secciones_requeridas", "tipo"},
+    "recurso": {"nombre", "tipo", "ubicacion"},
+    "regla": {"comportamiento_esperado", "condicion", "nombre"},
+    "resolver": {"fallback_estado_id", "input_schema_ref", "manifest_ref", "nombre", "output_schema_ref", "policy_ref"},
+    "rol": {"lente_profesional", "nombre"},
+    "scope": {"nombre"},
+    "variable": {"nombre", "tipo", "valor_default", "valores_permitidos"},
+    "workflow": {"etapa_ciclo_vida", "nombre"},
+    "workflow_step": {
+        "condicion_base_avance",
+        "condicion_base_bloqueo",
+        "condicion_base_repeticion",
+        "nombre",
+        "objetivo",
+    },
+}
+ENTITY_CROSS_FAMILY_REF_EXCEPTIONS = {
+    "resolver": {"fallback_estado_id", "manifest_ref", "policy_ref"},
+}
+RELATIONSHIP_OWNED_KEYS = {
+    "cardinalidad",
+    "destino_entidad",
+    "destino_id",
+    "orden",
+    "origen_entidad",
+    "origen_id",
+    "requerido",
+    "tipo_relacion",
+}
+SUPPORT_PAYLOAD_ALLOWED_KEYS = {
+    "manifest": {
+        "body_inclusion_policy",
+        "contract_entries",
+        "contract_family_entries",
+        "contract_root_path",
+        "curation_policy",
+        "deprecated_reserved_relationship_refs",
+        "index_refs",
+        "inventory_scope",
+        "live_evidence_policy",
+        "manifest_kind",
+        "nombre",
+        "policy_bundle_refs",
+        "relationship_contract_entries",
+        "relationship_family_entries",
+        "represented_entity_families",
+        "represented_static_reference_sets",
+        "resolver_refs",
+        "selector_refs",
+        "support_discovery_policy",
+    },
+    "index": {
+        "body_inclusion_policy",
+        "deprecated_reserved_relationship_refs",
+        "generation_policy",
+        "index_kind",
+        "index_scope_policy",
+        "lookup_groups",
+        "manifest_ref",
+        "nombre",
+        "policy_ref",
+        "resolver_refs",
+        "selector_refs",
+        "source_of_truth_policy",
+    },
+    "reference_bundle": {
+        "allowed_actor_refs",
+        "applies_to_resolver_refs",
+        "bundle_kind",
+        "evidence_category_refs",
+        "fallback_estado_ref",
+        "limit_refs",
+        "nombre",
+        "relationship_instance_refs",
+        "relationship_type_refs",
+        "rule_refs",
+        "schema_ref_policy",
+        "source_authority_refs",
+        "state_refs",
+        "static_data_refs",
+        "tooling_gate_refs",
+    },
+    "selector": {
+        "allowed_dimensions",
+        "body_inclusion_policy",
+        "dimension_contract_family_map",
+        "execution_policy",
+        "index_ref",
+        "manifest_ref",
+        "nombre",
+        "output_ref_groups",
+        "policy_ref",
+        "resolver_ref",
+        "selector_entries",
+        "selector_kind",
+    },
+}
+SUPPORT_REQUIRED_OWNER_KEYS = {
+    "manifest": {"contract_entries", "contract_family_entries", "support_discovery_policy"},
+    "index": {"generation_policy", "index_scope_policy", "lookup_groups"},
+    "reference_bundle": {"bundle_kind", "static_data_refs"},
+    "selector": {"dimension_contract_family_map", "execution_policy", "selector_entries"},
+}
+SUPPORT_BODY_COPY_KEYS = {
+    "body",
+    "bodies",
+    "contract_body",
+    "contract_bodies",
+    "content",
+    "contents",
+    "entity_payload",
+    "generated_output",
+    "payload_body",
+    "payload_copy",
+    "payloads",
+    "rendered_template",
+    "relationship_payload",
+}
+LIVE_STATE_KEYS = {
+    "actual_head",
+    "base_ref",
+    "branch_name",
+    "branch_ref",
+    "branch_sha",
+    "branch_state",
+    "check_run_status",
+    "check_suite_status",
+    "closed",
+    "closed_at",
+    "closure_state",
+    "current_branch",
+    "current_head",
+    "current_sha",
+    "github_issue_number",
+    "github_issue_state",
+    "github_pr_number",
+    "github_pr_state",
+    "head_branch",
+    "head_ref",
+    "head_sha",
+    "is_draft",
+    "issue_number",
+    "issue_state",
+    "latest_commit",
+    "merge_commit",
+    "merge_state",
+    "mergeable",
+    "merged",
+    "merged_at",
+    "pr_number",
+    "pr_state",
+    "pull_request_number",
+    "pull_request_state",
+    "release_state",
+    "release_status",
+    "review_decision",
+    "review_state",
+    "review_status",
+    "review_verdict",
+    "tag_name",
+    "validation_exit_code",
+    "validation_output",
+    "validation_result",
+    "validation_results",
+    "validation_status",
+    "workflow_run_status",
+}
+LIVE_STATE_VALUE_PATTERNS = (
+    re.compile(r"https://github\.com/[^/\s]+/[^/\s]+/(issues|pull)/[0-9]+"),
+    re.compile(r"\b[0-9a-f]{40}\b"),
+)
+ACTOR_HARD_LIMIT_DUPLICATION_KEYS = {
+    "actor_hard_limit",
+    "actor_hard_limits",
+    "actor_limit_refs",
+    "blocked_actions",
+    "denied_actions",
+    "hard_limit",
+    "hard_limits",
+    "limit_refs",
+    "limite_refs",
+    "no_write_boundary",
+    "prohibited_actions",
+    "write_boundary",
+}
+ROLE_PERMISSION_KEYS = {
+    "allowed_actions",
+    "authority",
+    "can_close",
+    "can_commit",
+    "can_merge",
+    "can_push",
+    "can_write",
+    "capabilities",
+    "grant",
+    "grants",
+    "permission",
+    "permissions",
+    "write_authorization",
+    "write_permission",
+}
+ROLE_PERMISSION_VALUE_RE = re.compile(
+    r"\b(can|may|grant|grants|permission|permissions|authorize|authorized|allowed_to|write_access|commit|push|merge|close_issue)\b"
+)
+BEHAVIOR_SCHEMA_DENIAL_FIELDS = FORBIDDEN_TRUE_FIELDS | {
+    "command_execution_behavior",
+    "policy_execution",
+    "selector_behavior",
+}
 
 
 def validate_r1_10(root: Path | str) -> list[Finding]:
@@ -109,6 +327,55 @@ def validate_r1_10(root: Path | str) -> list[Finding]:
     _validate_support_boundaries(root, schema_files, contract_files, parsed, contract_index, findings)
     _validate_deprecated_relationships(root, contract_files, parsed, contract_index, findings)
 
+    return sorted(findings, key=lambda item: (item.file, item.pointer, item.code))
+
+
+def validate_r1_11(root: Path | str) -> list[Finding]:
+    root = Path(root)
+    if not root.exists():
+        raise ToolingError(f"root does not exist: {root}")
+    if not root.is_dir():
+        raise ToolingError(f"root is not a directory: {root}")
+
+    findings: list[Finding] = []
+    parsed: dict[Path, Any] = {}
+    schema_files = _json_files(root / "schemas")
+    contract_files = _json_files(root / "contracts")
+
+    for path in [*schema_files, *contract_files]:
+        try:
+            parsed[path] = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            findings.append(
+                _finding(
+                    "JSON_SYNTAX_INVALID",
+                    path,
+                    "/",
+                    None,
+                    "valid JSON",
+                    f"{exc.msg} at line {exc.lineno} column {exc.colno}",
+                    "Fix JSON syntax so semantic ownership validators can inspect the file.",
+                    root,
+                )
+            )
+
+    contract_index, _path_by_id = _build_contract_index(root, contract_files, parsed, findings)
+
+    _validate_entity_payload_ownership(root, contract_files, parsed, findings)
+    _validate_relationship_ownership(root, contract_files, parsed, findings)
+    _validate_support_reference_only_ownership(root, contract_files, parsed, findings)
+    _validate_durable_live_state_boundary(root, schema_files, contract_files, parsed, findings)
+    _validate_actor_hard_limit_duplication(root, contract_files, parsed, findings)
+    _validate_role_permission_boundary(root, contract_files, parsed, findings)
+    _validate_deprecated_relationship_active_candidates(root, contract_files, parsed, contract_index, findings)
+    _validate_behavior_claim_boundaries(root, schema_files, contract_files, parsed, findings)
+
+    return sorted(findings, key=lambda item: (item.file, item.pointer, item.code))
+
+
+def validate_all(root: Path | str) -> list[Finding]:
+    root = Path(root)
+    findings = [*validate_r1_10(root), *validate_r1_11(root)]
     return sorted(findings, key=lambda item: (item.file, item.pointer, item.code))
 
 
@@ -933,11 +1200,22 @@ def _check_positive_behavior_string(
     value: str,
     findings: list[Finding],
 ) -> None:
-    lowered = value.lower().replace("-", " ")
-    if "does not" in lowered or " not " in f" {lowered} " or lowered.startswith("no_") or lowered.startswith("no "):
+    lowered = _normalize_claim_text(value)
+    if _is_negative_claim(lowered):
         return
-    behavior_words = ("runtime", "loader", "resolver behavior", "selector runtime", "write authorization")
-    action_words = ("implement", "create", "execute", "authorize", "load", "select")
+    behavior_words = (
+        "command execution",
+        "contract loader",
+        "loader behavior",
+        "resolver behavior",
+        "resolver runtime",
+        "runtime behavior",
+        "selector behavior",
+        "selector runtime",
+        "write authorization",
+        "write permission",
+    )
+    action_words = ("authorize", "create", "execute", "grant", "implement", "load", "select")
     if any(word in lowered for word in behavior_words) and any(word in lowered for word in action_words):
         findings.append(
             _finding(
@@ -1076,6 +1354,452 @@ def _validate_deprecated_relationships(
                     )
 
 
+def _validate_entity_payload_ownership(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "entity":
+            continue
+        family = data.get("entity_family")
+        payload = data.get("payload")
+        if not isinstance(family, str) or family not in ENTITY_PAYLOAD_ALLOWED_KEYS or not isinstance(payload, dict):
+            continue
+        contract_id = _contract_id(data)
+        allowed_keys = ENTITY_PAYLOAD_ALLOWED_KEYS[family]
+
+        for key, value in payload.items():
+            pointer = "/payload/" + escape_pointer_token(key)
+            if key not in allowed_keys:
+                findings.append(
+                    _finding(
+                        "ENTITY_PAYLOAD_FIELD_NOT_OWNED",
+                        path,
+                        pointer,
+                        contract_id,
+                        sorted(allowed_keys),
+                        key,
+                        "Keep entity payloads to their normalized entity-owned fields; move relationship, ownership, or support facts to their owning contract family.",
+                        root,
+                    )
+                )
+            if key in RELATIONSHIP_OWNED_KEYS:
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_FACT_OUTSIDE_RELACION",
+                        path,
+                        pointer,
+                        contract_id,
+                        "relationship fact stored in a relacion contract payload",
+                        key,
+                        "Move origen/destino/tipo/cardinality relationship facts into contracts/relacion records.",
+                        root,
+                    )
+                )
+
+            exception_keys = ENTITY_CROSS_FAMILY_REF_EXCEPTIONS.get(family, set())
+            if key in exception_keys:
+                continue
+            for value_pointer, stable_id in _iter_stable_ref_values(value, pointer):
+                ref_family = stable_id.split(".", 1)[0]
+                if ref_family == family:
+                    continue
+                findings.append(
+                    _finding(
+                        "ENTITY_PAYLOAD_CROSS_FAMILY_FACT",
+                        path,
+                        value_pointer,
+                        contract_id,
+                        f"{family}-owned scalar or same-family ref only",
+                        stable_id,
+                        "Do not reintroduce cross-family facts into entity payloads; represent cross-family facts as relacion contracts or curated support refs.",
+                        root,
+                    )
+                )
+
+
+def _validate_relationship_ownership(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict):
+            continue
+        contract_kind = data.get("contract_kind")
+        entity_family = data.get("entity_family")
+        contract_id = _contract_id(data)
+        is_relationship_owner = contract_kind == "relationship" and entity_family == "relacion"
+
+        if contract_kind == "relationship" and entity_family != "relacion":
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_OWNER_INVALID",
+                    path,
+                    "/entity_family",
+                    contract_id,
+                    "relacion",
+                    entity_family,
+                    "Relationship contracts must be owned by the relacion family.",
+                    root,
+                )
+            )
+        if entity_family == "relacion" and contract_kind != "relationship":
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_OWNER_INVALID",
+                    path,
+                    "/contract_kind",
+                    contract_id,
+                    "relationship",
+                    contract_kind,
+                    "Relación family records must remain relationship contracts.",
+                    root,
+                )
+            )
+
+        if is_relationship_owner:
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        for pointer, key, _value in _walk_key_values(payload, "/payload"):
+            if key not in RELATIONSHIP_OWNED_KEYS:
+                continue
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_FACT_OUTSIDE_RELACION",
+                    path,
+                    pointer,
+                    contract_id,
+                    "relationship fact stored in a relacion contract payload",
+                    key,
+                    "Keep relationship endpoint, type, cardinality, required, and order facts inside contracts/relacion records only.",
+                    root,
+                )
+            )
+
+
+def _validate_support_reference_only_ownership(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") not in SUPPORT_KINDS:
+            continue
+        contract_kind = data["contract_kind"]
+        contract_id = _contract_id(data)
+        payload = data.get("payload")
+
+        expected_path = _expected_support_owner_path(contract_kind)
+        if not _support_owner_path_matches(root, path, contract_kind):
+            findings.append(
+                _finding(
+                    "SUPPORT_OWNER_PATH_DRIFT",
+                    path,
+                    "/contract_kind",
+                    contract_id,
+                    expected_path,
+                    _rel(root, path),
+                    "Keep manifest, index, selector, and policy/reference bundle ownership aligned with their canonical support paths.",
+                    root,
+                )
+            )
+
+        if not isinstance(payload, dict):
+            continue
+        allowed_keys = SUPPORT_PAYLOAD_ALLOWED_KEYS[contract_kind]
+        required_keys = SUPPORT_REQUIRED_OWNER_KEYS[contract_kind]
+        for key in payload:
+            if key in allowed_keys:
+                continue
+            findings.append(
+                _finding(
+                    "SUPPORT_OWNERSHIP_DRIFT",
+                    path,
+                    "/payload/" + escape_pointer_token(key),
+                    contract_id,
+                    sorted(allowed_keys),
+                    key,
+                    "Keep support-bundle data under its owning manifest, index, selector, or policy field set.",
+                    root,
+                )
+            )
+        for key in sorted(required_keys):
+            if key in payload:
+                continue
+            findings.append(
+                _finding(
+                    "SUPPORT_OWNER_KEY_MISSING",
+                    path,
+                    "/payload/" + escape_pointer_token(key),
+                    contract_id,
+                    "support owner key present",
+                    "missing",
+                    "Keep each support bundle's owner-defining fields present.",
+                    root,
+                )
+            )
+
+        for pointer, key, value in _walk_key_values(payload, "/payload"):
+            if key in SUPPORT_BODY_COPY_KEYS:
+                findings.append(
+                    _finding(
+                        "SUPPORT_REFERENCE_ONLY_VIOLATION",
+                        path,
+                        pointer,
+                        contract_id,
+                        "curated references only; no copied contract bodies, payloads, content, or generated output",
+                        key,
+                        "Replace copied bodies or generated content with contract ids, paths, and curated reference metadata only.",
+                        root,
+                    )
+                )
+            if key == "body_inclusion_policy" and isinstance(value, str) and not _is_reference_only_policy(value):
+                findings.append(
+                    _finding(
+                        "SUPPORT_BODY_INCLUSION_POLICY_INVALID",
+                        path,
+                        pointer,
+                        contract_id,
+                        "reference-only body inclusion policy",
+                        value,
+                        "Support bundles must explicitly preserve reference-only/no-body/no-payload inclusion semantics.",
+                        root,
+                    )
+                )
+
+
+def _validate_durable_live_state_boundary(
+    root: Path,
+    schema_files: list[Path],
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    for path in [*schema_files, *contract_files]:
+        data = parsed.get(path)
+        if data is None:
+            continue
+        source_data = data if isinstance(data, dict) else {}
+        for pointer, key, value in _walk_key_values(data):
+            if _is_under_source_refs(pointer):
+                continue
+            if key in LIVE_STATE_KEYS:
+                findings.append(
+                    _finding(
+                        "DURABLE_LIVE_STATE_FIELD_FORBIDDEN",
+                        path,
+                        pointer,
+                        _contract_id(source_data),
+                        "durable reference metadata without live GitHub/review/validation/branch/release state fields",
+                        key,
+                        "Keep mutable GitHub truth, validation output, review verdicts, branch state, issue/PR state, closure state, and release state as external evidence.",
+                        root,
+                    )
+                )
+            if isinstance(value, str) and _looks_like_live_state_literal(value):
+                findings.append(
+                    _finding(
+                        "DURABLE_LIVE_STATE_VALUE_FORBIDDEN",
+                        path,
+                        pointer,
+                        _contract_id(source_data),
+                        "external live evidence reference, not copied live state value",
+                        value,
+                        "Replace copied live GitHub URLs, commit SHAs, or mutable evidence values with abstract source/resource/evidence references.",
+                        root,
+                    )
+                )
+
+
+def _validate_actor_hard_limit_duplication(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "entity":
+            continue
+        if data.get("entity_family") == "limite":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        for pointer, key, _value in _walk_key_values(payload, "/payload"):
+            if not _is_actor_hard_limit_duplication_key(key):
+                continue
+            findings.append(
+                _finding(
+                    "ACTOR_HARD_LIMIT_DUPLICATED",
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "actor hard limits represented as limite entities plus relacion.actor.*.tiene.limite records",
+                    key,
+                    "Do not duplicate actor hard-limit lists or boundary actions into entity payloads or lower-layer contracts.",
+                    root,
+                )
+            )
+
+
+def _validate_role_permission_boundary(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "entity" or data.get("entity_family") != "rol":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        contract_id = _contract_id(data)
+        for pointer, key, value in _walk_key_values(payload, "/payload"):
+            if _is_role_permission_key(key):
+                findings.append(
+                    _finding(
+                        "ROLE_PERMISSION_GRANT_FORBIDDEN",
+                        path,
+                        pointer,
+                        contract_id,
+                        "role lens metadata only; no permission, authority, write, merge, close, commit, or push grants",
+                        key,
+                        "Role contracts are professional lenses only and must not grant permissions.",
+                        root,
+                    )
+                )
+            if isinstance(value, str) and _is_positive_role_permission_claim(value):
+                findings.append(
+                    _finding(
+                        "ROLE_PERMISSION_GRANT_FORBIDDEN",
+                        path,
+                        pointer,
+                        contract_id,
+                        "role lens metadata only; no permission, authority, write, merge, close, commit, or push grants",
+                        value,
+                        "Replace permission-grant language with non-authorizing role lens metadata.",
+                        root,
+                    )
+                )
+
+
+def _validate_deprecated_relationship_active_candidates(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    deprecated_relationship_ids = {
+        contract_id
+        for contract_id, data in contract_index.items()
+        if isinstance(data, dict) and data.get("contract_kind") == "relationship" and data.get("status") == "deprecated"
+    }
+    if not deprecated_relationship_ids:
+        return
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict):
+            continue
+        contract_id = _contract_id(data)
+        if contract_id in deprecated_relationship_ids:
+            for pointer, key, value in _walk_key_values(data):
+                if key == "active_resolver_candidate" and value is not False:
+                    findings.append(
+                        _finding(
+                            "DEPRECATED_ACTIVE_CANDIDATE_INVALID",
+                            path,
+                            pointer,
+                            contract_id,
+                            False,
+                            value,
+                            "Deprecated relationship type contracts must not be active Resolver candidates.",
+                            root,
+                        )
+                    )
+
+        for object_pointer, obj in _walk_objects(data):
+            ref = obj.get("relationship_type_ref")
+            if ref not in deprecated_relationship_ids:
+                continue
+            if "active_resolver_candidate" not in obj:
+                continue
+            if obj.get("active_resolver_candidate") is False:
+                continue
+            findings.append(
+                _finding(
+                    "DEPRECATED_ACTIVE_CANDIDATE_INVALID",
+                    path,
+                    join_pointer(object_pointer, "active_resolver_candidate"),
+                    contract_id,
+                    False,
+                    obj.get("active_resolver_candidate", "missing"),
+                    "Deprecated relationship type refs must not be presented as active Resolver candidates.",
+                    root,
+                )
+            )
+
+
+def _validate_behavior_claim_boundaries(
+    root: Path,
+    schema_files: list[Path],
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    for path in schema_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict):
+            continue
+        _validate_schema_behavior_field_denials(root, path, data, findings)
+        _validate_positive_behavior_claims(root, path, data, data, findings)
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") not in SUPPORT_KINDS:
+            continue
+        _validate_boundary_flags(root, path, data, data, findings)
+
+
+def _validate_schema_behavior_field_denials(
+    root: Path,
+    path: Path,
+    data: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    for pointer, key, value in _walk_key_values(data):
+        if key not in BEHAVIOR_SCHEMA_DENIAL_FIELDS or not isinstance(value, dict):
+            continue
+        if value.get("const") is False:
+            continue
+        findings.append(
+            _finding(
+                "SCHEMA_BEHAVIOR_FIELD_NOT_DENIED",
+                path,
+                pointer,
+                None,
+                {"const": False},
+                value,
+                "Schemas may define boundary flags only when they deny runtime, loader, Resolver, selector, command execution, generated output, or write-authorization behavior.",
+                root,
+            )
+        )
+
+
 def _walk_key_values(value: Any, pointer: str = "") -> Iterable[tuple[str, str, Any]]:
     if isinstance(value, dict):
         for key, child in value.items():
@@ -1085,6 +1809,122 @@ def _walk_key_values(value: Any, pointer: str = "") -> Iterable[tuple[str, str, 
     elif isinstance(value, list):
         for index, child in enumerate(value):
             yield from _walk_key_values(child, join_pointer(pointer or "/", index))
+
+
+def _walk_objects(value: Any, pointer: str = "") -> Iterable[tuple[str, dict[str, Any]]]:
+    if isinstance(value, dict):
+        current_pointer = pointer or "/"
+        yield current_pointer, value
+        for key, child in value.items():
+            yield from _walk_objects(child, join_pointer(current_pointer, key))
+    elif isinstance(value, list):
+        current_pointer = pointer or "/"
+        for index, child in enumerate(value):
+            yield from _walk_objects(child, join_pointer(current_pointer, index))
+
+
+def _iter_stable_ref_values(value: Any, pointer: str) -> Iterable[tuple[str, str]]:
+    if isinstance(value, str):
+        if STABLE_ID_RE.fullmatch(value) is not None:
+            yield pointer, value
+        return
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            yield from _iter_stable_ref_values(item, join_pointer(pointer, index))
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield from _iter_stable_ref_values(item, join_pointer(pointer, key))
+
+
+def _expected_support_owner_path(contract_kind: str) -> str:
+    if contract_kind == "manifest":
+        return "contracts/manifest.json"
+    if contract_kind == "index":
+        return "contracts/index.json"
+    if contract_kind == "reference_bundle":
+        return "contracts/policy/*.json"
+    if contract_kind == "selector":
+        return "contracts/selector/*.json"
+    return "canonical support path"
+
+
+def _support_owner_path_matches(root: Path, path: Path, contract_kind: str) -> bool:
+    rel = _rel(root, path)
+    if contract_kind == "manifest":
+        return rel == "contracts/manifest.json"
+    if contract_kind == "index":
+        return rel == "contracts/index.json"
+    if contract_kind == "reference_bundle":
+        return rel.startswith("contracts/policy/") and rel.endswith(".json")
+    if contract_kind == "selector":
+        return rel.startswith("contracts/selector/") and rel.endswith(".json")
+    return False
+
+
+def _is_reference_only_policy(value: str) -> bool:
+    normalized = _normalize_claim_text(value)
+    return "reference" in normalized and "only" in normalized and "no" in normalized
+
+
+def _is_under_source_refs(pointer: str) -> bool:
+    return pointer == "/source_refs" or pointer.startswith("/source_refs/")
+
+
+def _looks_like_live_state_literal(value: str) -> bool:
+    return any(pattern.search(value) is not None for pattern in LIVE_STATE_VALUE_PATTERNS)
+
+
+def _is_actor_hard_limit_duplication_key(key: str) -> bool:
+    normalized = key.lower()
+    return (
+        normalized in ACTOR_HARD_LIMIT_DUPLICATION_KEYS
+        or normalized.endswith("_limit_refs")
+        or normalized.endswith("_limite_refs")
+        or "hard_limit" in normalized
+    )
+
+
+def _is_role_permission_key(key: str) -> bool:
+    normalized = key.lower()
+    return (
+        normalized in ROLE_PERMISSION_KEYS
+        or normalized.startswith("can_")
+        or "permission" in normalized
+        or "write_authorization" in normalized
+        or "write_permission" in normalized
+    )
+
+
+def _is_positive_role_permission_claim(value: str) -> bool:
+    normalized = _normalize_claim_text(value)
+    if _is_negative_claim(normalized):
+        return False
+    return ROLE_PERMISSION_VALUE_RE.search(normalized) is not None
+
+
+def _normalize_claim_text(value: str) -> str:
+    return re.sub(r"[-_]+", " ", value.lower())
+
+
+def _is_negative_claim(normalized: str) -> bool:
+    padded = f" {normalized} "
+    return (
+        " does not " in padded
+        or " do not " in padded
+        or " not " in padded
+        or " no " in padded
+        or normalized.startswith("no ")
+        or " without " in padded
+        or " deny " in padded
+        or " denies " in padded
+        or " denied " in padded
+        or " non " in padded
+        or normalized.startswith("non ")
+        or "reference only" in normalized
+        or "data shape only" in normalized
+        or "shape only" in normalized
+    )
 
 
 def _contract_id(data: Any) -> str | None:
