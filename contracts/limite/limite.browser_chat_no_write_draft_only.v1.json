@@ -1,0 +1,17 @@
+{
+  "id": "limite.browser_chat_no_write_draft_only.v1",
+  "entity_family": "limite",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "browser_chat_no_write_draft_only",
+    "tipo": "actor_surface_hard_boundary",
+    "severidad": "blocking"
+  }
+}
