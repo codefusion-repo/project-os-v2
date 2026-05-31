@@ -1,0 +1,17 @@
+{
+  "id": "regla.creative_preserve_asset_content_brand_and_rights_boundaries.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "active",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "creative_preserve_asset_content_brand_and_rights_boundaries",
+    "condicion": "when_creative_content_production_role_reviews_or_creates_content",
+    "comportamiento_esperado": "preserve_asset_content_brand_rights_source_approval_and_trade_dress_boundaries"
+  }
+}

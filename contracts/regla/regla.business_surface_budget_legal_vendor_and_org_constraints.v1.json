@@ -1,0 +1,17 @@
+{
+  "id": "regla.business_surface_budget_legal_vendor_and_org_constraints.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "active",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "business_surface_budget_legal_vendor_and_org_constraints",
+    "condicion": "when_business_operations_role_reviews_or_plans_work",
+    "comportamiento_esperado": "surface_budget_legal_vendor_organizational_and_commercial_constraints_and_escalate_policy_decisions"
+  }
+}

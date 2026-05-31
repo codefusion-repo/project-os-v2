@@ -1,0 +1,17 @@
+{
+  "id": "regla.quality_validate_acceptance_with_evidence.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "active",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "quality_validate_acceptance_with_evidence",
+    "condicion": "when_quality_validation_role_reviews_work",
+    "comportamiento_esperado": "validate_acceptance_criteria_with_evidence_and_report_regressions_edge_cases_unverified_claims_and_verdict"
+  }
+}

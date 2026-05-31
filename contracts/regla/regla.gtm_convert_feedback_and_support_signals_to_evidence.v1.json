@@ -1,0 +1,17 @@
+{
+  "id": "regla.gtm_convert_feedback_and_support_signals_to_evidence.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "active",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "gtm_convert_feedback_and_support_signals_to_evidence",
+    "condicion": "when_gtm_community_operations_role_reviews_feedback_or_external_communication",
+    "comportamiento_esperado": "convert_feedback_support_and_community_signals_to_actionable_evidence_and_preserve_approved_communication_boundaries"
+  }
+}
