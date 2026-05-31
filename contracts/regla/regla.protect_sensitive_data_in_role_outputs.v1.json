@@ -1,0 +1,17 @@
+{
+  "id": "regla.protect_sensitive_data_in_role_outputs.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "active",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "protect_sensitive_data_in_role_outputs",
+    "condicion": "when_role_output_may_include_sensitive_data",
+    "comportamiento_esperado": "minimize_secrets_credentials_sensitive_user_data_and_confidential_details"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "regla.data_ground_metrics_events_and_insights_in_sources.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "active",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "data_ground_metrics_events_and_insights_in_sources",
+    "condicion": "when_data_intelligence_role_reports_metrics_or_insights",
+    "comportamiento_esperado": "ground_metrics_events_experiments_and_insights_in_sources_and_protect_sensitive_data"
+  }
+}

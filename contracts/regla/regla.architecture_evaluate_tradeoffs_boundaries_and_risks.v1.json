@@ -1,0 +1,17 @@
+{
+  "id": "regla.architecture_evaluate_tradeoffs_boundaries_and_risks.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "active",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "architecture_evaluate_tradeoffs_boundaries_and_risks",
+    "condicion": "when_technical_architecture_role_reviews_or_plans_work",
+    "comportamiento_esperado": "evaluate_architecture_tradeoffs_boundaries_technical_debt_scalability_maintainability_and_required_reviews"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "regla.design_preserve_user_experience_goal_alignment.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "active",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "design_preserve_user_experience_goal_alignment",
+    "condicion": "when_product_game_design_role_reviews_or_plans_experience",
+    "comportamiento_esperado": "define_experience_rules_acceptance_criteria_goal_alignment_and_interaction_risks"
+  }
+}
