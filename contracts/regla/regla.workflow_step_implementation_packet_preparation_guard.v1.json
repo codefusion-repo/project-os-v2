@@ -1,0 +1,17 @@
+{
+  "id": "regla.workflow_step_implementation_packet_preparation_guard.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "workflow_step_implementation_packet_preparation_guard",
+    "condicion": "When an implementation packet is prepared as a WorkflowStep.",
+    "comportamiento_esperado": "Prepare copy-safe implementation instructions with scope, files, validation, risks, and boundaries, without treating the packet as execution or write authorization."
+  }
+}

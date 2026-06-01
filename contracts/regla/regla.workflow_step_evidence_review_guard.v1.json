@@ -1,0 +1,17 @@
+{
+  "id": "regla.workflow_step_evidence_review_guard.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "workflow_step_evidence_review_guard",
+    "condicion": "When evidence is reviewed for a WorkflowStep.",
+    "comportamiento_esperado": "Review evidence against the scoped workflow step objective and report findings without mutating evidence, contracts, repository state, or GitHub state."
+  }
+}

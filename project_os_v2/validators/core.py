@@ -20,6 +20,7 @@ from .models import Finding, ToolingError
 SCHEMA_ID_PREFIX = "https://schemas.project-os-v2.local/"
 DRAFT_2020_12 = "https://json-schema.org/draft/2020-12/schema"
 STABLE_ID_RE = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z0-9_]+)+\.v[0-9]+$")
+WORKFLOW_STEP_REGLA_ID_RE = re.compile(r"^regla\.workflow_step_[a-z0-9_]+_.*\.v1$")
 ENTITY_FAMILIES = {
     "accion",
     "actor",
@@ -367,6 +368,7 @@ def validate_r1_11(root: Path | str) -> list[Finding]:
     _validate_durable_live_state_boundary(root, schema_files, contract_files, parsed, findings)
     _validate_actor_hard_limit_duplication(root, contract_files, parsed, findings)
     _validate_role_permission_boundary(root, contract_files, parsed, findings)
+    _validate_workflow_step_rule_ownership(root, contract_files, parsed, findings)
     _validate_deprecated_relationship_active_candidates(root, contract_files, parsed, contract_index, findings)
     _validate_behavior_claim_boundaries(root, schema_files, contract_files, parsed, findings)
 
@@ -1648,6 +1650,80 @@ def _validate_actor_hard_limit_duplication(
                     "actor hard limits represented as limite entities plus relacion.actor.*.tiene.limite records",
                     key,
                     "Do not duplicate actor hard-limit lists or boundary actions into entity payloads or lower-layer contracts.",
+                    root,
+                )
+            )
+
+
+def _validate_workflow_step_rule_ownership(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    active_role_regla_destinations: set[str] = set()
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "relationship":
+            continue
+        if data.get("status") != "active":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        if (
+            payload.get("origen_entidad") == "rol"
+            and payload.get("destino_entidad") == "regla"
+            and payload.get("tipo_relacion") == "aplica"
+        ):
+            destino_id = payload.get("destino_id")
+            if isinstance(destino_id, str):
+                active_role_regla_destinations.add(destino_id)
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "relationship":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        if (
+            payload.get("origen_entidad") != "workflow_step"
+            or payload.get("destino_entidad") != "regla"
+            or payload.get("tipo_relacion") != "aplica"
+        ):
+            continue
+
+        destino_id = payload.get("destino_id")
+        if not isinstance(destino_id, str):
+            continue
+
+        if WORKFLOW_STEP_REGLA_ID_RE.fullmatch(destino_id) is None:
+            findings.append(
+                _finding(
+                    "WORKFLOW_STEP_REGLA_ID_PATTERN_MISMATCH",
+                    path,
+                    "/payload/destino_id",
+                    _contract_id(data),
+                    "workflow_step-prefixed regla id matching /^regla\\.workflow_step_[a-z0-9_]+_.*\\.v1$/",
+                    destino_id,
+                    "Use the WorkflowStep-owned regla id prefix and naming pattern under contracts/regla.",
+                    root,
+                )
+            )
+            continue
+
+        if data.get("status") == "active" and destino_id in active_role_regla_destinations:
+            findings.append(
+                _finding(
+                    "WORKFLOW_STEP_REGLA_DUPLICATES_ACTIVE_ROLE_RULE_DESTINATION",
+                    path,
+                    "/payload/destino_id",
+                    _contract_id(data),
+                    "a destination id not used by active rol.aplica.regla relationships",
+                    destino_id,
+                    "Choose WorkflowStep-owned rule IDs that do not duplicate active role-owned destination IDs.",
                     root,
                 )
             )
