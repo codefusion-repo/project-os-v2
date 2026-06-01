@@ -1,0 +1,17 @@
+{
+  "id": "regla.workflow_step_feedback_processing_guard.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "workflow_step_feedback_processing_guard",
+    "condicion": "When feedback is processed as a WorkflowStep.",
+    "comportamiento_esperado": "Convert feedback into scoped evidence or follow-up recommendations without changing ownership boundaries or creating runtime behavior."
+  }
+}

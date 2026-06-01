@@ -1,0 +1,17 @@
+{
+  "id": "regla.workflow_step_worktree_preflight_to_branch_preflight_transition_guard.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "workflow_step_worktree_preflight_to_branch_preflight_transition_guard",
+    "condicion": "When transitioning from worktree preflight to branch preflight.",
+    "comportamiento_esperado": "Allow transition only when worktree evidence is clean or explicitly scoped; otherwise block progression and report required recovery context."
+  }
+}

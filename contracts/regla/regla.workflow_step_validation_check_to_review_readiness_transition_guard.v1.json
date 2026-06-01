@@ -1,0 +1,17 @@
+{
+  "id": "regla.workflow_step_validation_check_to_review_readiness_transition_guard.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "workflow_step_validation_check_to_review_readiness_transition_guard",
+    "condicion": "When transitioning from validation check to review readiness.",
+    "comportamiento_esperado": "Allow transition only when validation evidence is present, current, and compatible with the issue scope; otherwise return review-not-ready findings."
+  }
+}

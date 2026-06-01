@@ -1,0 +1,17 @@
+{
+  "id": "regla.workflow_step_context_resolution_guard.v1",
+  "entity_family": "regla",
+  "contract_kind": "entity",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "nombre": "workflow_step_context_resolution_guard",
+    "condicion": "When context resolution is performed as a WorkflowStep.",
+    "comportamiento_esperado": "Resolve only the scoped context needed for the current workflow step and preserve actor, role, workflow, evidence, and boundary separation without granting permissions."
+  }
+}
