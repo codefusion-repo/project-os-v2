@@ -5,9 +5,9 @@
   "version": {
     "major": 1
   },
-  "status": "draft",
+  "status": "deprecated",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Deprecated by R5.20: the concrete Workflow-level repository-state evidence/source relations are non-canonical for Base v0.1. Base v0.1 evidence/source prerequisites are WorkflowStep-owned. Accepted WorkflowStep-owned replacements are relacion.workflow_step.worktree_preflight.requiere.evidencia.repository_state_reference.v1 and relacion.workflow_step.worktree_preflight.usa.fuente.repository_state.v1.",
   "source_refs": [],
   "payload": {
     "origen_entidad": "workflow",
