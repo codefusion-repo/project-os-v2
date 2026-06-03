@@ -5,9 +5,9 @@
   "version": {
     "major": 1
   },
-  "status": "draft",
+  "status": "retired",
   "schema_ref": null,
-  "descripcion": null,
+  "descripcion": "Retired by R5.25/R5.26: R5.23 decided this concrete Workflow-level Estado failure relation is out of scope for Base v0.1 and must not be accepted or activated as Workflow-level semantics. R5.25 selected retired because archived is not schema-valid and deprecated would imply replacement semantics. Base v0.1 failure-state requirements are WorkflowStep-owned. Accepted WorkflowStep-owned relation: relacion.workflow_step.worktree_preflight.falla_en.estado.blocked.v1.",
   "source_refs": [],
   "payload": {
     "origen_entidad": "workflow",
