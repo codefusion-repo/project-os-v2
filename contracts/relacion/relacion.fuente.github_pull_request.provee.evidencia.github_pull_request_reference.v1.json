@@ -15,7 +15,7 @@
     "destino_entidad": "evidencia",
     "destino_id": "evidencia.github_pull_request_reference.v1",
     "tipo_relacion": "provee",
-    "cardinalidad": "1:N",
+    "cardinalidad": "N:M",
     "requerido": true,
     "orden": null
   }

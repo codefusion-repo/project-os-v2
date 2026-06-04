@@ -15,8 +15,8 @@
     "destino_entidad": "evidencia",
     "destino_id": "evidencia.repository_state_reference.v1",
     "tipo_relacion": "provee",
-    "cardinalidad": "1:N",
+    "cardinalidad": "N:M",
     "requerido": true,
-    "orden": 1
+    "orden": null
   }
 }
