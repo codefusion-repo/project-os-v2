@@ -68,6 +68,7 @@
     ],
     "represented_entity_families": [
       "resolver",
+      "resolver_output",
       "actor",
       "rol",
       "workflow",
@@ -96,6 +97,12 @@
       {
         "entity_family": "resolver",
         "directory_path": "contracts/resolver/",
+        "contract_kind": "entity",
+        "status_policy": "draft_contracts_reference_only"
+      },
+      {
+        "entity_family": "resolver_output",
+        "directory_path": "contracts/resolver_output/",
         "contract_kind": "entity",
         "status_policy": "draft_contracts_reference_only"
       },
@@ -272,6 +279,16 @@
         "path": "contracts/selector/selector.project_os_v2_core.v1.json",
         "entity_family": "selector",
         "contract_kind": "selector",
+        "version": {
+          "major": 1
+        },
+        "status": "draft"
+      },
+      {
+        "contract_id": "resolver_output.project_os_v2_base_output_refs.v1",
+        "path": "contracts/resolver_output/resolver_output.project_os_v2_base_output_refs.v1.json",
+        "entity_family": "resolver_output",
+        "contract_kind": "entity",
         "version": {
           "major": 1
         },
