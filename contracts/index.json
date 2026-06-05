@@ -95,6 +95,12 @@
             "contract_refs": [
               "selector.project_os_v2_core.v1"
             ]
+          },
+          {
+            "lookup_key": "resolver_output.project_os_v2_base_output_refs.v1",
+            "contract_refs": [
+              "resolver_output.project_os_v2_base_output_refs.v1"
+            ]
           }
         ]
       },
@@ -131,6 +137,12 @@
             "contract_refs": [
               "selector.project_os_v2_core.v1"
             ]
+          },
+          {
+            "lookup_key": "contracts/resolver_output/resolver_output.project_os_v2_base_output_refs.v1.json",
+            "contract_refs": [
+              "resolver_output.project_os_v2_base_output_refs.v1"
+            ]
           }
         ]
       },
@@ -142,6 +154,12 @@
             "lookup_key": "resolver",
             "contract_family_refs": [
               "resolver"
+            ]
+          },
+          {
+            "lookup_key": "resolver_output",
+            "contract_family_refs": [
+              "resolver_output"
             ]
           },
           {
@@ -280,6 +298,7 @@
             "lookup_key": "entity",
             "contract_family_refs": [
               "resolver",
+              "resolver_output",
               "actor",
               "rol",
               "workflow",
