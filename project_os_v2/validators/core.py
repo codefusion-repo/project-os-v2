@@ -298,6 +298,10 @@ ACTOR_HARD_LIMIT_DUPLICATION_KEYS = {
     "prohibited_actions",
     "write_boundary",
 }
+RESOLVER_OUTPUT_LIMITE_REF_REFERENCE_KEYS = {
+    "effective_limite_refs",
+    "selected_limite_refs",
+}
 ROLE_PERMISSION_KEYS = {
     "allowed_actions",
     "authority",
@@ -1677,7 +1681,10 @@ def _validate_actor_hard_limit_duplication(
         payload = data.get("payload")
         if not isinstance(payload, dict):
             continue
+        entity_family = data.get("entity_family")
         for pointer, key, _value in _walk_key_values(payload, "/payload"):
+            if _is_resolver_output_limite_reference_field(entity_family, pointer, key):
+                continue
             if not _is_actor_hard_limit_duplication_key(key):
                 continue
             findings.append(
@@ -1997,6 +2004,14 @@ def _is_actor_hard_limit_duplication_key(key: str) -> bool:
         or normalized.endswith("_limit_refs")
         or normalized.endswith("_limite_refs")
         or "hard_limit" in normalized
+    )
+
+
+def _is_resolver_output_limite_reference_field(entity_family: Any, pointer: str, key: str) -> bool:
+    return (
+        entity_family == "resolver_output"
+        and pointer == f"/payload/{key}"
+        and key in RESOLVER_OUTPUT_LIMITE_REF_REFERENCE_KEYS
     )
 
 

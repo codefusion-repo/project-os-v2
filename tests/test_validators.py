@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from project_os_v2.validators import validate_r1_10, validate_r1_11
+from project_os_v2.validators import validate_all, validate_r1_10, validate_r1_11
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -111,6 +111,37 @@ class R110ValidatorTests(unittest.TestCase):
 
         self.assertEqual([], findings)
 
+    def test_resolver_output_limite_refs_validate_all_as_reference_fields(self) -> None:
+        payload = _resolver_output_payload()
+        payload["selected_limite_refs"] = ["limite.actor_write_boundary.v1"]
+        payload["effective_limite_refs"] = ["limite.actor_write_boundary.v1"]
+
+        limite_payload = {
+            "nombre": "actor write boundary",
+            "severidad": "hard",
+            "tipo": "write_boundary",
+        }
+
+        with tempfile.TemporaryDirectory() as raw_root:
+            root = Path(raw_root)
+            _copy_schemas(root)
+            _write_json(
+                root / "contracts" / "limite" / "limite.actor_write_boundary.v1.json",
+                _contract_envelope("limite.actor_write_boundary.v1", "limite", limite_payload),
+            )
+            _write_json(
+                root / "contracts" / "resolver_output" / "resolver_output.test_resolution.v1.json",
+                _contract_envelope(
+                    "resolver_output.test_resolution.v1",
+                    "resolver_output",
+                    payload,
+                ),
+            )
+
+            findings = validate_all(root)
+
+        self.assertEqual([], findings)
+
     def test_resolver_contract_rejects_selected_output_refs(self) -> None:
         payload = {
             "nombre": "test resolver",
@@ -140,6 +171,42 @@ class R110ValidatorTests(unittest.TestCase):
             )
         )
 
+    def test_resolver_contract_rejects_selected_limite_refs(self) -> None:
+        payload = {
+            "nombre": "test resolver",
+            "manifest_ref": None,
+            "policy_ref": None,
+            "input_schema_ref": None,
+            "output_schema_ref": None,
+            "fallback_estado_id": None,
+            "selected_limite_refs": [],
+        }
+
+        with tempfile.TemporaryDirectory() as raw_root:
+            root = Path(raw_root)
+            _copy_schemas(root)
+            _write_json(
+                root / "contracts" / "resolver" / "resolver.test_resolver.v1.json",
+                _contract_envelope("resolver.test_resolver.v1", "resolver", payload),
+            )
+
+            findings = validate_all(root)
+
+        self.assertTrue(
+            any(
+                finding.code == "JSON_SCHEMA_ADDITIONAL_PROPERTY"
+                and finding.pointer == "/payload/selected_limite_refs"
+                for finding in findings
+            )
+        )
+        self.assertTrue(
+            any(
+                finding.code == "ACTOR_HARD_LIMIT_DUPLICATED"
+                and finding.pointer == "/payload/selected_limite_refs"
+                for finding in findings
+            )
+        )
+
 
 class R111ValidatorTests(unittest.TestCase):
     def test_negative_fixture_reports_actor_hard_limit_duplication(self) -> None:
@@ -147,6 +214,31 @@ class R111ValidatorTests(unittest.TestCase):
         findings = validate_r1_11(root)
         self.assertTrue(any(finding.code == "ACTOR_HARD_LIMIT_DUPLICATED" for finding in findings))
         self.assertTrue(any(finding.code == "ENTITY_PAYLOAD_FIELD_NOT_OWNED" for finding in findings))
+
+    def test_non_owner_entity_selected_limite_refs_still_duplicate_actor_hard_limits(self) -> None:
+        payload = {
+            "nombre": "test actor",
+            "superficie_capacidad": "terminal",
+            "selected_limite_refs": [],
+        }
+
+        with tempfile.TemporaryDirectory() as raw_root:
+            root = Path(raw_root)
+            _copy_schemas(root)
+            _write_json(
+                root / "contracts" / "actor" / "actor.test_actor.v1.json",
+                _contract_envelope("actor.test_actor.v1", "actor", payload),
+            )
+
+            findings = validate_all(root)
+
+        self.assertTrue(
+            any(
+                finding.code == "ACTOR_HARD_LIMIT_DUPLICATED"
+                and finding.pointer == "/payload/selected_limite_refs"
+                for finding in findings
+            )
+        )
 
     def test_resolver_output_owns_selected_cross_family_refs(self) -> None:
         payload = _resolver_output_payload()
