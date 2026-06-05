@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.project-os-v2.local/families/resolver_output.contract.v1.schema.json",
+  "title": "Project OS v2 resolver_output family contract",
+  "description": "Durable ResolverOutput contract family. Payload reuses resolver_output.v1 and may carry reference-only fields: allowed_output_contract_ref, output_template_ref, response_shape_ref, selected_plantilla_refs, selected_artefacto_refs, selected_variable_refs, selected_contrato_refs. These are metadata refs only and do not store rendered content, generated bodies, live runtime values, commands, permissions, or write authorization.",
+  "allOf": [
+    {
+      "$ref": "https://schemas.project-os-v2.local/contract_envelope.v1.schema.json"
+    },
+    {
+      "properties": {
+        "contract_kind": {
+          "const": "entity"
+        },
+        "entity_family": {
+          "const": "resolver_output"
+        },
+        "id": {
+          "$ref": "https://schemas.project-os-v2.local/common_defs.v1.schema.json#/$defs/resolverOutputContractId"
+        },
+        "payload": {
+          "$ref": "https://schemas.project-os-v2.local/resolver_output.v1.schema.json"
+        }
+      },
+      "type": "object"
+    }
+  ]
+}
