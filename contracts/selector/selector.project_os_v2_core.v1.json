@@ -223,6 +223,7 @@
         "candidate_output_ref_groups": [
           "estado_ref",
           "fallback_estado_ref",
+          "selected_estado_refs",
           "selected_relacion_refs"
         ]
       },
@@ -253,6 +254,7 @@
         ],
         "candidate_output_ref_groups": [
           "selected_contrato_refs",
+          "allowed_output_contract_ref",
           "selected_relacion_refs"
         ]
       }
@@ -260,6 +262,7 @@
     "output_ref_groups": [
       "estado_ref",
       "fallback_estado_ref",
+      "selected_estado_refs",
       "selected_actor_refs",
       "selected_rol_refs",
       "selected_workflow_refs",
@@ -276,6 +279,7 @@
       "selected_artefacto_refs",
       "selected_relacion_refs",
       "selected_contrato_refs",
+      "allowed_output_contract_ref",
       "required_evidence_refs",
       "missing_evidence_refs",
       "output_template_ref",
