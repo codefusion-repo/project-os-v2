@@ -12,6 +12,7 @@ from project_os_v2.validators import validate_all, validate_r1_10, validate_r1_1
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+RELATIONSHIP_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 
 
 def _write_json(path: Path, data: object) -> None:
@@ -41,6 +42,20 @@ def _contract_envelope(
         "source_refs": [],
         "payload": payload,
     }
+
+
+def _relationship_contract(
+    contract_id: str,
+    payload: dict[str, object],
+    *,
+    status: str = "draft",
+) -> dict[str, object]:
+    return _contract_envelope(
+        contract_id,
+        "relacion",
+        payload,
+        contract_kind="relationship",
+    ) | {"status": status}
 
 
 def _resolver_output_payload() -> dict[str, object]:
@@ -85,6 +100,317 @@ def _resolver_output_payload() -> dict[str, object]:
         "source_provenance_refs": {},
         "status": "resolved",
     }
+
+
+def _relationship_payload(
+    origen_entidad: object,
+    origen_id: object,
+    tipo_relacion: object,
+    destino_entidad: object,
+    destino_id: object,
+    cardinalidad: object = "N:M",
+    requerido: object = True,
+    orden: object = None,
+) -> dict[str, object]:
+    return {
+        "origen_entidad": origen_entidad,
+        "origen_id": origen_id,
+        "destino_entidad": destino_entidad,
+        "destino_id": destino_id,
+        "tipo_relacion": tipo_relacion,
+        "cardinalidad": cardinalidad,
+        "requerido": requerido,
+        "orden": orden,
+    }
+
+
+def _relationship_type_payload(
+    origen_entidad: object = "actor",
+    tipo_relacion: object = "aplica",
+    destino_entidad: object = "regla",
+    cardinalidad: object = "N:M",
+    requerido: object = None,
+    orden: object = None,
+) -> dict[str, object]:
+    return _relationship_payload(
+        origen_entidad,
+        None,
+        tipo_relacion,
+        destino_entidad,
+        None,
+        cardinalidad,
+        requerido,
+        orden,
+    )
+
+
+def _placeholder_relationship_payload() -> dict[str, object]:
+    return _relationship_payload(None, None, None, None, None, None, None, None)
+
+
+def _minimal_entity_contracts() -> dict[str, dict[str, object]]:
+    return {
+        "contracts/actor/actor.test_actor.v1.json": _contract_envelope(
+            "actor.test_actor.v1",
+            "actor",
+            {"nombre": "test actor", "superficie_capacidad": "test"},
+        ),
+        "contracts/regla/regla.test_rule.v1.json": _contract_envelope(
+            "regla.test_rule.v1",
+            "regla",
+            {
+                "nombre": "test rule",
+                "condicion": "test",
+                "comportamiento_esperado": "does not grant write permission",
+            },
+        ),
+        "contracts/resolver/resolver.test_resolver.v1.json": _contract_envelope(
+            "resolver.test_resolver.v1",
+            "resolver",
+            {
+                "nombre": "test resolver",
+                "manifest_ref": None,
+                "policy_ref": None,
+                "input_schema_ref": None,
+                "output_schema_ref": None,
+                "fallback_estado_id": None,
+            },
+        ),
+        "contracts/estado/estado.first.v1.json": _contract_envelope(
+            "estado.first.v1",
+            "estado",
+            {"nombre": "first"},
+        ),
+        "contracts/estado/estado.second.v1.json": _contract_envelope(
+            "estado.second.v1",
+            "estado",
+            {"nombre": "second"},
+        ),
+    }
+
+
+def _base_actor_rule_relationship_contracts() -> dict[str, dict[str, object]]:
+    contracts = _minimal_entity_contracts()
+    contracts["contracts/relacion/relacion.actor.aplica.regla.v1.json"] = _relationship_contract(
+        "relacion.actor.aplica.regla.v1",
+        _relationship_type_payload(),
+    )
+    contracts["contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json"] = _relationship_contract(
+        "relacion.actor.test_actor.aplica.regla.test_rule.v1",
+        _relationship_payload("actor", "actor.test_actor.v1", "aplica", "regla", "regla.test_rule.v1"),
+    )
+    return contracts
+
+
+def _add_resolver_support_contracts(contracts: dict[str, dict[str, object]]) -> None:
+    contracts["contracts/relacion/relacion.resolver.usa.relacion.v1.json"] = _relationship_contract(
+        "relacion.resolver.usa.relacion.v1",
+        _relationship_type_payload("resolver", "usa", "relacion", "1:N"),
+    )
+    contracts[
+        "contracts/relacion/relacion.resolver.test_resolver.usa.relacion.actor_test_actor_aplica_regla_test_rule.v1.json"
+    ] = _relationship_contract(
+        "relacion.resolver.test_resolver.usa.relacion.actor_test_actor_aplica_regla_test_rule.v1",
+        _relationship_payload(
+            "resolver",
+            "resolver.test_resolver.v1",
+            "usa",
+            "relacion",
+            "relacion.actor.test_actor.aplica.regla.test_rule.v1",
+            "1:N",
+        ),
+    )
+
+
+def _add_resolver_output(contracts: dict[str, dict[str, object]], selected_relacion_refs: list[str]) -> None:
+    payload = _resolver_output_payload()
+    payload["resolver_ref"] = "resolver.test_resolver.v1"
+    payload["selected_relacion_refs"] = selected_relacion_refs
+    contracts["contracts/resolver_output/resolver_output.test_resolution.v1.json"] = _contract_envelope(
+        "resolver_output.test_resolution.v1",
+        "resolver_output",
+        payload,
+    )
+
+
+def _ordered_workflow_contracts(
+    *,
+    duplicate: bool = False,
+    gap: bool = False,
+    missing_order: bool = False,
+) -> dict[str, dict[str, object]]:
+    contracts = {
+        "contracts/workflow/workflow.test_workflow.v1.json": _contract_envelope(
+            "workflow.test_workflow.v1",
+            "workflow",
+            {"nombre": "test workflow", "etapa_ciclo_vida": "test"},
+        ),
+        "contracts/workflow_step/workflow_step.first.v1.json": _contract_envelope(
+            "workflow_step.first.v1",
+            "workflow_step",
+            {
+                "nombre": "first",
+                "objetivo": "first",
+                "condicion_base_avance": None,
+                "condicion_base_bloqueo": None,
+                "condicion_base_repeticion": None,
+            },
+        ),
+        "contracts/workflow_step/workflow_step.second.v1.json": _contract_envelope(
+            "workflow_step.second.v1",
+            "workflow_step",
+            {
+                "nombre": "second",
+                "objetivo": "second",
+                "condicion_base_avance": None,
+                "condicion_base_bloqueo": None,
+                "condicion_base_repeticion": None,
+            },
+        ),
+        "contracts/relacion/relacion.workflow.compone.workflow_step.v1.json": _relationship_contract(
+            "relacion.workflow.compone.workflow_step.v1",
+            _relationship_type_payload("workflow", "compone", "workflow_step"),
+        ),
+    }
+    second_order = None if missing_order else 1 if duplicate else 3 if gap else 2
+    contracts["contracts/relacion/relacion.workflow.test_workflow.compone.workflow_step.first.v1.json"] = _relationship_contract(
+        "relacion.workflow.test_workflow.compone.workflow_step.first.v1",
+        _relationship_payload("workflow", "workflow.test_workflow.v1", "compone", "workflow_step", "workflow_step.first.v1", orden=1),
+    )
+    contracts["contracts/relacion/relacion.workflow.test_workflow.compone.workflow_step.second.v1.json"] = _relationship_contract(
+        "relacion.workflow.test_workflow.compone.workflow_step.second.v1",
+        _relationship_payload(
+            "workflow",
+            "workflow.test_workflow.v1",
+            "compone",
+            "workflow_step",
+            "workflow_step.second.v1",
+            orden=second_order,
+        ),
+    )
+    return contracts
+
+
+def _contracts_for_relationship_scenario(scenario: str) -> dict[str, dict[str, object]]:
+    if scenario == "valid_relationship_type":
+        return {
+            "contracts/relacion/relacion.actor.aplica.regla.v1.json": _relationship_contract(
+                "relacion.actor.aplica.regla.v1",
+                _relationship_type_payload(),
+            )
+        }
+    if scenario == "valid_relationship_instance":
+        return _base_actor_rule_relationship_contracts()
+    if scenario == "valid_placeholder_relationship":
+        return {
+            "contracts/relacion/relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1.json": _relationship_contract(
+                "relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1",
+                _placeholder_relationship_payload(),
+            )
+        }
+    if scenario == "valid_ordered_relationship_group":
+        return _ordered_workflow_contracts()
+    if scenario == "valid_resolver_relationship_support_links":
+        contracts = _base_actor_rule_relationship_contracts()
+        _add_resolver_support_contracts(contracts)
+        _add_resolver_output(contracts, ["relacion.actor.test_actor.aplica.regla.test_rule.v1"])
+        return contracts
+    if scenario == "safe_denial_reference_only_wording":
+        return {
+            "contracts/regla/regla.safe_denial_wording.v1.json": _contract_envelope(
+                "regla.safe_denial_wording.v1",
+                "regla",
+                {
+                    "nombre": "safe denial wording",
+                    "condicion": "reference only",
+                    "comportamiento_esperado": "does not create runtime behavior, command execution, permission grants, or write authorization",
+                },
+            )
+        }
+
+    contracts = _base_actor_rule_relationship_contracts()
+    if scenario == "missing_endpoint":
+        contracts["contracts/relacion/relacion.actor.test_actor.aplica.regla.missing_rule.v1.json"] = _relationship_contract(
+            "relacion.actor.test_actor.aplica.regla.missing_rule.v1",
+            _relationship_payload("actor", "actor.test_actor.v1", "aplica", "regla", "regla.missing_rule.v1"),
+        )
+        del contracts["contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json"]
+    elif scenario == "endpoint_family_mismatch":
+        contracts["contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json"]["payload"]["destino_entidad"] = "actor"
+    elif scenario == "relationship_type_tuple_mismatch":
+        contracts["contracts/relacion/relacion.actor.aplica.regla.v1.json"]["payload"]["destino_entidad"] = "actor"
+    elif scenario == "missing_relationship_type":
+        contracts["contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json"]["payload"]["tipo_relacion"] = "usa"
+    elif scenario == "deprecated_type_use":
+        contracts["contracts/relacion/relacion.actor.aplica.regla.v1.json"]["status"] = "deprecated"
+    elif scenario == "cardinality_mismatch":
+        contracts["contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json"]["payload"]["cardinalidad"] = "N:1"
+    elif scenario == "duplicate_instance_triple":
+        contracts["contracts/relacion/relacion.actor.test_actor.duplicate_aplica.regla.test_rule.v1.json"] = _relationship_contract(
+            "relacion.actor.test_actor.duplicate_aplica.regla.test_rule.v1",
+            _relationship_payload("actor", "actor.test_actor.v1", "aplica", "regla", "regla.test_rule.v1"),
+        )
+    elif scenario == "duplicate_type_tuple":
+        contracts["contracts/relacion/relacion.actor.duplicate_aplica.regla.v1.json"] = _relationship_contract(
+            "relacion.actor.duplicate_aplica.regla.v1",
+            _relationship_type_payload(),
+        )
+    elif scenario == "cardinality_constraint_violation":
+        contracts = _minimal_entity_contracts()
+        contracts["contracts/relacion/relacion.actor.falla_en.estado.v1.json"] = _relationship_contract(
+            "relacion.actor.falla_en.estado.v1",
+            _relationship_type_payload("actor", "falla_en", "estado", "N:1"),
+        )
+        contracts["contracts/relacion/relacion.actor.test_actor.falla_en.estado.first.v1.json"] = _relationship_contract(
+            "relacion.actor.test_actor.falla_en.estado.first.v1",
+            _relationship_payload("actor", "actor.test_actor.v1", "falla_en", "estado", "estado.first.v1", "N:1"),
+        )
+        contracts["contracts/relacion/relacion.actor.test_actor.falla_en.estado.second.v1.json"] = _relationship_contract(
+            "relacion.actor.test_actor.falla_en.estado.second.v1",
+            _relationship_payload("actor", "actor.test_actor.v1", "falla_en", "estado", "estado.second.v1", "N:1"),
+        )
+    elif scenario == "invalid_requerido":
+        contracts["contracts/relacion/relacion.actor.aplica.regla.v1.json"]["payload"]["requerido"] = True
+    elif scenario == "duplicate_order_slot":
+        return _ordered_workflow_contracts(duplicate=True)
+    elif scenario == "order_gap":
+        return _ordered_workflow_contracts(gap=True)
+    elif scenario == "order_required":
+        return _ordered_workflow_contracts(missing_order=True)
+    elif scenario == "order_not_allowed":
+        contracts["contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json"]["payload"]["orden"] = 1
+    elif scenario == "selected_placeholder_ref":
+        contracts["contracts/relacion/relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1.json"] = _relationship_contract(
+            "relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1",
+            _placeholder_relationship_payload(),
+        )
+        _add_resolver_output(contracts, ["relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1"])
+    elif scenario == "selected_deprecated_ref":
+        contracts["contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json"]["status"] = "deprecated"
+        _add_resolver_output(contracts, ["relacion.actor.test_actor.aplica.regla.test_rule.v1"])
+    elif scenario == "selected_type_ref":
+        _add_resolver_output(contracts, ["relacion.actor.aplica.regla.v1"])
+    elif scenario == "missing_resolver_support_link":
+        _add_resolver_output(contracts, ["relacion.actor.test_actor.aplica.regla.test_rule.v1"])
+    elif scenario == "support_link_target_invalid":
+        _add_resolver_support_contracts(contracts)
+        support_path = (
+            "contracts/relacion/"
+            "relacion.resolver.test_resolver.usa.relacion.actor_test_actor_aplica_regla_test_rule.v1.json"
+        )
+        contracts[support_path]["payload"]["destino_id"] = "relacion.actor.aplica.regla.v1"
+    else:
+        raise AssertionError(f"unknown relationship fixture scenario: {scenario}")
+    return contracts
+
+
+def _materialize_relationship_fixture(root: Path, metadata: dict[str, object]) -> None:
+    _copy_schemas(root)
+    scenario = metadata.get("scenario")
+    if not isinstance(scenario, str):
+        raise AssertionError(f"fixture missing scenario: {metadata.get('fixture_id')}")
+    for relative_path, data in _contracts_for_relationship_scenario(scenario).items():
+        _write_json(root / relative_path, data)
 
 
 class R110ValidatorTests(unittest.TestCase):
@@ -269,6 +595,58 @@ class R111ValidatorTests(unittest.TestCase):
             "ENTITY_PAYLOAD_CROSS_FAMILY_FACT",
         }
         self.assertFalse(any(finding.code in ownership_codes for finding in findings), findings)
+
+
+class RelationshipSemanticFixtureTests(unittest.TestCase):
+    def test_positive_relationship_semantic_fixtures_pass(self) -> None:
+        fixture_root = RELATIONSHIP_FIXTURE_ROOT / "positive" / "relationship_semantics"
+        metadata_files = sorted(fixture_root.glob("*/metadata.json"))
+        self.assertTrue(metadata_files, "expected positive relationship semantic fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_relationship_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                self.assertEqual([], findings)
+
+    def test_negative_relationship_semantic_fixtures_report_expected_primary_finding(self) -> None:
+        fixture_root = RELATIONSHIP_FIXTURE_ROOT / "negative" / "relationship_semantics"
+        metadata_files = sorted(fixture_root.glob("*/*/metadata.json"))
+        self.assertTrue(metadata_files, "expected negative relationship semantic fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                expected = metadata["expected_primary_finding"]
+                expected_code = expected["code"]
+                allowed_codes = {expected_code, *metadata.get("allowed_collateral_findings", [])}
+                forbidden_codes = set(metadata.get("forbidden_finding_codes", []))
+
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_relationship_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                finding_dicts = [finding.as_dict() for finding in findings]
+                primary_matches = [
+                    finding
+                    for finding in finding_dicts
+                    if finding["code"] == expected_code
+                    and finding["severity"] == expected["severity"]
+                    and finding["file"] == expected["file"]
+                    and finding["pointer"] == expected["pointer"]
+                    and finding["contract_id"] == expected["contract_id"]
+                ]
+                self.assertTrue(primary_matches, finding_dicts)
+                self.assertFalse(forbidden_codes & {finding.code for finding in findings}, finding_dicts)
+                unexpected_codes = {finding.code for finding in findings} - allowed_codes
+                self.assertFalse(unexpected_codes, finding_dicts)
 
 
 if __name__ == "__main__":

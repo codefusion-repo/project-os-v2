@@ -1,0 +1,20 @@
+{
+  "fixture_id": "endpoint_family_mismatch",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "relationship_endpoint_family_mismatch",
+  "scenario": "endpoint_family_mismatch",
+  "intentional_violation": "Relationship destino_entidad says actor while destino_id points to a regla contract.",
+  "expected_primary_finding": {
+    "code": "RELATIONSHIP_ENDPOINT_FAMILY_MISMATCH",
+    "severity": "error",
+    "file": "contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json",
+    "pointer": "/payload/destino_entidad",
+    "contract_id": "relacion.actor.test_actor.aplica.regla.test_rule.v1"
+  },
+  "allowed_collateral_findings": ["RELATIONSHIP_TYPE_NOT_FOUND", "RELATIONSHIP_INSTANCE_ID_MISMATCH"],
+  "forbidden_finding_codes": ["RELATIONSHIP_ENDPOINT_NOT_FOUND"],
+  "positive_pair_fixture_id": "valid_relationship_instance",
+  "notes_on_false_positive_risk": "Endpoint exists, so the primary issue is family alignment."
+}

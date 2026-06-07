@@ -1,0 +1,20 @@
+{
+  "fixture_id": "missing_endpoint",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "relationship_endpoint_id_missing",
+  "scenario": "missing_endpoint",
+  "intentional_violation": "Relationship instance points to a missing destino_id endpoint.",
+  "expected_primary_finding": {
+    "code": "RELATIONSHIP_ENDPOINT_NOT_FOUND",
+    "severity": "error",
+    "file": "contracts/relacion/relacion.actor.test_actor.aplica.regla.missing_rule.v1.json",
+    "pointer": "/payload/destino_id",
+    "contract_id": "relacion.actor.test_actor.aplica.regla.missing_rule.v1"
+  },
+  "allowed_collateral_findings": ["CONTRACT_REF_NOT_FOUND"],
+  "forbidden_finding_codes": ["RELATIONSHIP_SUPPORT_LINK_MISSING"],
+  "positive_pair_fixture_id": "valid_relationship_instance",
+  "notes_on_false_positive_risk": "Only the endpoint id is missing; type and origin endpoint remain valid."
+}

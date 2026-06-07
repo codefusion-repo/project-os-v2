@@ -1,0 +1,20 @@
+{
+  "fixture_id": "duplicate_instance_triple",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "duplicate_relationship_instance_triple",
+  "scenario": "duplicate_instance_triple",
+  "intentional_violation": "Two relationship instance contracts share the same origen_id, tipo_relacion, destino_id triple.",
+  "expected_primary_finding": {
+    "code": "RELATIONSHIP_DUPLICATE_INSTANCE",
+    "severity": "error",
+    "file": "contracts/relacion/relacion.actor.test_actor.duplicate_aplica.regla.test_rule.v1.json",
+    "pointer": "/payload/destino_id",
+    "contract_id": "relacion.actor.test_actor.duplicate_aplica.regla.test_rule.v1"
+  },
+  "allowed_collateral_findings": ["RELATIONSHIP_INSTANCE_ID_MISMATCH"],
+  "forbidden_finding_codes": ["RELATIONSHIP_ENDPOINT_NOT_FOUND"],
+  "positive_pair_fixture_id": "valid_relationship_instance",
+  "notes_on_false_positive_risk": "Collateral ID mismatch is expected because the duplicate must use a distinct file/id."
+}

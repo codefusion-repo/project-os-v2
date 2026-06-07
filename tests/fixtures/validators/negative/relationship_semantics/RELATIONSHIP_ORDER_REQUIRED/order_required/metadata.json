@@ -1,0 +1,20 @@
+{
+  "fixture_id": "order_required",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "ordered_relationship_requires_order",
+  "scenario": "order_required",
+  "intentional_violation": "A workflow.compone.workflow_step relationship instance omits orden.",
+  "expected_primary_finding": {
+    "code": "RELATIONSHIP_ORDER_REQUIRED",
+    "severity": "error",
+    "file": "contracts/relacion/relacion.workflow.test_workflow.compone.workflow_step.second.v1.json",
+    "pointer": "/payload/orden",
+    "contract_id": "relacion.workflow.test_workflow.compone.workflow_step.second.v1"
+  },
+  "allowed_collateral_findings": ["JSON_SCHEMA_ONE_OF"],
+  "forbidden_finding_codes": ["RELATIONSHIP_ORDER_NOT_ALLOWED"],
+  "positive_pair_fixture_id": "valid_ordered_relationship_group",
+  "notes_on_false_positive_risk": "The tuple is an allowed ordered tuple; missing order must not be reported as order-not-allowed."
+}

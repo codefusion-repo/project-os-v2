@@ -1,0 +1,10 @@
+{
+  "fixture_id": "safe_denial_reference_only_wording",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "safe_denial_reference_only_wording_not_falsely_flagged",
+  "scenario": "safe_denial_reference_only_wording",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Negative denial wording mentions runtime, command execution, permission grants, and write authorization without claiming behavior."
+}

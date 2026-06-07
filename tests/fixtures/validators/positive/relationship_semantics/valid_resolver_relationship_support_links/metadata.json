@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_resolver_relationship_support_links",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "valid_resolver_to_relationship_support_links_pass",
+  "scenario": "valid_resolver_relationship_support_links",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "ResolverOutput selected_relacion_refs is paired with a resolver.usa.relacion support link to an active relationship instance."
+}
