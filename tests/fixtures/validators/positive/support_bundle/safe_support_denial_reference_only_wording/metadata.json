@@ -1,0 +1,8 @@
+{
+  "fixture_id": "safe_support_denial_reference_only_wording",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "safe_denial_reference_only_wording",
+  "scenario": "safe_support_denial_reference_only_wording"
+}

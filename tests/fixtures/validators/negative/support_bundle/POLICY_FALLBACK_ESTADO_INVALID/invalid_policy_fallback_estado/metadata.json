@@ -1,0 +1,20 @@
+{
+  "fixture_id": "invalid_policy_fallback_estado",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "invalid_policy_fallback_estado",
+  "scenario": "invalid_policy_fallback_estado",
+  "intentional_violation": "Policy fallback_estado_ref points to an Estado not listed in policy state_refs.",
+  "expected_primary_finding": {
+    "code": "POLICY_FALLBACK_ESTADO_INVALID",
+    "severity": "error",
+    "file": "contracts/policy/policy.test_support.v1.json",
+    "pointer": "/payload/fallback_estado_ref",
+    "contract_id": "policy.test_support.v1"
+  },
+  "allowed_collateral_findings": [],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_minimal_support_bundle",
+  "notes_on_false_positive_risk": "Uses an existing Estado ref so the failure is membership/alignment, not missing-ref drift."
+}

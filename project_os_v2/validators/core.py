@@ -332,6 +332,80 @@ ORDERED_RELATIONSHIP_TYPE_TUPLES = {
     ("resolver", "determina", "estado"),
     ("workflow", "compone", "workflow_step"),
 }
+SUPPORT_ACTIVE_STATUSES = {"active", "draft"}
+RESOLVER_OUTPUT_SELECTOR_GROUPS = {
+    key
+    for key in ENTITY_PAYLOAD_ALLOWED_KEYS["resolver_output"]
+    if (key.endswith("_ref") or key.endswith("_refs"))
+    and key
+    not in {
+        "effective_limite_refs",
+        "effective_regla_refs",
+        "index_ref",
+        "manifest_ref",
+        "policy_ref",
+        "resolver_ref",
+        "selector_refs",
+        "source_provenance_refs",
+    }
+}
+SUPPORT_GENERATED_INDEX_KEYS = {
+    "build_metadata",
+    "cache_key",
+    "generated_at",
+    "generated_by",
+    "generator_ref",
+    "hash",
+    "scan_root",
+    "source_command",
+}
+SUPPORT_COMMAND_KEYS = {
+    "argv",
+    "command",
+    "command_bundle",
+    "command_bundles",
+    "commands",
+    "execute",
+    "script",
+    "shell",
+    "source_command",
+    "tool_execution",
+}
+SUPPORT_PERMISSION_KEYS = {
+    "allowed_write_actions",
+    "can_close",
+    "can_commit",
+    "can_merge",
+    "can_push",
+    "can_write",
+    "permission_grant",
+    "permission_grants",
+    "permissions",
+    "write_authorization",
+    "write_authorization_behavior",
+    "write_permission",
+}
+SUPPORT_TEMPLATE_EXECUTION_KEYS = {
+    "body_file_generation",
+    "generated_body",
+    "generated_output",
+    "interpolation",
+    "rendered_template",
+    "template_execution",
+}
+SUPPORT_COMMAND_CLAIM_RE = re.compile(r"\b(command|shell|argv|script|tool)\s+(execution|execute|run|runs|invoke|invocation)\b")
+SUPPORT_TEMPLATE_CLAIM_RE = re.compile(
+    r"\b(generated output|generated body|rendered template|template execution|interpolation|body file|body generation)\b"
+)
+SUPPORT_PERMISSION_CLAIM_RE = re.compile(
+    r"\b(permission grant|write authorization|write permission|can write|can commit|can push|can merge|can close|merge authority|release authority|settings authority)\b"
+)
+SUPPORT_GENERATED_INVENTORY_CLAIM_RE = re.compile(
+    r"\b(complete inventory|generated inventory|generated manifest|automatic discovery|filesystem scan|full repository inventory)\b"
+)
+SUPPORT_GENERATED_INDEX_CLAIM_RE = re.compile(
+    r"\b(generated index|generator|command derived|scan output|build artifact|cache metadata)\b"
+)
 
 
 def validate_r1_10(root: Path | str) -> list[Finding]:
@@ -376,6 +450,7 @@ def validate_r1_10(root: Path | str) -> list[Finding]:
     _validate_relationships(root, contract_files, parsed, contract_index, findings)
     _validate_support_boundaries(root, schema_files, contract_files, parsed, contract_index, findings)
     _validate_deprecated_relationships(root, contract_files, parsed, contract_index, findings)
+    _validate_support_bundle_semantics(root, contract_files, parsed, contract_index, path_by_id, findings)
 
     return sorted(findings, key=lambda item: (item.file, item.pointer, item.code))
 
@@ -1550,6 +1625,8 @@ def _is_placeholder_relationship_ref(ref: str, target: Any) -> bool:
         return True
     if not isinstance(target, dict):
         return False
+    if target.get("contract_kind") != "relationship" or target.get("entity_family") != "relacion":
+        return False
     payload = target.get("payload")
     if not isinstance(payload, dict):
         return False
@@ -1584,6 +1661,772 @@ def _embedded_contract_id(contract_id: str) -> str:
     if not slug:
         return body
     return family + "." + slug.replace(".", "_")
+
+
+def _validate_support_bundle_semantics(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    contract_index: dict[str, Any],
+    path_by_id: dict[str, Path],
+    findings: list[Finding],
+) -> None:
+    support_records = _collect_support_records(contract_files, parsed)
+    manifests = support_records.get("manifest", [])
+    indexes = support_records.get("index", [])
+    policies = support_records.get("reference_bundle", [])
+    selectors = support_records.get("selector", [])
+
+    for records in support_records.values():
+        for record in records:
+            _validate_support_boundary_claims(root, record["path"], record["data"], findings)
+
+    manifest = manifests[0] if manifests else None
+    index = indexes[0] if indexes else None
+    policy = policies[0] if policies else None
+    selector = selectors[0] if selectors else None
+
+    if manifest and index:
+        _validate_manifest_index_parity(root, manifest, index, contract_index, path_by_id, findings)
+    if manifest and index and policy and selector:
+        _validate_policy_static_data_refs(root, manifest, index, policy, selectors, findings)
+    if index and selector:
+        _validate_selector_output_and_dimension_parity(root, index, selector, findings)
+
+    for record in indexes:
+        _validate_index_active_support_refs(root, record, contract_index, findings)
+    for record in policies:
+        _validate_policy_active_support_refs(root, record, contract_index, findings)
+    for record in selectors:
+        _validate_selector_active_support_refs(root, record, contract_index, findings)
+
+    if manifest or index or policy or selector:
+        _validate_resolver_output_support_refs(root, contract_files, parsed, manifest, index, policy, selectors, contract_index, findings)
+
+
+def _collect_support_records(contract_files: list[Path], parsed: dict[Path, Any]) -> dict[str, list[dict[str, Any]]]:
+    records: dict[str, list[dict[str, Any]]] = {}
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict):
+            continue
+        kind = data.get("contract_kind")
+        if kind not in SUPPORT_KINDS:
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        records.setdefault(kind, []).append({"path": path, "data": data, "payload": payload})
+    return records
+
+
+def _validate_manifest_index_parity(
+    root: Path,
+    manifest: dict[str, Any],
+    index: dict[str, Any],
+    contract_index: dict[str, Any],
+    path_by_id: dict[str, Path],
+    findings: list[Finding],
+) -> None:
+    manifest_payload = manifest["payload"]
+    index_payload = index["payload"]
+    manifest_entries = {
+        entry.get("contract_id"): entry
+        for entry in manifest_payload.get("contract_entries", [])
+        if isinstance(entry, dict) and isinstance(entry.get("contract_id"), str)
+    }
+
+    by_contract = _support_lookup_group(index_payload, "by_contract_id")
+    if by_contract is not None:
+        group_index, group = by_contract
+        entry_refs = _lookup_group_refs(group, "contract_refs")
+        for contract_id in sorted(manifest_entries):
+            if contract_id not in entry_refs.get(contract_id, set()):
+                findings.append(
+                    _finding(
+                        "SUPPORT_MANIFEST_INDEX_PARITY_MISSING",
+                        index["path"],
+                        f"/payload/lookup_groups/{group_index}/entries",
+                        _contract_id(index["data"]),
+                        f"by_contract_id entry for {contract_id}",
+                        sorted(entry_refs),
+                        "Keep index by_contract_id entries in parity with manifest contract_entries.",
+                        root,
+                    )
+                )
+        for lookup_key, refs in entry_refs.items():
+            for ref in refs:
+                if ref not in manifest_entries:
+                    findings.append(
+                        _finding(
+                            "SUPPORT_CROSS_BUNDLE_REF_DRIFT",
+                            index["path"],
+                            _lookup_entry_pointer(index_payload, "by_contract_id", lookup_key, "contract_refs"),
+                            _contract_id(index["data"]),
+                            "contract ref present in manifest contract_entries",
+                            ref,
+                            "Remove stale index refs or add the curated manifest entry in a scoped support issue.",
+                            root,
+                        )
+                    )
+
+    by_path = _support_lookup_group(index_payload, "by_path")
+    if by_path is not None:
+        group_index, group = by_path
+        entry_refs = _lookup_group_refs(group, "contract_refs")
+        expected_path_to_id = {
+            entry.get("path"): contract_id
+            for contract_id, entry in manifest_entries.items()
+            if isinstance(entry.get("path"), str)
+        }
+        for entry_path, contract_id in sorted(expected_path_to_id.items()):
+            if contract_id not in entry_refs.get(entry_path, set()):
+                findings.append(
+                    _finding(
+                        "SUPPORT_MANIFEST_INDEX_PARITY_MISSING",
+                        index["path"],
+                        f"/payload/lookup_groups/{group_index}/entries",
+                        _contract_id(index["data"]),
+                        f"by_path entry for {entry_path} -> {contract_id}",
+                        sorted(entry_refs),
+                        "Keep index by_path entries in parity with manifest contract_entries paths.",
+                        root,
+                    )
+                )
+
+    for entry_index, entry in enumerate(manifest_payload.get("contract_entries", [])):
+        if not isinstance(entry, dict):
+            continue
+        contract_id = entry.get("contract_id")
+        path_value = entry.get("path")
+        if isinstance(contract_id, str) and contract_id in contract_index:
+            target = contract_index[contract_id]
+            if entry.get("status") != target.get("status"):
+                findings.append(
+                    _finding(
+                        "SUPPORT_CROSS_BUNDLE_REF_DRIFT",
+                        manifest["path"],
+                        f"/payload/contract_entries/{entry_index}/status",
+                        _contract_id(manifest["data"]),
+                        target.get("status"),
+                        entry.get("status"),
+                        "Keep manifest curated entry status aligned with the referenced contract.",
+                        root,
+                    )
+                )
+        if isinstance(contract_id, str) and isinstance(path_value, str) and contract_id in path_by_id:
+            expected_path = _rel(root, path_by_id[contract_id])
+            if path_value != expected_path:
+                findings.append(
+                    _finding(
+                        "SUPPORT_CROSS_BUNDLE_REF_DRIFT",
+                        manifest["path"],
+                        f"/payload/contract_entries/{entry_index}/path",
+                        _contract_id(manifest["data"]),
+                        expected_path,
+                        path_value,
+                        "Keep manifest curated entry path aligned with the referenced contract.",
+                        root,
+                    )
+                )
+
+
+def _validate_policy_static_data_refs(
+    root: Path,
+    manifest: dict[str, Any],
+    index: dict[str, Any],
+    policy: dict[str, Any],
+    selectors: list[dict[str, Any]],
+    findings: list[Finding],
+) -> None:
+    payload = policy["payload"]
+    static_refs = payload.get("static_data_refs")
+    if not isinstance(static_refs, dict):
+        return
+
+    expected_manifest_ref = _contract_id(manifest["data"])
+    expected_index_ref = _contract_id(index["data"])
+    expected_selector_refs = {_contract_id(selector["data"]) for selector in selectors}
+    expected_selector_refs.discard(None)
+
+    if static_refs.get("manifest_ref") != expected_manifest_ref:
+        _support_static_drift(root, policy, "/payload/static_data_refs/manifest_ref", expected_manifest_ref, static_refs.get("manifest_ref"), findings)
+    if static_refs.get("index_ref") != expected_index_ref:
+        _support_static_drift(root, policy, "/payload/static_data_refs/index_ref", expected_index_ref, static_refs.get("index_ref"), findings)
+    actual_selector_refs = set(static_refs.get("selector_refs", [])) if isinstance(static_refs.get("selector_refs"), list) else set()
+    if actual_selector_refs != expected_selector_refs:
+        _support_static_drift(root, policy, "/payload/static_data_refs/selector_refs", sorted(expected_selector_refs), sorted(actual_selector_refs), findings)
+
+    manifest_payload = manifest["payload"]
+    index_payload = index["payload"]
+    if expected_index_ref not in set(manifest_payload.get("index_refs", [])):
+        _support_static_drift(root, manifest, "/payload/index_refs", f"include {expected_index_ref}", manifest_payload.get("index_refs"), findings)
+    if _contract_id(policy["data"]) not in set(manifest_payload.get("policy_bundle_refs", [])):
+        _support_static_drift(root, manifest, "/payload/policy_bundle_refs", f"include {_contract_id(policy['data'])}", manifest_payload.get("policy_bundle_refs"), findings)
+    if expected_manifest_ref != index_payload.get("manifest_ref"):
+        _support_static_drift(root, index, "/payload/manifest_ref", expected_manifest_ref, index_payload.get("manifest_ref"), findings)
+    if _contract_id(policy["data"]) != index_payload.get("policy_ref"):
+        _support_static_drift(root, index, "/payload/policy_ref", _contract_id(policy["data"]), index_payload.get("policy_ref"), findings)
+
+
+def _support_static_drift(
+    root: Path,
+    record: dict[str, Any],
+    pointer: str,
+    expected: Any,
+    actual: Any,
+    findings: list[Finding],
+) -> None:
+    findings.append(
+        _finding(
+            "SUPPORT_STATIC_DATA_REF_DRIFT",
+            record["path"],
+            pointer,
+            _contract_id(record["data"]),
+            expected,
+            actual,
+            "Keep policy static_data_refs and active support bundle refs aligned across manifest, index, policy, and selector.",
+            root,
+        )
+    )
+
+
+def _validate_selector_output_and_dimension_parity(
+    root: Path,
+    index: dict[str, Any],
+    selector: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    payload = selector["payload"]
+    output_groups = payload.get("output_ref_groups", [])
+    output_group_set = set(output_groups) if isinstance(output_groups, list) else set()
+    for group_index, group in enumerate(output_groups if isinstance(output_groups, list) else []):
+        if not isinstance(group, str):
+            continue
+        if group not in RESOLVER_OUTPUT_SELECTOR_GROUPS:
+            findings.append(
+                _finding(
+                    "SELECTOR_OUTPUT_GROUP_UNKNOWN",
+                    selector["path"],
+                    f"/payload/output_ref_groups/{group_index}",
+                    _contract_id(selector["data"]),
+                    sorted(RESOLVER_OUTPUT_SELECTOR_GROUPS),
+                    group,
+                    "Selector output groups must align with ResolverOutput ref-bearing payload fields.",
+                    root,
+                )
+            )
+
+    selector_entries = payload.get("selector_entries", [])
+    for entry_index, entry in enumerate(selector_entries if isinstance(selector_entries, list) else []):
+        if not isinstance(entry, dict):
+            continue
+        for group_index, group in enumerate(entry.get("candidate_output_ref_groups", []) if isinstance(entry.get("candidate_output_ref_groups"), list) else []):
+            if not isinstance(group, str):
+                continue
+            if group not in RESOLVER_OUTPUT_SELECTOR_GROUPS:
+                findings.append(
+                    _finding(
+                        "SELECTOR_OUTPUT_GROUP_UNKNOWN",
+                        selector["path"],
+                        f"/payload/selector_entries/{entry_index}/candidate_output_ref_groups/{group_index}",
+                        _contract_id(selector["data"]),
+                        sorted(RESOLVER_OUTPUT_SELECTOR_GROUPS),
+                        group,
+                        "Selector entry output groups must align with ResolverOutput ref-bearing payload fields.",
+                        root,
+                    )
+                )
+            elif group not in output_group_set:
+                findings.append(
+                    _finding(
+                        "SELECTOR_OUTPUT_GROUP_MISSING",
+                        selector["path"],
+                        f"/payload/selector_entries/{entry_index}/candidate_output_ref_groups/{group_index}",
+                        _contract_id(selector["data"]),
+                        "candidate output group also listed in output_ref_groups",
+                        group,
+                        "List every selector entry output group in selector.output_ref_groups.",
+                        root,
+                    )
+                )
+
+    dimension_map = payload.get("dimension_contract_family_map")
+    allowed_dimensions = payload.get("allowed_dimensions")
+    if isinstance(dimension_map, dict) and isinstance(allowed_dimensions, list):
+        if set(allowed_dimensions) != set(dimension_map):
+            findings.append(
+                _finding(
+                    "SELECTOR_DIMENSION_PARITY_DRIFT",
+                    selector["path"],
+                    "/payload/allowed_dimensions",
+                    _contract_id(selector["data"]),
+                    sorted(dimension_map),
+                    sorted(allowed_dimensions),
+                    "Keep selector allowed_dimensions in parity with dimension_contract_family_map.",
+                    root,
+                )
+            )
+
+    entry_dimensions = {
+        entry.get("dimension"): set(entry.get("candidate_contract_family_refs", []))
+        for entry in selector_entries
+        if isinstance(entry, dict) and isinstance(entry.get("dimension"), str) and isinstance(entry.get("candidate_contract_family_refs"), list)
+    }
+    if isinstance(dimension_map, dict):
+        for dimension, family_refs in dimension_map.items():
+            if entry_dimensions.get(dimension) != set(family_refs):
+                findings.append(
+                    _finding(
+                        "SELECTOR_DIMENSION_PARITY_DRIFT",
+                        selector["path"],
+                        "/payload/selector_entries",
+                        _contract_id(selector["data"]),
+                        {dimension: family_refs},
+                        {dimension: sorted(entry_dimensions.get(dimension, set()))},
+                        "Keep selector entries in parity with dimension_contract_family_map.",
+                        root,
+                    )
+                )
+
+    by_selector_dimension = _support_lookup_group(index["payload"], "by_selector_dimension")
+    if by_selector_dimension is None or not isinstance(dimension_map, dict):
+        return
+    group_index, group = by_selector_dimension
+    index_dimension_refs = _lookup_group_refs(group, "contract_family_refs")
+    for dimension, family_refs in dimension_map.items():
+        if set(family_refs) != index_dimension_refs.get(dimension, set()):
+            findings.append(
+                _finding(
+                    "SELECTOR_DIMENSION_PARITY_DRIFT",
+                    index["path"],
+                    f"/payload/lookup_groups/{group_index}/entries",
+                    _contract_id(index["data"]),
+                    {dimension: sorted(family_refs)},
+                    {dimension: sorted(index_dimension_refs.get(dimension, set()))},
+                    "Keep index by_selector_dimension entries in parity with selector dimension_contract_family_map.",
+                    root,
+                )
+            )
+
+
+def _validate_index_active_support_refs(
+    root: Path,
+    record: dict[str, Any],
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    payload = record["payload"]
+    _validate_active_support_ref(root, record, "/payload/manifest_ref", payload.get("manifest_ref"), "manifest", contract_index, findings)
+    _validate_active_support_ref(root, record, "/payload/policy_ref", payload.get("policy_ref"), "policy", contract_index, findings)
+    for index, ref in enumerate(payload.get("selector_refs", []) if isinstance(payload.get("selector_refs"), list) else []):
+        _validate_active_support_ref(root, record, f"/payload/selector_refs/{index}", ref, "selector", contract_index, findings)
+    for index, ref in enumerate(payload.get("resolver_refs", []) if isinstance(payload.get("resolver_refs"), list) else []):
+        _validate_active_support_ref(root, record, f"/payload/resolver_refs/{index}", ref, "resolver", contract_index, findings)
+
+
+def _validate_policy_active_support_refs(
+    root: Path,
+    record: dict[str, Any],
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    payload = record["payload"]
+    active_array_fields = {
+        "allowed_actor_refs": "actor",
+        "applies_to_resolver_refs": "resolver",
+        "evidence_category_refs": "evidencia",
+        "limit_refs": "limite",
+        "relationship_type_refs": "relacion",
+        "rule_refs": "regla",
+        "source_authority_refs": "fuente",
+        "state_refs": "estado",
+        "tooling_gate_refs": None,
+    }
+    for key, expected_family in active_array_fields.items():
+        values = payload.get(key, [])
+        if not isinstance(values, list):
+            continue
+        for index, ref in enumerate(values):
+            relationship_kind = "type" if key == "relationship_type_refs" else None
+            _validate_active_support_ref(
+                root,
+                record,
+                f"/payload/{key}/{index}",
+                ref,
+                expected_family,
+                contract_index,
+                findings,
+                relationship_kind=relationship_kind,
+            )
+
+    relationship_instances = payload.get("relationship_instance_refs")
+    if isinstance(relationship_instances, dict):
+        for group_key, values in relationship_instances.items():
+            if not isinstance(values, list):
+                continue
+            for index, ref in enumerate(values):
+                _validate_active_support_ref(
+                    root,
+                    record,
+                    f"/payload/relationship_instance_refs/{escape_pointer_token(str(group_key))}/{index}",
+                    ref,
+                    "relacion",
+                    contract_index,
+                    findings,
+                    relationship_kind="instance",
+                )
+
+    _validate_policy_fallback_estado_ref(root, record, contract_index, findings)
+
+
+def _validate_policy_fallback_estado_ref(
+    root: Path,
+    record: dict[str, Any],
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    payload = record["payload"]
+    fallback = payload.get("fallback_estado_ref")
+    state_refs = set(payload.get("state_refs", [])) if isinstance(payload.get("state_refs"), list) else set()
+    target = contract_index.get(fallback) if isinstance(fallback, str) else None
+    valid = (
+        isinstance(fallback, str)
+        and fallback in state_refs
+        and isinstance(target, dict)
+        and fallback.startswith("estado.")
+        and target.get("status") in SUPPORT_ACTIVE_STATUSES
+    )
+    if not valid:
+        findings.append(
+            _finding(
+                "POLICY_FALLBACK_ESTADO_INVALID",
+                record["path"],
+                "/payload/fallback_estado_ref",
+                _contract_id(record["data"]),
+                "active estado ref also present in policy state_refs",
+                fallback,
+                "Policy fallback_estado_ref must resolve to an active Estado included in state_refs.",
+                root,
+            )
+        )
+
+
+def _validate_selector_active_support_refs(
+    root: Path,
+    record: dict[str, Any],
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    payload = record["payload"]
+    for key, expected_family in {
+        "index_ref": "index",
+        "manifest_ref": "manifest",
+        "policy_ref": "policy",
+        "resolver_ref": "resolver",
+    }.items():
+        _validate_active_support_ref(root, record, f"/payload/{key}", payload.get(key), expected_family, contract_index, findings)
+
+
+def _validate_resolver_output_support_refs(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    manifest: dict[str, Any] | None,
+    index: dict[str, Any] | None,
+    policy: dict[str, Any] | None,
+    selectors: list[dict[str, Any]],
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    expected = {
+        "manifest_ref": _contract_id(manifest["data"]) if manifest else None,
+        "index_ref": _contract_id(index["data"]) if index else None,
+        "policy_ref": _contract_id(policy["data"]) if policy else None,
+    }
+    expected_selector_refs = {_contract_id(selector["data"]) for selector in selectors}
+    expected_selector_refs.discard(None)
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "entity" or data.get("entity_family") != "resolver_output":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        record = {"path": path, "data": data, "payload": payload}
+        for key, expected_ref in expected.items():
+            actual = payload.get(key)
+            if expected_ref is not None and actual != expected_ref:
+                findings.append(
+                    _finding(
+                        "RESOLVER_OUTPUT_SUPPORT_LINK_MISSING",
+                        path,
+                        f"/payload/{key}",
+                        _contract_id(data),
+                        expected_ref,
+                        actual,
+                        "ResolverOutput support refs must point to the active support manifest, index, and policy bundles.",
+                        root,
+                    )
+                )
+            _validate_active_support_ref(root, record, f"/payload/{key}", actual, key.removesuffix("_ref"), contract_index, findings)
+
+        selector_refs = payload.get("selector_refs")
+        actual_selector_refs = set(selector_refs) if isinstance(selector_refs, list) else set()
+        if expected_selector_refs and actual_selector_refs != expected_selector_refs:
+            findings.append(
+                _finding(
+                    "RESOLVER_OUTPUT_SUPPORT_LINK_MISSING",
+                    path,
+                    "/payload/selector_refs",
+                    _contract_id(data),
+                    sorted(expected_selector_refs),
+                    sorted(actual_selector_refs),
+                    "ResolverOutput selector_refs must point to active support selector bundles.",
+                    root,
+                )
+            )
+        for index_value, ref in enumerate(selector_refs if isinstance(selector_refs, list) else []):
+            _validate_active_support_ref(root, record, f"/payload/selector_refs/{index_value}", ref, "selector", contract_index, findings)
+
+
+def _validate_active_support_ref(
+    root: Path,
+    record: dict[str, Any],
+    pointer: str,
+    ref: Any,
+    expected_family: str | None,
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+    *,
+    relationship_kind: str | None = None,
+) -> None:
+    if not isinstance(ref, str):
+        return
+    if expected_family is not None and ref.split(".", 1)[0] != expected_family:
+        findings.append(
+            _finding(
+                "SUPPORT_REF_FAMILY_MISMATCH",
+                record["path"],
+                pointer,
+                _contract_id(record["data"]),
+                f"{expected_family} ref",
+                ref,
+                "Keep active support refs aligned with the expected contract family.",
+                root,
+            )
+        )
+        return
+    target = contract_index.get(ref)
+    if not isinstance(target, dict):
+        findings.append(
+            _finding(
+                "SUPPORT_CROSS_BUNDLE_REF_DRIFT",
+                record["path"],
+                pointer,
+                _contract_id(record["data"]),
+                "existing active support contract ref",
+                ref,
+                "Every active support ref must resolve to an existing contract record.",
+                root,
+            )
+        )
+        return
+    status = target.get("status")
+    if status == "deprecated":
+        findings.append(
+            _finding(
+                "SUPPORT_REF_DEPRECATED_ACTIVE",
+                record["path"],
+                pointer,
+                _contract_id(record["data"]),
+                "active non-deprecated support ref",
+                ref,
+                "Deprecated refs may remain provenance-only but must not be active support candidates.",
+                root,
+            )
+        )
+        return
+    if status == "retired":
+        findings.append(
+            _finding(
+                "SUPPORT_REF_RETIRED_ACTIVE",
+                record["path"],
+                pointer,
+                _contract_id(record["data"]),
+                "active non-retired support ref",
+                ref,
+                "Retired refs must not be active support candidates.",
+                root,
+            )
+        )
+        return
+    if status not in SUPPORT_ACTIVE_STATUSES:
+        findings.append(
+            _finding(
+                "SUPPORT_REF_STATUS_INVALID",
+                record["path"],
+                pointer,
+                _contract_id(record["data"]),
+                sorted(SUPPORT_ACTIVE_STATUSES),
+                status,
+                "Active support refs must point to active or draft records for Base v0.1.",
+                root,
+            )
+        )
+    if _is_placeholder_relationship_ref(ref, target):
+        findings.append(
+            _finding(
+                "SUPPORT_REF_PLACEHOLDER_FORBIDDEN",
+                record["path"],
+                pointer,
+                _contract_id(record["data"]),
+                "non-placeholder active support ref",
+                ref,
+                "Placeholder relationship refs are allowed only as explicitly inactive/provenance-safe placeholders, not active support candidates.",
+                root,
+            )
+        )
+        return
+    if relationship_kind == "type" and _is_relationship_instance_contract(target):
+        findings.append(
+            _finding(
+                "SUPPORT_REF_FAMILY_MISMATCH",
+                record["path"],
+                pointer,
+                _contract_id(record["data"]),
+                "relationship type ref",
+                ref,
+                "Policy relationship_type_refs must point to relationship type records.",
+                root,
+            )
+        )
+    if relationship_kind == "instance" and not _is_relationship_instance_contract(target):
+        findings.append(
+            _finding(
+                "SUPPORT_REF_FAMILY_MISMATCH",
+                record["path"],
+                pointer,
+                _contract_id(record["data"]),
+                "relationship instance ref",
+                ref,
+                "Policy relationship_instance_refs must point to relationship instance records.",
+                root,
+            )
+        )
+
+
+def _validate_support_boundary_claims(
+    root: Path,
+    path: Path,
+    data: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    kind = data.get("contract_kind")
+    for pointer, key, value in _walk_key_values(data):
+        raw_key = key.lower()
+        normalized_key = _normalize_claim_text(key)
+        if kind == "manifest" and key in {"complete_inventory", "generated"} and value is not False:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_GENERATED_INVENTORY_CLAIM", value, findings)
+        if kind == "index" and key in {"generated", *SUPPORT_GENERATED_INDEX_KEYS} and value not in {False, None}:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_GENERATED_INDEX_CLAIM", value, findings)
+        if key == "loader_behavior" and value is not False:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_LOADER_CLAIM", value, findings)
+        if key == "runtime_behavior" and value is not False:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_RUNTIME_CLAIM", value, findings)
+        if key == "resolver_behavior" and value is not False:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_RESOLVER_RUNTIME_CLAIM", value, findings)
+        if key == "selector_runtime_behavior" and value is not False:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_SELECTOR_RUNTIME_CLAIM", value, findings)
+        if key == "write_authorization_behavior" and value is not False:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_WRITE_AUTHORIZATION_FORBIDDEN", value, findings)
+        if key in SUPPORT_BODY_COPY_KEYS or key in RELATIONSHIP_OWNED_KEYS:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_OUTPUT_BODY_FORBIDDEN", key, findings)
+        if raw_key in SUPPORT_TEMPLATE_EXECUTION_KEYS:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_TEMPLATE_EXECUTION_CLAIM", key, findings)
+        if raw_key in SUPPORT_COMMAND_KEYS:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_COMMAND_EXECUTION_CLAIM", key, findings)
+        if raw_key in SUPPORT_PERMISSION_KEYS and value is not False and value is not None and value != []:
+            _support_boundary_finding(root, path, data, pointer, "SUPPORT_WRITE_AUTHORIZATION_FORBIDDEN", key, findings)
+        if isinstance(value, str):
+            normalized_value = _normalize_claim_text(value)
+            if _is_negative_claim(normalized_value):
+                continue
+            if kind == "manifest" and SUPPORT_GENERATED_INVENTORY_CLAIM_RE.search(normalized_value):
+                _support_boundary_finding(root, path, data, pointer, "SUPPORT_GENERATED_INVENTORY_CLAIM", value, findings)
+            if kind == "index" and SUPPORT_GENERATED_INDEX_CLAIM_RE.search(normalized_value):
+                _support_boundary_finding(root, path, data, pointer, "SUPPORT_GENERATED_INDEX_CLAIM", value, findings)
+            if SUPPORT_TEMPLATE_CLAIM_RE.search(normalized_value):
+                _support_boundary_finding(root, path, data, pointer, "SUPPORT_TEMPLATE_EXECUTION_CLAIM", value, findings)
+            if SUPPORT_COMMAND_CLAIM_RE.search(normalized_value):
+                _support_boundary_finding(root, path, data, pointer, "SUPPORT_COMMAND_EXECUTION_CLAIM", value, findings)
+            if SUPPORT_PERMISSION_CLAIM_RE.search(normalized_value):
+                code = "SUPPORT_WRITE_AUTHORIZATION_FORBIDDEN" if "write" in normalized_value else "SUPPORT_PERMISSION_GRANT_FORBIDDEN"
+                _support_boundary_finding(root, path, data, pointer, code, value, findings)
+
+
+def _support_boundary_finding(
+    root: Path,
+    path: Path,
+    data: dict[str, Any],
+    pointer: str,
+    code: str,
+    actual: Any,
+    findings: list[Finding],
+) -> None:
+    findings.append(
+        _finding(
+            code,
+            path,
+            pointer,
+            _contract_id(data),
+            "curated static reference-only support bundle with no generated, runtime, execution, body, command, permission, or write behavior",
+            actual,
+            "Keep support bundles as curated static references only; move behavior or copied payload claims out of durable support JSON.",
+            root,
+        )
+    )
+
+
+def _support_lookup_group(payload: dict[str, Any], lookup_group: str) -> tuple[int, dict[str, Any]] | None:
+    groups = payload.get("lookup_groups")
+    if not isinstance(groups, list):
+        return None
+    for index, group in enumerate(groups):
+        if isinstance(group, dict) and group.get("lookup_group") == lookup_group:
+            return index, group
+    return None
+
+
+def _lookup_group_refs(group: dict[str, Any], ref_key: str) -> dict[str, set[str]]:
+    refs_by_lookup: dict[str, set[str]] = {}
+    entries = group.get("entries")
+    if not isinstance(entries, list):
+        return refs_by_lookup
+    for entry in entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get("lookup_key"), str):
+            continue
+        refs = entry.get(ref_key)
+        if isinstance(refs, list):
+            refs_by_lookup[entry["lookup_key"]] = {ref for ref in refs if isinstance(ref, str)}
+    return refs_by_lookup
+
+
+def _lookup_entry_pointer(payload: dict[str, Any], lookup_group: str, lookup_key: str, field: str) -> str:
+    groups = payload.get("lookup_groups")
+    if not isinstance(groups, list):
+        return "/payload/lookup_groups"
+    for group_index, group in enumerate(groups):
+        if not isinstance(group, dict) or group.get("lookup_group") != lookup_group:
+            continue
+        entries = group.get("entries")
+        if not isinstance(entries, list):
+            return f"/payload/lookup_groups/{group_index}/entries"
+        for entry_index, entry in enumerate(entries):
+            if isinstance(entry, dict) and entry.get("lookup_key") == lookup_key:
+                return f"/payload/lookup_groups/{group_index}/entries/{entry_index}/{field}"
+    return "/payload/lookup_groups"
 
 
 def _validate_support_boundaries(

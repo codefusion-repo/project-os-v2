@@ -1,0 +1,20 @@
+{
+  "fixture_id": "policy_static_data_ref_drift",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "policy_static_data_ref_drift",
+  "scenario": "policy_static_data_ref_drift",
+  "intentional_violation": "Policy static_data_refs.index_ref does not match the active index bundle.",
+  "expected_primary_finding": {
+    "code": "SUPPORT_STATIC_DATA_REF_DRIFT",
+    "severity": "error",
+    "file": "contracts/policy/policy.test_support.v1.json",
+    "pointer": "/payload/static_data_refs/index_ref",
+    "contract_id": "policy.test_support.v1"
+  },
+  "allowed_collateral_findings": ["CONTRACT_REF_NOT_FOUND"],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_minimal_support_bundle",
+  "notes_on_false_positive_risk": "The mutation is restricted to static_data_refs so the primary drift remains precise."
+}

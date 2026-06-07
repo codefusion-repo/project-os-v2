@@ -1,0 +1,20 @@
+{
+  "fixture_id": "command_execution_claim",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "command_execution_claim",
+  "scenario": "command_execution_claim",
+  "intentional_violation": "Selector execution_policy positively claims command execution.",
+  "expected_primary_finding": {
+    "code": "SUPPORT_COMMAND_EXECUTION_CLAIM",
+    "severity": "error",
+    "file": "contracts/selector/selector.test_support.v1.json",
+    "pointer": "/payload/execution_policy",
+    "contract_id": "selector.test_support.v1"
+  },
+  "allowed_collateral_findings": ["JSON_SCHEMA_CONST"],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "safe_support_denial_reference_only_wording",
+  "notes_on_false_positive_risk": "Collateral schema const mismatch is expected because execution_policy is intentionally changed from its denial literal."
+}

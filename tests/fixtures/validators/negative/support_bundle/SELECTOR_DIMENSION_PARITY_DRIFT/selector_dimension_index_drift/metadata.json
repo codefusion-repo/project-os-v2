@@ -1,0 +1,20 @@
+{
+  "fixture_id": "selector_dimension_index_drift",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "selector_dimension_index_drift",
+  "scenario": "selector_dimension_index_drift",
+  "intentional_violation": "Index by_selector_dimension actor_type entry no longer matches selector dimension_contract_family_map.",
+  "expected_primary_finding": {
+    "code": "SELECTOR_DIMENSION_PARITY_DRIFT",
+    "severity": "error",
+    "file": "contracts/index.json",
+    "pointer": "/payload/lookup_groups/2/entries",
+    "contract_id": "index.test_support.v1"
+  },
+  "allowed_collateral_findings": [],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_selector_output_groups",
+  "notes_on_false_positive_risk": "Only the index parity view is mutated; selector remains valid."
+}
