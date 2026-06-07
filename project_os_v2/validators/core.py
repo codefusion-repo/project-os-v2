@@ -283,8 +283,8 @@ LIVE_STATE_KEYS = {
     "workflow_run_status",
 }
 GITHUB_LIVE_URL_PATTERNS = (
-    re.compile(r"https?://github\.com/[^/\s]+/[^/\s]+/(?:issues|pull|commit|tree|blob|compare|actions|releases?|milestones?|labels?|settings)(?:/[^\\s]*)?", re.I),
-    re.compile(r"https?://githubapp\.com/[^\\s]+", re.I),
+    re.compile(r"https?://github\.com/[^/\s]+/[^/\s]+/(?:issues|pull|commit|tree|blob|compare|actions|releases?|milestones?|labels?|settings)(?:/[^\s]*)?", re.I),
+    re.compile(r"https?://githubapp\.com/[^\s]+", re.I),
 )
 GITHUB_SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.I)
 LIVE_STATE_BRANCH_KEYS = {
@@ -3092,11 +3092,12 @@ def _validate_source_ref_entry(
     root: Path,
 ) -> None:
     if isinstance(value, str):
-        if _is_stable_source_ref(value):
+        source_ref_code = _classify_forbidden_source_ref_value(value)
+        if source_ref_code is None and _is_stable_source_ref(value):
             return
         findings.append(
             _finding(
-                "SOURCE_REF_FORMAT_FORBIDDEN",
+                source_ref_code or "SOURCE_REF_FORMAT_FORBIDDEN",
                 path,
                 pointer,
                 contract_id,
@@ -3143,7 +3144,7 @@ def _validate_source_ref_entry(
         if _classify_live_state_field(source_key) is not None:
             has_live_state_key = True
 
-        if source_key in SOURCE_REF_OBJECT_ALLOWED_KEYS:
+        if source_key == "family":
             continue
 
         if source_value is None:
@@ -3162,10 +3163,13 @@ def _validate_source_ref_entry(
                     root,
                 )
             )
-        elif not _is_stable_source_ref(source_value):
+        else:
+            source_ref_code = _classify_forbidden_source_ref_value(source_value)
+            if source_ref_code is None and _is_stable_source_ref(source_value):
+                continue
             findings.append(
                 _finding(
-                    "SOURCE_REF_FORMAT_FORBIDDEN",
+                    source_ref_code or "SOURCE_REF_FORMAT_FORBIDDEN",
                     path,
                     join_pointer(pointer, source_key),
                     contract_id,
@@ -3229,6 +3233,8 @@ def _is_stable_source_ref(value: str) -> bool:
     lowered = value.lower().strip()
     if not lowered:
         return False
+    if _classify_forbidden_source_ref_value(value) is not None:
+        return False
     if STABLE_ID_RE.fullmatch(value) is not None:
         return True
     if any(lowered.startswith(prefix) for prefix in SOURCE_REF_ALLOWLIST_PREFIXES):
@@ -3240,6 +3246,14 @@ def _is_stable_source_ref(value: str) -> bool:
     if _contains_github_url(value):
         return False
     return False
+
+
+def _classify_forbidden_source_ref_value(value: str) -> str | None:
+    if _contains_github_url(value):
+        return "DURABLE_GITHUB_URL_FORBIDDEN"
+    if _contains_sha_value(value):
+        return "DURABLE_SHA_FORBIDDEN"
+    return None
 
 
 def _get_source_ref_family(value: dict[str, Any]) -> str | None:
@@ -3271,7 +3285,9 @@ def _classify_live_state_field(key: str) -> str | None:
     normalized = _normalize_key_name(key)
     if normalized in LIVE_STATE_BRANCH_KEYS:
         return "DURABLE_BRANCH_STATE_FORBIDDEN"
-    if normalized in LIVE_STATE_REVIEW_KEYS or "review" in normalized or normalized in {"pr_state", "pull_request_state", "github_pr_state", "github_issue_state", "issue_state"}:
+    if normalized in {"pr_state", "pull_request_state", "github_pr_state", "github_issue_state", "issue_state"}:
+        return "DURABLE_LIVE_STATE_FIELD_FORBIDDEN"
+    if normalized in LIVE_STATE_REVIEW_KEYS or "review" in normalized:
         return "DURABLE_REVIEW_STATE_FORBIDDEN"
     if normalized in LIVE_STATE_VALIDATION_KEYS or "validation" in normalized:
         return "DURABLE_VALIDATION_STATE_FORBIDDEN"
@@ -3297,7 +3313,11 @@ def _classify_live_state_value(key: str, value: Any) -> str | None:
     if _is_secret_key(normalized_key) and _contains_secret_value(value):
         return "DURABLE_SECRET_VALUE_FORBIDDEN"
 
-    if normalized_key in LIVE_STATE_REVIEW_KEYS or "review" in normalized_key or normalized_key in {"pr_state", "pull_request_state", "github_pr_state", "github_issue_state", "issue_state"}:
+    if normalized_key in {"pr_state", "pull_request_state", "github_pr_state", "github_issue_state", "issue_state"}:
+        if normalized_value in LIVE_STATE_VALUE_TOKENS:
+            return "DURABLE_LIVE_STATE_VALUE_FORBIDDEN"
+
+    if normalized_key in LIVE_STATE_REVIEW_KEYS or "review" in normalized_key:
         if normalized_value in REVIEW_STATE_VALUE_TOKENS:
             return "DURABLE_REVIEW_STATE_FORBIDDEN"
 
@@ -3329,7 +3349,7 @@ def _contains_github_url(value: str) -> bool:
 
 
 def _contains_sha_value(value: str) -> bool:
-    return GITHUB_SHA_RE.fullmatch(value.strip()) is not None
+    return GITHUB_SHA_RE.search(value) is not None
 
 
 def _normalize_key_name(value: str) -> str:
