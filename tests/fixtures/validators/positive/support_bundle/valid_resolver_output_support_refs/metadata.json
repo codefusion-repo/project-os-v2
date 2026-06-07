@@ -1,0 +1,8 @@
+{
+  "fixture_id": "valid_resolver_output_support_refs",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "valid_resolver_output_support_refs",
+  "scenario": "valid_resolver_output_support_refs"
+}

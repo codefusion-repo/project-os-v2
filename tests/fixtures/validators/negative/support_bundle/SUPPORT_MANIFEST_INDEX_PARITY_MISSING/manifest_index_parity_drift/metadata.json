@@ -1,0 +1,20 @@
+{
+  "fixture_id": "manifest_index_parity_drift",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "manifest_index_parity_drift",
+  "scenario": "manifest_index_parity_drift",
+  "intentional_violation": "Index by_contract_id drops the resolver entry still present in manifest contract_entries.",
+  "expected_primary_finding": {
+    "code": "SUPPORT_MANIFEST_INDEX_PARITY_MISSING",
+    "severity": "error",
+    "file": "contracts/index.json",
+    "pointer": "/payload/lookup_groups/0/entries",
+    "contract_id": "index.test_support.v1"
+  },
+  "allowed_collateral_findings": [],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_minimal_support_bundle",
+  "notes_on_false_positive_risk": "Only one parity entry is removed; no ref target is deleted."
+}

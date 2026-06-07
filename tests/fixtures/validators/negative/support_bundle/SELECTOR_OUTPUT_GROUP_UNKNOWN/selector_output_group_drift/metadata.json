@@ -1,0 +1,20 @@
+{
+  "fixture_id": "selector_output_group_drift",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "selector_output_group_drift",
+  "scenario": "selector_output_group_drift",
+  "intentional_violation": "Selector output_ref_groups contains a group that is not a ResolverOutput ref-bearing field.",
+  "expected_primary_finding": {
+    "code": "SELECTOR_OUTPUT_GROUP_UNKNOWN",
+    "severity": "error",
+    "file": "contracts/selector/selector.test_support.v1.json",
+    "pointer": "/payload/output_ref_groups/24",
+    "contract_id": "selector.test_support.v1"
+  },
+  "allowed_collateral_findings": [],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_selector_output_groups",
+  "notes_on_false_positive_risk": "Uses a non-execution string to isolate output group alignment."
+}

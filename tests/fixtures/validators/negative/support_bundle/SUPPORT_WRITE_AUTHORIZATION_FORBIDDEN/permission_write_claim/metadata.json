@@ -1,0 +1,20 @@
+{
+  "fixture_id": "permission_write_claim",
+  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
+  "validator_family": "support_bundle",
+  "phase": "all",
+  "requirement_slug": "permission_write_claim",
+  "scenario": "permission_write_claim",
+  "intentional_violation": "Selector execution_policy positively claims write authorization and permission grant behavior.",
+  "expected_primary_finding": {
+    "code": "SUPPORT_WRITE_AUTHORIZATION_FORBIDDEN",
+    "severity": "error",
+    "file": "contracts/selector/selector.test_support.v1.json",
+    "pointer": "/payload/execution_policy",
+    "contract_id": "selector.test_support.v1"
+  },
+  "allowed_collateral_findings": ["BEHAVIOR_CLAIM_FORBIDDEN", "JSON_SCHEMA_CONST"],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "safe_support_denial_reference_only_wording",
+  "notes_on_false_positive_risk": "Collateral schema const mismatch is expected because execution_policy is intentionally changed from its denial literal."
+}
