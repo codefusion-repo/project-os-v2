@@ -1,0 +1,22 @@
+{
+  "id": "relacion.resolver.project_os_v2_contract_resolver.usa.relacion.plantilla_project_os_v2_response_compone_artefacto_release_packet.v1",
+  "entity_family": "relacion",
+  "contract_kind": "relationship",
+  "version": {
+    "major": 1
+  },
+  "status": "draft",
+  "schema_ref": null,
+  "descripcion": null,
+  "source_refs": [],
+  "payload": {
+    "origen_entidad": "resolver",
+    "origen_id": "resolver.project_os_v2_contract_resolver.v1",
+    "destino_entidad": "relacion",
+    "destino_id": "relacion.plantilla.project_os_v2_response.compone.artefacto.release_packet.v1",
+    "tipo_relacion": "usa",
+    "cardinalidad": "1:N",
+    "requerido": true,
+    "orden": null
+  }
+}
