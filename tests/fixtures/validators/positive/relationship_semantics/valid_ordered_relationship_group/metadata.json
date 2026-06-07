@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_ordered_relationship_group",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "valid_ordered_relationship_group_passes",
+  "scenario": "valid_ordered_relationship_group",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Ordered workflow composition group uses contiguous slots 1..2."
+}

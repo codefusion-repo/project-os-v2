@@ -1,0 +1,20 @@
+{
+  "fixture_id": "invalid_requerido",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "invalid_requerido_for_type",
+  "scenario": "invalid_requerido",
+  "intentional_violation": "Relationship type contract sets requerido instead of keeping it null.",
+  "expected_primary_finding": {
+    "code": "RELATIONSHIP_REQUIRED_FLAG_INVALID",
+    "severity": "error",
+    "file": "contracts/relacion/relacion.actor.aplica.regla.v1.json",
+    "pointer": "/payload/requerido",
+    "contract_id": "relacion.actor.aplica.regla.v1"
+  },
+  "allowed_collateral_findings": ["JSON_SCHEMA_ONE_OF"],
+  "forbidden_finding_codes": ["RELATIONSHIP_TYPE_NOT_FOUND"],
+  "positive_pair_fixture_id": "valid_relationship_type",
+  "notes_on_false_positive_risk": "Semantic finding is asserted even though schema shape also rejects the record."
+}

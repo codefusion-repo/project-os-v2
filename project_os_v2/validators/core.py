@@ -326,6 +326,12 @@ BEHAVIOR_SCHEMA_DENIAL_FIELDS = FORBIDDEN_TRUE_FIELDS | {
     "policy_execution",
     "selector_behavior",
 }
+RELATIONSHIP_RETIRED_STATUSES = {"deprecated", "retired"}
+ORDERED_RELATIONSHIP_TYPE_TUPLES = {
+    ("fuente", "informa", "estado"),
+    ("resolver", "determina", "estado"),
+    ("workflow", "compone", "workflow_step"),
+}
 
 
 def validate_r1_10(root: Path | str) -> list[Finding]:
@@ -984,6 +990,7 @@ def _validate_relationships(
     contract_index: dict[str, Any],
     findings: list[Finding],
 ) -> None:
+    relationship_records: list[dict[str, Any]] = []
     for path in contract_files:
         data = parsed.get(path)
         if not isinstance(data, dict) or data.get("contract_kind") != "relationship":
@@ -998,7 +1005,24 @@ def _validate_relationships(
         dest_id = payload.get("destino_id")
         relation_type = payload.get("tipo_relacion")
         payload_values = [origin_family, origin_id, dest_family, dest_id, relation_type, payload.get("cardinalidad"), payload.get("requerido"), payload.get("orden")]
+        record = {
+            "path": path,
+            "data": data,
+            "payload": payload,
+            "contract_id": contract_id,
+            "origin_family": origin_family,
+            "origin_id": origin_id,
+            "dest_family": dest_family,
+            "dest_id": dest_id,
+            "relation_type": relation_type,
+            "cardinality": payload.get("cardinalidad"),
+            "required": payload.get("requerido"),
+            "order": payload.get("orden"),
+            "kind": "invalid",
+        }
         if all(value is None for value in payload_values):
+            record["kind"] = "placeholder"
+            relationship_records.append(record)
             if data.get("id") != "relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1":
                 findings.append(
                     _finding(
@@ -1016,6 +1040,11 @@ def _validate_relationships(
 
         type_record = origin_id is None and dest_id is None
         instance_record = isinstance(origin_id, str) and isinstance(dest_id, str)
+        if type_record:
+            record["kind"] = "type"
+        elif instance_record:
+            record["kind"] = "instance"
+        relationship_records.append(record)
         if not type_record and not instance_record:
             findings.append(
                 _finding(
@@ -1035,6 +1064,19 @@ def _validate_relationships(
             continue
 
         if type_record:
+            if payload.get("requerido") is not None:
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_REQUIRED_FLAG_INVALID",
+                        path,
+                        "/payload/requerido",
+                        contract_id,
+                        "null for relationship type contracts",
+                        payload.get("requerido"),
+                        "Keep requerido null on relationship type contracts; only concrete relationship instances may set it.",
+                        root,
+                    )
+                )
             expected_id = f"relacion.{origin_family}.{relation_type}.{dest_family}.v1"
             if data.get("id") != expected_id:
                 findings.append(
@@ -1050,6 +1092,20 @@ def _validate_relationships(
                     )
                 )
             continue
+
+        if not isinstance(payload.get("requerido"), bool):
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_REQUIRED_FLAG_INVALID",
+                    path,
+                    "/payload/requerido",
+                    contract_id,
+                    "boolean for relationship instance contracts",
+                    payload.get("requerido"),
+                    "Set requerido to true or false on relationship instances.",
+                    root,
+                )
+            )
 
         for endpoint_key, family_key, endpoint_id, family in (
             ("origen_id", "origen_entidad", origin_id, origin_family),
@@ -1086,6 +1142,7 @@ def _validate_relationships(
 
         type_id = f"relacion.{origin_family}.{relation_type}.{dest_family}.v1"
         type_contract = contract_index.get(type_id)
+        type_payload = type_contract.get("payload") if isinstance(type_contract, dict) else None
         if type_contract is None:
             findings.append(
                 _finding(
@@ -1099,7 +1156,7 @@ def _validate_relationships(
                     root,
                 )
             )
-        elif type_contract.get("status") == "deprecated":
+        elif type_contract.get("status") in RELATIONSHIP_RETIRED_STATUSES:
             findings.append(
                 _finding(
                     "RELATIONSHIP_DEPRECATED_TYPE_USED",
@@ -1112,6 +1169,39 @@ def _validate_relationships(
                     root,
                 )
             )
+        elif isinstance(type_payload, dict):
+            expected_tuple = (origin_family, relation_type, dest_family)
+            actual_tuple = (
+                type_payload.get("origen_entidad"),
+                type_payload.get("tipo_relacion"),
+                type_payload.get("destino_entidad"),
+            )
+            if actual_tuple != expected_tuple:
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_TYPE_TUPLE_MISMATCH",
+                        path,
+                        "/payload/tipo_relacion",
+                        contract_id,
+                        expected_tuple,
+                        actual_tuple,
+                        "Keep relationship instance endpoint families aligned with its relationship type contract tuple.",
+                        root,
+                    )
+                )
+            if payload.get("cardinalidad") != type_payload.get("cardinalidad"):
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_CARDINALITY_MISMATCH",
+                        path,
+                        "/payload/cardinalidad",
+                        contract_id,
+                        type_payload.get("cardinalidad"),
+                        payload.get("cardinalidad"),
+                        "Relationship instance cardinality must equal its relationship type contract cardinality.",
+                        root,
+                    )
+                )
 
         expected_instance_id = f"relacion.{_embedded_contract_id(origin_id)}.{relation_type}.{_embedded_contract_id(dest_id)}.v1"
         if data.get("id") != expected_instance_id:
@@ -1127,6 +1217,365 @@ def _validate_relationships(
                     root,
                 )
             )
+
+    _validate_relationship_duplicates(root, relationship_records, findings)
+    _validate_relationship_cardinality_constraints(root, relationship_records, findings)
+    _validate_relationship_ordering(root, relationship_records, findings)
+    _validate_resolver_output_relationship_refs(root, contract_files, parsed, contract_index, relationship_records, findings)
+
+
+def _validate_relationship_duplicates(
+    root: Path,
+    records: list[dict[str, Any]],
+    findings: list[Finding],
+) -> None:
+    type_tuples: dict[tuple[Any, Any, Any], list[dict[str, Any]]] = {}
+    instance_triples: dict[tuple[Any, Any, Any], list[dict[str, Any]]] = {}
+    for record in records:
+        if record["kind"] == "type":
+            key = (record["origin_family"], record["relation_type"], record["dest_family"])
+            type_tuples.setdefault(key, []).append(record)
+        if record["kind"] == "instance":
+            key = (record["origin_id"], record["relation_type"], record["dest_id"])
+            instance_triples.setdefault(key, []).append(record)
+
+    for duplicate_records in type_tuples.values():
+        if len(duplicate_records) < 2:
+            continue
+        first = duplicate_records[0]["contract_id"]
+        for record in duplicate_records[1:]:
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_DUPLICATE_TYPE",
+                    record["path"],
+                    "/payload/tipo_relacion",
+                    record["contract_id"],
+                    f"unique relationship type tuple first declared by {first}",
+                    {
+                        "origen_entidad": record["origin_family"],
+                        "tipo_relacion": record["relation_type"],
+                        "destino_entidad": record["dest_family"],
+                    },
+                    "Keep exactly one relationship type contract per origin family, relation type, and destination family tuple.",
+                    root,
+                )
+            )
+
+    for duplicate_records in instance_triples.values():
+        if len(duplicate_records) < 2:
+            continue
+        first = duplicate_records[0]["contract_id"]
+        for record in duplicate_records[1:]:
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_DUPLICATE_INSTANCE",
+                    record["path"],
+                    "/payload/destino_id",
+                    record["contract_id"],
+                    f"unique relationship instance triple first declared by {first}",
+                    {
+                        "origen_id": record["origin_id"],
+                        "tipo_relacion": record["relation_type"],
+                        "destino_id": record["dest_id"],
+                    },
+                    "Keep exactly one relationship instance per origin id, relation type, and destination id triple.",
+                    root,
+                )
+            )
+
+
+def _validate_relationship_cardinality_constraints(
+    root: Path,
+    records: list[dict[str, Any]],
+    findings: list[Finding],
+) -> None:
+    grouped: dict[tuple[Any, Any, Any, Any], list[dict[str, Any]]] = {}
+    for record in records:
+        if record["kind"] != "instance" or record["data"].get("status") in RELATIONSHIP_RETIRED_STATUSES:
+            continue
+        key = (record["origin_family"], record["relation_type"], record["dest_family"], record["cardinality"])
+        grouped.setdefault(key, []).append(record)
+
+    for (_origin_family, _relation_type, _dest_family, cardinality), group in grouped.items():
+        if not isinstance(cardinality, str) or ":" not in cardinality:
+            continue
+        origin_side, dest_side = cardinality.split(":", 1)
+        if dest_side == "1":
+            by_origin: dict[str, list[dict[str, Any]]] = {}
+            for record in group:
+                if isinstance(record["origin_id"], str):
+                    by_origin.setdefault(record["origin_id"], []).append(record)
+            _emit_cardinality_constraint_findings(root, by_origin, "origin endpoint with at most one destination", findings)
+        if origin_side == "1":
+            by_dest: dict[str, list[dict[str, Any]]] = {}
+            for record in group:
+                if isinstance(record["dest_id"], str):
+                    by_dest.setdefault(record["dest_id"], []).append(record)
+            _emit_cardinality_constraint_findings(root, by_dest, "destination endpoint with at most one origin", findings)
+
+
+def _emit_cardinality_constraint_findings(
+    root: Path,
+    grouped: dict[str, list[dict[str, Any]]],
+    expected: str,
+    findings: list[Finding],
+) -> None:
+    for records in grouped.values():
+        endpoint_pairs = {(record["origin_id"], record["dest_id"]) for record in records}
+        if len(endpoint_pairs) < 2:
+            continue
+        for record in records[1:]:
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_CARDINALITY_CONSTRAINT_VIOLATION",
+                    record["path"],
+                    "/payload/cardinalidad",
+                    record["contract_id"],
+                    expected,
+                    {
+                        "origen_id": record["origin_id"],
+                        "tipo_relacion": record["relation_type"],
+                        "destino_id": record["dest_id"],
+                        "cardinalidad": record["cardinality"],
+                    },
+                    "Relationship instances must not violate the relationship type cardinality constraint.",
+                    root,
+                )
+            )
+
+
+def _validate_relationship_ordering(
+    root: Path,
+    records: list[dict[str, Any]],
+    findings: list[Finding],
+) -> None:
+    ordered_groups: dict[tuple[Any, Any, Any], list[dict[str, Any]]] = {}
+    for record in records:
+        if record["kind"] != "instance" or record["data"].get("status") in RELATIONSHIP_RETIRED_STATUSES:
+            continue
+        type_tuple = (record["origin_family"], record["relation_type"], record["dest_family"])
+        order = record["order"]
+        if type_tuple in ORDERED_RELATIONSHIP_TYPE_TUPLES:
+            if not isinstance(order, int):
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_ORDER_REQUIRED",
+                        record["path"],
+                        "/payload/orden",
+                        record["contract_id"],
+                        "integer order for ordered relationship type tuple",
+                        order,
+                        "Set orden for every instance in ordered relationship groups.",
+                        root,
+                    )
+                )
+                continue
+            group_key = _relationship_order_group_key(record)
+            ordered_groups.setdefault(group_key, []).append(record)
+        elif order is not None:
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_ORDER_NOT_ALLOWED",
+                    record["path"],
+                    "/payload/orden",
+                    record["contract_id"],
+                    "null for unordered relationship type tuple",
+                    order,
+                    "Use orden only for currently ordered relationship groups.",
+                    root,
+                )
+            )
+
+    for group in ordered_groups.values():
+        by_order: dict[int, list[dict[str, Any]]] = {}
+        for record in group:
+            by_order.setdefault(record["order"], []).append(record)
+        for slot_records in by_order.values():
+            if len(slot_records) < 2:
+                continue
+            first = slot_records[0]["contract_id"]
+            for record in slot_records[1:]:
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_ORDER_DUPLICATE",
+                        record["path"],
+                        "/payload/orden",
+                        record["contract_id"],
+                        f"unique order slot first declared by {first}",
+                        record["order"],
+                        "Use each orden value once per ordered relationship group.",
+                        root,
+                    )
+                )
+        unique_orders = sorted(by_order)
+        expected_orders = list(range(1, len(unique_orders) + 1))
+        if unique_orders != expected_orders:
+            first_record = group[0]
+            findings.append(
+                _finding(
+                    "RELATIONSHIP_ORDER_GAP",
+                    first_record["path"],
+                    "/payload/orden",
+                    first_record["contract_id"],
+                    expected_orders,
+                    unique_orders,
+                    "Keep ordered relationship groups contiguous from 1 with no gaps.",
+                    root,
+                )
+            )
+
+
+def _validate_resolver_output_relationship_refs(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    contract_index: dict[str, Any],
+    relationship_records: list[dict[str, Any]],
+    findings: list[Finding],
+) -> None:
+    support_targets = {
+        record["dest_id"]
+        for record in relationship_records
+        if record["kind"] == "instance"
+        and record["origin_family"] == "resolver"
+        and record["relation_type"] == "usa"
+        and record["dest_family"] == "relacion"
+        and isinstance(record["dest_id"], str)
+        and record["data"].get("status") not in RELATIONSHIP_RETIRED_STATUSES
+    }
+
+    for record in relationship_records:
+        if (
+            record["kind"] == "instance"
+            and record["origin_family"] == "resolver"
+            and record["relation_type"] == "usa"
+            and record["dest_family"] == "relacion"
+        ):
+            target_id = record["dest_id"]
+            if not isinstance(target_id, str) or not _is_active_relationship_instance_ref(target_id, contract_index):
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_SUPPORT_LINK_TARGET_INVALID",
+                        record["path"],
+                        "/payload/destino_id",
+                        record["contract_id"],
+                        "active relationship instance target",
+                        target_id,
+                        "Resolver-to-Relación support links must target active relationship instance contracts, not placeholders, type refs, missing refs, deprecated refs, or retired refs.",
+                        root,
+                    )
+                )
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "entity" or data.get("entity_family") != "resolver_output":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        selected_refs = payload.get("selected_relacion_refs")
+        if not isinstance(selected_refs, list):
+            continue
+        for index, ref in enumerate(selected_refs):
+            pointer = f"/payload/selected_relacion_refs/{index}"
+            if not isinstance(ref, str):
+                continue
+            target = contract_index.get(ref)
+            if _is_placeholder_relationship_ref(ref, target):
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_SELECTED_REF_PLACEHOLDER",
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "relationship instance ref",
+                        ref,
+                        "ResolverOutput selected_relacion_refs must not select the placeholder relationship.",
+                        root,
+                    )
+                )
+                continue
+            if isinstance(target, dict) and target.get("status") in RELATIONSHIP_RETIRED_STATUSES:
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_SELECTED_REF_DEPRECATED",
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "active relationship instance ref",
+                        ref,
+                        "ResolverOutput selected_relacion_refs must not select deprecated or retired relationship refs.",
+                        root,
+                    )
+                )
+                continue
+            if isinstance(target, dict) and not _is_relationship_instance_contract(target):
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_SELECTED_REF_NOT_INSTANCE",
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "relationship instance ref",
+                        ref,
+                        "ResolverOutput selected_relacion_refs must select relationship instance refs, not relationship type refs.",
+                        root,
+                    )
+                )
+                continue
+            if ref in contract_index and ref not in support_targets:
+                findings.append(
+                    _finding(
+                        "RELATIONSHIP_SUPPORT_LINK_MISSING",
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "matching resolver.usa.relacion support link",
+                        ref,
+                        "Every accepted selected_relacion_refs entry must have a Resolver-to-Relación support link.",
+                        root,
+                    )
+                )
+
+
+def _relationship_order_group_key(record: dict[str, Any]) -> tuple[Any, ...]:
+    type_tuple = (record["origin_family"], record["relation_type"], record["dest_family"])
+    if type_tuple == ("fuente", "informa", "estado"):
+        return type_tuple
+    return (record["origin_id"], record["relation_type"], record["dest_family"])
+
+
+def _is_placeholder_relationship_ref(ref: str, target: Any) -> bool:
+    if ref == "relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1":
+        return True
+    if not isinstance(target, dict):
+        return False
+    payload = target.get("payload")
+    if not isinstance(payload, dict):
+        return False
+    values = [
+        payload.get("origen_entidad"),
+        payload.get("origen_id"),
+        payload.get("destino_entidad"),
+        payload.get("destino_id"),
+        payload.get("tipo_relacion"),
+        payload.get("cardinalidad"),
+        payload.get("requerido"),
+        payload.get("orden"),
+    ]
+    return all(value is None for value in values)
+
+
+def _is_relationship_instance_contract(data: dict[str, Any]) -> bool:
+    if data.get("contract_kind") != "relationship" or data.get("entity_family") != "relacion":
+        return False
+    payload = data.get("payload")
+    return isinstance(payload, dict) and isinstance(payload.get("origen_id"), str) and isinstance(payload.get("destino_id"), str)
+
+
+def _is_active_relationship_instance_ref(ref: str, contract_index: dict[str, Any]) -> bool:
+    target = contract_index.get(ref)
+    return isinstance(target, dict) and target.get("status") not in RELATIONSHIP_RETIRED_STATUSES and _is_relationship_instance_contract(target)
 
 
 def _embedded_contract_id(contract_id: str) -> str:

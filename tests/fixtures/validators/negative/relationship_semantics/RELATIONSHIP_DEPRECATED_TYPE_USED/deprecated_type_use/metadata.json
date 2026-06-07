@@ -1,0 +1,20 @@
+{
+  "fixture_id": "deprecated_type_use",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "deprecated_relationship_type_used_by_active_instance",
+  "scenario": "deprecated_type_use",
+  "intentional_violation": "Active relationship instance uses a deprecated relationship type contract.",
+  "expected_primary_finding": {
+    "code": "RELATIONSHIP_DEPRECATED_TYPE_USED",
+    "severity": "error",
+    "file": "contracts/relacion/relacion.actor.test_actor.aplica.regla.test_rule.v1.json",
+    "pointer": "/payload/tipo_relacion",
+    "contract_id": "relacion.actor.test_actor.aplica.regla.test_rule.v1"
+  },
+  "allowed_collateral_findings": [],
+  "forbidden_finding_codes": ["RELATIONSHIP_TYPE_NOT_FOUND"],
+  "positive_pair_fixture_id": "valid_relationship_instance",
+  "notes_on_false_positive_risk": "Deprecated type exists, so this must not be misreported as missing type."
+}

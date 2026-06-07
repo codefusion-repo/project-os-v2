@@ -1,0 +1,20 @@
+{
+  "fixture_id": "selected_type_ref",
+  "roadmap_refs": ["R9.08", "#233", "#227", "#232"],
+  "validator_family": "relationship_semantics",
+  "phase": "cycle_10_relationship_semantics",
+  "requirement_slug": "selected_relacion_refs_type_ref_rejected",
+  "scenario": "selected_type_ref",
+  "intentional_violation": "ResolverOutput selected_relacion_refs includes a relationship type ref instead of a relationship instance ref.",
+  "expected_primary_finding": {
+    "code": "RELATIONSHIP_SELECTED_REF_NOT_INSTANCE",
+    "severity": "error",
+    "file": "contracts/resolver_output/resolver_output.test_resolution.v1.json",
+    "pointer": "/payload/selected_relacion_refs/0",
+    "contract_id": "resolver_output.test_resolution.v1"
+  },
+  "allowed_collateral_findings": [],
+  "forbidden_finding_codes": ["RELATIONSHIP_SELECTED_REF_PLACEHOLDER"],
+  "positive_pair_fixture_id": "valid_resolver_relationship_support_links",
+  "notes_on_false_positive_risk": "Type refs remain valid support metadata but cannot be selected as ResolverOutput relationship instances."
+}
