@@ -13,7 +13,7 @@
     "pointer": "/payload/execution_policy",
     "contract_id": "selector.test_support.v1"
   },
-  "allowed_collateral_findings": ["BEHAVIOR_CLAIM_FORBIDDEN", "JSON_SCHEMA_CONST"],
+  "allowed_collateral_findings": ["BEHAVIOR_CLAIM_FORBIDDEN", "JSON_SCHEMA_CONST", "SUPPORT_ACTOR_BOUNDARY_DUPLICATED"],
   "forbidden_finding_codes": [],
   "positive_pair_fixture_id": "safe_support_denial_reference_only_wording",
   "notes_on_false_positive_risk": "Collateral schema const mismatch is expected because execution_policy is intentionally changed from its denial literal."

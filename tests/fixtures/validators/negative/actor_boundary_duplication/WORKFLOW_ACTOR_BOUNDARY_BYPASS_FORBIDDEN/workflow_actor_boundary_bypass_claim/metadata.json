@@ -1,0 +1,20 @@
+{
+  "fixture_id": "workflow_actor_boundary_bypass_claim",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "workflow_actor_boundary_bypass_forbidden",
+  "scenario": "workflow_actor_boundary_bypass_claim",
+  "intentional_violation": "Workflow payload claims it may bypass actor no-write boundary and delegate write authority.",
+  "expected_primary_finding": {
+    "code": "WORKFLOW_ACTOR_BOUNDARY_BYPASS_FORBIDDEN",
+    "severity": "error",
+    "file": "contracts/workflow/workflow.implementation.v1.json",
+    "pointer": "/payload/etapa_ciclo_vida",
+    "contract_id": "workflow.implementation.v1"
+  },
+  "allowed_collateral_findings": [],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_workflow_reference",
+  "notes_on_false_positive_risk": "Workflow process identity is valid; bypass/delegation authority claims are not."
+}

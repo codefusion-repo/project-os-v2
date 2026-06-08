@@ -1,0 +1,20 @@
+{
+  "fixture_id": "resolver_output_actor_boundary_placeholder_ref",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "resolver_output_placeholder_actor_boundary_ref_invalid",
+  "scenario": "resolver_output_actor_boundary_placeholder_ref",
+  "intentional_violation": "ResolverOutput selected_relacion_refs points to the placeholder relationship candidate.",
+  "expected_primary_finding": {
+    "code": "RESOLVER_OUTPUT_ACTOR_BOUNDARY_REF_INVALID",
+    "severity": "error",
+    "file": "contracts/resolver_output/resolver_output.test_resolution.v1.json",
+    "pointer": "/payload/selected_relacion_refs/0",
+    "contract_id": "resolver_output.test_resolution.v1"
+  },
+  "allowed_collateral_findings": ["CONTRACT_REF_NOT_FOUND", "RELATIONSHIP_SELECTED_REF_PLACEHOLDER"],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_actor_limit_relationship",
+  "notes_on_false_positive_risk": "Placeholder relationship contracts are valid as reserved contracts but invalid as selected ResolverOutput refs."
+}

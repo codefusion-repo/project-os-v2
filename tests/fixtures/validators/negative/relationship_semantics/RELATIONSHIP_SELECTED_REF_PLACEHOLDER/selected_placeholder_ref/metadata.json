@@ -13,7 +13,7 @@
     "pointer": "/payload/selected_relacion_refs/0",
     "contract_id": "resolver_output.test_resolution.v1"
   },
-  "allowed_collateral_findings": [],
+  "allowed_collateral_findings": ["RESOLVER_OUTPUT_ACTOR_BOUNDARY_REF_INVALID"],
   "forbidden_finding_codes": ["RELATIONSHIP_SELECTED_REF_NOT_INSTANCE"],
   "positive_pair_fixture_id": "valid_resolver_relationship_support_links",
   "notes_on_false_positive_risk": "Placeholder is valid as a contract but invalid as an active selected ref."
