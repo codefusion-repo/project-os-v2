@@ -14,6 +14,7 @@ from project_os_v2.validators import validate_all, validate_r1_10, validate_r1_1
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RELATIONSHIP_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 SUPPORT_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
+NO_LIVE_STATE_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 SUPPORT_SELECTOR_DIMENSIONS = {
     "actor_type": ["actor"],
     "role": ["rol"],
@@ -468,6 +469,180 @@ def _materialize_relationship_fixture(root: Path, metadata: dict[str, object]) -
     if not isinstance(scenario, str):
         raise AssertionError(f"fixture missing scenario: {metadata.get('fixture_id')}")
     for relative_path, data in _contracts_for_relationship_scenario(scenario).items():
+        _write_json(root / relative_path, data)
+
+
+def _no_live_state_actor_payload() -> dict[str, object]:
+    return {
+        "nombre": "test actor",
+        "superficie_capacidad": "terminal",
+    }
+
+
+def _no_live_state_source_refs_payload() -> list[dict[str, object] | str]:
+    return [
+        "doc:test-actor-reference",
+        {
+            "family": "fuente",
+            "ref": "fuente.test_source.v1",
+        },
+        {
+            "family": "evidencia",
+            "ref": "evidencia.test_evidence.v1",
+        },
+        {
+            "family": "variable",
+            "ref": "variable.test_variable.v1",
+        },
+        {
+            "family": "resolver_output",
+            "ref": "resolver_output.test_resolution.v1",
+        },
+        {
+            "family": "policy",
+            "ref": "policy.test_support.v1",
+        },
+        {
+            "family": "manifest",
+            "ref": "manifest.test_support.v1",
+        },
+        {
+            "family": "selector",
+            "ref": "selector.test_support.v1",
+        },
+    ]
+
+
+def _contracts_for_no_live_state_scenario(scenario: str) -> dict[str, dict[str, object]]:
+    actor_contract = _contract_envelope(
+        "actor.test_actor.v1",
+        "actor",
+        _no_live_state_actor_payload(),
+    )
+    contracts = {
+        "contracts/actor/actor.test_actor.v1.json": actor_contract,
+    }
+
+    payload = actor_contract["payload"]
+    source_refs = actor_contract["source_refs"]
+    if scenario == "valid_stable_source_refs":
+        actor_contract["source_refs"] = _no_live_state_source_refs_payload()
+        return contracts
+    if scenario == "valid_null_fuente_evidencia_refs":
+        contracts = {
+            "contracts/fuente/fuente.test_source.v1.json": _contract_envelope(
+                "fuente.test_source.v1",
+                "fuente",
+                {
+                    "tipo": "reference",
+                    "nombre": "test source",
+                    "ubicacion": None,
+                    "nivel_autoridad": "static_fixture",
+                    "frescura_requerida": None,
+                },
+            ),
+            "contracts/evidencia/evidencia.test_evidence.v1.json": _contract_envelope(
+                "evidencia.test_evidence.v1",
+                "evidencia",
+                {
+                    "tipo": "reference",
+                    "referencia": None,
+                },
+            ),
+        }
+        return contracts
+    if scenario == "valid_variable_null_defaults":
+        contracts = {
+            "contracts/variable/variable.branch.v1.json": _contract_envelope(
+                "variable.branch.v1",
+                "variable",
+                {
+                    "nombre": "branch",
+                    "tipo": "string",
+                    "valor_default": None,
+                    "valores_permitidos": [],
+                },
+            ),
+            "contracts/variable/variable.head_sha.v1.json": _contract_envelope(
+                "variable.head_sha.v1",
+                "variable",
+                {
+                    "nombre": "head_sha",
+                    "tipo": "sha",
+                    "valor_default": None,
+                    "valores_permitidos": [],
+                },
+            ),
+        }
+        return contracts
+    if scenario == "valid_safe_denial_reference_wording":
+        payload["superficie_capacidad"] = (
+            "reference only; no command execution, no generated output, "
+            "no permission grant, and no write authorization"
+        )
+        return contracts
+    if scenario == "branch_field_violation":
+        payload["branch_name"] = "feature/test"
+    elif scenario == "issue_state_field_violation":
+        payload["issue_state"] = "open"
+    elif scenario == "review_state_field_violation":
+        payload["review_state"] = "approved"
+    elif scenario == "validation_state_field_violation":
+        payload["validation_status"] = "passed"
+    elif scenario == "release_state_field_violation":
+        payload["release_state"] = "open"
+    elif scenario == "github_url_field_violation":
+        payload["notes"] = "https://github.com/org/repo/pull/123"
+    elif scenario == "sha_value_violation":
+        payload["head_sha"] = "0123456789abcdef0123456789abcdef01234567"
+    elif scenario == "embedded_sha_value_violation":
+        payload["notes"] = "commit 0123456789abcdef0123456789abcdef01234567 is mutable live evidence"
+    elif scenario == "secret_value_violation":
+        payload["api_secret"] = "ghp_abcdefghijklmnopqrstuvwxyz012345678"
+    elif scenario == "high_entropy_value_violation":
+        payload["random_entropy"] = "gA9x8Qm4N7kP2vL0yH1fD6pT3sR8wJ5uY2nM4qL7zX1aC9dB8vS3eR6tY0oP"
+    elif scenario == "source_refs_format_violation":
+        source_refs[:] = ["opaque external reference"]
+    elif scenario == "source_refs_prefixed_github_url_violation":
+        source_refs[:] = ["github_pr:https://github.com/org/repo/pull/123"]
+    elif scenario == "source_refs_prefixed_sha_violation":
+        source_refs[:] = ["github_commit:0123456789abcdef0123456789abcdef01234567"]
+    elif scenario == "source_refs_live_state_violation":
+        source_refs[:] = [
+            {
+                "family": "fuente",
+                "ref": "fuente.test_source.v1",
+                "review_state": "approved",
+            }
+        ]
+    else:
+        raise AssertionError(f"unknown no-live-state fixture scenario: {scenario}")
+    return contracts
+
+
+def _materialize_no_live_state_fixture(root: Path, metadata: dict[str, object]) -> None:
+    _copy_schemas(root)
+    scenario = metadata.get("scenario")
+    if not isinstance(scenario, str):
+        raise AssertionError(f"fixture missing scenario: {metadata.get('fixture_id')}")
+    if scenario == "valid_resolver_output_selected_refs":
+        shutil.copytree(REPO_ROOT / "contracts", root / "contracts")
+        return
+    if scenario == "valid_support_static_provenance_refs":
+        shutil.copytree(REPO_ROOT / "contracts", root / "contracts")
+        policy_path = root / "contracts" / "policy" / "policy.project_os_v2_core.v1.json"
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy["source_refs"] = [
+            "source:validator-requirements-review",
+            {
+                "family": "fuente",
+                "ref": "fuente.support_bundle_static_ref.v1",
+            },
+        ]
+        _write_json(policy_path, policy)
+        return
+    contracts = _contracts_for_no_live_state_scenario(scenario)
+    for relative_path, data in contracts.items():
         _write_json(root / relative_path, data)
 
 
@@ -1084,6 +1259,59 @@ class SupportBundleFixtureTests(unittest.TestCase):
                 self.assertTrue(primary_matches, finding_dicts)
                 self.assertFalse(forbidden_codes & {finding.code for finding in findings}, finding_dicts)
                 unexpected_codes = {finding.code for finding in findings} - allowed_codes
+                self.assertFalse(unexpected_codes, finding_dicts)
+
+
+class NoLiveStateFixtureTests(unittest.TestCase):
+    def test_positive_no_live_state_fixtures_pass(self) -> None:
+        fixture_root = NO_LIVE_STATE_FIXTURE_ROOT / "positive" / "no_live_state"
+        metadata_files = sorted(fixture_root.glob("*/metadata.json"))
+        self.assertTrue(metadata_files, "expected positive no-live-state fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_no_live_state_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                self.assertEqual([], findings)
+
+    def test_negative_no_live_state_fixtures_report_expected_primary_finding(self) -> None:
+        fixture_root = NO_LIVE_STATE_FIXTURE_ROOT / "negative" / "no_live_state"
+        metadata_files = sorted(fixture_root.glob("*/*/metadata.json"))
+        self.assertTrue(metadata_files, "expected negative no-live-state fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                expected = metadata["expected_primary_finding"]
+                expected_code = expected["code"]
+                allowed_codes = {expected_code, *metadata.get("allowed_collateral_findings", [])}
+                forbidden_codes = set(metadata.get("forbidden_finding_codes", []))
+
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_no_live_state_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                finding_dicts = [finding.as_dict() for finding in findings]
+                finding_codes = {finding.code for finding in findings}
+                primary_matches = [
+                    finding
+                    for finding in finding_dicts
+                    if finding["code"] == expected["code"]
+                    and finding["severity"] == expected["severity"]
+                    and finding["file"] == expected["file"]
+                    and finding["pointer"] == expected["pointer"]
+                    and finding["contract_id"] == expected["contract_id"]
+                ]
+                self.assertTrue(primary_matches, finding_dicts)
+                self.assertFalse(forbidden_codes & finding_codes, finding_dicts)
+                unexpected_codes = finding_codes - allowed_codes
                 self.assertFalse(unexpected_codes, finding_dicts)
 
 

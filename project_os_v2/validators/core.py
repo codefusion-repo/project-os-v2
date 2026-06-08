@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import math
 import json
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -280,10 +282,107 @@ LIVE_STATE_KEYS = {
     "validation_status",
     "workflow_run_status",
 }
-LIVE_STATE_VALUE_PATTERNS = (
-    re.compile(r"https://github\.com/[^/\s]+/[^/\s]+/(issues|pull)/[0-9]+"),
-    re.compile(r"\b[0-9a-f]{40}\b"),
+GITHUB_LIVE_URL_PATTERNS = (
+    re.compile(r"https?://github\.com/[^/\s]+/[^/\s]+/(?:issues|pull|commit|tree|blob|compare|actions|releases?|milestones?|labels?|settings)(?:/[^\s]*)?", re.I),
+    re.compile(r"https?://githubapp\.com/[^\s]+", re.I),
 )
+GITHUB_SHA_RE = re.compile(r"\b[0-9a-f]{40}\b", re.I)
+LIVE_STATE_BRANCH_KEYS = {
+    "branch_name",
+    "branch_ref",
+    "branch_sha",
+    "current_branch",
+    "current_head",
+    "current_sha",
+    "head_branch",
+    "head_ref",
+    "head_sha",
+}
+LIVE_STATE_REVIEW_KEYS = {
+    "review_decision",
+    "review_state",
+    "review_status",
+    "review_verdict",
+}
+LIVE_STATE_VALIDATION_KEYS = {
+    "validation_exit_code",
+    "validation_output",
+    "validation_result",
+    "validation_results",
+    "validation_status",
+}
+LIVE_STATE_RELEASE_KEYS = {
+    "label",
+    "milestone",
+    "release_state",
+    "release_status",
+    "settings",
+    "tag_name",
+}
+SOURCE_REF_ALLOWLIST_PREFIXES = (
+    "doc:",
+    "github_issue:",
+    "github_pr:",
+    "github_pull_request:",
+    "github_commit:",
+    "github_review:",
+    "source:",
+)
+SOURCE_REF_ALLOWLIST_FAMILY_PREFIXES = (
+    "fuente.",
+    "evidencia.",
+    "manifest.",
+    "index.",
+    "selector.",
+    "policy.",
+    "variable.",
+    "resolver_output.",
+)
+SOURCE_REF_ALLOWED_SOURCE_PREFIXES = {"source_ref:", "source:"}
+SOURCE_REF_OBJECT_ALLOWED_KEYS = {"contract", "contract_id", "family", "id", "ref", "source"}
+SOURCE_REF_SUPPORTED_FAMILY_KEYS = {"fuente", "evidencia", "variable", "resolver_output", "policy", "manifest", "index", "selector"}
+SECRET_KEY_RE = re.compile(r"\b(token|secret|passwd|password|private[_-]?key|api[_-]?key|auth(?:entication)?[_-]?secret|credential)\b", re.I)
+SECRET_VALUE_RE = re.compile(
+    r"(?:(?:gh[pousr]_[a-zA-Z0-9]{15,}|github_pat_[a-zA-Z0-9_]{20,}|sk_live_[a-zA-Z0-9]{16,})|(?:authorization|auth|credential|token|secret)\s*[:=]\s*[a-zA-Z0-9._-]{16,})",
+    re.I,
+)
+SECRET_VALUE_LOOKUP = re.compile(r"[^a-z0-9]", re.I)
+HIGH_ENTROPY_VALUE_RE = re.compile(r"^[A-Za-z0-9+/=_-]{48,}$")
+HIGH_ENTROPY_KEY_HINTS = {
+    "api_key",
+    "apikey",
+    "auth",
+    "credential",
+    "entropy",
+    "private_key",
+    "secret",
+    "token",
+}
+REVIEW_STATE_VALUE_TOKENS = {
+    "approved",
+    "changes_requested",
+    "commented",
+    "dismissed",
+    "neutral",
+    "pending",
+    "required",
+}
+VALIDATION_STATE_VALUE_TOKENS = {
+    "accepted",
+    "failed",
+    "passed",
+    "pending",
+    "rejected",
+}
+LIVE_STATE_VALUE_TOKENS = {
+    "closed",
+    "merged",
+    "open",
+    "ready",
+    "reopened",
+    "review_changes_requested",
+    "submitted",
+}
 ACTOR_HARD_LIMIT_DUPLICATION_KEYS = {
     "actor_hard_limit",
     "actor_hard_limits",
@@ -2922,40 +3021,409 @@ def _validate_durable_live_state_boundary(
     parsed: dict[Path, Any],
     findings: list[Finding],
 ) -> None:
-    for path in [*schema_files, *contract_files]:
+    for path in contract_files:
         data = parsed.get(path)
         if data is None:
             continue
         source_data = data if isinstance(data, dict) else {}
+        contract_id = _contract_id(source_data)
         for pointer, key, value in _walk_key_values(data):
             if _is_under_source_refs(pointer):
+                _validate_source_refs(pointer, path, key, value, contract_id, findings, root)
                 continue
-            if key in LIVE_STATE_KEYS:
+            if not isinstance(key, str):
+                continue
+
+            field_code = _classify_live_state_field(key)
+            if field_code is not None:
                 findings.append(
                     _finding(
-                        "DURABLE_LIVE_STATE_FIELD_FORBIDDEN",
+                        field_code,
                         path,
                         pointer,
-                        _contract_id(source_data),
+                        contract_id,
                         "durable reference metadata without live GitHub/review/validation/branch/release state fields",
                         key,
-                        "Keep mutable GitHub truth, validation output, review verdicts, branch state, issue/PR state, closure state, and release state as external evidence.",
+                        "Move live-state keys to external evidence references, not durable JSON.",
                         root,
                     )
                 )
-            if isinstance(value, str) and _looks_like_live_state_literal(value):
+            value_code = _classify_live_state_value(key, value)
+            if value_code is not None and value_code != field_code:
                 findings.append(
                     _finding(
-                        "DURABLE_LIVE_STATE_VALUE_FORBIDDEN",
+                        value_code,
                         path,
                         pointer,
-                        _contract_id(source_data),
-                        "external live evidence reference, not copied live state value",
+                        contract_id,
+                        "durable reference metadata without live GitHub/review/validation/branch/release state values",
                         value,
-                        "Replace copied live GitHub URLs, commit SHAs, or mutable evidence values with abstract source/resource/evidence references.",
+                        _live_state_hint_for_code(value_code),
                         root,
                     )
                 )
+
+
+def _validate_source_refs(
+    pointer: str,
+    path: Path,
+    key: Any,
+    value: Any,
+    contract_id: str | None,
+    findings: list[Finding],
+    root: Path,
+) -> None:
+    del key
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            source_ref_pointer = join_pointer(pointer, index)
+            _validate_source_ref_entry(source_ref_pointer, path, item, contract_id, findings, root)
+        return
+
+    _validate_source_ref_entry(pointer, path, value, contract_id, findings, root)
+
+
+def _validate_source_ref_entry(
+    pointer: str,
+    path: Path,
+    value: Any,
+    contract_id: str | None,
+    findings: list[Finding],
+    root: Path,
+) -> None:
+    if isinstance(value, str):
+        source_ref_code = _classify_forbidden_source_ref_value(value)
+        if source_ref_code is None and _is_stable_source_ref(value):
+            return
+        findings.append(
+            _finding(
+                source_ref_code or "SOURCE_REF_FORMAT_FORBIDDEN",
+                path,
+                pointer,
+                contract_id,
+                "compact stable source reference token",
+                value,
+                "Use compact stable source refs, not opaque or mutable live references.",
+                root,
+            )
+        )
+        return
+
+    if not isinstance(value, dict):
+        findings.append(
+            _finding(
+                "SOURCE_REF_FORMAT_FORBIDDEN",
+                path,
+                pointer,
+                contract_id,
+                "compact stable source reference token",
+                value,
+                "Use compact stable source refs, not opaque or mutable live reference objects.",
+                root,
+            )
+        )
+        return
+
+    has_live_state_key = False
+    for source_key, source_value in value.items():
+        if not isinstance(source_key, str):
+            findings.append(
+                _finding(
+                    "SOURCE_REF_FORMAT_FORBIDDEN",
+                    path,
+                    pointer,
+                    contract_id,
+                    "string source reference metadata key",
+                    source_key,
+                    "Use compact, stable source reference keys and values.",
+                    root,
+                )
+            )
+            continue
+
+        if _classify_live_state_field(source_key) is not None:
+            has_live_state_key = True
+
+        if source_key == "family":
+            continue
+
+        if source_value is None:
+            continue
+
+        if not isinstance(source_value, str):
+            findings.append(
+                _finding(
+                    "SOURCE_REF_FORMAT_FORBIDDEN",
+                    path,
+                    join_pointer(pointer, source_key),
+                    contract_id,
+                    "compact stable source reference value",
+                    source_value,
+                    "Use compact stable source reference values.",
+                    root,
+                )
+            )
+        else:
+            source_ref_code = _classify_forbidden_source_ref_value(source_value)
+            if source_ref_code is None and _is_stable_source_ref(source_value):
+                continue
+            findings.append(
+                _finding(
+                    source_ref_code or "SOURCE_REF_FORMAT_FORBIDDEN",
+                    path,
+                    join_pointer(pointer, source_key),
+                    contract_id,
+                    "compact stable source reference token",
+                    source_value,
+                    "Use compact stable source refs, not opaque or mutable references.",
+                    root,
+                )
+            )
+
+    if has_live_state_key:
+        findings.append(
+            _finding(
+                "SOURCE_REF_LIVE_STATE_FORBIDDEN",
+                path,
+                pointer,
+                contract_id,
+                "stable source reference metadata only",
+                value,
+                "source_refs entries must not embed live-state values.",
+                root,
+            )
+        )
+        return
+
+    family = _get_source_ref_family(value)
+    reference_values = _iter_source_ref_reference_values(value)
+    if family in SOURCE_REF_SUPPORTED_FAMILY_KEYS and not _references_match_family(reference_values, family):
+        findings.append(
+            _finding(
+                "SOURCE_REF_FORMAT_FORBIDDEN",
+                path,
+                pointer,
+                contract_id,
+                "family-scoped stable source reference",
+                value,
+                "Use family-scoped stable source reference identifiers for source refs.",
+                root,
+            )
+        )
+        return
+
+    if not reference_values:
+        findings.append(
+            _finding(
+                "SOURCE_REF_FORMAT_FORBIDDEN",
+                path,
+                pointer,
+                contract_id,
+                "stable source reference value",
+                value,
+                "Use compact stable source ref values with contract/family identifiers.",
+                root,
+            )
+        )
+
+
+def _is_stable_source_ref(value: str) -> bool:
+    if not isinstance(value, str):
+        return False
+    lowered = value.lower().strip()
+    if not lowered:
+        return False
+    if _classify_forbidden_source_ref_value(value) is not None:
+        return False
+    if STABLE_ID_RE.fullmatch(value) is not None:
+        return True
+    if any(lowered.startswith(prefix) for prefix in SOURCE_REF_ALLOWLIST_PREFIXES):
+        return True
+    if any(lowered.startswith(prefix) for prefix in SOURCE_REF_ALLOWED_SOURCE_PREFIXES):
+        return True
+    if lowered.startswith("http://") or lowered.startswith("https://"):
+        return False
+    if _contains_github_url(value):
+        return False
+    return False
+
+
+def _classify_forbidden_source_ref_value(value: str) -> str | None:
+    if _contains_github_url(value):
+        return "DURABLE_GITHUB_URL_FORBIDDEN"
+    if _contains_sha_value(value):
+        return "DURABLE_SHA_FORBIDDEN"
+    return None
+
+
+def _get_source_ref_family(value: dict[str, Any]) -> str | None:
+    family = value.get("family")
+    if not isinstance(family, str):
+        return None
+    normalized = family.lower().strip()
+    return normalized if normalized in SOURCE_REF_SUPPORTED_FAMILY_KEYS else None
+
+
+def _iter_source_ref_reference_values(value: dict[str, Any]) -> tuple[str, ...]:
+    refs: list[str] = []
+    for key, item in value.items():
+        if key in SOURCE_REF_OBJECT_ALLOWED_KEYS and isinstance(item, str):
+            refs.append(item)
+    return tuple(refs)
+
+
+def _references_match_family(reference_values: tuple[str, ...], family: str) -> bool:
+    if not reference_values:
+        return False
+    for item in reference_values:
+        if item.startswith(f"{family}."):
+            return True
+    return False
+
+
+def _classify_live_state_field(key: str) -> str | None:
+    normalized = _normalize_key_name(key)
+    if normalized in LIVE_STATE_BRANCH_KEYS:
+        return "DURABLE_BRANCH_STATE_FORBIDDEN"
+    if normalized in {"pr_state", "pull_request_state", "github_pr_state", "github_issue_state", "issue_state"}:
+        return "DURABLE_LIVE_STATE_FIELD_FORBIDDEN"
+    if normalized in LIVE_STATE_REVIEW_KEYS or "review" in normalized:
+        return "DURABLE_REVIEW_STATE_FORBIDDEN"
+    if normalized in LIVE_STATE_VALIDATION_KEYS or "validation" in normalized:
+        return "DURABLE_VALIDATION_STATE_FORBIDDEN"
+    if normalized in LIVE_STATE_RELEASE_KEYS or normalized.startswith("release_") or normalized in {"label", "milestone", "tag_name", "settings"}:
+        return "DURABLE_RELEASE_STATE_FORBIDDEN"
+    if normalized in LIVE_STATE_KEYS:
+        return "DURABLE_LIVE_STATE_FIELD_FORBIDDEN"
+    return None
+
+
+def _classify_live_state_value(key: str, value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+
+    normalized_key = _normalize_key_name(key)
+    normalized_value = _normalize_value_name(value)
+
+    if _contains_github_url(value):
+        return "DURABLE_GITHUB_URL_FORBIDDEN"
+    if _contains_sha_value(value):
+        return "DURABLE_SHA_FORBIDDEN"
+
+    if _is_secret_key(normalized_key) and _contains_secret_value(value):
+        return "DURABLE_SECRET_VALUE_FORBIDDEN"
+
+    if normalized_key in {"pr_state", "pull_request_state", "github_pr_state", "github_issue_state", "issue_state"}:
+        if normalized_value in LIVE_STATE_VALUE_TOKENS:
+            return "DURABLE_LIVE_STATE_VALUE_FORBIDDEN"
+
+    if normalized_key in LIVE_STATE_REVIEW_KEYS or "review" in normalized_key:
+        if normalized_value in REVIEW_STATE_VALUE_TOKENS:
+            return "DURABLE_REVIEW_STATE_FORBIDDEN"
+
+    if normalized_key in LIVE_STATE_VALIDATION_KEYS or "validation" in normalized_key:
+        if normalized_value in VALIDATION_STATE_VALUE_TOKENS:
+            return "DURABLE_VALIDATION_STATE_FORBIDDEN"
+
+    if normalized_key in LIVE_STATE_RELEASE_KEYS or normalized_key.startswith("release_") or normalized_key in {"label", "milestone", "tag_name", "settings"}:
+        if normalized_value in {"open", "closed", "ready", "draft", "archived", "published", "unpublished"}:
+            return "DURABLE_RELEASE_STATE_FORBIDDEN"
+
+    if normalized_key in LIVE_STATE_BRANCH_KEYS or "branch" in normalized_key or "sha" in normalized_key:
+        return "DURABLE_BRANCH_STATE_FORBIDDEN"
+
+    if (_is_secret_key(normalized_key) or _is_entropy_signal_key(normalized_key)) and _is_high_entropy_value(value):
+        return "DURABLE_HIGH_ENTROPY_VALUE_FORBIDDEN"
+
+    return None
+
+
+def _is_entropy_signal_key(normalized_key: str) -> bool:
+    if not normalized_key:
+        return False
+    return any(token in normalized_key for token in HIGH_ENTROPY_KEY_HINTS)
+
+
+def _contains_github_url(value: str) -> bool:
+    return any(pattern.search(value) is not None for pattern in GITHUB_LIVE_URL_PATTERNS)
+
+
+def _contains_sha_value(value: str) -> bool:
+    return GITHUB_SHA_RE.search(value) is not None
+
+
+def _normalize_key_name(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip().replace(" ", "_")
+
+
+def _normalize_value_name(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+
+
+def _is_secret_key(normalized_key: str) -> bool:
+    return SECRET_KEY_RE.search(normalized_key.replace("_", " ")) is not None
+
+
+def _contains_secret_value(value: str) -> bool:
+    if not isinstance(value, str):
+        return False
+
+    if SECRET_VALUE_RE.search(value) is not None:
+        return True
+
+    compact = value.replace(" ", "")
+    if len(compact) < 40:
+        return False
+    if not any(ch.isdigit() for ch in compact):
+        return False
+    if not any(ch.isalpha() for ch in compact):
+        return False
+    if SECRET_VALUE_LOOKUP.search(compact) is None:
+        return False
+    return True
+
+
+def _is_high_entropy_value(value: str) -> bool:
+    if not isinstance(value, str):
+        return False
+    stripped = value.strip()
+    if len(stripped) < 48:
+        return False
+    if HIGH_ENTROPY_VALUE_RE.fullmatch(stripped) is None:
+        return False
+    if GITHUB_SHA_RE.fullmatch(stripped) is not None:
+        return False
+    if _contains_secret_value(stripped):
+        return False
+    if _contains_github_url(stripped):
+        return False
+
+    frequencies = Counter(ch.lower() for ch in stripped)
+    length = len(stripped)
+    if length == 0:
+        return False
+
+    entropy = 0.0
+    for count in frequencies.values():
+        p = count / length
+        entropy -= p * math.log2(p)
+    return entropy >= 4.2
+
+
+def _live_state_hint_for_code(code: str) -> str:
+    return {
+        "DURABLE_GITHUB_URL_FORBIDDEN": "Store GitHub URLs in stable reference metadata, not as copied live evidence values.",
+        "DURABLE_SHA_FORBIDDEN": "Store commit SHAs and other runtime mutation tokens outside durable JSON.",
+        "DURABLE_BRANCH_STATE_FORBIDDEN": "Do not store mutable branch/head state, refs, or SHAs as durable JSON truth.",
+        "DURABLE_REVIEW_STATE_FORBIDDEN": "Store review verdicts as external evidence links, not durable truth.",
+        "DURABLE_VALIDATION_STATE_FORBIDDEN": "Store validation status/output outside durable contracts.",
+        "DURABLE_RELEASE_STATE_FORBIDDEN": "Store release/tag/label/milestone/settings state externally.",
+        "DURABLE_SECRET_VALUE_FORBIDDEN": "Do not store secrets, tokens, API keys, private keys, or credentials in durable JSON.",
+        "DURABLE_HIGH_ENTROPY_VALUE_FORBIDDEN": "Do not store high-entropy or randomly generated secret-like values in durable JSON.",
+        "SOURCE_REF_FORMAT_FORBIDDEN": "Use compact durable source references only.",
+        "SOURCE_REF_LIVE_STATE_FORBIDDEN": "source_refs must carry compact stable source references, not live-state objects.",
+        "DURABLE_LIVE_STATE_FIELD_FORBIDDEN": "Keep mutable GitHub/review/validation/branch/release state fields in external durable evidence.",
+    }.get(code, "Avoid storing mutable runtime state in durable JSON.")
 
 
 def _validate_actor_hard_limit_duplication(
@@ -3282,11 +3750,17 @@ def _is_reference_only_policy(value: str) -> bool:
 
 
 def _is_under_source_refs(pointer: str) -> bool:
-    return pointer == "/source_refs" or pointer.startswith("/source_refs/")
+    parts = pointer.strip("/").split("/")
+    if not parts or len(parts) == 1 and parts[0] == "":
+        return False
+    if not parts:
+        return False
 
-
-def _looks_like_live_state_literal(value: str) -> bool:
-    return any(pattern.search(value) is not None for pattern in LIVE_STATE_VALUE_PATTERNS)
+    if parts[-1] == "source_refs":
+        return True
+    if len(parts) >= 2 and parts[-1].isdigit() and parts[-2] == "source_refs":
+        return True
+    return False
 
 
 def _is_actor_hard_limit_duplication_key(key: str) -> bool:
