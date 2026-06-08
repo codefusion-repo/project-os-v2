@@ -514,6 +514,12 @@ ACTOR_PERMISSION_VALUE_RE = re.compile(
     r")\b",
     re.I,
 )
+BASE_V0_1_ACTOR_CONTRACT_IDS = frozenset(
+    {
+        "actor.browser_chat.v1",
+        "actor.terminal_agent.v1",
+    }
+)
 BEHAVIOR_SCHEMA_DENIAL_FIELDS = FORBIDDEN_TRUE_FIELDS | {
     "command_execution_behavior",
     "policy_execution",
@@ -3655,8 +3661,27 @@ def _validate_actor_payload_boundary_duplication(
     findings: list[Finding],
 ) -> None:
     contract_id = _contract_id(data)
+    actor_boundary_subject_reported = False
     for pointer, key, value in _walk_key_values(payload, "/payload"):
         normalized_key = _normalize_key_name(key)
+        if (
+            not actor_boundary_subject_reported
+            and not _is_base_v0_1_actor_ref(contract_id)
+            and _key_or_value_carries_actor_boundary_slice_material(key, value)
+        ):
+            actor_boundary_subject_reported = True
+            findings.append(
+                _finding(
+                    "ACTOR_BOUNDARY_SUBJECT_NOT_BASE_V0_1",
+                    path,
+                    pointer,
+                    contract_id,
+                    sorted(BASE_V0_1_ACTOR_CONTRACT_IDS),
+                    contract_id,
+                    "Base v0.1 actor-boundary duplication validation is closed to browser_chat and terminal_agent only; do not infer or validate additional actor subjects in this slice.",
+                    root,
+                )
+            )
         if _is_actor_permission_field(key):
             findings.append(
                 _finding(
@@ -3918,8 +3943,10 @@ def _contains_actor_boundary_material(value: Any) -> bool:
 
 
 def _is_actor_boundary_relationship_payload(payload: dict[str, Any]) -> bool:
+    origin_id = payload.get("origen_id")
     return (
         payload.get("origen_entidad") == "actor"
+        and _is_base_v0_1_actor_ref(origin_id)
         and payload.get("destino_entidad") in {"limite", "regla", "estado"}
         and payload.get("tipo_relacion") in {"tiene", "aplica", "falla_en"}
     )
@@ -4248,6 +4275,32 @@ def _is_actor_boundary_field(key: str) -> bool:
         or "write_boundary" in normalized
         or "output_boundary" in normalized
     )
+
+
+def _is_base_v0_1_actor_ref(value: Any) -> bool:
+    return isinstance(value, str) and value in BASE_V0_1_ACTOR_CONTRACT_IDS
+
+
+def _key_or_value_carries_actor_boundary_slice_material(key: str, value: Any) -> bool:
+    if _is_actor_boundary_field(key) or _is_actor_permission_field(key):
+        return True
+    if isinstance(value, str):
+        normalized = _normalize_claim_text(value)
+        if _is_negative_claim(normalized) and not _contains_actor_boundary_semantic_claim(value):
+            return False
+        return (
+            _contains_actor_boundary_semantic_claim(value)
+            or _is_positive_permission_claim(value)
+            or "boundary" in _normalize_key_name(key)
+        )
+    if isinstance(value, list):
+        return any(_key_or_value_carries_actor_boundary_slice_material(key, item) for item in value)
+    if isinstance(value, dict):
+        return any(
+            _key_or_value_carries_actor_boundary_slice_material(str(child_key), child_value)
+            for child_key, child_value in value.items()
+        )
+    return False
 
 
 def _is_actor_permission_field(key: str) -> bool:

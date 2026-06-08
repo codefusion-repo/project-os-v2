@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 from project_os_v2.validators import validate_all, validate_r1_10, validate_r1_11
+from project_os_v2.validators.core import BASE_V0_1_ACTOR_CONTRACT_IDS
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -1021,6 +1022,14 @@ def _contracts_for_actor_boundary_scenario(scenario: str) -> dict[str, dict[str,
                 {"nombre": "browser chat", "superficie_capacidad": "stable surface metadata only"},
             )
         }
+    if scenario == "valid_terminal_agent_surface_metadata":
+        return {
+            "contracts/actor/actor.terminal_agent.v1.json": _contract_envelope(
+                "actor.terminal_agent.v1",
+                "actor",
+                {"nombre": "terminal agent", "superficie_capacidad": "stable terminal surface metadata only"},
+            )
+        }
     if scenario == "valid_actor_limit_relationship":
         contracts = _actor_boundary_base_contracts()
         contracts["contracts/relacion/relacion.actor.browser_chat.tiene.limite.browser_chat_no_write.v1.json"] = _relationship_contract(
@@ -1137,6 +1146,14 @@ def _contracts_for_actor_boundary_scenario(scenario: str) -> dict[str, dict[str,
                     "formato": "write authorization grants permission to merge",
                     "secciones_requeridas": [],
                 },
+            )
+        }
+    elif scenario == "non_base_actor_boundary_subject":
+        return {
+            "contracts/actor/actor.future_agent.v1.json": _contract_envelope(
+                "actor.future_agent.v1",
+                "actor",
+                {"nombre": "future agent", "superficie_capacidad": "future agent actor boundary hard boundary"},
             )
         }
     else:
@@ -1495,6 +1512,12 @@ class NoLiveStateFixtureTests(unittest.TestCase):
 
 
 class ActorBoundaryDuplicationFixtureTests(unittest.TestCase):
+    def test_base_v0_1_actor_set_guardrail_is_closed(self) -> None:
+        self.assertEqual(
+            frozenset({"actor.browser_chat.v1", "actor.terminal_agent.v1"}),
+            BASE_V0_1_ACTOR_CONTRACT_IDS,
+        )
+
     def test_positive_actor_boundary_duplication_fixtures_pass(self) -> None:
         fixture_root = ACTOR_BOUNDARY_FIXTURE_ROOT / "positive" / "actor_boundary_duplication"
         metadata_files = sorted(fixture_root.glob("*/metadata.json"))
