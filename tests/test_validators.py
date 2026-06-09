@@ -17,6 +17,7 @@ RELATIONSHIP_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 SUPPORT_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 NO_LIVE_STATE_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 ACTOR_BOUNDARY_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
+ROLE_PERMISSION_LEAKAGE_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 SUPPORT_SELECTOR_DIMENSIONS = {
     "actor_type": ["actor"],
     "role": ["rol"],
@@ -1170,6 +1171,428 @@ def _materialize_actor_boundary_fixture(root: Path, metadata: dict[str, object])
         _write_json(root / relative_path, data)
 
 
+def _contracts_for_role_permission_leakage_scenario(scenario: str) -> dict[str, dict[str, object]]:
+    if scenario == "valid_role_lens_without_permissions":
+        return {
+            "contracts/rol/rol.safe_lens.v1.json": _contract_envelope(
+                "rol.safe_lens.v1",
+                "rol",
+                {"nombre": "safe lens", "lente_profesional": "implementation review lens"},
+            )
+        }
+
+    if scenario == "valid_role_safe_denial_wording":
+        return {
+            "contracts/rol/rol.safe_lens.v1.json": _contract_envelope(
+                "rol.safe_lens.v1",
+                "rol",
+                {
+                    "nombre": "safe lens",
+                    "lente_profesional": "This role does not write, does not merge, and does not run command execution.",
+                },
+            )
+        }
+
+    if scenario == "valid_role_relationship_refs_without_permission":
+        contracts = _minimal_entity_contracts()
+        contracts["contracts/relacion/relacion.rol.es_compatible_con.actor.v1.json"] = _relationship_contract(
+            "relacion.rol.es_compatible_con.actor.v1",
+            _relationship_type_payload("rol", "es_compatible_con", "actor"),
+        )
+        contracts["contracts/relacion/relacion.rol.aplica.regla.v1.json"] = _relationship_contract(
+            "relacion.rol.aplica.regla.v1",
+            _relationship_type_payload("rol", "aplica", "regla"),
+        )
+        contracts["contracts/rol/rol.safe_reference.v1.json"] = _contract_envelope(
+            "rol.safe_reference.v1",
+            "rol",
+            {"nombre": "safe reference role", "lente_profesional": "implementation reference role"},
+        )
+        contracts["contracts/relacion/relacion.rol.safe_reference.es_compatible_con.actor.test_actor.v1.json"] = _relationship_contract(
+            "relacion.rol.safe_reference.es_compatible_con.actor.test_actor.v1",
+            _relationship_payload("rol", "rol.safe_reference.v1", "es_compatible_con", "actor", "actor.test_actor.v1"),
+        )
+        contracts["contracts/relacion/relacion.rol.safe_reference.aplica.regla.test_rule.v1.json"] = _relationship_contract(
+            "relacion.rol.safe_reference.aplica.regla.test_rule.v1",
+            _relationship_payload("rol", "rol.safe_reference.v1", "aplica", "regla", "regla.test_rule.v1"),
+        )
+        return contracts
+
+    if scenario == "valid_workflow_step_role_reference_without_permission":
+        return {
+            "contracts/workflow_step/workflow_step.review.v1.json": _contract_envelope(
+                "workflow_step.review.v1",
+                "workflow_step",
+                {
+                    "nombre": "review",
+                    "objetivo": "review-only",
+                    "condicion_base_avance": None,
+                    "condicion_base_bloqueo": None,
+                    "condicion_base_repeticion": None,
+                },
+            ),
+            "contracts/rol/rol.safe_workflow_reference.v1.json": _contract_envelope(
+                "rol.safe_workflow_reference.v1",
+                "rol",
+                {"nombre": "safe workflow role", "lente_profesional": "workflow-facing role"},
+            ),
+            "contracts/relacion/relacion.workflow_step.review.delega.rol.safe_workflow_reference.v1.json": _relationship_contract(
+                "relacion.workflow_step.review.delega.rol.safe_workflow_reference.v1",
+                _relationship_payload(
+                    "workflow_step",
+                    "workflow_step.review.v1",
+                    "delega",
+                    "rol",
+                    "rol.safe_workflow_reference.v1",
+                ),
+            ),
+            "contracts/relacion/relacion.workflow_step.delega.rol.v1.json": _relationship_contract(
+                "relacion.workflow_step.delega.rol.v1",
+                _relationship_type_payload("workflow_step", "delega", "rol"),
+            ),
+        }
+
+    if scenario == "valid_support_bundle_static_refs_to_role_rule_relationship":
+        contracts = _base_support_contracts()
+        contracts["contracts/rol/rol.safe_reference.v1.json"] = _contract_envelope(
+            "rol.safe_reference.v1",
+            "rol",
+            {"nombre": "safe support role", "lente_profesional": "safe support role"},
+        )
+        contracts["contracts/regla/regla.safe_reference.v1.json"] = _contract_envelope(
+            "regla.safe_reference.v1",
+            "regla",
+            {
+                "nombre": "safe support rule",
+                "condicion": "safe rule for static refs",
+                "comportamiento_esperado": "does not grant write permission",
+            },
+        )
+        contracts["contracts/relacion/relacion.rol.aplica.regla.v1.json"] = _relationship_contract(
+            "relacion.rol.aplica.regla.v1",
+            _relationship_type_payload("rol", "aplica", "regla"),
+        )
+        contracts["contracts/relacion/relacion.rol.safe_reference.aplica.regla.safe_reference.v1.json"] = _relationship_contract(
+            "relacion.rol.safe_reference.aplica.regla.safe_reference.v1",
+            _relationship_payload("rol", "rol.safe_reference.v1", "aplica", "regla", "regla.safe_reference.v1"),
+        )
+        contracts["contracts/resolver_output/resolver_output.test_support.v1.json"]["payload"]["selected_rol_refs"] = [
+            "rol.safe_reference.v1",
+        ]
+        contracts["contracts/resolver_output/resolver_output.test_support.v1.json"]["payload"]["selected_regla_refs"] = [
+            "regla.safe_reference.v1",
+        ]
+        contracts["contracts/resolver_output/resolver_output.test_support.v1.json"]["payload"]["selected_relacion_refs"] = [
+            "relacion.rol.safe_reference.aplica.regla.safe_reference.v1",
+        ]
+        contracts["contracts/relacion/relacion.resolver.usa.relacion.v1.json"] = _relationship_contract(
+            "relacion.resolver.usa.relacion.v1",
+            _relationship_type_payload("resolver", "usa", "relacion"),
+        )
+        contracts["contracts/relacion/relacion.resolver.test_resolver.usa.relacion.rol_safe_reference_aplica_regla_safe_reference.v1.json"] = _relationship_contract(
+            "relacion.resolver.test_resolver.usa.relacion.rol_safe_reference_aplica_regla_safe_reference.v1",
+            _relationship_payload(
+                "resolver",
+                "resolver.test_resolver.v1",
+                "usa",
+                "relacion",
+                "relacion.rol.safe_reference.aplica.regla.safe_reference.v1",
+            ),
+        )
+        return contracts
+
+    if scenario == "valid_template_output_shape_only":
+        return {
+            "contracts/plantilla/plantilla.validation_shape.v1.json": _contract_envelope(
+                "plantilla.validation_shape.v1",
+                "plantilla",
+                {
+                    "nombre": "validation shape",
+                    "tipo": "report",
+                    "formato": "json",
+                    "secciones_requeridas": [],
+                },
+            )
+        }
+
+    if scenario == "valid_resolver_output_refs_without_permission":
+        contracts = _minimal_entity_contracts()
+        contracts["contracts/relacion/relacion.rol.aplica.regla.v1.json"] = _relationship_contract(
+            "relacion.rol.aplica.regla.v1",
+            _relationship_type_payload("rol", "aplica", "regla"),
+        )
+        contracts["contracts/rol/rol.no_permission_reference_probe.v1.json"] = _contract_envelope(
+            "rol.no_permission_reference_probe.v1",
+            "rol",
+            {"nombre": "no permission reference role", "lente_profesional": "lookup-safe reference role"},
+        )
+        contracts["contracts/relacion/relacion.rol.no_permission_reference_probe.aplica.regla.test_rule.v1.json"] = _relationship_contract(
+            "relacion.rol.no_permission_reference_probe.aplica.regla.test_rule.v1",
+            _relationship_payload(
+                "rol",
+                "rol.no_permission_reference_probe.v1",
+                "aplica",
+                "regla",
+                "regla.test_rule.v1",
+            ),
+        )
+        contracts["contracts/resolver_output/resolver_output.test_role_reference_probe.v1.json"] = _contract_envelope(
+            "resolver_output.test_role_reference_probe.v1",
+            "resolver_output",
+            {
+                **_resolver_output_payload(),
+                "selected_rol_refs": ["rol.no_permission_reference_probe.v1"],
+                "selected_regla_refs": ["regla.test_rule.v1"],
+                "selected_relacion_refs": ["relacion.rol.no_permission_reference_probe.aplica.regla.test_rule.v1"],
+            },
+        )
+        contracts["contracts/relacion/relacion.resolver.usa.relacion.v1.json"] = _relationship_contract(
+            "relacion.resolver.usa.relacion.v1",
+            _relationship_type_payload("resolver", "usa", "relacion"),
+        )
+        contracts["contracts/relacion/relacion.resolver.test_resolver.usa.relacion.rol_no_permission_reference_probe_aplica_regla_test_rule.v1.json"] = _relationship_contract(
+            "relacion.resolver.test_resolver.usa.relacion.rol_no_permission_reference_probe_aplica_regla_test_rule.v1",
+            _relationship_payload(
+                "resolver",
+                "resolver.test_resolver.v1",
+                "usa",
+                "relacion",
+                "relacion.rol.no_permission_reference_probe.aplica.regla.test_rule.v1",
+            ),
+        )
+        return contracts
+
+    if scenario == "negative_role_permission_field":
+        return {
+            "contracts/rol/rol.permission_field_leakage.v1.json": _contract_envelope(
+                "rol.permission_field_leakage.v1",
+                "rol",
+                {
+                    "nombre": "permission field leak",
+                    "lente_profesional": "safe role lens",
+                    "permission": ["write", "merge"],
+                },
+            )
+        }
+
+    if scenario == "negative_role_write_authorization_field":
+        return {
+            "contracts/rol/rol.write_authorization_field_leak.v1.json": _contract_envelope(
+                "rol.write_authorization_field_leak.v1",
+                "rol",
+                {
+                    "nombre": "write auth field leak",
+                    "lente_profesional": "safe role lens",
+                    "write_authorization": True,
+                },
+            )
+        }
+
+    if scenario == "negative_role_authority_field":
+        return {
+            "contracts/rol/rol.authority_field_leak.v1.json": _contract_envelope(
+                "rol.authority_field_leak.v1",
+                "rol",
+                {
+                    "nombre": "authority field leak",
+                    "lente_profesional": "safe role lens",
+                    "merge_authority": "true",
+                },
+            )
+        }
+
+    if scenario == "negative_role_permission_value":
+        return {
+            "contracts/rol/rol.permission_value_leak.v1.json": _contract_envelope(
+                "rol.permission_value_leak.v1",
+                "rol",
+                {
+                    "nombre": "permission value leak",
+                    "lente_profesional": "this role can write and merge artifacts",
+                },
+            )
+        }
+
+    if scenario == "negative_role_actor_compatibility_permission_bypass":
+        contracts = _minimal_entity_contracts()
+        contracts["contracts/relacion/relacion.rol.es_compatible_con.actor.v1.json"] = _relationship_contract(
+            "relacion.rol.es_compatible_con.actor.v1",
+            _relationship_type_payload("rol", "es_compatible_con", "actor"),
+        )
+        contracts.update(
+            {
+                "contracts/rol/rol.permissioned_compatibility.v1.json": _contract_envelope(
+                    "rol.permissioned_compatibility.v1",
+                    "rol",
+                    {
+                        "nombre": "permissioned compatibility role",
+                        "lente_profesional": "implementation role with write authority",
+                    },
+                ),
+                "contracts/relacion/relacion.rol.permissioned_compatibility.es_compatible_con.actor.test_actor.v1.json": _relationship_contract(
+                    "relacion.rol.permissioned_compatibility.es_compatible_con.actor.test_actor.v1",
+                    _relationship_payload(
+                        "rol",
+                        "rol.permissioned_compatibility.v1",
+                        "es_compatible_con",
+                        "actor",
+                        "actor.test_actor.v1",
+                    ),
+                ),
+            }
+        )
+        return contracts
+
+    if scenario == "negative_role_rule_relationship_permission_leak":
+        contracts = _minimal_entity_contracts()
+        contracts["contracts/relacion/relacion.rol.aplica.regla.v1.json"] = _relationship_contract(
+            "relacion.rol.aplica.regla.v1",
+            _relationship_type_payload("rol", "aplica", "regla"),
+        )
+        contracts.update(
+            {
+                "contracts/rol/rol.permissioned_relationship.v1.json": _contract_envelope(
+                    "rol.permissioned_relationship.v1",
+                    "rol",
+                    {
+                        "nombre": "permissioned relationship role",
+                        "lente_profesional": "role with merge and close authority",
+                    },
+                ),
+                "contracts/relacion/relacion.rol.permissioned_relationship.aplica.regla.test_rule.v1.json": _relationship_contract(
+                    "relacion.rol.permissioned_relationship.aplica.regla.test_rule.v1",
+                    _relationship_payload(
+                        "rol",
+                        "rol.permissioned_relationship.v1",
+                        "aplica",
+                        "regla",
+                        "regla.test_rule.v1",
+                    ),
+                ),
+            }
+        )
+        return contracts
+
+    if scenario == "negative_role_command_execution_value":
+        return {
+            "contracts/rol/rol.command_execution_value_leak.v1.json": _contract_envelope(
+                "rol.command_execution_value_leak.v1",
+                "rol",
+                {
+                    "nombre": "command execution leak",
+                    "lente_profesional": "this role may execute command execution to generate output",
+                },
+            )
+        }
+
+    if scenario == "negative_role_authority_wording":
+        return {
+            "contracts/rol/rol.authority_wording_leak.v1.json": _contract_envelope(
+                "rol.authority_wording_leak.v1",
+                "rol",
+                {
+                    "nombre": "authority wording leak",
+                    "lente_profesional": "role has write authority, merge authority, close authority, release authority, and settings authority",
+                },
+            )
+        }
+
+    if scenario == "negative_workflow_step_role_delegation":
+        return {
+            "contracts/workflow_step/workflow_step.review.v1.json": _contract_envelope(
+                "workflow_step.review.v1",
+                "workflow_step",
+                {
+                    "nombre": "review",
+                    "objetivo": "review",
+                    "condicion_base_avance": None,
+                    "condicion_base_bloqueo": None,
+                    "condicion_base_repeticion": None,
+                },
+            ),
+            "contracts/rol/rol.delegation_leak.v1.json": _contract_envelope(
+                "rol.delegation_leak.v1",
+                "rol",
+                {
+                    "nombre": "delegation leak",
+                    "lente_profesional": "delegation role lens",
+                    "permission": "all",
+                },
+            ),
+            "contracts/relacion/relacion.workflow_step.review.delega.rol.delegation_leak.v1.json": _relationship_contract(
+                "relacion.workflow_step.review.delega.rol.delegation_leak.v1",
+                _relationship_payload(
+                    "workflow_step",
+                    "workflow_step.review.v1",
+                    "delega",
+                    "rol",
+                    "rol.delegation_leak.v1",
+                ),
+            ),
+            "contracts/relacion/relacion.workflow_step.delega.rol.v1.json": _relationship_contract(
+                "relacion.workflow_step.delega.rol.v1",
+                _relationship_type_payload("workflow_step", "delega", "rol"),
+            ),
+        }
+
+    if scenario == "negative_support_bundle_role_permission_copy":
+        contracts = _base_support_contracts()
+        contracts["contracts/manifest.json"]["payload"]["payload_copy"] = {
+            "lente_profesional": "supports role can write permission in copied payload",
+            "source": "role lens text",
+        }
+        return contracts
+
+    if scenario == "negative_template_role_permission_claim":
+        return {
+            "contracts/plantilla/plantilla.permission_leak.v1.json": _contract_envelope(
+                "plantilla.permission_leak.v1",
+                "plantilla",
+                {
+                    "nombre": "permission leak",
+                    "tipo": "report",
+                    "formato": "role permission grants write authorization to merge outputs",
+                    "secciones_requeridas": [],
+                },
+            )
+        }
+
+    if scenario == "negative_resolver_output_selected_permissioned_role_ref":
+        contracts = {
+            "contracts/rol/rol.permissioned_output_ref.v1.json": _contract_envelope(
+                "rol.permissioned_output_ref.v1",
+                "rol",
+                {
+                    "nombre": "permissioned output role",
+                    "lente_profesional": "permissioned output role lens",
+                    "write_authorization": True,
+                },
+            ),
+            "contracts/relacion/relacion.rol.aplica.regla.v1.json": _relationship_contract(
+                "relacion.rol.aplica.regla.v1",
+                _relationship_type_payload("rol", "aplica", "regla"),
+            ),
+            "contracts/resolver_output/resolver_output.permissioned_role_ref.v1.json": _contract_envelope(
+                "resolver_output.permissioned_role_ref.v1",
+                "resolver_output",
+                _resolver_output_payload() | {"selected_rol_refs": ["rol.permissioned_output_ref.v1"]},
+            ),
+        }
+        return contracts
+
+    raise AssertionError(f"unknown role-permission leakage fixture scenario: {scenario}")
+
+
+def _materialize_role_permission_leakage_fixture(root: Path, metadata: dict[str, object]) -> None:
+    _copy_schemas(root)
+    scenario = metadata.get("scenario")
+    if not isinstance(scenario, str):
+        raise AssertionError(f"fixture missing scenario: {metadata.get('fixture_id')}")
+    contracts = _contracts_for_role_permission_leakage_scenario(scenario)
+    for relative_path, data in contracts.items():
+        _write_json(root / relative_path, data)
+
+
 class R110ValidatorTests(unittest.TestCase):
     def test_negative_fixture_reports_missing_required_id(self) -> None:
         root = Path(__file__).parent / "fixtures" / "r1_10_invalid_missing_id"
@@ -1550,6 +1973,59 @@ class ActorBoundaryDuplicationFixtureTests(unittest.TestCase):
                 with tempfile.TemporaryDirectory() as raw_root:
                     root = Path(raw_root)
                     _materialize_actor_boundary_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                finding_dicts = [finding.as_dict() for finding in findings]
+                finding_codes = {finding.code for finding in findings}
+                primary_matches = [
+                    finding
+                    for finding in finding_dicts
+                    if finding["code"] == expected["code"]
+                    and finding["severity"] == expected["severity"]
+                    and finding["file"] == expected["file"]
+                    and finding["pointer"] == expected["pointer"]
+                    and finding["contract_id"] == expected["contract_id"]
+                ]
+                self.assertTrue(primary_matches, finding_dicts)
+                self.assertFalse(forbidden_codes & finding_codes, finding_dicts)
+                unexpected_codes = finding_codes - allowed_codes
+                self.assertFalse(unexpected_codes, finding_dicts)
+
+
+class RolePermissionLeakageFixtureTests(unittest.TestCase):
+    def test_positive_role_permission_leakage_fixtures_pass(self) -> None:
+        fixture_root = ROLE_PERMISSION_LEAKAGE_FIXTURE_ROOT / "positive" / "role_permission_leakage"
+        metadata_files = sorted(fixture_root.glob("*/metadata.json"))
+        self.assertTrue(metadata_files, "expected positive role-permission leakage fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_role_permission_leakage_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                self.assertEqual([], findings)
+
+    def test_negative_role_permission_leakage_fixtures_report_expected_primary_finding(self) -> None:
+        fixture_root = ROLE_PERMISSION_LEAKAGE_FIXTURE_ROOT / "negative" / "role_permission_leakage"
+        metadata_files = sorted(fixture_root.glob("*/*/metadata.json"))
+        self.assertTrue(metadata_files, "expected negative role-permission leakage fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                expected = metadata["expected_primary_finding"]
+                expected_code = expected["code"]
+                allowed_codes = {expected_code, *metadata.get("allowed_collateral_findings", [])}
+                forbidden_codes = set(metadata.get("forbidden_finding_codes", []))
+
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_role_permission_leakage_fixture(root, metadata)
 
                     findings = validate_all(root)
 

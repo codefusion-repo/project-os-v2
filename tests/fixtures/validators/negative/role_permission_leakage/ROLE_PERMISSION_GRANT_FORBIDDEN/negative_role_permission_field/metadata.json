@@ -1,0 +1,23 @@
+{
+  "fixture_id": "negative_role_permission_field",
+  "roadmap_refs": ["R9.12", "#241", "#239", "#230", "#232", "#92"],
+  "validator_family": "role_permission_leakage",
+  "phase": "all",
+  "requirement_slug": "role_permission_field_forbidden",
+  "scenario": "negative_role_permission_field",
+  "intentional_violation": "Role payload includes 'permissions' field with values.",
+  "expected_primary_finding": {
+    "code": "ROLE_PERMISSION_GRANT_FORBIDDEN",
+    "severity": "error",
+    "file": "contracts/rol/rol.permission_field_leakage.v1.json",
+    "pointer": "/payload/permission",
+    "contract_id": "rol.permission_field_leakage.v1"
+  },
+  "allowed_collateral_findings": [
+    "ENTITY_PAYLOAD_FIELD_NOT_OWNED",
+    "JSON_SCHEMA_ADDITIONAL_PROPERTY"
+  ],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_role_lens_without_permissions",
+  "notes_on_false_positive_risk": "Fields named permissions should always fail in role family for this issue scope."
+}

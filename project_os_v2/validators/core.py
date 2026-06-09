@@ -483,6 +483,11 @@ TEMPLATE_PERMISSION_LEAK_RE = re.compile(
     r"merge authority|close authority|release authority|settings authority|command execution)\b",
     re.I,
 )
+TEMPLATE_ROLE_PERMISSION_LEAK_RE = re.compile(
+    r"\b(role|rol)\b.*\b(write authorization|write permission|permission grant|can write|may write|can commit|can push|"
+    r"can merge|can close|merge authority|close authority|release authority|settings authority|command execution)\b",
+    re.I,
+)
 RESOLVER_OUTPUT_LIMITE_REF_REFERENCE_KEYS = {
     "effective_limite_refs",
     "selected_limite_refs",
@@ -502,9 +507,26 @@ ROLE_PERMISSION_KEYS = {
     "permissions",
     "write_authorization",
     "write_permission",
+    "command_execution",
+    "execute_command",
+    "close_authority",
+    "merge_authority",
+    "release_authority",
+    "settings_authority",
+    "write_authority",
 }
 ROLE_PERMISSION_VALUE_RE = re.compile(
-    r"\b(can|may|grant|grants|permission|permissions|authorize|authorized|allowed_to|write_access|commit|push|merge|close_issue)\b"
+    r"\b("
+    r"can|may|could|allowed|allow|allowing|has|have|grant|granting|granted|"
+    r"authorize|authorized|authorization|permission|permissions|write|write_access|write_authorization|write_permission|"
+    r"close_issue|commit|push|merge|close|release|settings|authority|allowed_to|allowed_to_write"
+    r")"
+    r"([\s\w-]{0,40})"
+    r"\b("
+    r"write|write_access|write_authority|command|commands|execute|execution|run|commit|push|merge|close|release|settings|authority|"
+    r"close_issue|permission|permissions|grant|grants|authorization|authorized"
+    r")\b",
+    re.I,
 )
 ACTOR_PERMISSION_VALUE_RE = re.compile(
     r"\b("
@@ -692,7 +714,9 @@ def validate_r1_11(root: Path | str) -> list[Finding]:
     _validate_actor_hard_limit_duplication(root, contract_files, parsed, findings)
     _validate_actor_boundary_duplication(root, contract_files, parsed, contract_index, findings)
     _validate_role_permission_boundary(root, contract_files, parsed, findings)
+    _validate_role_permission_relationship_leakage(root, contract_files, parsed, findings)
     _validate_workflow_step_rule_ownership(root, contract_files, parsed, findings)
+    _validate_resolver_output_role_permission_refs(root, contract_files, parsed, contract_index, findings)
     _validate_deprecated_relationship_active_candidates(root, contract_files, parsed, contract_index, findings)
     _validate_behavior_claim_boundaries(root, schema_files, contract_files, parsed, findings)
 
@@ -3797,20 +3821,44 @@ def _validate_template_actor_boundary_permission_leak(
 ) -> None:
     for pointer, key, value in _walk_key_values(payload, "/payload"):
         if _is_actor_permission_field(key):
+            finding_code = (
+                "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN"
+                if TEMPLATE_ROLE_PERMISSION_LEAK_RE.search(str(key)) is not None
+                else "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN"
+            )
+            finding_message = (
+                "template/artifact role-permission leak semantics; no role grants through template/artifact payload"
+                if finding_code == "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN"
+                else "template/artifact actor-boundary semantics leak; output shape must remain role-agnostic"
+            )
             findings.append(
                 _finding(
-                    "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN",
+                    finding_code,
                     path,
                     pointer,
                     _contract_id(data),
-                    "template/artifact output shape only; no actor permission, command execution, or write authorization fields",
+                    "template/artifact output shape only; no role-permission or actor-boundary permission semantics",
                     key,
-                    "Keep templates and artifacts as output shapes; they must not carry permission or write authority.",
+                    finding_message,
                     root,
                 )
             )
             continue
         if not isinstance(value, str):
+            continue
+        if TEMPLATE_ROLE_PERMISSION_LEAK_RE.search(value) is not None:
+            findings.append(
+                _finding(
+                    "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN",
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "template/artifact output shape only; no role permission, command execution, or write authority claims",
+                    value,
+                    "Remove role-permission, command execution, merge, close, release, settings, and write claims from template/artifact payloads.",
+                    root,
+                )
+            )
             continue
         normalized = _normalize_claim_text(value)
         if _is_negative_claim(normalized):
@@ -3822,9 +3870,9 @@ def _validate_template_actor_boundary_permission_leak(
                     path,
                     pointer,
                     _contract_id(data),
-                    "template/artifact output shape only; no actor permission, command execution, or write authorization claims",
+                    "template/artifact output shape only; no actor-boundary permission semantics or output boundary claims",
                     value,
-                    "Remove permission, command execution, merge, close, release, settings, and write claims from template/artifact payloads.",
+                    "Keep templates and artifacts as output shapes; they must not carry actor-boundary, boundary-by-design, or write authority semantics.",
                     root,
                 )
             )
@@ -3838,30 +3886,60 @@ def _validate_support_actor_boundary_duplication(
     findings: list[Finding],
 ) -> None:
     for pointer, key, value in _walk_key_values(payload, "/payload"):
-        if key in SUPPORT_BODY_COPY_KEYS and _contains_actor_boundary_material(value):
-            findings.append(
-                _finding(
-                    "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
-                    path,
-                    pointer,
-                    _contract_id(data),
-                    "support bundles contain curated refs only, not copied actor-boundary payloads or semantics",
-                    key,
-                    "Replace copied actor-boundary payloads with static refs to actor, limite, regla, and relacion records.",
-                    root,
-                )
+        is_copy_body_path = any(
+            pointer == f"/payload/{copy_key}" or pointer.startswith(f"/payload/{copy_key}/")
+            for copy_key in SUPPORT_BODY_COPY_KEYS
+        )
+        if is_copy_body_path and key not in SUPPORT_BODY_COPY_KEYS:
+            continue
+        if key in SUPPORT_BODY_COPY_KEYS and (
+            _contains_actor_boundary_material(value)
+            or _contains_role_permission_material(value)
+        ):
+            actor_boundary_material = (
+                _contains_actor_boundary_material(value)
+                and not _contains_role_permission_material(value)
             )
+            role_permission_material = _contains_role_permission_material(value)
+
+            if actor_boundary_material:
+                findings.append(
+                    _finding(
+                        "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "support bundles contain curated refs only, not copied actor-boundary payloads or semantics",
+                        key,
+                        "Replace copied actor-boundary payloads with static refs to actor, limite, regla, and relacion records.",
+                        root,
+                    )
+                )
+            if role_permission_material:
+                findings.append(
+                    _finding(
+                        "SUPPORT_ROLE_PERMISSION_DUPLICATED",
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "support bundles contain curated refs only, not copied role permission payloads or semantics",
+                        key,
+                        "Replace copied role permission payloads with static refs to role, regla, and relacion records.",
+                        root,
+                    )
+                )
             continue
         if not isinstance(value, str):
             continue
         normalized = _normalize_claim_text(value)
         if _is_negative_claim(normalized) and not _contains_actor_boundary_semantic_claim(value):
             continue
-        if (
+        actor_boundary_claim = (
             BROWSER_CHAT_BOUNDARY_CLAIM_RE.search(value) is not None
             or TERMINAL_AGENT_BOUNDARY_CLAIM_RE.search(value) is not None
             or SUPPORT_PERMISSION_CLAIM_RE.search(value) is not None
-        ):
+        )
+        if actor_boundary_claim:
             findings.append(
                 _finding(
                     "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
@@ -3939,6 +4017,21 @@ def _contains_actor_boundary_material(value: Any) -> bool:
             or TERMINAL_AGENT_BOUNDARY_CLAIM_RE.search(value) is not None
             or SUPPORT_PERMISSION_CLAIM_RE.search(value) is not None
         )
+    return False
+
+
+def _contains_role_permission_material(value: Any) -> bool:
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if _is_role_permission_key(str(key)):
+                return True
+            if _contains_role_permission_material(item):
+                return True
+        return False
+    if isinstance(value, list):
+        return any(_contains_role_permission_material(item) for item in value)
+    if isinstance(value, str):
+        return _is_positive_role_permission_claim(value)
     return False
 
 
@@ -4067,6 +4160,184 @@ def _validate_role_permission_boundary(
                         root,
                     )
                 )
+
+
+def _validate_role_permission_relationship_leakage(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    permissioned_role_ids = _collect_permissioned_role_contract_ids(contract_files, parsed)
+    if not permissioned_role_ids:
+        return
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "relationship":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        origin_id = payload.get("origen_id")
+        destination_id = payload.get("destino_id")
+        relation = payload.get("tipo_relacion")
+        if not isinstance(origin_id, str) or origin_id not in permissioned_role_ids:
+            if not (payload.get("origen_entidad") == "workflow_step" and destination_id is not None and isinstance(destination_id, str) and destination_id in permissioned_role_ids):
+                continue
+        if payload.get("origen_entidad") == "rol":
+            if relation == "es_compatible_con" and payload.get("destino_entidad") == "actor":
+                findings.append(
+                    _finding(
+                        "ROLE_ACTOR_BOUNDARY_BYPASS_FORBIDDEN",
+                        path,
+                        "/payload/tipo_relacion",
+                        _contract_id(data),
+                        "role-based compatibility metadata must stay representable as lenses and non-authorizing relationships",
+                        relation,
+                        "Role-to-actor compatibility facts are identity facts; they must not be used to express permission or boundary override.",
+                        root,
+                    )
+                )
+            elif relation == "aplica" and payload.get("destino_entidad") == "regla":
+                findings.append(
+                    _finding(
+                        "ROLE_RELATIONSHIP_PERMISSION_LEAK_FORBIDDEN",
+                        path,
+                        "/payload/destino_id",
+                        _contract_id(data),
+                        "role-based execution/write authority remains in explicit rule semantics only",
+                        destination_id,
+                        "Role-to-regla relationships cannot imply role-based execution or write authority unless role lens remains explicit and non-authorizing.",
+                        root,
+                    )
+                )
+        elif (
+            payload.get("origen_entidad") == "workflow_step"
+            and payload.get("destino_entidad") == "rol"
+            and relation == "delega"
+            and isinstance(destination_id, str)
+            and destination_id in permissioned_role_ids
+        ):
+            findings.append(
+                _finding(
+                    "WORKFLOW_ROLE_PERMISSION_BYPASS_FORBIDDEN",
+                    path,
+                    "/payload/destino_id",
+                    _contract_id(data),
+                    "workflow_step delegation of role with permission-leaking lens is not allowed",
+                    destination_id,
+                    "WorkflowStep role delegation must reference role lenses without permission/authority claims.",
+                    root,
+                )
+            )
+
+
+def _validate_resolver_output_role_permission_refs(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    permissioned_role_ids = _collect_permissioned_role_contract_ids(contract_files, parsed)
+    if not permissioned_role_ids:
+        return
+
+    permissioned_role_rule_ids: set[str] = set()
+    permissioned_role_relationship_ids: set[str] = set()
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "relationship":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        origin_id = payload.get("origen_id")
+        if not isinstance(origin_id, str) or origin_id not in permissioned_role_ids:
+            continue
+        relation = payload.get("tipo_relacion")
+        destination_id = payload.get("destino_id")
+        if relation == "aplica" and payload.get("destino_entidad") == "regla" and isinstance(destination_id, str):
+            permissioned_role_rule_ids.add(destination_id)
+            contract_id = _contract_id(data)
+            if isinstance(contract_id, str):
+                permissioned_role_relationship_ids.add(contract_id)
+        elif relation == "es_compatible_con" and isinstance(_contract_id(data), str):
+            permissioned_role_relationship_ids.add(_contract_id(data))
+        elif payload.get("origen_entidad") == "workflow_step" and relation == "delega" and isinstance(destination_id, str) and destination_id in permissioned_role_ids:
+            relationship_id = _contract_id(data)
+            if relationship_id is not None:
+                permissioned_role_relationship_ids.add(relationship_id)
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("entity_family") != "resolver_output":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        contract_id = _contract_id(data)
+
+        selected_rol_refs = payload.get("selected_rol_refs")
+        if isinstance(selected_rol_refs, list):
+            for index, ref in enumerate(selected_rol_refs):
+                if isinstance(ref, str) and ref in permissioned_role_ids:
+                    findings.append(
+                        _finding(
+                            "RESOLVER_OUTPUT_ROLE_PERMISSION_REF_INVALID",
+                            path,
+                            f"/payload/selected_rol_refs/{index}",
+                            contract_id,
+                            "resolver-selected role refs must point to professional lens roles without authorization claims",
+                            ref,
+                            "Do not select permission-leaking role contracts as selected role references.",
+                            root,
+                        )
+                    )
+
+        selected_regla_refs = payload.get("selected_regla_refs")
+        if isinstance(selected_regla_refs, list):
+            for index, ref in enumerate(selected_regla_refs):
+                if isinstance(ref, str) and ref in permissioned_role_rule_ids:
+                    findings.append(
+                        _finding(
+                            "RESOLVER_OUTPUT_ROLE_PERMISSION_REF_INVALID",
+                            path,
+                            f"/payload/selected_regla_refs/{index}",
+                            contract_id,
+                            "resolver-selected rule refs must not resolve from permission-leaking role facts",
+                            ref,
+                            "Do not select rules only reachable through permission-leaking role contracts.",
+                            root,
+                        )
+                    )
+
+        selected_relacion_refs = payload.get("selected_relacion_refs")
+        if isinstance(selected_relacion_refs, list):
+            for index, ref in enumerate(selected_relacion_refs):
+                if not isinstance(ref, str):
+                    continue
+                relationship = contract_index.get(ref)
+                if (
+                    ref in permissioned_role_relationship_ids
+                    and (
+                        not isinstance(relationship, dict)
+                        or relationship.get("status") != "deprecated"
+                    )
+                ):
+                    findings.append(
+                        _finding(
+                            "RESOLVER_OUTPUT_ROLE_PERMISSION_REF_INVALID",
+                            path,
+                            f"/payload/selected_relacion_refs/{index}",
+                            contract_id,
+                            "resolver-selected relationship refs must not select permission-leaking role relationship records",
+                            ref,
+                            "Avoid selecting role-based permission- or delegation-oriented relationship facts as authoritative resolver selections.",
+                            root,
+                        )
+                    )
 
 
 def _validate_deprecated_relationship_active_candidates(
@@ -4327,11 +4598,71 @@ def _is_role_permission_key(key: str) -> bool:
     normalized = key.lower()
     return (
         normalized in ROLE_PERMISSION_KEYS
-        or normalized.startswith("can_")
-        or "permission" in normalized
-        or "write_authorization" in normalized
-        or "write_permission" in normalized
+        or normalized.endswith("_authority")
+        or (
+            normalized.startswith("can_")
+            and any(
+                token in normalized
+                for token in (
+                    "write",
+                    "permission",
+                    "grant",
+                    "command",
+                    "execution",
+                    "merge",
+                    "close",
+                    "release",
+                    "authority",
+                    "settings",
+                )
+            )
+        )
+        or (
+            normalized.startswith("may_")
+            and any(
+                token in normalized
+                for token in (
+                    "write",
+                    "permission",
+                    "grant",
+                    "command",
+                    "execution",
+                    "merge",
+                    "close",
+                    "release",
+                    "authority",
+                    "settings",
+                )
+            )
+        )
     )
+
+
+def _role_payload_implies_permission(payload: dict[str, Any]) -> bool:
+    for _pointer, key, value in _walk_key_values(payload, "/payload"):
+        if _is_role_permission_key(key):
+            return True
+        if isinstance(value, str) and _is_positive_role_permission_claim(value):
+            return True
+    return False
+
+
+def _collect_permissioned_role_contract_ids(
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+) -> set[str]:
+    permissioned_roles: set[str] = set()
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict) or data.get("contract_kind") != "entity" or data.get("entity_family") != "rol":
+            continue
+        payload = data.get("payload")
+        contract_id = _contract_id(data)
+        if not isinstance(payload, dict) or not isinstance(contract_id, str):
+            continue
+        if _role_payload_implies_permission(payload):
+            permissioned_roles.add(contract_id)
+    return permissioned_roles
 
 
 def _is_positive_role_permission_claim(value: str) -> bool:

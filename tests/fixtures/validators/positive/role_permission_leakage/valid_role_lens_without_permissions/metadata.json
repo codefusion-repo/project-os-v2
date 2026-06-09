@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_role_lens_without_permissions",
+  "roadmap_refs": ["R9.12", "#241", "#239", "#230", "#232", "#92"],
+  "validator_family": "role_permission_leakage",
+  "phase": "all",
+  "requirement_slug": "role_without_permissions",
+  "scenario": "valid_role_lens_without_permissions",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Role contract with professional lens metadata and no permission fields must remain valid."
+}
