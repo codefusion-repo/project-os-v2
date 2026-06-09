@@ -1413,6 +1413,66 @@ def _contracts_for_role_permission_leakage_scenario(scenario: str) -> dict[str, 
             )
         }
 
+    if scenario == "negative_role_actor_compatibility_permission_bypass":
+        contracts = _minimal_entity_contracts()
+        contracts["contracts/relacion/relacion.rol.es_compatible_con.actor.v1.json"] = _relationship_contract(
+            "relacion.rol.es_compatible_con.actor.v1",
+            _relationship_type_payload("rol", "es_compatible_con", "actor"),
+        )
+        contracts.update(
+            {
+                "contracts/rol/rol.permissioned_compatibility.v1.json": _contract_envelope(
+                    "rol.permissioned_compatibility.v1",
+                    "rol",
+                    {
+                        "nombre": "permissioned compatibility role",
+                        "lente_profesional": "implementation role with write authority",
+                    },
+                ),
+                "contracts/relacion/relacion.rol.permissioned_compatibility.es_compatible_con.actor.test_actor.v1.json": _relationship_contract(
+                    "relacion.rol.permissioned_compatibility.es_compatible_con.actor.test_actor.v1",
+                    _relationship_payload(
+                        "rol",
+                        "rol.permissioned_compatibility.v1",
+                        "es_compatible_con",
+                        "actor",
+                        "actor.test_actor.v1",
+                    ),
+                ),
+            }
+        )
+        return contracts
+
+    if scenario == "negative_role_rule_relationship_permission_leak":
+        contracts = _minimal_entity_contracts()
+        contracts["contracts/relacion/relacion.rol.aplica.regla.v1.json"] = _relationship_contract(
+            "relacion.rol.aplica.regla.v1",
+            _relationship_type_payload("rol", "aplica", "regla"),
+        )
+        contracts.update(
+            {
+                "contracts/rol/rol.permissioned_relationship.v1.json": _contract_envelope(
+                    "rol.permissioned_relationship.v1",
+                    "rol",
+                    {
+                        "nombre": "permissioned relationship role",
+                        "lente_profesional": "role with merge and close authority",
+                    },
+                ),
+                "contracts/relacion/relacion.rol.permissioned_relationship.aplica.regla.test_rule.v1.json": _relationship_contract(
+                    "relacion.rol.permissioned_relationship.aplica.regla.test_rule.v1",
+                    _relationship_payload(
+                        "rol",
+                        "rol.permissioned_relationship.v1",
+                        "aplica",
+                        "regla",
+                        "regla.test_rule.v1",
+                    ),
+                ),
+            }
+        )
+        return contracts
+
     if scenario == "negative_role_command_execution_value":
         return {
             "contracts/rol/rol.command_execution_value_leak.v1.json": _contract_envelope(

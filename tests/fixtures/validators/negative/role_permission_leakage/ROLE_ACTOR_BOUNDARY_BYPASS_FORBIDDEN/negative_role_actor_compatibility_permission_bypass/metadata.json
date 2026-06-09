@@ -1,0 +1,24 @@
+{
+  "fixture_id": "negative_role_actor_compatibility_permission_bypass",
+  "roadmap_refs": ["R9.12", "#241", "#239", "#230", "#232", "#92"],
+  "validator_family": "role_permission_leakage",
+  "phase": "all",
+  "requirement_slug": "role_actor_compatibility_permission_bypass",
+  "scenario": "negative_role_actor_compatibility_permission_bypass",
+  "intentional_violation": "Permissioned role is linked to actor compatibility as execution/write bypass candidate.",
+  "expected_primary_finding": {
+    "code": "ROLE_ACTOR_BOUNDARY_BYPASS_FORBIDDEN",
+    "severity": "error",
+    "file": "contracts/relacion/relacion.rol.permissioned_compatibility.es_compatible_con.actor.test_actor.v1.json",
+    "pointer": "/payload/tipo_relacion",
+    "contract_id": "relacion.rol.permissioned_compatibility.es_compatible_con.actor.test_actor.v1"
+  },
+  "allowed_collateral_findings": [
+    "ROLE_PERMISSION_GRANT_FORBIDDEN",
+    "ENTITY_PAYLOAD_FIELD_NOT_OWNED",
+    "JSON_SCHEMA_ADDITIONAL_PROPERTY"
+  ],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_role_relationship_refs_without_permission",
+  "notes_on_false_positive_risk": "Role-to-actor compatibility relationship should be identity-only when role has permissions." 
+}

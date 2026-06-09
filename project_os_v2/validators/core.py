@@ -3818,13 +3818,13 @@ def _validate_template_actor_boundary_permission_leak(
         if _is_actor_permission_field(key):
             findings.append(
                 _finding(
-                    "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN",
+                    "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN",
                     path,
                     pointer,
                     _contract_id(data),
-                    "template/artifact output shape only; no actor permission, command execution, or write authorization fields",
+                    "template/artifact output shape only; no role permission, command execution, or write authority fields",
                     key,
-                    "Keep templates and artifacts as output shapes; they must not carry permission or write authority.",
+                    "Keep templates and artifacts as output shapes; they must not carry role permission or write authority semantics.",
                     root,
                 )
             )
@@ -3837,13 +3837,13 @@ def _validate_template_actor_boundary_permission_leak(
         if TEMPLATE_PERMISSION_LEAK_RE.search(value) is not None:
             findings.append(
                 _finding(
-                    "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN",
+                    "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN",
                     path,
                     pointer,
                     _contract_id(data),
-                    "template/artifact output shape only; no actor permission, command execution, or write authorization claims",
+                    "template/artifact output shape only; no role permission, command execution, or write authorization claims",
                     value,
-                    "Remove permission, command execution, merge, close, release, settings, and write claims from template/artifact payloads.",
+                    "Remove role-permission, command execution, merge, close, release, settings, and write claims from template/artifact payloads.",
                     root,
                 )
             )
@@ -3857,34 +3857,60 @@ def _validate_support_actor_boundary_duplication(
     findings: list[Finding],
 ) -> None:
     for pointer, key, value in _walk_key_values(payload, "/payload"):
+        is_copy_body_path = any(
+            pointer == f"/payload/{copy_key}" or pointer.startswith(f"/payload/{copy_key}/")
+            for copy_key in SUPPORT_BODY_COPY_KEYS
+        )
+        if is_copy_body_path and key not in SUPPORT_BODY_COPY_KEYS:
+            continue
         if key in SUPPORT_BODY_COPY_KEYS and (
             _contains_actor_boundary_material(value)
             or _contains_role_permission_material(value)
         ):
-            findings.append(
-                _finding(
-                    "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
-                    path,
-                    pointer,
-                    _contract_id(data),
-                    "support bundles contain curated refs only, not copied actor-boundary payloads or semantics",
-                    key,
-                    "Replace copied actor-boundary payloads with static refs to actor, limite, regla, and relacion records.",
-                    root,
-                )
+            actor_boundary_material = (
+                _contains_actor_boundary_material(value)
+                and not _contains_role_permission_material(value)
             )
+            role_permission_material = _contains_role_permission_material(value)
+
+            if actor_boundary_material:
+                findings.append(
+                    _finding(
+                        "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "support bundles contain curated refs only, not copied actor-boundary payloads or semantics",
+                        key,
+                        "Replace copied actor-boundary payloads with static refs to actor, limite, regla, and relacion records.",
+                        root,
+                    )
+                )
+            if role_permission_material:
+                findings.append(
+                    _finding(
+                        "SUPPORT_ROLE_PERMISSION_DUPLICATED",
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "support bundles contain curated refs only, not copied role permission payloads or semantics",
+                        key,
+                        "Replace copied role permission payloads with static refs to role, regla, and relacion records.",
+                        root,
+                    )
+                )
             continue
         if not isinstance(value, str):
             continue
         normalized = _normalize_claim_text(value)
         if _is_negative_claim(normalized) and not _contains_actor_boundary_semantic_claim(value):
             continue
-        if (
+        actor_boundary_claim = (
             BROWSER_CHAT_BOUNDARY_CLAIM_RE.search(value) is not None
             or TERMINAL_AGENT_BOUNDARY_CLAIM_RE.search(value) is not None
             or SUPPORT_PERMISSION_CLAIM_RE.search(value) is not None
-            or _contains_role_permission_material(value)
-        ):
+        )
+        if actor_boundary_claim:
             findings.append(
                 _finding(
                     "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",

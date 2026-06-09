@@ -7,7 +7,7 @@
   "scenario": "template_actor_boundary_permission_claim",
   "intentional_violation": "Template payload claims write authorization and merge permission.",
   "expected_primary_finding": {
-    "code": "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN",
+    "code": "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN",
     "severity": "error",
     "file": "contracts/plantilla/plantilla.project_os_v2_response.v1.json",
     "pointer": "/payload/formato",

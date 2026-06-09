@@ -7,7 +7,7 @@
   "scenario": "negative_support_bundle_role_permission_copy",
   "intentional_violation": "Support manifest copies role permission semantics via payload_copy.",
   "expected_primary_finding": {
-    "code": "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
+    "code": "SUPPORT_ROLE_PERMISSION_DUPLICATED",
     "severity": "error",
     "file": "contracts/manifest.json",
     "pointer": "/payload/payload_copy",
@@ -19,7 +19,8 @@
     "SUPPORT_OWNERSHIP_DRIFT",
     "SUPPORT_OUTPUT_BODY_FORBIDDEN",
     "SUPPORT_WRITE_AUTHORIZATION_FORBIDDEN",
-    "BEHAVIOR_CLAIM_FORBIDDEN"
+    "BEHAVIOR_CLAIM_FORBIDDEN",
+    "ROLE_PERMISSION_GRANT_FORBIDDEN"
   ],
   "forbidden_finding_codes": [],
   "positive_pair_fixture_id": "valid_support_bundle_static_refs_to_role_rule_relationship",

@@ -5,9 +5,9 @@
   "phase": "all",
   "requirement_slug": "template_permission_claim_forbidden",
   "scenario": "negative_template_role_permission_claim",
-  "intentional_violation": "Template payload claims permission language.",
+  "intentional_violation": "Template payload claims role permission language.",
   "expected_primary_finding": {
-    "code": "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN",
+    "code": "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN",
     "severity": "error",
     "file": "contracts/plantilla/plantilla.permission_leak.v1.json",
     "pointer": "/payload/formato",
@@ -16,5 +16,5 @@
   "allowed_collateral_findings": [],
   "forbidden_finding_codes": [],
   "positive_pair_fixture_id": "valid_template_output_shape_only",
-  "notes_on_false_positive_risk": "Template/artefacto payloads remain output shape only, no permission wording."
+  "notes_on_false_positive_risk": "Template/artefacto payloads remain output shape only, no role-permission wording."
 }
