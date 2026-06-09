@@ -483,6 +483,11 @@ TEMPLATE_PERMISSION_LEAK_RE = re.compile(
     r"merge authority|close authority|release authority|settings authority|command execution)\b",
     re.I,
 )
+TEMPLATE_ROLE_PERMISSION_LEAK_RE = re.compile(
+    r"\b(role|rol)\b.*\b(write authorization|write permission|permission grant|can write|may write|can commit|can push|"
+    r"can merge|can close|merge authority|close authority|release authority|settings authority|command execution)\b",
+    re.I,
+)
 RESOLVER_OUTPUT_LIMITE_REF_REFERENCE_KEYS = {
     "effective_limite_refs",
     "selected_limite_refs",
@@ -3816,20 +3821,44 @@ def _validate_template_actor_boundary_permission_leak(
 ) -> None:
     for pointer, key, value in _walk_key_values(payload, "/payload"):
         if _is_actor_permission_field(key):
+            finding_code = (
+                "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN"
+                if TEMPLATE_ROLE_PERMISSION_LEAK_RE.search(str(key)) is not None
+                else "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN"
+            )
+            finding_message = (
+                "template/artifact role-permission leak semantics; no role grants through template/artifact payload"
+                if finding_code == "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN"
+                else "template/artifact actor-boundary semantics leak; output shape must remain role-agnostic"
+            )
+            findings.append(
+                _finding(
+                    finding_code,
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "template/artifact output shape only; no role-permission or actor-boundary permission semantics",
+                    key,
+                    finding_message,
+                    root,
+                )
+            )
+            continue
+        if not isinstance(value, str):
+            continue
+        if TEMPLATE_ROLE_PERMISSION_LEAK_RE.search(value) is not None:
             findings.append(
                 _finding(
                     "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN",
                     path,
                     pointer,
                     _contract_id(data),
-                    "template/artifact output shape only; no role permission, command execution, or write authority fields",
-                    key,
-                    "Keep templates and artifacts as output shapes; they must not carry role permission or write authority semantics.",
+                    "template/artifact output shape only; no role permission, command execution, or write authority claims",
+                    value,
+                    "Remove role-permission, command execution, merge, close, release, settings, and write claims from template/artifact payloads.",
                     root,
                 )
             )
-            continue
-        if not isinstance(value, str):
             continue
         normalized = _normalize_claim_text(value)
         if _is_negative_claim(normalized):
@@ -3837,13 +3866,13 @@ def _validate_template_actor_boundary_permission_leak(
         if TEMPLATE_PERMISSION_LEAK_RE.search(value) is not None:
             findings.append(
                 _finding(
-                    "TEMPLATE_ROLE_PERMISSION_LEAK_FORBIDDEN",
+                    "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN",
                     path,
                     pointer,
                     _contract_id(data),
-                    "template/artifact output shape only; no role permission, command execution, or write authorization claims",
+                    "template/artifact output shape only; no actor-boundary permission semantics or output boundary claims",
                     value,
-                    "Remove role-permission, command execution, merge, close, release, settings, and write claims from template/artifact payloads.",
+                    "Keep templates and artifacts as output shapes; they must not carry actor-boundary, boundary-by-design, or write authority semantics.",
                     root,
                 )
             )

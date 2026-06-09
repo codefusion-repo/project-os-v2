@@ -1551,7 +1551,7 @@ def _contracts_for_role_permission_leakage_scenario(scenario: str) -> dict[str, 
                 {
                     "nombre": "permission leak",
                     "tipo": "report",
-                    "formato": "can write and merge outputs",
+                    "formato": "role permission grants write authorization to merge outputs",
                     "secciones_requeridas": [],
                 },
             )
