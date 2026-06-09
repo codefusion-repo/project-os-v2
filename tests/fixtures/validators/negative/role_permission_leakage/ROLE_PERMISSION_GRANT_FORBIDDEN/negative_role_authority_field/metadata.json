@@ -1,0 +1,23 @@
+{
+  "fixture_id": "negative_role_authority_field",
+  "roadmap_refs": ["R9.12", "#241", "#239", "#230", "#232", "#92"],
+  "validator_family": "role_permission_leakage",
+  "phase": "all",
+  "requirement_slug": "role_authority_field_forbidden",
+  "scenario": "negative_role_authority_field",
+  "intentional_violation": "Role payload includes merge_authority field.",
+  "expected_primary_finding": {
+    "code": "ROLE_PERMISSION_GRANT_FORBIDDEN",
+    "severity": "error",
+    "file": "contracts/rol/rol.authority_field_leak.v1.json",
+    "pointer": "/payload/merge_authority",
+    "contract_id": "rol.authority_field_leak.v1"
+  },
+  "allowed_collateral_findings": [
+    "ENTITY_PAYLOAD_FIELD_NOT_OWNED",
+    "JSON_SCHEMA_ADDITIONAL_PROPERTY"
+  ],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_role_safe_denial_wording",
+  "notes_on_false_positive_risk": "Authority-specific fields on roles are treated as permissions in this scoped validation."
+}

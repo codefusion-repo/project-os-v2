@@ -1,0 +1,27 @@
+{
+  "fixture_id": "negative_support_bundle_role_permission_copy",
+  "roadmap_refs": ["R9.12", "#241", "#239", "#230", "#232", "#92"],
+  "validator_family": "role_permission_leakage",
+  "phase": "all",
+  "requirement_slug": "support_bundle_role_permission_copy_forbidden",
+  "scenario": "negative_support_bundle_role_permission_copy",
+  "intentional_violation": "Support manifest copies role permission semantics via payload_copy.",
+  "expected_primary_finding": {
+    "code": "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
+    "severity": "error",
+    "file": "contracts/manifest.json",
+    "pointer": "/payload/payload_copy",
+    "contract_id": "manifest.test_support.v1"
+  },
+  "allowed_collateral_findings": [
+    "JSON_SCHEMA_ADDITIONAL_PROPERTY",
+    "SUPPORT_REFERENCE_ONLY_VIOLATION",
+    "SUPPORT_OWNERSHIP_DRIFT",
+    "SUPPORT_OUTPUT_BODY_FORBIDDEN",
+    "SUPPORT_WRITE_AUTHORIZATION_FORBIDDEN",
+    "BEHAVIOR_CLAIM_FORBIDDEN"
+  ],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_support_bundle_static_refs_to_role_rule_relationship",
+  "notes_on_false_positive_risk": "Copied role payload fragments in support manifests are not allowed under reference-only policy."
+}

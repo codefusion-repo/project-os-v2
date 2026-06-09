@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_template_output_shape_only",
+  "roadmap_refs": ["R9.12", "#241", "#239", "#230", "#232", "#92"],
+  "validator_family": "role_permission_leakage",
+  "phase": "all",
+  "requirement_slug": "template_output_shape_only",
+  "scenario": "valid_template_output_shape_only",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Template output-shape-only payload should remain valid without permission claim fields."
+}
