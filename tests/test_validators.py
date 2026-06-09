@@ -18,6 +18,7 @@ SUPPORT_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 NO_LIVE_STATE_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 ACTOR_BOUNDARY_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 ROLE_PERMISSION_LEAKAGE_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
+WORKFLOW_STEP_ORDERING_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 SUPPORT_SELECTOR_DIMENSIONS = {
     "actor_type": ["actor"],
     "role": ["rol"],
@@ -264,21 +265,31 @@ def _base_actor_rule_relationship_contracts() -> dict[str, dict[str, object]]:
     return contracts
 
 
-def _add_resolver_support_contracts(contracts: dict[str, dict[str, object]]) -> None:
+def _resolver_support_contract_id(destination_id: str) -> str:
+    body = destination_id.removesuffix(".v1")
+    family, _, slug = body.partition(".")
+    if not slug:
+        raise ValueError(f"invalid destination_id: {destination_id}")
+    return f"relacion.resolver.test_resolver.usa.{family}.{slug.replace('.', '_')}.v1"
+
+
+def _add_resolver_support_contracts(
+    contracts: dict[str, dict[str, object]],
+    destination_id: str = "relacion.actor.test_actor.aplica.regla.test_rule.v1",
+) -> None:
     contracts["contracts/relacion/relacion.resolver.usa.relacion.v1.json"] = _relationship_contract(
         "relacion.resolver.usa.relacion.v1",
         _relationship_type_payload("resolver", "usa", "relacion", "1:N"),
     )
-    contracts[
-        "contracts/relacion/relacion.resolver.test_resolver.usa.relacion.actor_test_actor_aplica_regla_test_rule.v1.json"
-    ] = _relationship_contract(
-        "relacion.resolver.test_resolver.usa.relacion.actor_test_actor_aplica_regla_test_rule.v1",
+    support_contract_id = _resolver_support_contract_id(destination_id)
+    contracts[f"contracts/relacion/{support_contract_id}.json"] = _relationship_contract(
+        support_contract_id,
         _relationship_payload(
             "resolver",
             "resolver.test_resolver.v1",
             "usa",
             "relacion",
-            "relacion.actor.test_actor.aplica.regla.test_rule.v1",
+            destination_id,
             "1:N",
         ),
     )
@@ -300,6 +311,7 @@ def _ordered_workflow_contracts(
     duplicate: bool = False,
     gap: bool = False,
     missing_order: bool = False,
+    second_order: object | None = None,
 ) -> dict[str, dict[str, object]]:
     contracts = {
         "contracts/workflow/workflow.test_workflow.v1.json": _contract_envelope(
@@ -334,7 +346,8 @@ def _ordered_workflow_contracts(
             _relationship_type_payload("workflow", "compone", "workflow_step"),
         ),
     }
-    second_order = None if missing_order else 1 if duplicate else 3 if gap else 2
+    if second_order is None:
+        second_order = None if missing_order else 1 if duplicate else 3 if gap else 2
     contracts["contracts/relacion/relacion.workflow.test_workflow.compone.workflow_step.first.v1.json"] = _relationship_contract(
         "relacion.workflow.test_workflow.compone.workflow_step.first.v1",
         _relationship_payload("workflow", "workflow.test_workflow.v1", "compone", "workflow_step", "workflow_step.first.v1", orden=1),
@@ -1593,6 +1606,133 @@ def _materialize_role_permission_leakage_fixture(root: Path, metadata: dict[str,
         _write_json(root / relative_path, data)
 
 
+def _contracts_for_workflow_step_ordering_scenario(scenario: str) -> dict[str, dict[str, object]]:
+    if scenario == "valid_ordered_workflow_step_relationships":
+        return _ordered_workflow_contracts()
+    if scenario == "valid_workflow_step_identity_metadata":
+        return {
+            "contracts/workflow/workflow.test_workflow.v1.json": _contract_envelope(
+                "workflow.test_workflow.v1",
+                "workflow",
+                {"nombre": "workflow identity metadata", "etapa_ciclo_vida": "identity and description only"},
+            ),
+            "contracts/workflow_step/workflow_step.first.v1.json": _contract_envelope(
+                "workflow_step.first.v1",
+                "workflow_step",
+                {
+                    "nombre": "first identity",
+                    "objetivo": "describe step",
+                    "condicion_base_avance": "advance based on objective",
+                    "condicion_base_bloqueo": "blocked until prior criteria met",
+                    "condicion_base_repeticion": "can repeat if needed",
+                },
+            ),
+            "contracts/workflow_step/workflow_step.second.v1.json": _contract_envelope(
+                "workflow_step.second.v1",
+                "workflow_step",
+                {
+                    "nombre": "second identity",
+                    "objetivo": "describe step",
+                    "condicion_base_avance": "advance based on objective",
+                    "condicion_base_bloqueo": "blocked until prior criteria met",
+                    "condicion_base_repeticion": "can repeat if needed",
+                },
+            ),
+        }
+    if scenario == "valid_resolver_output_selected_ordering_ref":
+        contracts = _minimal_entity_contracts()
+        contracts.update(_ordered_workflow_contracts())
+        _add_resolver_output(contracts, ["relacion.workflow.test_workflow.compone.workflow_step.second.v1"])
+        _add_resolver_support_contracts(
+            contracts,
+            destination_id="relacion.workflow.test_workflow.compone.workflow_step.second.v1",
+        )
+        return contracts
+    if scenario == "valid_support_bundle_static_workflow_refs":
+        contracts = _base_support_contracts()
+        contracts.update(_ordered_workflow_contracts())
+        resolver_output = contracts["contracts/resolver_output/resolver_output.test_support.v1.json"]["payload"]
+        resolver_output["selected_workflow_refs"] = ["workflow.test_workflow.v1"]
+        resolver_output["selected_workflow_step_refs"] = ["workflow_step.first.v1", "workflow_step.second.v1"]
+        resolver_output["selected_relacion_refs"] = ["relacion.workflow.test_workflow.compone.workflow_step.first.v1"]
+        _add_resolver_support_contracts(
+            contracts,
+            destination_id="relacion.workflow.test_workflow.compone.workflow_step.first.v1",
+        )
+        return contracts
+    if scenario == "valid_workflow_step_safe_denial_reference_only_wording":
+        contracts = _ordered_workflow_contracts()
+        contracts["contracts/workflow/workflow.test_workflow.v1.json"]["payload"]["etapa_ciclo_vida"] = (
+            "Stable workflow identity and description only; reference only and no runtime sequencing"
+        )
+        contracts["contracts/workflow_step/workflow_step.first.v1.json"]["payload"]["condicion_base_avance"] = (
+            "step behavior is declarative and reference-only; no execution claims"
+        )
+        return contracts
+
+    if scenario == "negative_workflow_payload_duplicated_order_field":
+        contracts = _ordered_workflow_contracts()
+        payload = contracts["contracts/workflow/workflow.test_workflow.v1.json"]["payload"]
+        payload["order"] = 1
+        payload["orden"] = 1
+        return contracts
+    if scenario == "negative_workflow_step_payload_duplicated_order_field":
+        contracts = _ordered_workflow_contracts()
+        payload = contracts["contracts/workflow_step/workflow_step.first.v1.json"]["payload"]
+        payload["order"] = 1
+        payload["orden"] = 1
+        return contracts
+    if scenario == "negative_workflow_step_duplicate_order":
+        return _ordered_workflow_contracts(duplicate=True)
+    if scenario == "negative_workflow_step_missing_order":
+        return _ordered_workflow_contracts(missing_order=True)
+    if scenario == "negative_workflow_step_non_integer_order":
+        return _ordered_workflow_contracts(second_order="first")
+    if scenario == "negative_workflow_step_zero_order":
+        return _ordered_workflow_contracts(second_order=0)
+    if scenario == "negative_workflow_step_order_gap":
+        return _ordered_workflow_contracts(gap=True)
+    if scenario == "negative_workflow_step_runtime_sequence_claim":
+        contracts = _ordered_workflow_contracts()
+        contracts["contracts/workflow/workflow.test_workflow.v1.json"]["payload"]["etapa_ciclo_vida"] = (
+            "Workflow execution order uses runtime sequencing: step 1 then step 2."
+        )
+        return contracts
+    if scenario == "negative_workflow_step_actor_boundary_bypass_claim":
+        contracts = _ordered_workflow_contracts()
+        contracts["contracts/workflow/workflow.test_workflow.v1.json"]["payload"]["etapa_ciclo_vida"] = (
+            "Order in this workflow bypasses actor boundary and delegates write authority."
+        )
+        return contracts
+    if scenario == "negative_support_bundle_workflow_step_order_copy":
+        contracts = _base_support_contracts()
+        contracts["contracts/manifest.json"]["payload"]["payload_copy"] = {
+            "ordering_plan": "workflow order 1 then 2 while runtime executes each step",
+            "notes": "step sequence metadata copied here",
+        }
+        return contracts
+    if scenario == "negative_resolver_output_invalid_ordering_ref":
+        contracts = _minimal_entity_contracts()
+        contracts.update(_ordered_workflow_contracts(second_order=0))
+        _add_resolver_output(contracts, ["relacion.workflow.test_workflow.compone.workflow_step.second.v1"])
+        _add_resolver_support_contracts(
+            contracts,
+            destination_id="relacion.workflow.test_workflow.compone.workflow_step.second.v1",
+        )
+        return contracts
+    raise AssertionError(f"unknown workflow-step ordering fixture scenario: {scenario}")
+
+
+def _materialize_workflow_step_ordering_fixture(root: Path, metadata: dict[str, object]) -> None:
+    _copy_schemas(root)
+    scenario = metadata.get("scenario")
+    if not isinstance(scenario, str):
+        raise AssertionError(f"fixture missing scenario: {metadata.get('fixture_id')}")
+    contracts = _contracts_for_workflow_step_ordering_scenario(scenario)
+    for relative_path, data in contracts.items():
+        _write_json(root / relative_path, data)
+
+
 class R110ValidatorTests(unittest.TestCase):
     def test_negative_fixture_reports_missing_required_id(self) -> None:
         root = Path(__file__).parent / "fixtures" / "r1_10_invalid_missing_id"
@@ -2026,6 +2166,59 @@ class RolePermissionLeakageFixtureTests(unittest.TestCase):
                 with tempfile.TemporaryDirectory() as raw_root:
                     root = Path(raw_root)
                     _materialize_role_permission_leakage_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                finding_dicts = [finding.as_dict() for finding in findings]
+                finding_codes = {finding.code for finding in findings}
+                primary_matches = [
+                    finding
+                    for finding in finding_dicts
+                    if finding["code"] == expected["code"]
+                    and finding["severity"] == expected["severity"]
+                    and finding["file"] == expected["file"]
+                    and finding["pointer"] == expected["pointer"]
+                    and finding["contract_id"] == expected["contract_id"]
+                ]
+                self.assertTrue(primary_matches, finding_dicts)
+                self.assertFalse(forbidden_codes & finding_codes, finding_dicts)
+                unexpected_codes = finding_codes - allowed_codes
+                self.assertFalse(unexpected_codes, finding_dicts)
+
+
+class WorkflowStepOrderingFixtureTests(unittest.TestCase):
+    def test_positive_workflow_step_ordering_fixtures_pass(self) -> None:
+        fixture_root = WORKFLOW_STEP_ORDERING_FIXTURE_ROOT / "positive" / "workflow_step_ordering"
+        metadata_files = sorted(fixture_root.glob("*/metadata.json"))
+        self.assertTrue(metadata_files, "expected positive workflow-step ordering fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_workflow_step_ordering_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                self.assertEqual([], findings)
+
+    def test_negative_workflow_step_ordering_fixtures_report_expected_primary_finding(self) -> None:
+        fixture_root = WORKFLOW_STEP_ORDERING_FIXTURE_ROOT / "negative" / "workflow_step_ordering"
+        metadata_files = sorted(fixture_root.glob("*/*/metadata.json"))
+        self.assertTrue(metadata_files, "expected negative workflow-step ordering fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                expected = metadata["expected_primary_finding"]
+                expected_code = expected["code"]
+                allowed_codes = {expected_code, *metadata.get("allowed_collateral_findings", [])}
+                forbidden_codes = set(metadata.get("forbidden_finding_codes", []))
+
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_workflow_step_ordering_fixture(root, metadata)
 
                     findings = validate_all(root)
 

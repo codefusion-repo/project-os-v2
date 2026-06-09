@@ -1,0 +1,20 @@
+{
+  "fixture_id": "negative_workflow_step_runtime_sequence_claim",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "workflow_workflow_step_runtime_sequence_claim",
+  "scenario": "negative_workflow_step_runtime_sequence_claim",
+  "intentional_violation": "Workflow payload advertises runtime sequencing behavior with ordered execution text.",
+  "expected_primary_finding": {
+    "code": "WORKFLOW_STEP_RUNTIME_SEQUENCE_FORBIDDEN",
+    "severity": "error",
+    "file": "contracts/workflow/workflow.test_workflow.v1.json",
+    "pointer": "/payload/etapa_ciclo_vida",
+    "contract_id": "workflow.test_workflow.v1"
+  },
+  "allowed_collateral_findings": [],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_workflow_step_safe_denial_reference_only_wording",
+  "notes_on_false_positive_risk": "The key is valid schema text; only runtime-ordering wording should trigger the new hard boundary."
+}

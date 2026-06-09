@@ -1,0 +1,27 @@
+{
+  "fixture_id": "negative_support_bundle_workflow_step_order_copy",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "support_bundle_workflow_step_ordering_copy",
+  "scenario": "negative_support_bundle_workflow_step_order_copy",
+  "intentional_violation": "Support bundle copies workflow-step ordering ordering semantics in manifest payload_copy instead of static refs only.",
+  "expected_primary_finding": {
+    "code": "SUPPORT_WORKFLOW_STEP_ORDER_DUPLICATED",
+    "severity": "error",
+    "file": "contracts/manifest.json",
+    "pointer": "/payload/payload_copy",
+    "contract_id": "manifest.test_support.v1"
+  },
+  "allowed_collateral_findings": [
+    "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
+    "SUPPORT_ROLE_PERMISSION_DUPLICATED",
+    "JSON_SCHEMA_ADDITIONAL_PROPERTY",
+    "SUPPORT_OUTPUT_BODY_FORBIDDEN",
+    "SUPPORT_OWNERSHIP_DRIFT",
+    "SUPPORT_REFERENCE_ONLY_VIOLATION"
+  ],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_support_bundle_static_workflow_refs",
+  "notes_on_false_positive_risk": "Copying workflow_step ordering in manifest payload_copy is out-of-band for support bundles."
+}

@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_workflow_step_identity_metadata",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "workflow_and_workflow_step_identity_metadata_static",
+  "scenario": "valid_workflow_step_identity_metadata",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Workflow and workflow_step payloads carry only static identity/description metadata when no ordered relationship is present."
+}

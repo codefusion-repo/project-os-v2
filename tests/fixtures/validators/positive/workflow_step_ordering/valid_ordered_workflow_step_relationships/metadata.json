@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_ordered_workflow_step_relationships",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "workflow_step_ordering_contiguous_valid_group",
+  "scenario": "valid_ordered_workflow_step_relationships",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Ordered workflow->workflow_step relationship uses contiguous slots 1..2 and remains a pure relationship-owned sequencing model."
+}

@@ -1,0 +1,25 @@
+{
+  "fixture_id": "workflow_payload_duplicated_order_field",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "workflow_payload_order_field_duplicate",
+  "scenario": "negative_workflow_payload_duplicated_order_field",
+  "intentional_violation": "Workflow payload carries both order and orden fields, duplicating workflow-step sequencing into entity metadata.",
+  "expected_primary_finding": {
+    "code": "WORKFLOW_STEP_ORDER_FIELD_DUPLICATE",
+    "severity": "error",
+    "file": "contracts/workflow/workflow.test_workflow.v1.json",
+    "pointer": "/payload",
+    "contract_id": "workflow.test_workflow.v1"
+  },
+  "allowed_collateral_findings": [
+    "WORKFLOW_STEP_ORDER_FIELD_FORBIDDEN",
+    "JSON_SCHEMA_ADDITIONAL_PROPERTY",
+    "ENTITY_PAYLOAD_FIELD_NOT_OWNED",
+    "RELATIONSHIP_FACT_OUTSIDE_RELACION"
+  ],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_workflow_step_identity_metadata",
+  "notes_on_false_positive_risk": "Adding both order keys also triggers field-forbidden schema findings; this fixture requires the duplicate-order semantic finding to be present."
+}

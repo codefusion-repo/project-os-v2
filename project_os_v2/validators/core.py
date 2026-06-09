@@ -478,6 +478,23 @@ WORKFLOW_ACTOR_BOUNDARY_BYPASS_RE = re.compile(
     r"|\b(delegation authority|delegate write|delegates write|delegated write|authorizes actor|authorizes writes?)\b",
     re.I,
 )
+WORKFLOW_STEP_ORDER_FIELD_KEYS = frozenset({"order", "orden"})
+WORKFLOW_STEP_ORDERING_SIGNAL_TOKENS = frozenset(
+    {"orden", "order", "ordering", "ordered", "orderly", "sequencing", "sequence", "before", "after", "next", "then"}
+)
+WORKFLOW_STEP_ORDERING_CONTEXT_TOKENS = frozenset({"workflow", "workflow_step", "workflow step", "step"})
+WORKFLOW_STEP_RUNTIME_TOKENS = frozenset({"runtime", "execution", "execute", "run", "runs", "running"})
+WORKFLOW_STEP_ORDERING_DUPLICATE_KEY_CODE = "WORKFLOW_STEP_ORDER_FIELD_DUPLICATE"
+WORKFLOW_STEP_ORDERING_FIELD_FORBIDDEN_CODE = "WORKFLOW_STEP_ORDER_FIELD_FORBIDDEN"
+WORKFLOW_STEP_RUNTIME_SEQUENCE_FORBIDDEN_CODE = "WORKFLOW_STEP_RUNTIME_SEQUENCE_FORBIDDEN"
+WORKFLOW_STEP_ACTOR_BOUNDARY_BYPASS_CODE = "WORKFLOW_STEP_ACTOR_BOUNDARY_BYPASS_FORBIDDEN"
+WORKFLOW_STEP_ROLE_PERMISSION_BYPASS_CODE = "WORKFLOW_STEP_ROLE_PERMISSION_BYPASS_FORBIDDEN"
+SUPPORT_WORKFLOW_STEP_ORDER_DUPLICATED_CODE = "SUPPORT_WORKFLOW_STEP_ORDER_DUPLICATED"
+WORKFLOW_STEP_ORDERING_RELATIONSHIP_SELECTION_CODE = "RESOLVER_OUTPUT_WORKFLOW_STEP_ORDER_REF_INVALID"
+WORKFLOW_STEP_ORDERING_RUNTIME_CLAIM_CODE = WORKFLOW_STEP_RUNTIME_SEQUENCE_FORBIDDEN_CODE
+WORKFLOW_STEP_ORDERING_BOUNDARY_BYPASS_CODE = WORKFLOW_STEP_ACTOR_BOUNDARY_BYPASS_CODE
+WORKFLOW_STEP_ORDERING_PERMISSION_BYPASS_CODE = WORKFLOW_STEP_ROLE_PERMISSION_BYPASS_CODE
+WORKFLOW_STEP_ORDERING_COPY_CODE = SUPPORT_WORKFLOW_STEP_ORDER_DUPLICATED_CODE
 TEMPLATE_PERMISSION_LEAK_RE = re.compile(
     r"\b(write authorization|write permission|permission grant|can write|can commit|can push|can merge|can close|"
     r"merge authority|close authority|release authority|settings authority|command execution)\b",
@@ -715,6 +732,7 @@ def validate_r1_11(root: Path | str) -> list[Finding]:
     _validate_actor_boundary_duplication(root, contract_files, parsed, contract_index, findings)
     _validate_role_permission_boundary(root, contract_files, parsed, findings)
     _validate_role_permission_relationship_leakage(root, contract_files, parsed, findings)
+    _validate_workflow_step_ordering_payload(root, contract_files, parsed, findings)
     _validate_workflow_step_rule_ownership(root, contract_files, parsed, findings)
     _validate_resolver_output_role_permission_refs(root, contract_files, parsed, contract_index, findings)
     _validate_deprecated_relationship_active_candidates(root, contract_files, parsed, contract_index, findings)
@@ -1655,16 +1673,34 @@ def _validate_relationship_ordering(
         type_tuple = (record["origin_family"], record["relation_type"], record["dest_family"])
         order = record["order"]
         if type_tuple in ORDERED_RELATIONSHIP_TYPE_TUPLES:
-            if not isinstance(order, int):
+            workflow_step_ordering = type_tuple == ("workflow", "compone", "workflow_step")
+            if not isinstance(order, int) or isinstance(order, bool):
+                finding_code = (
+                    "WORKFLOW_STEP_ORDER_VALUE_FORBIDDEN" if workflow_step_ordering else "RELATIONSHIP_ORDER_REQUIRED"
+                )
                 findings.append(
                     _finding(
-                        "RELATIONSHIP_ORDER_REQUIRED",
+                        finding_code,
                         record["path"],
                         "/payload/orden",
                         record["contract_id"],
-                        "integer order for ordered relationship type tuple",
+                        "positive integer order for ordered relationship tuple",
                         order,
-                        "Set orden for every instance in ordered relationship groups.",
+                        "Set a positive integer order for every instance in ordered relationship groups.",
+                        root,
+                    )
+                )
+                continue
+            if workflow_step_ordering and order <= 0:
+                findings.append(
+                    _finding(
+                        "WORKFLOW_STEP_ORDER_VALUE_FORBIDDEN",
+                        record["path"],
+                        "/payload/orden",
+                        record["contract_id"],
+                        "positive integer order for workflow-step ordering",
+                        order,
+                        "Workflow-step ordering relationships require strictly positive orden values.",
                         root,
                     )
                 )
@@ -1722,6 +1758,66 @@ def _validate_relationship_ordering(
                     root,
                 )
             )
+
+
+def _collect_workflow_step_ordering_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        record
+        for record in records
+        if (
+            record["kind"] == "instance"
+            and record["origin_family"] == "workflow"
+            and record["relation_type"] == "compone"
+            and record["dest_family"] == "workflow_step"
+        )
+    ]
+
+
+def _workflow_step_ordering_selector_invalid_records(
+    records: list[dict[str, Any]],
+) -> tuple[set[str], bool]:
+    workflow_step_records = _collect_workflow_step_ordering_records(records)
+    if not workflow_step_records:
+        return set(), False
+
+    invalid_refs: set[str] = set()
+    groups: dict[tuple[Any, Any, Any], list[dict[str, Any]]] = {}
+    for record in workflow_step_records:
+        if not isinstance(record.get("contract_id"), str):
+            continue
+        contract_id = record["contract_id"]
+        order = record["order"]
+        if not isinstance(order, int) or isinstance(order, bool):
+            invalid_refs.add(contract_id)
+            continue
+        if order <= 0:
+            invalid_refs.add(contract_id)
+            continue
+        group_key = _relationship_order_group_key(record)
+        groups.setdefault(group_key, []).append(record)
+
+    for group in groups.values():
+        by_order: dict[int, list[dict[str, Any]]] = {}
+        for record in group:
+            order = record["order"]
+            if isinstance(order, int):
+                by_order.setdefault(order, []).append(record)
+        for slot_records in by_order.values():
+            if len(slot_records) < 2:
+                continue
+            for record in slot_records:
+                contract_id = record.get("contract_id")
+                if isinstance(contract_id, str):
+                    invalid_refs.add(contract_id)
+        unique_orders = sorted(by_order)
+        expected_orders = list(range(1, len(unique_orders) + 1))
+        if unique_orders != expected_orders:
+            for record in group:
+                contract_id = record.get("contract_id")
+                if isinstance(contract_id, str):
+                    invalid_refs.add(contract_id)
+
+    return invalid_refs, True
 
 
 def _validate_resolver_output_relationship_refs(
@@ -1835,6 +1931,21 @@ def _validate_resolver_output_relationship_refs(
                         root,
                     )
                 )
+            else:
+                invalid_selector_records, is_applicable = _workflow_step_ordering_selector_invalid_records(relationship_records)
+                if is_applicable and ref in invalid_selector_records:
+                    findings.append(
+                        _finding(
+                            WORKFLOW_STEP_ORDERING_RELATIONSHIP_SELECTION_CODE,
+                            path,
+                            pointer,
+                            _contract_id(data),
+                            "active ordered workflow-step relationship selected as a stable resolver relationship claim",
+                            ref,
+                            "ResolverOutput must not select workflow-step ordering relationships with missing, invalid, duplicate, non-positive, or non-contiguous order semantics.",
+                            root,
+                        )
+                    )
 
 
 def _relationship_order_group_key(record: dict[str, Any]) -> tuple[Any, ...]:
@@ -3895,12 +4006,14 @@ def _validate_support_actor_boundary_duplication(
         if key in SUPPORT_BODY_COPY_KEYS and (
             _contains_actor_boundary_material(value)
             or _contains_role_permission_material(value)
+            or _contains_workflow_step_ordering_material(value)
         ):
             actor_boundary_material = (
                 _contains_actor_boundary_material(value)
                 and not _contains_role_permission_material(value)
             )
             role_permission_material = _contains_role_permission_material(value)
+            workflow_ordering_material = _contains_workflow_step_ordering_material(value)
 
             if actor_boundary_material:
                 findings.append(
@@ -3925,6 +4038,19 @@ def _validate_support_actor_boundary_duplication(
                         "support bundles contain curated refs only, not copied role permission payloads or semantics",
                         key,
                         "Replace copied role permission payloads with static refs to role, regla, and relacion records.",
+                        root,
+                    )
+                )
+            if workflow_ordering_material:
+                findings.append(
+                    _finding(
+                        WORKFLOW_STEP_ORDERING_COPY_CODE,
+                        path,
+                        pointer,
+                        _contract_id(data),
+                        "support bundles contain static refs only and do not copy workflow/workflow_step ordering payload semantics",
+                        key,
+                        "Move workflow-step ordering data to Relación records and reference only workflow, workflow_step, and relationship IDs in support bundles.",
                         root,
                     )
                 )
@@ -4102,22 +4228,150 @@ def _validate_workflow_step_rule_ownership(
                     root,
                 )
             )
-            continue
 
-        if data.get("status") == "active" and destino_id in active_role_regla_destinations:
+
+def _contains_workflow_step_ordering_term(normalized_text: str, tokens: frozenset[str]) -> bool:
+    for token in tokens:
+        if re.search(rf"\b{re.escape(token)}\b", normalized_text):
+            return True
+    return False
+
+
+def _contains_workflow_step_ordering_material(value: Any) -> bool:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if _normalize_claim_text(str(key)) in WORKFLOW_STEP_ORDER_FIELD_KEYS:
+                return True
+            if _contains_workflow_step_ordering_material(child):
+                return True
+        return False
+    if isinstance(value, list):
+        return any(_contains_workflow_step_ordering_material(item) for item in value)
+    if isinstance(value, str):
+        normalized = _normalize_claim_text(value)
+        if _is_negative_claim(normalized):
+            return False
+        return (
+            _contains_workflow_step_ordering_term(normalized, WORKFLOW_STEP_ORDERING_SIGNAL_TOKENS)
+            and (
+                _contains_workflow_step_ordering_term(normalized, WORKFLOW_STEP_ORDERING_CONTEXT_TOKENS)
+                or _contains_workflow_step_ordering_term(normalized, WORKFLOW_STEP_RUNTIME_TOKENS)
+            )
+        )
+    return False
+
+
+def _contains_workflow_step_runtime_ordering_claim(value: str) -> bool:
+    normalized = _normalize_claim_text(value)
+    if _is_negative_claim(normalized):
+        return False
+    return (
+        _contains_workflow_step_ordering_term(normalized, WORKFLOW_STEP_ORDERING_SIGNAL_TOKENS)
+        and _contains_workflow_step_ordering_term(normalized, WORKFLOW_STEP_RUNTIME_TOKENS)
+    )
+
+
+def _validate_workflow_step_ordering_payload(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    findings: list[Finding],
+) -> None:
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict):
+            continue
+        if data.get("contract_kind") != "entity":
+            continue
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+        entity_family = data.get("entity_family")
+        if entity_family not in {"workflow", "workflow_step"}:
+            continue
+        contract_id = _contract_id(data)
+
+        payload_order_keys = WORKFLOW_STEP_ORDER_FIELD_KEYS & set(payload.keys())
+        if len(payload_order_keys) > 1:
             findings.append(
                 _finding(
-                    "WORKFLOW_STEP_REGLA_DUPLICATES_ACTIVE_ROLE_RULE_DESTINATION",
+                    WORKFLOW_STEP_ORDERING_DUPLICATE_KEY_CODE,
                     path,
-                    "/payload/destino_id",
-                    _contract_id(data),
-                    "a destination id not used by active rol.aplica.regla relationships",
-                    destino_id,
-                    "Choose WorkflowStep-owned rule IDs that do not duplicate active role-owned destination IDs.",
+                    "/payload",
+                    contract_id,
+                    "workflow/workflow_step payload metadata only (identity/description), not order semantics",
+                    sorted(payload_order_keys),
+                    "Workflow and WorkflowStep payloads must keep order semantics in Relación, not in entity payload.",
+                    root,
+                )
+            )
+        for order_key in payload_order_keys:
+            findings.append(
+                _finding(
+                    WORKFLOW_STEP_ORDERING_FIELD_FORBIDDEN_CODE,
+                    path,
+                    f"/payload/{escape_pointer_token(order_key)}",
+                    contract_id,
+                    "relationship-owned workflow/workflow_step sequencing only",
+                    payload[order_key],
+                    "Express workflow sequencing through Relación.order, not workflow/workflow_step payload fields.",
                     root,
                 )
             )
 
+        for pointer, key, value in _walk_key_values(payload, "/payload"):
+            if not isinstance(value, str):
+                continue
+            if _contains_workflow_step_runtime_ordering_claim(value):
+                findings.append(
+                    _finding(
+                        WORKFLOW_STEP_ORDERING_RUNTIME_CLAIM_CODE,
+                        path,
+                        pointer,
+                        contract_id,
+                        "workflow/workflow_step metadata without runtime ordering claims",
+                        value,
+                        "Workflow and WorkflowStep payloads are identity metadata; runtime sequencing belongs to execution/runtime context.",
+                        root,
+                    )
+                )
+                continue
+            normalized_value = _normalize_claim_text(value)
+            ordering_value_claim = _contains_workflow_step_ordering_term(normalized_value, WORKFLOW_STEP_ORDERING_SIGNAL_TOKENS)
+            if (
+                ordering_value_claim
+                and (
+                    WORKFLOW_ACTOR_BOUNDARY_BYPASS_RE.search(value) is not None
+                    or _contains_actor_boundary_semantic_claim(value)
+                    or _is_positive_role_permission_claim(value)
+                )
+            ):
+                findings.append(
+                    _finding(
+                        WORKFLOW_STEP_ORDERING_BOUNDARY_BYPASS_CODE,
+                        path,
+                        pointer,
+                        contract_id,
+                        "workflow/workflow_step ordering metadata only",
+                        value,
+                        "Do not mix actor-boundary or role-permission bypass claims with workflow-step ordering semantics.",
+                        root,
+                    )
+                )
+            if ordering_value_claim and _is_positive_role_permission_claim(value):
+                findings.append(
+                    _finding(
+                        WORKFLOW_STEP_ORDERING_PERMISSION_BYPASS_CODE,
+                        path,
+                        pointer,
+                        contract_id,
+                        "workflow/workflow_step metadata without role permission claims",
+                        value,
+                        "Workflow and WorkflowStep payloads must not express role-permission bypass semantics through ordering language.",
+                        root,
+                    )
+                )
+            continue
 
 def _validate_role_permission_boundary(
     root: Path,

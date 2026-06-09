@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_workflow_step_safe_denial_reference_only_wording",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "safe_denial_wording_remains_valid",
+  "scenario": "valid_workflow_step_safe_denial_reference_only_wording",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Safe reference-only wording must not be interpreted as runtime sequencing or permission-boundary claims."
+}

@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_resolver_output_selected_ordering_ref",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "resolver_output_selects_valid_workflow_step_ordering_ref",
+  "scenario": "valid_resolver_output_selected_ordering_ref",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "ResolverOutput selected_relacion_refs references a valid workflow-step ordering relation with active resolver support and non-leaking ordering semantics."
+}

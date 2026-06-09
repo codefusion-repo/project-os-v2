@@ -1,0 +1,20 @@
+{
+  "fixture_id": "negative_workflow_step_non_integer_order",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "workflow_step_order_non_integer",
+  "scenario": "negative_workflow_step_non_integer_order",
+  "intentional_violation": "A workflow.compone.workflow_step relationship uses a non-integer orden value.",
+  "expected_primary_finding": {
+    "code": "WORKFLOW_STEP_ORDER_VALUE_FORBIDDEN",
+    "severity": "error",
+    "file": "contracts/relacion/relacion.workflow.test_workflow.compone.workflow_step.second.v1.json",
+    "pointer": "/payload/orden",
+    "contract_id": "relacion.workflow.test_workflow.compone.workflow_step.second.v1"
+  },
+  "allowed_collateral_findings": ["JSON_SCHEMA_ONE_OF"],
+  "forbidden_finding_codes": ["RELATIONSHIP_ORDER_NOT_ALLOWED"],
+  "positive_pair_fixture_id": "valid_ordered_workflow_step_relationships",
+  "notes_on_false_positive_risk": "Only non-integer order values should fail; this fixture does not alter ordered relationship shape beyond value type."
+}

@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_support_bundle_static_workflow_refs",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "support_bundle_static_workflow_and_relationship_refs",
+  "scenario": "valid_support_bundle_static_workflow_refs",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Support bundles reference workflow/workflow_step/relationship IDs only and avoid copied ordering payload semantics."
+}

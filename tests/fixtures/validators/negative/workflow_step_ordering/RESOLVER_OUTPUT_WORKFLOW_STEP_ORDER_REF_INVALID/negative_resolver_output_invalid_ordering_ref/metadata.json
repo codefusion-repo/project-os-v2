@@ -1,0 +1,20 @@
+{
+  "fixture_id": "negative_resolver_output_invalid_ordering_ref",
+  "roadmap_refs": ["R9.13", "#243", "#227", "#233", "#234", "#232", "#92"],
+  "validator_family": "workflow_step_ordering",
+  "phase": "all",
+  "requirement_slug": "resolver_output_workflow_step_order_ref_invalid",
+  "scenario": "negative_resolver_output_invalid_ordering_ref",
+  "intentional_violation": "ResolverOutput selects a workflow.compone.workflow_step relationship with invalid non-integer orden.",
+  "expected_primary_finding": {
+    "code": "RESOLVER_OUTPUT_WORKFLOW_STEP_ORDER_REF_INVALID",
+    "severity": "error",
+    "file": "contracts/resolver_output/resolver_output.test_resolution.v1.json",
+    "pointer": "/payload/selected_relacion_refs/0",
+    "contract_id": "resolver_output.test_resolution.v1"
+  },
+  "allowed_collateral_findings": ["WORKFLOW_STEP_ORDER_VALUE_FORBIDDEN"],
+  "forbidden_finding_codes": ["RELATIONSHIP_SUPPORT_LINK_MISSING"],
+  "positive_pair_fixture_id": "valid_resolver_output_selected_ordering_ref",
+  "notes_on_false_positive_risk": "Support link is present; selection should fail only because selected relationship has invalid ordering semantics."
+}
