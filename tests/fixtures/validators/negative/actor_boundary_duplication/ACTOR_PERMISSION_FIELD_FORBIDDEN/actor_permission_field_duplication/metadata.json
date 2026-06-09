@@ -1,0 +1,20 @@
+{
+  "fixture_id": "actor_permission_field_duplication",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "actor_payload_permission_field_forbidden",
+  "scenario": "actor_permission_field_duplication",
+  "intentional_violation": "Actor payload includes can_write permission field.",
+  "expected_primary_finding": {
+    "code": "ACTOR_PERMISSION_FIELD_FORBIDDEN",
+    "severity": "error",
+    "file": "contracts/actor/actor.browser_chat.v1.json",
+    "pointer": "/payload/can_write",
+    "contract_id": "actor.browser_chat.v1"
+  },
+  "allowed_collateral_findings": ["ENTITY_PAYLOAD_FIELD_NOT_OWNED", "JSON_SCHEMA_ADDITIONAL_PROPERTY"],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_actor_surface_metadata",
+  "notes_on_false_positive_risk": "Permission fields must fail closed; schema findings are collateral only."
+}

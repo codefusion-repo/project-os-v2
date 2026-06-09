@@ -1,0 +1,20 @@
+{
+  "fixture_id": "actor_hard_limit_field_duplication",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "actor_payload_hard_limit_field_forbidden",
+  "scenario": "actor_hard_limit_field_duplication",
+  "intentional_violation": "Actor payload duplicates hard_limits instead of inheriting Límite through Relación.",
+  "expected_primary_finding": {
+    "code": "ACTOR_HARD_LIMIT_DUPLICATED",
+    "severity": "error",
+    "file": "contracts/actor/actor.browser_chat.v1.json",
+    "pointer": "/payload/hard_limits",
+    "contract_id": "actor.browser_chat.v1"
+  },
+  "allowed_collateral_findings": ["ACTOR_BOUNDARY_FIELD_FORBIDDEN", "ENTITY_PAYLOAD_FIELD_NOT_OWNED", "ENTITY_PAYLOAD_CROSS_FAMILY_FACT", "JSON_SCHEMA_ADDITIONAL_PROPERTY", "CONTRACT_REF_NOT_FOUND"],
+  "forbidden_finding_codes": [],
+  "positive_pair_fixture_id": "valid_actor_limit_relationship",
+  "notes_on_false_positive_risk": "Hard limit field duplication is intentionally invalid; reference resolution/schema findings are collateral only."
+}

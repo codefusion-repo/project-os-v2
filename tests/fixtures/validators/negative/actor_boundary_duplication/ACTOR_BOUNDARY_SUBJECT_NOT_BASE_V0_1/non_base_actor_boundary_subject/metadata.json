@@ -1,0 +1,20 @@
+{
+  "fixture_id": "non_base_actor_boundary_subject",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "non_base_actor_boundary_subject_forbidden",
+  "scenario": "non_base_actor_boundary_subject",
+  "intentional_violation": "Fixture tries to make actor.future_agent.v1 the subject of actor-boundary duplication semantics.",
+  "expected_primary_finding": {
+    "code": "ACTOR_BOUNDARY_SUBJECT_NOT_BASE_V0_1",
+    "severity": "error",
+    "file": "contracts/actor/actor.future_agent.v1.json",
+    "pointer": "/payload/superficie_capacidad",
+    "contract_id": "actor.future_agent.v1"
+  },
+  "allowed_collateral_findings": ["ACTOR_BOUNDARY_VALUE_FORBIDDEN"],
+  "forbidden_finding_codes": ["BROWSER_CHAT_BOUNDARY_DUPLICATED", "TERMINAL_AGENT_BOUNDARY_DUPLICATED"],
+  "positive_pair_fixture_id": "valid_actor_surface_metadata",
+  "notes_on_false_positive_risk": "The generic actor-boundary wording may be flagged as duplication, but the non-Base actor must not be accepted or inferred as a valid Base v0.1 actor subject."
+}

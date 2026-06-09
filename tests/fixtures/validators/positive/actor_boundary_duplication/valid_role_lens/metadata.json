@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_role_lens",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "role_lens_without_permissions_pass",
+  "scenario": "valid_role_lens",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Role payloads that remain professional lenses without permissions must remain valid."
+}

@@ -397,6 +397,92 @@ ACTOR_HARD_LIMIT_DUPLICATION_KEYS = {
     "prohibited_actions",
     "write_boundary",
 }
+ACTOR_BOUNDARY_FIELD_KEYS = ACTOR_HARD_LIMIT_DUPLICATION_KEYS | {
+    "actor_boundary",
+    "actor_boundaries",
+    "actor_permissions",
+    "blocked_action_refs",
+    "blocked_action_semantics",
+    "boundary",
+    "boundary_claim",
+    "boundary_claims",
+    "boundary_facts",
+    "boundary_semantics",
+    "browser_chat_boundary",
+    "draft_only",
+    "draft_only_boundary",
+    "hard_boundary",
+    "hard_boundary_claim",
+    "hard_boundary_claims",
+    "no_write",
+    "no_write_semantics",
+    "output_boundary",
+    "output_boundary_facts",
+    "permission_boundary",
+    "scoped_write",
+    "scoped_write_boundary",
+    "terminal_agent_boundary",
+    "write_boundary_claim",
+    "write_boundary_claims",
+}
+ACTOR_PERMISSION_FIELD_KEYS = {
+    "allowed_actions",
+    "allowed_write_actions",
+    "authority",
+    "authorized_actions",
+    "can_close",
+    "can_commit",
+    "can_merge",
+    "can_push",
+    "can_write",
+    "close_authority",
+    "command_authority",
+    "capabilities",
+    "grant",
+    "grants",
+    "github_write_authority",
+    "merge_authority",
+    "permission",
+    "permission_claim",
+    "permission_claims",
+    "permission_grant",
+    "permission_grants",
+    "permissions",
+    "release_authority",
+    "settings_authority",
+    "write_authority",
+    "write_authorization",
+    "write_authorization_behavior",
+    "write_permission",
+}
+ACTOR_BOUNDARY_OWNER_ENTITY_FAMILIES = {"limite", "regla"}
+ACTOR_BOUNDARY_CLAIM_RE = re.compile(
+    r"\b("
+    r"actor hard boundary|actor boundary|hard boundary|hard limit|blocked action|denied action|"
+    r"output boundary"
+    r")\b",
+    re.I,
+)
+BROWSER_CHAT_BOUNDARY_CLAIM_RE = re.compile(
+    r"\b(browser[_ -]?chat|browser chat)\b.*\b(no write|no-write|draft only|draft-only)\b"
+    r"|\b(no write|no-write|draft only|draft-only)\b.*\b(browser[_ -]?chat|browser chat)\b",
+    re.I,
+)
+TERMINAL_AGENT_BOUNDARY_CLAIM_RE = re.compile(
+    r"\b(terminal[_ -]?agent|terminal agent)\b.*\b(scoped write|scoped-write|scoped writes|scoped-write-only)\b"
+    r"|\b(scoped write|scoped-write|scoped writes|scoped-write-only)\b.*\b(terminal[_ -]?agent|terminal agent)\b",
+    re.I,
+)
+WORKFLOW_ACTOR_BOUNDARY_BYPASS_RE = re.compile(
+    r"\b(bypass|override|weaken|skip|ignore)\b.*\b(actor boundary|actor hard boundary|no write|no-write|draft only|draft-only|scoped write|write boundary)\b"
+    r"|\b(delegation authority|delegate write|delegates write|delegated write|authorizes actor|authorizes writes?)\b",
+    re.I,
+)
+TEMPLATE_PERMISSION_LEAK_RE = re.compile(
+    r"\b(write authorization|write permission|permission grant|can write|can commit|can push|can merge|can close|"
+    r"merge authority|close authority|release authority|settings authority|command execution)\b",
+    re.I,
+)
 RESOLVER_OUTPUT_LIMITE_REF_REFERENCE_KEYS = {
     "effective_limite_refs",
     "selected_limite_refs",
@@ -419,6 +505,20 @@ ROLE_PERMISSION_KEYS = {
 }
 ROLE_PERMISSION_VALUE_RE = re.compile(
     r"\b(can|may|grant|grants|permission|permissions|authorize|authorized|allowed_to|write_access|commit|push|merge|close_issue)\b"
+)
+ACTOR_PERMISSION_VALUE_RE = re.compile(
+    r"\b("
+    r"can write|can commit|can push|can merge|can close|may write|may commit|may push|may merge|may close|"
+    r"permission grant|permission grants|write permission|write authorization|write access|merge authority|"
+    r"close authority|release authority|settings authority|authorized to write|authorized to merge"
+    r")\b",
+    re.I,
+)
+BASE_V0_1_ACTOR_CONTRACT_IDS = frozenset(
+    {
+        "actor.browser_chat.v1",
+        "actor.terminal_agent.v1",
+    }
 )
 BEHAVIOR_SCHEMA_DENIAL_FIELDS = FORBIDDEN_TRUE_FIELDS | {
     "command_execution_behavior",
@@ -590,6 +690,7 @@ def validate_r1_11(root: Path | str) -> list[Finding]:
     _validate_support_reference_only_ownership(root, contract_files, parsed, findings)
     _validate_durable_live_state_boundary(root, schema_files, contract_files, parsed, findings)
     _validate_actor_hard_limit_duplication(root, contract_files, parsed, findings)
+    _validate_actor_boundary_duplication(root, contract_files, parsed, contract_index, findings)
     _validate_role_permission_boundary(root, contract_files, parsed, findings)
     _validate_workflow_step_rule_ownership(root, contract_files, parsed, findings)
     _validate_deprecated_relationship_active_candidates(root, contract_files, parsed, contract_index, findings)
@@ -3461,6 +3562,396 @@ def _validate_actor_hard_limit_duplication(
             )
 
 
+def _validate_actor_boundary_duplication(
+    root: Path,
+    contract_files: list[Path],
+    parsed: dict[Path, Any],
+    contract_index: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    deprecated_relationship_ids = {
+        contract_id
+        for contract_id, data in contract_index.items()
+        if isinstance(contract_id, str)
+        and isinstance(data, dict)
+        and data.get("contract_kind") == "relationship"
+        and data.get("status") in RELATIONSHIP_RETIRED_STATUSES
+    }
+
+    for path in contract_files:
+        data = parsed.get(path)
+        if not isinstance(data, dict):
+            continue
+        contract_id = _contract_id(data)
+        contract_kind = data.get("contract_kind")
+        entity_family = data.get("entity_family")
+        payload = data.get("payload")
+        if not isinstance(payload, dict):
+            continue
+
+        if contract_kind in SUPPORT_KINDS:
+            _validate_support_actor_boundary_duplication(root, path, data, payload, findings)
+            continue
+
+        if contract_kind == "relationship":
+            continue
+
+        if entity_family == "actor":
+            _validate_actor_payload_boundary_duplication(root, path, data, payload, findings)
+
+        if entity_family in {"workflow", "workflow_step"}:
+            _validate_workflow_actor_boundary_bypass(root, path, data, payload, findings)
+
+        if entity_family in {"plantilla", "artefacto"}:
+            _validate_template_actor_boundary_permission_leak(root, path, data, payload, findings)
+
+        if entity_family == "resolver_output":
+            _validate_resolver_output_actor_boundary_refs(
+                root,
+                path,
+                data,
+                payload,
+                contract_index,
+                deprecated_relationship_ids,
+                findings,
+            )
+
+        if entity_family in ACTOR_BOUNDARY_OWNER_ENTITY_FAMILIES:
+            continue
+
+        for pointer, _key, value in _walk_key_values(payload, "/payload"):
+            if not isinstance(value, str):
+                continue
+            normalized = _normalize_claim_text(value)
+            if _is_negative_claim(normalized) and not _contains_actor_boundary_semantic_claim(value):
+                continue
+            if BROWSER_CHAT_BOUNDARY_CLAIM_RE.search(value) is not None:
+                findings.append(
+                    _finding(
+                        "BROWSER_CHAT_BOUNDARY_DUPLICATED",
+                        path,
+                        pointer,
+                        contract_id,
+                        "browser_chat no-write/draft-only facts owned by limite/regla plus relacion inheritance",
+                        value,
+                        "Represent browser_chat no-write and draft-only boundaries through Límite, Regla, and Relación, not non-owner payload prose.",
+                        root,
+                    )
+                )
+            if TERMINAL_AGENT_BOUNDARY_CLAIM_RE.search(value) is not None:
+                findings.append(
+                    _finding(
+                        "TERMINAL_AGENT_BOUNDARY_DUPLICATED",
+                        path,
+                        pointer,
+                        contract_id,
+                        "terminal_agent scoped-write facts owned by limite/regla plus relacion inheritance",
+                        value,
+                        "Represent terminal_agent scoped-write boundaries through Límite, Regla, and Relación, not non-owner payload prose.",
+                        root,
+                    )
+                )
+
+
+def _validate_actor_payload_boundary_duplication(
+    root: Path,
+    path: Path,
+    data: dict[str, Any],
+    payload: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    contract_id = _contract_id(data)
+    actor_boundary_subject_reported = False
+    for pointer, key, value in _walk_key_values(payload, "/payload"):
+        normalized_key = _normalize_key_name(key)
+        if (
+            not actor_boundary_subject_reported
+            and not _is_base_v0_1_actor_ref(contract_id)
+            and _key_or_value_carries_actor_boundary_slice_material(key, value)
+        ):
+            actor_boundary_subject_reported = True
+            findings.append(
+                _finding(
+                    "ACTOR_BOUNDARY_SUBJECT_NOT_BASE_V0_1",
+                    path,
+                    pointer,
+                    contract_id,
+                    sorted(BASE_V0_1_ACTOR_CONTRACT_IDS),
+                    contract_id,
+                    "Base v0.1 actor-boundary duplication validation is closed to browser_chat and terminal_agent only; do not infer or validate additional actor subjects in this slice.",
+                    root,
+                )
+            )
+        if _is_actor_permission_field(key):
+            findings.append(
+                _finding(
+                    "ACTOR_PERMISSION_FIELD_FORBIDDEN",
+                    path,
+                    pointer,
+                    contract_id,
+                    "actor payload stable surface metadata only; permission and write facts owned by limite/regla/relacion plus external approval",
+                    key,
+                    "Remove permission/write/merge/close/release/settings fields from actor payloads.",
+                    root,
+                )
+            )
+        elif _is_actor_boundary_field(key):
+            findings.append(
+                _finding(
+                    "ACTOR_BOUNDARY_FIELD_FORBIDDEN",
+                    path,
+                    pointer,
+                    contract_id,
+                    "actor payload stable surface metadata only; hard boundary facts owned by limite/regla/relacion",
+                    key,
+                    "Remove hard-boundary, blocked-action, denied-action, and output-boundary fields from actor payloads.",
+                    root,
+                )
+            )
+
+        if not isinstance(value, str):
+            continue
+        normalized_value = _normalize_claim_text(value)
+        if _is_negative_claim(normalized_value) and not _contains_actor_boundary_semantic_claim(value):
+            continue
+        if _is_positive_permission_claim(value):
+            findings.append(
+                _finding(
+                    "ACTOR_PERMISSION_VALUE_FORBIDDEN",
+                    path,
+                    pointer,
+                    contract_id,
+                    "actor payload stable surface metadata only; no permission grants or write authorization values",
+                    value,
+                    "Replace actor permission-grant prose with stable surface metadata and relationship-owned boundaries.",
+                    root,
+                )
+            )
+        elif ACTOR_BOUNDARY_CLAIM_RE.search(value) is not None or "boundary" in normalized_key:
+            findings.append(
+                _finding(
+                    "ACTOR_BOUNDARY_VALUE_FORBIDDEN",
+                    path,
+                    pointer,
+                    contract_id,
+                    "actor payload stable surface metadata only; no copied hard-boundary semantics",
+                    value,
+                    "Represent actor hard boundaries through Límite, Regla, and Relación instead of actor payload prose.",
+                    root,
+                )
+            )
+
+
+def _validate_workflow_actor_boundary_bypass(
+    root: Path,
+    path: Path,
+    data: dict[str, Any],
+    payload: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    for pointer, key, value in _walk_key_values(payload, "/payload"):
+        normalized_key = _normalize_key_name(key)
+        if (
+            "bypass" in normalized_key
+            and ("actor" in normalized_key or "boundary" in normalized_key or "write" in normalized_key)
+        ):
+            findings.append(
+                _finding(
+                    "WORKFLOW_ACTOR_BOUNDARY_BYPASS_FORBIDDEN",
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "workflow/workflow_step identity without actor-boundary bypass or delegation authority truth",
+                    key,
+                    "Keep workflow delegation and actor-boundary inheritance in Relación and Resolver context, not workflow payload bypass fields.",
+                    root,
+                )
+            )
+            continue
+        if not isinstance(value, str):
+            continue
+        normalized_value = _normalize_claim_text(value)
+        if _is_negative_claim(normalized_value) and WORKFLOW_ACTOR_BOUNDARY_BYPASS_RE.search(value) is None:
+            continue
+        if WORKFLOW_ACTOR_BOUNDARY_BYPASS_RE.search(value) is not None:
+            findings.append(
+                _finding(
+                    "WORKFLOW_ACTOR_BOUNDARY_BYPASS_FORBIDDEN",
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "workflow/workflow_step identity without actor-boundary bypass or delegation authority truth",
+                    value,
+                    "Workflow and WorkflowStep payloads must not claim actor-boundary bypass or write delegation authority.",
+                    root,
+                )
+            )
+
+
+def _validate_template_actor_boundary_permission_leak(
+    root: Path,
+    path: Path,
+    data: dict[str, Any],
+    payload: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    for pointer, key, value in _walk_key_values(payload, "/payload"):
+        if _is_actor_permission_field(key):
+            findings.append(
+                _finding(
+                    "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN",
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "template/artifact output shape only; no actor permission, command execution, or write authorization fields",
+                    key,
+                    "Keep templates and artifacts as output shapes; they must not carry permission or write authority.",
+                    root,
+                )
+            )
+            continue
+        if not isinstance(value, str):
+            continue
+        normalized = _normalize_claim_text(value)
+        if _is_negative_claim(normalized):
+            continue
+        if TEMPLATE_PERMISSION_LEAK_RE.search(value) is not None:
+            findings.append(
+                _finding(
+                    "TEMPLATE_ACTOR_BOUNDARY_PERMISSION_LEAK_FORBIDDEN",
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "template/artifact output shape only; no actor permission, command execution, or write authorization claims",
+                    value,
+                    "Remove permission, command execution, merge, close, release, settings, and write claims from template/artifact payloads.",
+                    root,
+                )
+            )
+
+
+def _validate_support_actor_boundary_duplication(
+    root: Path,
+    path: Path,
+    data: dict[str, Any],
+    payload: dict[str, Any],
+    findings: list[Finding],
+) -> None:
+    for pointer, key, value in _walk_key_values(payload, "/payload"):
+        if key in SUPPORT_BODY_COPY_KEYS and _contains_actor_boundary_material(value):
+            findings.append(
+                _finding(
+                    "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "support bundles contain curated refs only, not copied actor-boundary payloads or semantics",
+                    key,
+                    "Replace copied actor-boundary payloads with static refs to actor, limite, regla, and relacion records.",
+                    root,
+                )
+            )
+            continue
+        if not isinstance(value, str):
+            continue
+        normalized = _normalize_claim_text(value)
+        if _is_negative_claim(normalized) and not _contains_actor_boundary_semantic_claim(value):
+            continue
+        if (
+            BROWSER_CHAT_BOUNDARY_CLAIM_RE.search(value) is not None
+            or TERMINAL_AGENT_BOUNDARY_CLAIM_RE.search(value) is not None
+            or SUPPORT_PERMISSION_CLAIM_RE.search(value) is not None
+        ):
+            findings.append(
+                _finding(
+                    "SUPPORT_ACTOR_BOUNDARY_DUPLICATED",
+                    path,
+                    pointer,
+                    _contract_id(data),
+                    "support bundles contain static refs only and do not copy actor-boundary or permission semantics",
+                    value,
+                    "Keep support bundles reference-only; actor boundary semantics belong to Límite, Regla, and Relación.",
+                    root,
+                )
+            )
+
+
+def _validate_resolver_output_actor_boundary_refs(
+    root: Path,
+    path: Path,
+    data: dict[str, Any],
+    payload: dict[str, Any],
+    contract_index: dict[str, Any],
+    deprecated_relationship_ids: set[str],
+    findings: list[Finding],
+) -> None:
+    selected = payload.get("selected_relacion_refs")
+    if not isinstance(selected, list):
+        return
+    for index, ref in enumerate(selected):
+        if not isinstance(ref, str):
+            continue
+        relationship = contract_index.get(ref)
+        relationship_payload = relationship.get("payload") if isinstance(relationship, dict) else None
+        invalid_reason: str | None = None
+        if ref == "relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1":
+            invalid_reason = "placeholder actor-boundary relationship candidate"
+        elif ref in deprecated_relationship_ids:
+            invalid_reason = "deprecated actor-boundary relationship candidate"
+        elif isinstance(relationship_payload, dict) and _is_actor_boundary_relationship_payload(relationship_payload):
+            status = relationship.get("status") if isinstance(relationship, dict) else None
+            if status in RELATIONSHIP_RETIRED_STATUSES:
+                invalid_reason = "retired actor-boundary relationship candidate"
+
+        if invalid_reason is None:
+            continue
+        findings.append(
+            _finding(
+                "RESOLVER_OUTPUT_ACTOR_BOUNDARY_REF_INVALID",
+                path,
+                join_pointer("/payload/selected_relacion_refs", index),
+                _contract_id(data),
+                "selected actor-boundary relationship refs must point to active concrete inheritance relationships",
+                ref,
+                f"Do not select {invalid_reason}; select active concrete actor-boundary relationship refs only.",
+                root,
+            )
+        )
+
+
+def _contains_actor_boundary_material(value: Any) -> bool:
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if _is_actor_boundary_field(str(key)) or _is_actor_permission_field(str(key)):
+                return True
+            if _contains_actor_boundary_material(item):
+                return True
+        return False
+    if isinstance(value, list):
+        return any(_contains_actor_boundary_material(item) for item in value)
+    if isinstance(value, str):
+        normalized = _normalize_claim_text(value)
+        if _is_negative_claim(normalized) and not _contains_actor_boundary_semantic_claim(value):
+            return False
+        return (
+            ACTOR_BOUNDARY_CLAIM_RE.search(value) is not None
+            or BROWSER_CHAT_BOUNDARY_CLAIM_RE.search(value) is not None
+            or TERMINAL_AGENT_BOUNDARY_CLAIM_RE.search(value) is not None
+            or SUPPORT_PERMISSION_CLAIM_RE.search(value) is not None
+        )
+    return False
+
+
+def _is_actor_boundary_relationship_payload(payload: dict[str, Any]) -> bool:
+    origin_id = payload.get("origen_id")
+    return (
+        payload.get("origen_entidad") == "actor"
+        and _is_base_v0_1_actor_ref(origin_id)
+        and payload.get("destino_entidad") in {"limite", "regla", "estado"}
+        and payload.get("tipo_relacion") in {"tiene", "aplica", "falla_en"}
+    )
+
+
 def _validate_workflow_step_rule_ownership(
     root: Path,
     contract_files: list[Path],
@@ -3773,6 +4264,57 @@ def _is_actor_hard_limit_duplication_key(key: str) -> bool:
     )
 
 
+def _is_actor_boundary_field(key: str) -> bool:
+    normalized = _normalize_key_name(key)
+    return (
+        normalized in ACTOR_BOUNDARY_FIELD_KEYS
+        or normalized.endswith("_limit_refs")
+        or normalized.endswith("_limite_refs")
+        or "hard_limit" in normalized
+        or "hard_boundary" in normalized
+        or "write_boundary" in normalized
+        or "output_boundary" in normalized
+    )
+
+
+def _is_base_v0_1_actor_ref(value: Any) -> bool:
+    return isinstance(value, str) and value in BASE_V0_1_ACTOR_CONTRACT_IDS
+
+
+def _key_or_value_carries_actor_boundary_slice_material(key: str, value: Any) -> bool:
+    if _is_actor_boundary_field(key) or _is_actor_permission_field(key):
+        return True
+    if isinstance(value, str):
+        normalized = _normalize_claim_text(value)
+        if _is_negative_claim(normalized) and not _contains_actor_boundary_semantic_claim(value):
+            return False
+        return (
+            _contains_actor_boundary_semantic_claim(value)
+            or _is_positive_permission_claim(value)
+            or "boundary" in _normalize_key_name(key)
+        )
+    if isinstance(value, list):
+        return any(_key_or_value_carries_actor_boundary_slice_material(key, item) for item in value)
+    if isinstance(value, dict):
+        return any(
+            _key_or_value_carries_actor_boundary_slice_material(str(child_key), child_value)
+            for child_key, child_value in value.items()
+        )
+    return False
+
+
+def _is_actor_permission_field(key: str) -> bool:
+    normalized = _normalize_key_name(key)
+    return (
+        normalized in ACTOR_PERMISSION_FIELD_KEYS
+        or normalized.startswith("can_")
+        or "permission" in normalized
+        or "write_authorization" in normalized
+        or "write_permission" in normalized
+        or normalized.endswith("_authority")
+    )
+
+
 def _is_resolver_output_limite_reference_field(entity_family: Any, pointer: str, key: str) -> bool:
     return (
         entity_family == "resolver_output"
@@ -3797,6 +4339,24 @@ def _is_positive_role_permission_claim(value: str) -> bool:
     if _is_negative_claim(normalized):
         return False
     return ROLE_PERMISSION_VALUE_RE.search(normalized) is not None
+
+
+def _is_positive_permission_claim(value: str) -> bool:
+    normalized = _normalize_claim_text(value)
+    if _is_negative_claim(normalized):
+        return False
+    return (
+        ACTOR_PERMISSION_VALUE_RE.search(value) is not None
+        or SUPPORT_PERMISSION_CLAIM_RE.search(value) is not None
+    )
+
+
+def _contains_actor_boundary_semantic_claim(value: str) -> bool:
+    return (
+        ACTOR_BOUNDARY_CLAIM_RE.search(value) is not None
+        or BROWSER_CHAT_BOUNDARY_CLAIM_RE.search(value) is not None
+        or TERMINAL_AGENT_BOUNDARY_CLAIM_RE.search(value) is not None
+    )
 
 
 def _normalize_claim_text(value: str) -> str:

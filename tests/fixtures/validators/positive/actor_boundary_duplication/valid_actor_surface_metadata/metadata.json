@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_actor_surface_metadata",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "browser_chat_surface_metadata_only_pass",
+  "scenario": "valid_actor_surface_metadata",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Base v0.1 actor.browser_chat.v1 payload with only stable surface capability metadata must remain valid."
+}

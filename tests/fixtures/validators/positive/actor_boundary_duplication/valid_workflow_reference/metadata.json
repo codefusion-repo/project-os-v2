@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_workflow_reference",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "workflow_relationship_reference_pass",
+  "scenario": "valid_workflow_reference",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Workflow and WorkflowStep references that do not bypass actor boundaries must remain valid."
+}

@@ -9,12 +9,14 @@ import unittest
 from pathlib import Path
 
 from project_os_v2.validators import validate_all, validate_r1_10, validate_r1_11
+from project_os_v2.validators.core import BASE_V0_1_ACTOR_CONTRACT_IDS
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RELATIONSHIP_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 SUPPORT_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 NO_LIVE_STATE_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
+ACTOR_BOUNDARY_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "validators"
 SUPPORT_SELECTOR_DIMENSIONS = {
     "actor_type": ["actor"],
     "role": ["rol"],
@@ -974,6 +976,200 @@ def _materialize_support_fixture(root: Path, metadata: dict[str, object]) -> Non
         _write_json(root / relative_path, data)
 
 
+def _actor_boundary_base_contracts() -> dict[str, dict[str, object]]:
+    return {
+        "contracts/actor/actor.browser_chat.v1.json": _contract_envelope(
+            "actor.browser_chat.v1",
+            "actor",
+            {"nombre": "browser chat", "superficie_capacidad": "browser chat surface metadata"},
+        ),
+        "contracts/actor/actor.terminal_agent.v1.json": _contract_envelope(
+            "actor.terminal_agent.v1",
+            "actor",
+            {"nombre": "terminal agent", "superficie_capacidad": "terminal surface metadata"},
+        ),
+        "contracts/limite/limite.browser_chat_no_write.v1.json": _contract_envelope(
+            "limite.browser_chat_no_write.v1",
+            "limite",
+            {"nombre": "browser chat no write", "severidad": "hard", "tipo": "actor_boundary"},
+        ),
+        "contracts/regla/regla.browser_chat_output_boundary.v1.json": _contract_envelope(
+            "regla.browser_chat_output_boundary.v1",
+            "regla",
+            {
+                "nombre": "browser chat output boundary",
+                "condicion": "browser chat output",
+                "comportamiento_esperado": "draft output only; does not grant write authorization",
+            },
+        ),
+        "contracts/relacion/relacion.actor.tiene.limite.v1.json": _relationship_contract(
+            "relacion.actor.tiene.limite.v1",
+            _relationship_type_payload("actor", "tiene", "limite"),
+        ),
+        "contracts/relacion/relacion.actor.aplica.regla.v1.json": _relationship_contract(
+            "relacion.actor.aplica.regla.v1",
+            _relationship_type_payload("actor", "aplica", "regla"),
+        ),
+    }
+
+
+def _contracts_for_actor_boundary_scenario(scenario: str) -> dict[str, dict[str, object]]:
+    if scenario == "valid_actor_surface_metadata":
+        return {
+            "contracts/actor/actor.browser_chat.v1.json": _contract_envelope(
+                "actor.browser_chat.v1",
+                "actor",
+                {"nombre": "browser chat", "superficie_capacidad": "stable surface metadata only"},
+            )
+        }
+    if scenario == "valid_terminal_agent_surface_metadata":
+        return {
+            "contracts/actor/actor.terminal_agent.v1.json": _contract_envelope(
+                "actor.terminal_agent.v1",
+                "actor",
+                {"nombre": "terminal agent", "superficie_capacidad": "stable terminal surface metadata only"},
+            )
+        }
+    if scenario == "valid_actor_limit_relationship":
+        contracts = _actor_boundary_base_contracts()
+        contracts["contracts/relacion/relacion.actor.browser_chat.tiene.limite.browser_chat_no_write.v1.json"] = _relationship_contract(
+            "relacion.actor.browser_chat.tiene.limite.browser_chat_no_write.v1",
+            _relationship_payload("actor", "actor.browser_chat.v1", "tiene", "limite", "limite.browser_chat_no_write.v1"),
+        )
+        return contracts
+    if scenario == "valid_actor_rule_relationship":
+        contracts = _actor_boundary_base_contracts()
+        contracts["contracts/relacion/relacion.actor.browser_chat.aplica.regla.browser_chat_output_boundary.v1.json"] = _relationship_contract(
+            "relacion.actor.browser_chat.aplica.regla.browser_chat_output_boundary.v1",
+            _relationship_payload(
+                "actor",
+                "actor.browser_chat.v1",
+                "aplica",
+                "regla",
+                "regla.browser_chat_output_boundary.v1",
+            ),
+        )
+        return contracts
+    if scenario == "valid_role_lens":
+        return {
+            "contracts/rol/rol.implementation_engineering.v1.json": _contract_envelope(
+                "rol.implementation_engineering.v1",
+                "rol",
+                {"nombre": "implementation engineering", "lente_profesional": "implementation lens only"},
+            )
+        }
+    if scenario == "valid_workflow_reference":
+        return _ordered_workflow_contracts()
+    if scenario == "valid_support_static_refs":
+        return _base_support_contracts()
+    if scenario == "valid_safe_denial_reference_wording":
+        return {
+            "contracts/actor/actor.browser_chat.v1.json": _contract_envelope(
+                "actor.browser_chat.v1",
+                "actor",
+                {
+                    "nombre": "browser chat",
+                    "superficie_capacidad": "reference only; does not grant permission, write authorization, merge, close, or command execution",
+                },
+            )
+        }
+
+    contracts = _actor_boundary_base_contracts()
+    actor = contracts["contracts/actor/actor.browser_chat.v1.json"]["payload"]
+    terminal = contracts["contracts/actor/actor.terminal_agent.v1.json"]["payload"]
+
+    if scenario == "actor_hard_limit_field_duplication":
+        actor["hard_limits"] = ["limite.browser_chat_no_write.v1"]
+    elif scenario == "actor_blocked_actions_duplication":
+        actor["blocked_action_semantics"] = ["push", "open_pr"]
+    elif scenario == "actor_permission_field_duplication":
+        actor["can_write"] = True
+    elif scenario == "actor_boundary_value_duplication":
+        actor["superficie_capacidad"] = "browser_chat owns no-write draft-only hard boundary semantics"
+    elif scenario == "actor_permission_value_duplication":
+        actor["superficie_capacidad"] = "browser_chat can write, can merge, and has write authorization"
+    elif scenario == "browser_chat_boundary_duplication":
+        return {
+            "contracts/workflow_step/workflow_step.request_routing.v1.json": _contract_envelope(
+                "workflow_step.request_routing.v1",
+                "workflow_step",
+                {
+                    "nombre": "request routing",
+                    "objetivo": "browser_chat is no-write and draft-only",
+                    "condicion_base_avance": None,
+                    "condicion_base_bloqueo": None,
+                    "condicion_base_repeticion": None,
+                },
+            )
+        }
+    elif scenario == "terminal_agent_boundary_duplication":
+        terminal["superficie_capacidad"] = "terminal_agent is scoped-write-only"
+    elif scenario == "role_permission_grant_leakage":
+        return {
+            "contracts/rol/rol.implementation_engineering.v1.json": _contract_envelope(
+                "rol.implementation_engineering.v1",
+                "rol",
+                {"nombre": "implementation", "lente_profesional": "implementation role can write and merge"},
+            )
+        }
+    elif scenario == "workflow_actor_boundary_bypass_claim":
+        return {
+            "contracts/workflow/workflow.implementation.v1.json": _contract_envelope(
+                "workflow.implementation.v1",
+                "workflow",
+                {
+                    "nombre": "implementation",
+                    "etapa_ciclo_vida": "workflow may bypass actor no-write boundary and delegate write authority",
+                },
+            )
+        }
+    elif scenario == "support_actor_boundary_copied_payload":
+        contracts = _base_support_contracts()
+        contracts["contracts/manifest.json"]["payload"]["payload_copy"] = {
+            "actor_ref": "actor.browser_chat.v1",
+            "no_write_boundary": "browser_chat is no-write and draft-only",
+        }
+    elif scenario == "resolver_output_actor_boundary_placeholder_ref":
+        contracts["contracts/relacion/relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1.json"] = _relationship_contract(
+            "relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1",
+            _placeholder_relationship_payload(),
+        )
+        _add_resolver_output(contracts, ["relacion.placeholder_origen.placeholder_tipo.placeholder_destino.v1"])
+    elif scenario == "template_actor_boundary_permission_claim":
+        return {
+            "contracts/plantilla/plantilla.project_os_v2_response.v1.json": _contract_envelope(
+                "plantilla.project_os_v2_response.v1",
+                "plantilla",
+                {
+                    "nombre": "response",
+                    "tipo": "report",
+                    "formato": "write authorization grants permission to merge",
+                    "secciones_requeridas": [],
+                },
+            )
+        }
+    elif scenario == "non_base_actor_boundary_subject":
+        return {
+            "contracts/actor/actor.future_agent.v1.json": _contract_envelope(
+                "actor.future_agent.v1",
+                "actor",
+                {"nombre": "future agent", "superficie_capacidad": "future agent actor boundary hard boundary"},
+            )
+        }
+    else:
+        raise AssertionError(f"unknown actor-boundary fixture scenario: {scenario}")
+    return contracts
+
+
+def _materialize_actor_boundary_fixture(root: Path, metadata: dict[str, object]) -> None:
+    _copy_schemas(root)
+    scenario = metadata.get("scenario")
+    if not isinstance(scenario, str):
+        raise AssertionError(f"fixture missing scenario: {metadata.get('fixture_id')}")
+    for relative_path, data in _contracts_for_actor_boundary_scenario(scenario).items():
+        _write_json(root / relative_path, data)
+
+
 class R110ValidatorTests(unittest.TestCase):
     def test_negative_fixture_reports_missing_required_id(self) -> None:
         root = Path(__file__).parent / "fixtures" / "r1_10_invalid_missing_id"
@@ -1295,6 +1491,65 @@ class NoLiveStateFixtureTests(unittest.TestCase):
                 with tempfile.TemporaryDirectory() as raw_root:
                     root = Path(raw_root)
                     _materialize_no_live_state_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                finding_dicts = [finding.as_dict() for finding in findings]
+                finding_codes = {finding.code for finding in findings}
+                primary_matches = [
+                    finding
+                    for finding in finding_dicts
+                    if finding["code"] == expected["code"]
+                    and finding["severity"] == expected["severity"]
+                    and finding["file"] == expected["file"]
+                    and finding["pointer"] == expected["pointer"]
+                    and finding["contract_id"] == expected["contract_id"]
+                ]
+                self.assertTrue(primary_matches, finding_dicts)
+                self.assertFalse(forbidden_codes & finding_codes, finding_dicts)
+                unexpected_codes = finding_codes - allowed_codes
+                self.assertFalse(unexpected_codes, finding_dicts)
+
+
+class ActorBoundaryDuplicationFixtureTests(unittest.TestCase):
+    def test_base_v0_1_actor_set_guardrail_is_closed(self) -> None:
+        self.assertEqual(
+            frozenset({"actor.browser_chat.v1", "actor.terminal_agent.v1"}),
+            BASE_V0_1_ACTOR_CONTRACT_IDS,
+        )
+
+    def test_positive_actor_boundary_duplication_fixtures_pass(self) -> None:
+        fixture_root = ACTOR_BOUNDARY_FIXTURE_ROOT / "positive" / "actor_boundary_duplication"
+        metadata_files = sorted(fixture_root.glob("*/metadata.json"))
+        self.assertTrue(metadata_files, "expected positive actor-boundary duplication fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_actor_boundary_fixture(root, metadata)
+
+                    findings = validate_all(root)
+
+                self.assertEqual([], findings)
+
+    def test_negative_actor_boundary_duplication_fixtures_report_expected_primary_finding(self) -> None:
+        fixture_root = ACTOR_BOUNDARY_FIXTURE_ROOT / "negative" / "actor_boundary_duplication"
+        metadata_files = sorted(fixture_root.glob("*/*/metadata.json"))
+        self.assertTrue(metadata_files, "expected negative actor-boundary duplication fixtures")
+
+        for metadata_path in metadata_files:
+            with self.subTest(fixture=metadata_path.parent.name):
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                expected = metadata["expected_primary_finding"]
+                expected_code = expected["code"]
+                allowed_codes = {expected_code, *metadata.get("allowed_collateral_findings", [])}
+                forbidden_codes = set(metadata.get("forbidden_finding_codes", []))
+
+                with tempfile.TemporaryDirectory() as raw_root:
+                    root = Path(raw_root)
+                    _materialize_actor_boundary_fixture(root, metadata)
 
                     findings = validate_all(root)
 

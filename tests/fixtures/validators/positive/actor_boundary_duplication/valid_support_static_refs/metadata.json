@@ -1,0 +1,10 @@
+{
+  "fixture_id": "valid_support_static_refs",
+  "roadmap_refs": ["R9.11", "#239", "#230", "#232", "#92"],
+  "validator_family": "actor_boundary_duplication",
+  "phase": "all",
+  "requirement_slug": "support_static_refs_pass",
+  "scenario": "valid_support_static_refs",
+  "expected_findings": [],
+  "notes_on_false_positive_risk": "Support bundles with static refs to actor and support records must remain valid."
+}
