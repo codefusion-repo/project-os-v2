@@ -7,6 +7,9 @@ chat. Replace the `{{PLACEHOLDERS}}` and delete this heading block.
 Keep the adapter compact: it boots the chat into the kernel and live evidence.
 It never duplicates kernel rules, product documentation, or live project state.
 
+For sessions where project instructions cannot be set, paste
+`templates/prompts/browser-chat-activation.md` as the first message instead.
+
 ---
 
 # BROWSER_CHAT.md
