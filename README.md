@@ -34,6 +34,12 @@ into the target repository, fill the placeholders, and point
 `KERNEL_LOCAL_PATH` at this repository's `kernel/`. Target product truth stays
 in the target; the kernel owns only generic operating behavior.
 
+For web-chat surfaces (ChatGPT, Claude web, PM Central), paste
+`adapters/BROWSER_CHAT.md` into the chat's project instructions: it boots the
+chat as `actor.browser_chat` (draft-only) with the standard prompt variables
+and effort recommendation rule. Reusable route prompts live in
+`templates/prompts/` and copy-safe PM command bundles in `templates/commands/`.
+
 ## Background
 
 This repository previously held a contract-graph architecture (781 contracts,

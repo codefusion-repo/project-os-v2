@@ -27,6 +27,12 @@
       "rule": "Template: templates/issue.md. One outcome per issue. Body under ~5KB."
     },
     {
+      "id": "output.route_prompt",
+      "use_for": "Drafting a prompt that routes scoped work from a draft-only surface to a terminal agent.",
+      "required_sections": ["the standard variable block (see adapters/BROWSER_CHAT.md)", "task instruction in terms of the issue scope", "recommended_effort with a 1-2 line rationale", "note that the executing agent re-resolves the kernel and that this prompt grants no permission"],
+      "rule": "Route prompts carry scope and shape only. Authorization travels separately as exact scoped PM approval."
+    },
+    {
       "id": "output.pm_command_bundle",
       "use_for": "Copy-safe command bundles the PM executes manually.",
       "required_sections": ["what the bundle does and its scope (prose, outside code blocks)", "preflight commands", "the commands with exact targets", "expected verification output", "risk and rollback (prose)"],

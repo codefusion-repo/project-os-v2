@@ -39,7 +39,7 @@
       "use_for": "Turning PM input into well-formed draft issues or decision requests. No writes.",
       "steps": ["gather source basis live", "draft issues using the issue template", "surface decisions the PM must make", "deliver drafts and copy-safe command bundles only"],
       "required_evidence_refs": ["evidence.source_basis"],
-      "allowed_output_refs": ["output.draft_issue", "output.pm_command_bundle", "output.status_result"]
+      "allowed_output_refs": ["output.draft_issue", "output.route_prompt", "output.pm_command_bundle", "output.status_result"]
     },
     {
       "id": "workflow.release_readiness",
