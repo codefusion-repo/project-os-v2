@@ -1,0 +1,53 @@
+{
+  "id": "kernel.outputs",
+  "family": "outputs",
+  "description": "Output contracts: the shape of what an agent delivers. Shape only — an output contract never grants permission (boundary.output_not_permission).",
+  "entries": [
+    {
+      "id": "output.execution_report",
+      "use_for": "Reporting implementation work.",
+      "required_sections": ["issue or PR", "repository", "branch", "evidence reviewed", "files changed", "validation performed with results (or reason not run)", "risks and limitations", "commit or PR reference when applicable", "remaining work"],
+      "rule": "Never claim done unless scope is complete, out-of-scope was respected, validation is reported, and review can verify the result."
+    },
+    {
+      "id": "output.review_result",
+      "use_for": "Reporting review or analysis findings.",
+      "required_sections": ["scope reviewed", "evidence reviewed", "findings with file/line or issue/PR references", "verdict or recommendation", "risks", "what was not reviewed"]
+    },
+    {
+      "id": "output.closure_comment",
+      "use_for": "The GitHub comment that closes out an issue.",
+      "required_sections": ["completion evidence (what now exists)", "validation evidence with real output", "boundaries preserved (what was deliberately not done)", "commit/PR references"],
+      "rule": "This comment is the reconstruction packet for the next agent. Template: templates/closure-comment.md."
+    },
+    {
+      "id": "output.draft_issue",
+      "use_for": "Drafting GitHub issues for PM review.",
+      "required_sections": ["why this exists (1-3 sentences)", "objective", "source basis", "scope", "out of scope (short)", "acceptance criteria", "validation expectations", "risk and rollback"],
+      "rule": "Template: templates/issue.md. One outcome per issue. Body under ~5KB."
+    },
+    {
+      "id": "output.pm_command_bundle",
+      "use_for": "Copy-safe command bundles the PM executes manually.",
+      "required_sections": ["what the bundle does and its scope (prose, outside code blocks)", "preflight commands", "the commands with exact targets", "expected verification output", "risk and rollback (prose)"],
+      "rule": "Obeys boundary.copy_safe_commands."
+    },
+    {
+      "id": "output.handoff_packet",
+      "use_for": "Transferring work between sessions, agents, or AI tools.",
+      "required_sections": ["current state with live links (issues, PRs, branches)", "what was verified vs assumed", "next steps with their source basis", "open decisions for the PM", "boundaries active on the remaining work"],
+      "rule": "Points to live GitHub evidence; never becomes a durable state file."
+    },
+    {
+      "id": "output.adoption_packet",
+      "use_for": "Bootstrapping a target project onto the kernel.",
+      "required_sections": ["target repository", "kernel version adopted", "adapter file diff or full draft", "adoption checklist", "what stays target-owned (product truth)", "rollback (restore previous adapter)"]
+    },
+    {
+      "id": "output.status_result",
+      "use_for": "Returning needs_context, needs_pm_decision, or blocked.",
+      "required_sections": ["the status", "exactly what is missing, conflicting, or blocking", "where it should come from or who decides", "the safe next step"],
+      "rule": "Name the missing source or blocking boundary precisely; never pad with restated rules."
+    }
+  ]
+}

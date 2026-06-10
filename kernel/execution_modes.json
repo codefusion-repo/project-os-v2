@@ -1,0 +1,37 @@
+{
+  "id": "kernel.execution_modes",
+  "family": "execution_modes",
+  "description": "How far a terminal agent may take the current task. The mode is scoped by the PM per task or task bundle. Default is mode.review_only. A mode never overrides a boundary or an actor capability.",
+  "default_mode_ref": "mode.review_only",
+  "entries": [
+    {
+      "id": "mode.review_only",
+      "summary": "Read, analyze, and report. No file edits, no git writes, no GitHub writes.",
+      "allowed_actions": ["read", "analyze", "run_read_only_commands", "report"],
+      "prohibited_actions": ["edit_files", "commit", "push", "open_pr", "comment", "any_github_mutation"],
+      "required_evidence_refs": ["evidence.issue_scope"]
+    },
+    {
+      "id": "mode.local_implementation",
+      "summary": "Scoped local edits and validation on a work branch. No commit, no push, no PR, no GitHub mutation.",
+      "allowed_actions": ["read", "analyze", "edit_scoped_files", "run_validation", "report"],
+      "prohibited_actions": ["commit", "push", "open_pr", "comment", "any_github_mutation"],
+      "required_evidence_refs": ["evidence.issue_scope", "evidence.branch_preflight", "evidence.pm_approval"]
+    },
+    {
+      "id": "mode.delegated_commit_push",
+      "summary": "Scoped edits, validation, commit, and push to the scoped work branch. No PR creation and no other GitHub mutation.",
+      "allowed_actions": ["read", "analyze", "edit_scoped_files", "run_validation", "commit", "push_work_branch", "report"],
+      "prohibited_actions": ["open_pr", "merge", "close_issue", "comment_unless_scoped", "any_other_github_mutation"],
+      "required_evidence_refs": ["evidence.issue_scope", "evidence.branch_preflight", "evidence.pm_approval", "evidence.validation_output"]
+    },
+    {
+      "id": "mode.delegated_commit_pr",
+      "summary": "Scoped edits, validation, commit, push, and draft PR creation for the scoped issue. Merge and closure stay with the PM.",
+      "allowed_actions": ["read", "analyze", "edit_scoped_files", "run_validation", "commit", "push_work_branch", "open_draft_pr", "report"],
+      "prohibited_actions": ["merge", "close_issue", "apply_labels", "create_tags_or_releases", "change_settings"],
+      "required_evidence_refs": ["evidence.issue_scope", "evidence.branch_preflight", "evidence.pm_approval", "evidence.validation_output"]
+    }
+  ],
+  "approval_note": "Manual PM execution of an already scoped command bundle is approval evidence for that exact bundle. Do not re-request authorization for the same bundle unless scope, target, risk, actor, write type, or evidence changes materially."
+}
