@@ -1,8 +1,0 @@
-{
-  "fixture_id": "valid_minimal_support_bundle",
-  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
-  "validator_family": "support_bundle",
-  "phase": "all",
-  "requirement_slug": "valid_minimal_manifest_index_policy_selector",
-  "scenario": "valid_minimal_support_bundle"
-}

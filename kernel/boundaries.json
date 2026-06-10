@@ -1,0 +1,64 @@
+{
+  "id": "kernel.boundaries",
+  "family": "boundaries",
+  "description": "Hard boundaries. They always apply, are inherited through actor resolution, and are never relaxed by roles, workflows, modes, templates, prompts, or output contracts. Crossing one resolves to status.blocked.",
+  "entries": [
+    {
+      "id": "boundary.branch_preflight",
+      "rule": "Before any local edit, commit, push, or PR creation: verify current branch, worktree state, HEAD, expected branch scope, and unrelated dirty or untracked files using real git output.",
+      "on_violation": "status.blocked",
+      "notes": "Stop if branch state is unsafe, unrelated work is present, or branch scope is unclear."
+    },
+    {
+      "id": "boundary.no_main_edits",
+      "rule": "main is only a clean pre-branch baseline. Create or switch to the scoped work branch before the first file edit. Uncommitted edits found on main are a recovery state: stop and return the safe status or ask exact PM approval for the recovery action.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id": "boundary.draft_only_browser",
+      "rule": "Browser chat surfaces never edit files or mutate git/GitHub. PM authorization for writes routes the work to a terminal surface; it never expands browser capability.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id": "boundary.separate_pm_approval",
+      "rule": "Merge, issue closure, labels, tags, releases, settings changes, automation, and target-project artifacts each require separate exact PM approval naming the repository, the issue or PR, and the action. Issue scope, execution mode, or prior approvals never imply them.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id": "boundary.review_before_close",
+      "rule": "Issues close only after review of the real diff, changed files, validation evidence, and risks. Closure produces a closure comment per the traceability protocol before or at closing time.",
+      "on_violation": "status.needs_pm_decision"
+    },
+    {
+      "id": "boundary.no_live_state_durable",
+      "rule": "Durable repository files (kernel, docs, adapters, templates) never store live state: issue/PR/branch/commit/review/validation state, SHAs, GitHub URLs to mutable objects, release readiness, or planning state. Live state lives only in GitHub and git, read at task time.",
+      "on_violation": "status.blocked",
+      "notes": "This is the portability guarantee: any agent reconstructs state from GitHub, never from a stale file or another model's memory."
+    },
+    {
+      "id": "boundary.no_invented_state",
+      "rule": "Never invent git output, repository state, issue state, PR state, validation results, review results, or PM approval. If state is needed and unread, read it live or return status.needs_context.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id": "boundary.security_privacy",
+      "rule": "Never expose or store secrets, credentials, tokens, private keys, sensitive user data, hidden environment values, or confidential operational details, in any file, output, log, command, issue, PR, or comment.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id": "boundary.fail_closed",
+      "rule": "On ambiguous authority, missing kernel files, missing evidence, source conflicts, failed validation, or missing PM approval: stop and return the appropriate non-resolved status. Never guess and proceed.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id": "boundary.output_not_permission",
+      "rule": "Output contracts, templates, roles, variables, routing packets, and 'continue' language define shape only. They never grant write permission or authorization.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id": "boundary.copy_safe_commands",
+      "rule": "PM-facing command bundles: use exact repository/issue/PR/branch targets; prefer visible preflight commands; keep scope, risk, and rollback outside executable blocks; no placeholder values when a prior command can provide the concrete value; phase bundles when later commands depend on earlier output; use body files with quoted heredoc delimiters for long GitHub bodies; no 'set -euo pipefail' in PM-facing bundles; never nest triple-backtick fences — when fenced content must carry Markdown that itself contains a fenced block, use a tilde-fenced outer block or move the inner content to a body file; pick a heredoc delimiter that cannot appear in the body.",
+      "on_violation": "status.needs_pm_decision"
+    }
+  ]
+}

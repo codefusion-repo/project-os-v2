@@ -1,0 +1,37 @@
+{
+  "id": "kernel.manifest",
+  "family": "manifest",
+  "kernel_name": "project-os-v2-min",
+  "kernel_version": "2.0.0-min.1",
+  "description": "Minimal agent-resolvable operating kernel for Project OS. Any agent resolves these files before non-trivial work. Stable behavior lives here; live project state lives only in GitHub; adapters only point back to this kernel.",
+  "load_order": [
+    "statuses.json",
+    "actors.json",
+    "execution_modes.json",
+    "boundaries.json",
+    "evidence.json",
+    "workflows.json",
+    "outputs.json"
+  ],
+  "resolution_sequence": [
+    "1. Identify the current execution surface and resolve current_actor_type from actors.json. Unknown surface resolves to actor.unknown and fails closed.",
+    "2. Load statuses.json and boundaries.json. Boundaries always apply; no later selection relaxes them.",
+    "3. Resolve execution_mode from the PM instruction for this task. Default is mode.review_only when no mode is explicitly scoped.",
+    "4. Select the workflow from workflows.json that matches the requested task.",
+    "5. Collect the evidence required by the workflow and mode from evidence.json. All issue, PR, branch, commit, review, and validation state is read live from GitHub and git, never from durable files or memory.",
+    "6. Select the output contract from outputs.json required by the workflow. Output shape never grants permission.",
+    "7. Emit exactly one status from statuses.json. When gates conflict, the stricter status wins."
+  ],
+  "source_of_truth": {
+    "stable_behavior": "kernel/*.json in this repository",
+    "live_state": "GitHub issues, PRs, commits, comments, reviews, branches, and local git output, read at task time",
+    "traceability_protocol": "docs/TRACEABILITY_PROTOCOL.md",
+    "adapters": "AGENTS.md and CLAUDE.md are compact bootloaders only and never override the kernel"
+  },
+  "size_budget": {
+    "kernel_total_bytes_max": 102400,
+    "kernel_total_bytes_target": 61440,
+    "rationale": "The kernel must stay cheap for agents to resolve per session. The validator fails the kernel when the hard budget is exceeded."
+  },
+  "non_authorization": "Nothing in this kernel grants write permission, write authorization, merge, closure, label, tag, release, settings, or automation authority. Permission comes only from exact scoped PM approval plus the kernel-resolved gates for the specific action."
+}

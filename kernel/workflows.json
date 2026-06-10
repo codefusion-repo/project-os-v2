@@ -1,0 +1,71 @@
+{
+  "id": "kernel.workflows",
+  "family": "workflows",
+  "description": "Workflow profiles. Select exactly one per task. Steps are operating guidance, not runtime sequencing; every step still obeys actors, modes, boundaries, and evidence.",
+  "entries": [
+    {
+      "id": "workflow.review_only",
+      "use_for": "Analysis, audits, design review, questions, and any task that produces findings instead of changes.",
+      "steps": ["resolve kernel", "gather live evidence", "analyze", "report findings with evidence references"],
+      "required_evidence_refs": ["evidence.repo_state"],
+      "allowed_output_refs": ["output.review_result", "output.status_result"]
+    },
+    {
+      "id": "workflow.issue_implementation",
+      "use_for": "Implementing a scoped GitHub issue.",
+      "steps": [
+        "resolve kernel and execution mode",
+        "read the issue scope and source basis live",
+        "branch preflight",
+        "create or switch to the scoped work branch (work/<issue>-<slug>)",
+        "implement only inside scope",
+        "run validation",
+        "commit and push only if the mode allows",
+        "open a draft PR only if the mode allows",
+        "report with the execution report contract"
+      ],
+      "required_evidence_refs": ["evidence.issue_scope", "evidence.branch_preflight", "evidence.pm_approval", "evidence.validation_output"],
+      "allowed_output_refs": ["output.execution_report", "output.status_result"]
+    },
+    {
+      "id": "workflow.review_before_close",
+      "use_for": "Reviewing finished work before the PM merges or closes.",
+      "steps": ["read the PR diff and linked issue live", "check scope, validation evidence, risks, and boundaries", "report a verdict with findings", "leave merge and closure to the PM"],
+      "required_evidence_refs": ["evidence.issue_scope", "evidence.pr_diff", "evidence.validation_output"],
+      "allowed_output_refs": ["output.review_result", "output.closure_comment", "output.status_result"]
+    },
+    {
+      "id": "workflow.pm_intake",
+      "use_for": "Turning PM input into well-formed draft issues or decision requests. No writes.",
+      "steps": ["gather source basis live", "draft issues using the issue template", "surface decisions the PM must make", "deliver drafts and copy-safe command bundles only"],
+      "required_evidence_refs": ["evidence.source_basis"],
+      "allowed_output_refs": ["output.draft_issue", "output.route_prompt", "output.pm_command_bundle", "output.status_result"]
+    },
+    {
+      "id": "workflow.release_readiness",
+      "use_for": "Assessing whether work is ready to release or tag. Tags and releases themselves need separate PM approval.",
+      "steps": ["gather merged evidence, validation evidence, and open risks live", "report readiness with gaps named", "stop before any tag or release action"],
+      "required_evidence_refs": ["evidence.repo_state", "evidence.validation_output"],
+      "allowed_output_refs": ["output.review_result", "output.pm_command_bundle", "output.status_result"]
+    },
+    {
+      "id": "workflow.handoff",
+      "use_for": "Ending a session or moving work to another agent or surface without losing state.",
+      "steps": ["ensure all transferable state is on GitHub (issue comments, PR state, closure evidence)", "produce a handoff packet pointing to live evidence, never duplicating it as durable truth"],
+      "required_evidence_refs": ["evidence.repo_state"],
+      "allowed_output_refs": ["output.handoff_packet", "output.status_result"]
+    },
+    {
+      "id": "workflow.target_adoption",
+      "use_for": "Bootstrapping a target project onto this kernel.",
+      "steps": [
+        "read the target repository state and existing adapters live",
+        "draft the target AGENTS.md/CLAUDE.md from adapters/ templates",
+        "keep target product truth in the target; the kernel owns only generic operating behavior",
+        "deliver the adapter diff and adoption checklist; target writes follow the target's own scoped approval"
+      ],
+      "required_evidence_refs": ["evidence.target_adoption", "evidence.pm_approval"],
+      "allowed_output_refs": ["output.adoption_packet", "output.execution_report", "output.status_result"]
+    }
+  ]
+}

@@ -1,8 +1,0 @@
-{
-  "fixture_id": "valid_deprecated_provenance_refs",
-  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
-  "validator_family": "support_bundle",
-  "phase": "all",
-  "requirement_slug": "valid_deprecated_provenance_only_refs",
-  "scenario": "valid_deprecated_provenance_refs"
-}
