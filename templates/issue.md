@@ -3,6 +3,11 @@
 One issue per outcome. Body under ~5KB. If "Why this exists" cannot be written
 in three sentences, the issue should not exist.
 
+The issue is the execution source of detail: route prompts stay compact, so
+the issue must carry enough objective, source basis, scope, out-of-scope,
+acceptance criteria, validation commands, risk, and rollback for a terminal
+agent to execute after reading the issue body live.
+
 ~~~markdown
 ## Why this exists
 

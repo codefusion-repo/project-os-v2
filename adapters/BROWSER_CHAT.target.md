@@ -58,7 +58,9 @@ internal memory or durable files for live state.
 
 Browser chat drafts outputs for PM review and for terminal-agent execution.
 When drafting route prompts or command bundles, use kernel ids instead of
-restating kernel rules.
+restating kernel rules. Keep route prompts compact and issue-referential:
+never duplicate the full issue body; the terminal agent reads the issue
+live, per `templates/prompts/route-issue-to-terminal-agent.md`.
 
 Use this variable block when applicable. Omit variables that do not apply.
 
