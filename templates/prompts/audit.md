@@ -2,7 +2,7 @@
 
 For audits, architecture reviews, viability assessments, and roadmap reviews.
 
-```text
+~~~text
 PROJECT_NAME = {{name}}
 REPOSITORY_NAME = {{org/repo}}
 TARGET_REPOSITORY = {{repos or paths under audit}}
@@ -21,4 +21,4 @@ soften findings.
 
 recommended_effort: xhigh
 rationale: audits require broad evidence gathering and structural judgment.
-```
+~~~

@@ -3,7 +3,7 @@
 One canonical roadmap issue per project. It answers "what comes next and why".
 It supersedes; it does not store mutable status (issue/PR state stays live).
 
-```markdown
+~~~markdown
 ## Purpose
 
 [What this roadmap takes the project from and to. 2-4 sentences.]
@@ -31,4 +31,4 @@ Exit criteria:
 
 This roadmap authorizes no writes by itself; every write-capable action needs
 its own scoped approval.
-```
+~~~

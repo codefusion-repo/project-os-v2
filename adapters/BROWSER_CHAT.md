@@ -53,13 +53,16 @@ This surface produces drafts only, using the kernel output contracts:
 Write-capable work is always routed to `actor.terminal_agent` via a route
 prompt plus separate PM authorization.
 
+Drafts leave this surface by copy/paste through Markdown renderers, so
+`boundary.copy_safe_commands` applies at draft time, not only at execution.
+
 ## Standard prompt variables
 
 Route prompts and command bundles use this variable block. Values are exact;
 kernel ids (`actor.*`, `workflow.*`, `mode.*`, `output.*`, `evidence.*`) point
 into the kernel instead of restating its rules.
 
-```text
+~~~text
 PROJECT_NAME = {{name}}
 REPOSITORY_NAME = {{org/repo}}
 TARGET_REPOSITORY = {{org/repo — repo where work happens, if different}}
@@ -77,7 +80,7 @@ BRANCH_NAME = work/{{issue}}-{{slug}}
 EXPECTED_REPORT = {{deliverable in one line}}
 PM_AUTHORIZATION_STATUS = {{granted for this exact scope | pending}}
 RECOMMENDED_EFFORT = {{medium | high | xhigh}}
-```
+~~~
 
 Omit variables that do not apply to the task (e.g. `BRANCH_NAME` in read-only
 work) instead of padding them.
@@ -86,10 +89,10 @@ work) instead of padding them.
 
 Every route prompt ends with:
 
-```text
+~~~text
 recommended_effort: medium | high | xhigh
 rationale: [1-2 lines]
-```
+~~~
 
 - `medium` — small task, clear scope, low risk, few files.
 - `high` — non-trivial implementation or review, multiple files, or relevant

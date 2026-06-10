@@ -3,7 +3,7 @@
 Fill the variables, delete unused lines, paste into the terminal agent.
 Everything not stated here is resolved by the agent from the kernel.
 
-```text
+~~~text
 PROJECT_NAME = {{name}}
 REPOSITORY_NAME = {{org/repo}}
 ISSUE_OR_PR = {{#N}}
@@ -25,4 +25,4 @@ PM_AUTHORIZATION_STATUS.
 
 recommended_effort: {{medium | high | xhigh}}
 rationale: {{1-2 lines}}
-```
+~~~

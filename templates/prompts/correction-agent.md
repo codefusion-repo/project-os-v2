@@ -2,7 +2,7 @@
 
 For sending review findings back to a terminal agent on the same branch.
 
-```text
+~~~text
 PROJECT_NAME = {{name}}
 REPOSITORY_NAME = {{org/repo}}
 ISSUE_OR_PR = PR {{#N}} (issue {{#M}})
@@ -26,4 +26,4 @@ validate, push per EXECUTION_MODE, and report per OUTPUT_CONTRACT.
 
 recommended_effort: {{medium | high}}
 rationale: {{1-2 lines}}
-```
+~~~

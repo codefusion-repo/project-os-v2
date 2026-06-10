@@ -3,7 +3,7 @@
 The closure comment is the reconstruction packet for the next agent (which may
 be a different AI tool). Post it on the issue before or at closing time.
 
-```markdown
+~~~markdown
 ## Completion evidence
 
 - [What now exists: behavior, files, decisions. Reference the merged PR.]
@@ -25,4 +25,4 @@ be a different AI tool). Post it on the issue before or at closing time.
 ## Friction note
 
 [One line: what slowed this down or felt unnecessary. Used to tune the process.]
-```
+~~~

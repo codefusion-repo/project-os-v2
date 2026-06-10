@@ -1,6 +1,6 @@
 # Route prompt: review a PR before merge/close
 
-```text
+~~~text
 PROJECT_NAME = {{name}}
 REPOSITORY_NAME = {{org/repo}}
 ISSUE_OR_PR = PR {{#N}} (issue {{#M}})
@@ -18,4 +18,4 @@ boundaries preserved, and risks. Do not merge or close; report only.
 
 recommended_effort: {{medium | high}}
 rationale: {{1-2 lines}}
-```
+~~~

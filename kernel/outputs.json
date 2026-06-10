@@ -30,7 +30,7 @@
       "id": "output.route_prompt",
       "use_for": "Drafting a prompt that routes scoped work from a draft-only surface to a terminal agent.",
       "required_sections": ["the standard variable block (see adapters/BROWSER_CHAT.md)", "task instruction in terms of the issue scope", "recommended_effort with a 1-2 line rationale", "note that the executing agent re-resolves the kernel and that this prompt grants no permission"],
-      "rule": "Route prompts carry scope and shape only. Authorization travels separately as exact scoped PM approval."
+      "rule": "Route prompts carry scope and shape only. Authorization travels separately as exact scoped PM approval. Copy-safe: plain text, at most one fenced block, no fenced blocks inside it (boundary.copy_safe_commands)."
     },
     {
       "id": "output.pm_command_bundle",

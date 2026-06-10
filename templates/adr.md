@@ -3,7 +3,7 @@
 For decisions that outlive issues. Store as `docs/decisions/ADR-NNNN-<slug>.md`
 in the project that owns the decision.
 
-```markdown
+~~~markdown
 # ADR-NNNN: [Title]
 
 - Status: accepted | superseded by ADR-NNNN
@@ -20,4 +20,4 @@ in the project that owns the decision.
 ## Consequences
 
 [What this enables, what it forbids, and the accepted tradeoffs.]
-```
+~~~

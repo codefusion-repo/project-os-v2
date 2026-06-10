@@ -3,7 +3,7 @@
 One issue per outcome. Body under ~5KB. If "Why this exists" cannot be written
 in three sentences, the issue should not exist.
 
-```markdown
+~~~markdown
 ## Why this exists
 
 [1-3 sentences: the real problem this reduces.]
@@ -39,4 +39,4 @@ in three sentences, the issue should not exist.
 ## Risk and rollback
 
 [1-2 sentences. "Revert the PR" is a valid rollback.]
-```
+~~~

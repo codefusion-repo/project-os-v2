@@ -1,6 +1,6 @@
 # PR template
 
-```markdown
+~~~markdown
 ## Summary
 
 - [What this PR does, in terms of behavior.]
@@ -20,4 +20,4 @@
 - [Sensitive data handling, or "no sensitive surfaces touched".]
 
 Closes #[issue] (on PM merge decision).
-```
+~~~
