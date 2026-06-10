@@ -35,9 +35,12 @@ into the target repository, fill the placeholders, and point
 in the target; the kernel owns only generic operating behavior.
 
 For web-chat surfaces (ChatGPT, Claude web, PM Central), paste
-`adapters/BROWSER_CHAT.md` into the chat's project instructions: it boots the
-chat as `actor.browser_chat` (draft-only) with the standard prompt variables
-and effort recommendation rule. Reusable route prompts live in
+`adapters/BROWSER_CHAT.target.md` into the chat's project instructions: it
+boots the chat as `actor.browser_chat` (draft-only) with the standard prompt
+variables; route-prompt requirements resolve from `kernel/outputs.json`.
+For one-off sessions, paste
+`templates/prompts/browser-chat-activation.md` as the first message instead.
+Reusable route prompts live in
 `templates/prompts/` and copy-safe PM command bundles in `templates/commands/`.
 
 ## Background
