@@ -1,8 +1,0 @@
-{
-  "fixture_id": "valid_selector_output_groups",
-  "roadmap_refs": ["R9.09", "#235", "#228", "#232"],
-  "validator_family": "support_bundle",
-  "phase": "all",
-  "requirement_slug": "valid_selector_output_groups",
-  "scenario": "valid_selector_output_groups"
-}
