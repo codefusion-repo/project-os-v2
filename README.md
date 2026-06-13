@@ -42,6 +42,10 @@ For one-off sessions, paste
 `templates/prompts/browser-chat-activation.md` as the first message instead.
 Reusable route prompts live in
 `templates/prompts/` and copy-safe PM command bundles in `templates/commands/`.
+For adapter-only target adoption, use
+`templates/prompts/target-adapter-adoption.md` to draft the target issue and
+route prompt without re-deriving the `AGENTS.md` / `CLAUDE.md` repointing
+pattern.
 
 ## Background
 
