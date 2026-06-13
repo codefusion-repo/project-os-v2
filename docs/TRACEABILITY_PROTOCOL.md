@@ -24,7 +24,8 @@ evidence can be re-read.
 3. **Every closure leaves a reconstruction packet.** No issue closes without a
    closure comment per `templates/closure-comment.md`: completion evidence,
    validation evidence with real output, boundaries preserved (what was
-   deliberately not done), and commit/PR references.
+   deliberately not done), accepted scoped validation/CI exceptions when
+   present, a concise friction note, and commit/PR references.
 
 4. **Every PR documents its own verification.** PR bodies follow
    `templates/pr.md`: summary, scope and boundaries, validation commands with
