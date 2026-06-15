@@ -26,7 +26,9 @@ PM_AUTHORIZATION_STATUS = granted for this exact scope and mode
 Implement ISSUE_OR_PR in REPOSITORY_NAME. Resolve the kernel first, run
 branch preflight, work only inside SCOPE on BRANCH_NAME, validate, and
 report per OUTPUT_CONTRACT. This prompt grants no permission beyond
-PM_AUTHORIZATION_STATUS.
+PM_AUTHORIZATION_STATUS. When PM_AUTHORIZATION_STATUS is granted for this
+exact scope and mode, proceed without re-requesting approval unless scope,
+actor, write type, target, risk, or evidence changes materially.
 
 recommended_effort: {{medium | high | xhigh}}
 rationale: {{1-2 lines}}

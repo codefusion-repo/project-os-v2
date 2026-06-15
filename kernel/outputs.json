@@ -17,7 +17,7 @@
     {
       "id": "output.closure_comment",
       "use_for": "The GitHub comment that closes out an issue.",
-      "required_sections": ["completion evidence (what now exists)", "validation evidence with real output", "boundaries preserved (what was deliberately not done)", "commit/PR references"],
+      "required_sections": ["completion evidence (what now exists)", "validation evidence with real output", "accepted exceptions (a scoped PM-accepted validation/CI exception, or none)", "boundaries preserved (what was deliberately not done)", "friction note (one concise line, required)", "commit/PR references"],
       "rule": "This comment is the reconstruction packet for the next agent. Template: templates/closure-comment.md."
     },
     {
@@ -29,8 +29,8 @@
     {
       "id": "output.route_prompt",
       "use_for": "Drafting a prompt that routes scoped work from a draft-only surface to a terminal agent.",
-      "required_sections": ["the standard variable block (see adapters/BROWSER_CHAT.md)", "task instruction in terms of the issue scope", "recommended_effort with a 1-2 line rationale", "note that the executing agent re-resolves the kernel and that this prompt grants no permission"],
-      "rule": "Route prompts carry scope and shape only. Authorization travels separately as exact scoped PM approval. Copy-safe: plain text, at most one fenced block, no fenced blocks inside it (boundary.copy_safe_commands)."
+      "required_sections": ["the standard variable block (see adapters/BROWSER_CHAT.target.md)", "task instruction in terms of the issue scope", "recommended_effort with a 1-2 line rationale", "note that the executing agent re-resolves the kernel and that this prompt grants no permission"],
+      "rule": "Route prompts carry scope and shape only. Authorization travels separately as exact scoped PM approval. A PM-approved scoped route prompt is approval evidence for that exact scope; the executing agent does not re-request authorization unless scope, actor, write type, target, risk, or evidence changes materially (see execution_modes approval_note). Copy-safe: plain text, at most one fenced block, no fenced blocks inside it (boundary.copy_safe_commands)."
     },
     {
       "id": "output.pm_command_bundle",
