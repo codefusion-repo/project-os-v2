@@ -61,5 +61,5 @@ internal memory or durable files for live state.
 {{Optional: the few repo-specific facts an agent needs that the kernel cannot
 know — build/validation commands, protected paths, domain boundaries. Keep
 under ~15 lines, compact, non-live, and target-owned: no issue/PR/branch state,
-no SHAs, no review or release status. Everything else belongs in the kernel,
-the roadmap issue, or ADRs.}}
+no SHAs, no review status, no release status. Everything else belongs in the
+kernel, the roadmap issue, or ADRs.}}

@@ -36,8 +36,8 @@ are missing, ambiguous, or conflicting.
 
 Reconstruct state from GitHub at task time per
 `docs/TRACEABILITY_PROTOCOL.md`: the current issue, linked PRs, and the
-canonical roadmap (the open issue titled `[ROADMAP][FIXED] project-os-v2-min`).
-Never trust internal memory or durable files for live state.
+canonical Project OS Operations Console roadmap issue, resolved live from
+GitHub. Never trust internal memory or durable files for live state.
 
 ## Validation
 

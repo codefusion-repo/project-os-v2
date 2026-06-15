@@ -27,8 +27,8 @@ and implementation facts.
 This browser chat resolves as `actor.browser_chat`.
 
 This file must stay compact. It must not store issue/PR/branch/validation
-state, review verdicts, roadmap state, planning state, or any live
-traceability.
+state, SHAs, review status, release status, roadmap state, planning state, or
+any live traceability.
 
 ## Repository identity
 
@@ -94,6 +94,8 @@ RECOMMENDED_EFFORT = {{medium | high | xhigh}}
 ## Project-specific notes
 
 {{Optional: the few repo-specific facts a browser chat needs that the kernel
-cannot know — roadmap issue, preferred PM language, validation commands,
-protected paths, domain boundaries. Keep under ~15 lines; everything else
-belongs in the kernel, the roadmap issue, GitHub evidence, or ADRs.}}
+cannot know — preferred PM language, validation commands, protected paths,
+domain boundaries. Keep under ~15 lines, compact, non-live, and target-owned:
+no issue/PR/branch state, no SHAs, no review status, no release status.
+Everything else belongs in the kernel, the roadmap issue, GitHub evidence, or
+ADRs.}}
