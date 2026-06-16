@@ -18,9 +18,9 @@ belongs (kernel vs adapter vs templates vs roadmap vs ADR vs console).
 
 ## How an agent uses it
 
-Read `kernel/manifest.json` and follow its `resolution_sequence`:
-surface → actor → execution mode → boundaries → workflow → evidence → output
-contract → status. Exactly one of four statuses is returned: `resolved`,
+Read `kernel/manifest.json` and follow its `resolution_sequence` exactly. The
+manifest names the ordered gates; adapters and templates point to it instead of
+restating it. Exactly one of four statuses is returned: `resolved`,
 `needs_context`, `needs_pm_decision`, `blocked`. Resolution selects shape and
 gates; it never grants permission.
 
@@ -57,5 +57,5 @@ pattern.
 This repository previously held a contract-graph architecture (781 contracts,
 570 relationship files, a 5,000-line validator suite). It was transformed into
 v2-min after an audit of real usage across six target projects. Rationale:
-`docs/DESIGN.md`. What moved where: `docs/MIGRATION_FROM_V2.md`. Roadmap and
-dogfood plan: the open `[ROADMAP][FIXED] project-os-v2-min` issue.
+`docs/DESIGN.md`. What moved where: `docs/MIGRATION_FROM_V2.md`. Roadmap
+authority is resolved live from GitHub per `docs/TRACEABILITY_PROTOCOL.md`.

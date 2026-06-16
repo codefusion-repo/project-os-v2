@@ -27,8 +27,8 @@ KERNEL_VERSION_ADOPTED = tracks latest (self-dogfood: the kernel lives in this r
 ## Kernel resolution
 
 Before non-trivial work, read `kernel/manifest.json` and follow its
-`resolution_sequence`: surface → actor → execution mode → boundaries →
-workflow → evidence → output contract → status. Use only the four statuses in
+`resolution_sequence` exactly. The manifest is the canonical sequence; this
+adapter only points to it. Use only the four statuses in
 `kernel/statuses.json`. Fail closed (`boundary.fail_closed`) if kernel files
 are missing, ambiguous, or conflicting.
 

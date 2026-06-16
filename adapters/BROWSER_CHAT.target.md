@@ -51,9 +51,9 @@ KERNEL_VERSION_ADOPTED = {{adopted kernel version e.g. 2.0.0-min.1, or "tracks l
 
 Before non-trivial work, resolve behavior from the kernel at
 `KERNEL_LOCAL_PATH`: read `manifest.json` and follow its
-`resolution_sequence` (actor → mode → boundaries → workflow → evidence →
-output → status). Fail closed per `boundary.fail_closed` if the kernel is
-missing, ambiguous, or conflicting.
+`resolution_sequence` exactly. The manifest is the canonical sequence; this
+adapter only points to it. Fail closed per `boundary.fail_closed` if the kernel
+is missing, ambiguous, or conflicting.
 
 ## Live state
 

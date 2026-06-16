@@ -46,15 +46,16 @@ materialize without a runtime, and micro-granular process issues.
   - GitHub — live state (`docs/TRACEABILITY_PROTOCOL.md`).
   - `AGENTS.md` / `CLAUDE.md` / `adapters/` / `templates/` — boot and shape.
 - **Fail closed.** Exactly four resolution statuses; ambiguity never proceeds.
-- **No runtime until dogfood demands it.** No loader, resolver runtime,
-  automation, or panel work unless real-target evidence (roadmap phases MIN.1–
-  MIN.3) names a gap that prose plus kernel resolution cannot close.
+- **No kernel runtime.** No loader, resolver runtime, automation, or console
+  behavior belongs in this kernel unless real-target evidence and a scoped issue
+  name a gap that prose plus kernel resolution cannot close. Future Operations
+  Console work must consume Project OS semantics; it must not replace them.
 
 ## Kernel resolution model
 
-An agent resolves, in order: surface → actor → execution mode → boundaries →
-workflow → evidence → output contract → status. The sequence is data in
-`kernel/manifest.json`; the agent executes it by reading, not by running code.
+An agent follows the `resolution_sequence` in `kernel/manifest.json`. The
+sequence is data in the manifest; adapters and docs point to it instead of
+owning a parallel copy. The agent executes it by reading, not by running code.
 Resolution selects shape and gates; it never grants permission.
 
 ## Anti-bureaucracy guardrails

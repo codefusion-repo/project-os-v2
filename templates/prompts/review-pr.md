@@ -1,10 +1,13 @@
 # Route prompt: review a PR before merge/close
 
+Use this to route a review to an existing review-capable surface. Choose one
+`TARGET_ACTOR_TYPE`; do not invent `actor.reviewer_chat`.
+
 ~~~text
 PROJECT_NAME = {{name}}
 REPOSITORY_NAME = {{org/repo}}
 ISSUE_OR_PR = PR {{#N}} (issue {{#M}})
-TARGET_ACTOR_TYPE = actor.terminal_agent
+TARGET_ACTOR_TYPE = {{actor.terminal_agent | actor.browser_chat}}
 WORKFLOW = workflow.review_before_close
 EXECUTION_MODE = mode.review_only
 OUTPUT_CONTRACT = output.review_result
