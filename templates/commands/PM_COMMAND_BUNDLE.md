@@ -86,15 +86,50 @@ When defensive phasing is justified, still avoid `exit` and terminal-stopping
 guards: phase the bundle (run, read output, fill the next value, run) and tell
 the PM the exact condition to check between phases in prose.
 
-## Example: default closeout after review_before_close GO
+## Examples (derived from the current kernel and catalog)
 
-Scope: merge PR `#N`, close issue `#M`, delete the work branch. Risk: merge and
+These examples are not a generic command cookbook. They cover exactly the
+operations that emit `output.pm_command_bundle` today, derived from:
+
+- `kernel/workflows.json` — only `workflow.pm_intake` and
+  `workflow.release_readiness` list `output.pm_command_bundle` in their
+  `allowed_output_refs`;
+- `docs/OPERATIONS_CATALOG.md` — the operations that produce it are
+  **2** (create next roadmap issue when none exists), **7** (generate
+  comment/ready/merge/close/cleanup bundle), and **11** (create follow-up issue
+  from review findings).
+
+If a future kernel/catalog change makes another operation emit
+`output.pm_command_bundle`, add its example here with the evidence; do not invent
+command families outside the model.
+
+### Operation 7 — comment / ready / merge / close / cleanup
+
+Scope: optionally comment on PR `#N`, optionally mark it ready, merge it, close
+issue `#M` with a closure comment, and clean up the branch. Risk: merge and
 closure are not reversible by re-running; rollback is `git revert` of the merge
 commit and reopening the issue. `{{REVIEWED_HEAD_SHA}}` is the `headRefOid` from
 the review.
 
-Write the closure comment (per `templates/closure-comment.md`) to a body file,
-then run the closeout top to bottom:
+Optional — post a PR review comment first (only when there is one to post):
+
+~~~sh
+cat > /tmp/pr-comment.md <<'PR_COMMENT_END'
+{{PR comment body}}
+PR_COMMENT_END
+
+gh pr comment {{#N}} --repo {{org/repo}} --body-file /tmp/pr-comment.md
+~~~
+
+Optional — mark the PR ready (only when it is a draft and the PM approved that
+action):
+
+~~~sh
+gh pr ready {{#N}} --repo {{org/repo}}
+~~~
+
+Then write the closure comment (per `templates/closure-comment.md`) to a body
+file and run the closeout top to bottom:
 
 ~~~sh
 cat > /tmp/closure-comment.md <<'CLOSURE_BODY_END'
@@ -111,12 +146,17 @@ git -C {{local/path}} branch -D {{work/branch}}
 git -C {{local/path}} fetch --prune origin
 ~~~
 
-Verify with supported fields only: `gh pr view {{#N}} --repo {{org/repo}} --json
-state,mergedAt,headRefOid` shows merged at the reviewed head; `gh issue view
-{{#M}} --repo {{org/repo}} --json state,closedAt` shows `CLOSED`; local `main`
-is at the merge commit.
+The optional lines are variants, not a separate rule system: drop them when they
+do not apply, keep the rest linear. Verify with supported fields only:
+`gh pr view {{#N}} --repo {{org/repo}} --json state,mergedAt,headRefOid` shows
+merged at the reviewed head; `gh issue view {{#M}} --repo {{org/repo}} --json
+state,closedAt` shows `CLOSED`; local `main` is at the merge commit.
 
-## Example: create an issue
+### Operations 2 and 11 — create an issue
+
+The same create pattern serves operation 2 (create the next roadmap issue when
+none exists) and operation 11 (create a follow-up issue from review findings) —
+one canonical pattern, no separate file per operation.
 
 Scope: creates one issue in `{{org/repo}}`. Rollback: close the issue. The
 browser chat fills the body from `templates/issue.md` and the exact repo/title;
