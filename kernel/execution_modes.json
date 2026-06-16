@@ -33,5 +33,5 @@
       "required_evidence_refs": ["evidence.issue_scope", "evidence.branch_preflight", "evidence.pm_approval", "evidence.validation_output"]
     }
   ],
-  "approval_note": "Manual PM execution of an already scoped command bundle is approval evidence for that exact bundle. Do not re-request authorization for the same bundle unless scope, target, risk, actor, write type, or evidence changes materially."
+  "approval_note": "A PM-approved scoped route prompt, or manual PM execution of an already scoped command bundle, is approval evidence for that exact scope. Do not re-request authorization for the same route prompt or bundle unless scope, target, risk, actor, write type, or evidence changes materially."
 }

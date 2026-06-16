@@ -12,6 +12,10 @@ JSON files that tell any AI agent (Claude, Codex, ChatGPT, or future tools)
 | Live traceability | GitHub issues/PRs/commits/comments | The only live state; lets any agent take over a project cold (`docs/TRACEABILITY_PROTOCOL.md`) |
 | Adapters & templates | `AGENTS.md`, `CLAUDE.md`, `adapters/`, `templates/` | Thin bootloaders and output shapes |
 
+Recurring PM/chat/agent operations are catalogued over these layers in
+`docs/OPERATIONS_CATALOG.md`, which also records where each kind of thing
+belongs (kernel vs adapter vs templates vs roadmap vs ADR vs console).
+
 ## How an agent uses it
 
 Read `kernel/manifest.json` and follow its `resolution_sequence`:

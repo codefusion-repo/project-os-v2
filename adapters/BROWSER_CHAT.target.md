@@ -27,18 +27,25 @@ and implementation facts.
 This browser chat resolves as `actor.browser_chat`.
 
 This file must stay compact. It must not store issue/PR/branch/validation
-state, review verdicts, roadmap state, planning state, or any live
-traceability.
+state, SHAs, review status, release status, roadmap state, planning state, or
+any live traceability.
 
 ## Repository identity
 
+Same standard metadata block as `adapters/AGENTS.target.md`, so the chat drafts
+copy-safe bundles that match the terminal adapter. `REPOSITORY_LOCAL_PATH`,
+`KERNEL_LOCAL_PATH`, and `KERNEL_VERSION_ADOPTED` are per-machine/adoption
+configuration, not live project state.
+
 PROJECT_NAME = {{PROJECT_NAME}}
 REPOSITORY_NAME = {{ORG/REPO}}
+REPOSITORY_LOCAL_PATH = {{absolute local path to this repo, e.g. $HOME/projects/.../repo}}
 DEFAULT_BRANCH = main
 WORK_BRANCH_PATTERN = work/*
 PM_FACING_LANGUAGE = {{es|en}}
-KERNEL_LOCAL_PATH = {{path/to/project-os-v2}}/kernel
-KERNEL_VERSION_ADOPTED = {{2.0.0-min.N}}
+KERNEL_REPOSITORY = codefusion-repo/project-os-v2
+KERNEL_LOCAL_PATH = {{absolute local path to the kernel, e.g. $HOME/projects/.../project-os-v2/kernel}}
+KERNEL_VERSION_ADOPTED = {{adopted kernel version e.g. 2.0.0-min.1, or "tracks latest"}}
 
 ## Kernel resolution
 
@@ -87,6 +94,8 @@ RECOMMENDED_EFFORT = {{medium | high | xhigh}}
 ## Project-specific notes
 
 {{Optional: the few repo-specific facts a browser chat needs that the kernel
-cannot know — roadmap issue, preferred PM language, validation commands,
-protected paths, domain boundaries. Keep under ~15 lines; everything else
-belongs in the kernel, the roadmap issue, GitHub evidence, or ADRs.}}
+cannot know — preferred PM language, validation commands, protected paths,
+domain boundaries. Keep under ~15 lines, compact, non-live, and target-owned:
+no issue/PR/branch state, no SHAs, no review status, no release status.
+Everything else belongs in the kernel, the roadmap issue, GitHub evidence, or
+ADRs.}}

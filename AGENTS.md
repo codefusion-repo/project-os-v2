@@ -20,8 +20,9 @@ DEFAULT_BRANCH = main
 WORK_BRANCH_PATTERN = work/*
 PM_FACING_LANGUAGE = es
 AGENT_INSTRUCTIONS_LANGUAGE = en
+KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = kernel
-CANONICAL_ROADMAP = the open issue titled "[ROADMAP][FIXED] project-os-v2-min ..."
+KERNEL_VERSION_ADOPTED = tracks latest (self-dogfood: the kernel lives in this repo)
 
 ## Kernel resolution
 
@@ -35,8 +36,8 @@ are missing, ambiguous, or conflicting.
 
 Reconstruct state from GitHub at task time per
 `docs/TRACEABILITY_PROTOCOL.md`: the current issue, linked PRs, and the
-canonical roadmap issue. Never trust internal memory or durable files for
-live state.
+canonical Project OS Operations Console roadmap issue, resolved live from
+GitHub. Never trust internal memory or durable files for live state.
 
 ## Validation
 
