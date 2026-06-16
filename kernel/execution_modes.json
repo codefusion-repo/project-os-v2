@@ -33,5 +33,5 @@
       "required_evidence_refs": ["evidence.issue_scope", "evidence.branch_preflight", "evidence.pm_approval", "evidence.validation_output"]
     }
   ],
-  "approval_note": "A PM-approved scoped route prompt, or manual PM execution of an already scoped command bundle, is approval evidence for that exact scope. Do not re-request authorization for the same route prompt or bundle unless scope, target, risk, actor, write type, or evidence changes materially."
+  "approval_note": "An explicit PM decision or approval is controlling evidence for the point decided. A PM-approved scoped route prompt, or manual PM execution of an already scoped command bundle, is approval evidence for that exact scope. Do not re-request authorization, return status.needs_pm_decision, or return status.blocked for agent disagreement alone. Report disagreement as risk or accepted exception unless a named boundary or gate is hit, separate exact approval is required for a different write action, or new material evidence changes scope, target, actor, write type, risk, feasibility, or evidence sufficiency."
 }

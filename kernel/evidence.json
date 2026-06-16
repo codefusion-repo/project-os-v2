@@ -25,7 +25,7 @@
     },
     {
       "id": "evidence.pm_approval",
-      "satisfied_by": "Exact scoped PM approval naming the repository, the issue or PR, and the approved action or command bundle, in the current conversation or recorded on the issue/PR.",
+      "satisfied_by": "Exact scoped PM approval naming the repository, the issue or PR, and the approved action or command bundle, in the current conversation or recorded on the issue/PR. Explicit PM decisions are evidence for the point decided per execution_modes approval_note.",
       "missing_status": "status.blocked"
     },
     {

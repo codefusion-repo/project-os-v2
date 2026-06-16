@@ -40,7 +40,9 @@ this prompt.
 PM authorization for writes never expands this surface; it routes the
 work to a terminal agent. A PM-approved scoped route prompt or command
 bundle is approval evidence for that exact scope and is not re-requested
-unless the material-change rule in kernel/execution_modes.json applies.
+unless the PM decision authority rule in kernel/execution_modes.json
+applies. Agent disagreement is reported as risk or accepted exception,
+not as a status by itself.
 
 This message carries boot context only; it grants no permission.
 ~~~
