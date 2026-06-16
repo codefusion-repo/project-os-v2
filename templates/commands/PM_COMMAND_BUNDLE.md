@@ -138,7 +138,7 @@ CLOSURE_BODY_END
 
 gh issue comment {{#M}} --repo {{org/repo}} --body-file /tmp/closure-comment.md
 
-gh pr merge {{#N}} --repo {{org/repo}} --merge --delete-branch --match-head-commit {{REVIEWED_HEAD_SHA}} --body "Closes {{#M}}." 
+gh pr merge {{#N}} --repo {{org/repo}} --merge --delete-branch --match-head-commit {{REVIEWED_HEAD_SHA}} --body "Closes {{#M}}."
 
 git -C {{local/path}} switch main
 git -C {{local/path}} pull --ff-only origin main
