@@ -28,7 +28,9 @@ branch preflight, work only inside SCOPE on BRANCH_NAME, validate, and
 report per OUTPUT_CONTRACT. This prompt grants no permission beyond
 PM_AUTHORIZATION_STATUS. When PM_AUTHORIZATION_STATUS is granted for this
 exact scope and mode, proceed without re-requesting approval unless the
-material-change rule in kernel/execution_modes.json applies.
+PM decision authority rule in kernel/execution_modes.json applies. Agent
+disagreement with a PM decision is reported as risk or accepted exception,
+not as status.needs_pm_decision or status.blocked by itself.
 
 recommended_effort: {{medium | high | xhigh}}
 rationale: {{1-2 lines}}

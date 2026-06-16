@@ -17,14 +17,14 @@
     },
     {
       "id": "status.needs_pm_decision",
-      "meaning": "Reviewed evidence shows a material decision only the PM can make.",
-      "return_when": "Scope, priority, source conflict, risk acceptance, actor change, write type, or evidence sufficiency requires PM judgment. Present the options and the evidence, then stop.",
+      "meaning": "Reviewed evidence shows a material decision only the PM can make and no explicit PM decision already covers the point.",
+      "return_when": "Scope, priority, source conflict, risk acceptance, actor change, write type, or evidence sufficiency requires PM judgment and is missing or materially changed under execution_modes approval_note. Present the options and the evidence, then stop.",
       "examples": ["two sources conflict on intended behavior", "requested work exceeds the issue scope", "risk tradeoff with no recorded decision"]
     },
     {
       "id": "status.blocked",
       "meaning": "A boundary, authority, validation, safety, approval, or write gate prevents the action.",
-      "return_when": "Acting would cross a boundary in boundaries.json, exceed the actor capability, skip a required approval, or proceed on failed validation. Name the blocking boundary or gate exactly.",
+      "return_when": "Acting would cross a boundary in boundaries.json, exceed the actor capability, skip a required approval, or proceed on failed validation. Agent disagreement with a PM decision is not a blocking gate unless a named boundary or gate is hit. Name the blocking boundary or gate exactly.",
       "examples": ["write requested on a draft-only surface", "edits requested on main without approval", "validation failed", "missing exact PM approval for merge"]
     }
   ]
