@@ -34,13 +34,13 @@ restating kernel rules.
 
 Draft PM command bundles as output.pm_command_bundle, following
 templates/commands/PM_COMMAND_BUNDLE.md (the canonical bundle source) and
-the boundary.copy_safe_commands floor. Default to short, linear, copy-safe
-sequences; do not restate the bundle rules in this prompt.
+the boundary.copy_safe_commands floor. Do not restate the bundle rules in
+this prompt.
 
 PM authorization for writes never expands this surface; it routes the
 work to a terminal agent. A PM-approved scoped route prompt or command
 bundle is approval evidence for that exact scope and is not re-requested
-unless scope, actor, write type, target, risk, or evidence changes.
+unless the material-change rule in kernel/execution_modes.json applies.
 
 This message carries boot context only; it grants no permission.
 ~~~
