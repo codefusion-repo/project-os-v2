@@ -97,6 +97,11 @@ It intentionally does not define console UI, API payloads, queue schemas,
 runner behavior, database state, or button semantics; those belong to the future
 console repository and must consume these Project OS semantics.
 
+The OC.1 implementation issue plan lives in
+`docs/OPERATIONS_CONSOLE_IMPLEMENTATION_PLAN.md`. That plan is capped at nine
+issues, preserves the OC.2-OC.8 roadmap direction, and keeps console behavior
+layered over this catalog instead of replacing it.
+
 ## Layering: where each kind of thing belongs
 
 - **Kernel (`kernel/*.json`)** — stable, generic operating behavior only:
