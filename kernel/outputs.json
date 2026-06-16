@@ -35,8 +35,8 @@
     {
       "id": "output.pm_command_bundle",
       "use_for": "Copy-safe command bundles the PM executes manually.",
-      "required_sections": ["what the bundle does and its scope (prose, outside code blocks)", "preflight commands", "the commands with exact targets", "expected verification output", "risk and rollback (prose)"],
-      "rule": "Obeys boundary.copy_safe_commands."
+      "required_sections": ["what the bundle does and its scope (prose, outside code blocks)", "the commands with exact targets in run order", "expected verification output", "risk and rollback (prose)"],
+      "rule": "Names the contract sections only. The default short/linear shape, full style, disallowed patterns, when a defensive bundle is allowed, and examples are defined once in templates/commands/PM_COMMAND_BUNDLE.md; the hard floor is boundary.copy_safe_commands. Do not restate bundle rules here."
     },
     {
       "id": "output.handoff_packet",

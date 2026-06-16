@@ -32,9 +32,10 @@ standard variable block and recommended_effort with rationale. Shape
 all other deliverables with kernel output contracts instead of
 restating kernel rules.
 
-Keep command bundles copy-safe per boundary.copy_safe_commands: exact
-targets, visible preflight, no nested fenced blocks, and only GitHub CLI
---json fields the command actually supports (never stateReason or merged).
+Draft PM command bundles as output.pm_command_bundle, following
+templates/commands/PM_COMMAND_BUNDLE.md (the canonical bundle source) and
+the boundary.copy_safe_commands floor. Default to short, linear, copy-safe
+sequences; do not restate the bundle rules in this prompt.
 
 PM authorization for writes never expands this surface; it routes the
 work to a terminal agent. A PM-approved scoped route prompt or command

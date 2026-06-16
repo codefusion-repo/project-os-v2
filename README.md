@@ -45,7 +45,8 @@ variables; route-prompt requirements resolve from `kernel/outputs.json`.
 For one-off sessions, paste
 `templates/prompts/browser-chat-activation.md` as the first message instead.
 Reusable route prompts live in
-`templates/prompts/` and copy-safe PM command bundles in `templates/commands/`.
+`templates/prompts/` and copy-safe PM command bundles in `templates/commands/`,
+whose style is defined once in `templates/commands/PM_COMMAND_BUNDLE.md`.
 For adapter-only target adoption, use
 `templates/prompts/target-adapter-adoption.md` to draft the target issue and
 route prompt without re-deriving the `AGENTS.md` / `CLAUDE.md` repointing

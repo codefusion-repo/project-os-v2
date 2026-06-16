@@ -61,19 +61,25 @@ evidence it needs, the output contract it produces, and its PM-approval
 behavior. "Draft-only" means `actor.browser_chat` produces a draft and a
 copy-safe bundle; the write happens on a terminal surface or by PM execution.
 
+Operations that emit `output.pm_command_bundle` (2, 7, 11) follow the one
+canonical bundle source, `templates/commands/PM_COMMAND_BUNDLE.md`: default to
+short, linear, copy-safe sequences; use a defensive/preflight-heavy bundle only
+when the PM asks or live evidence is missing, stale, conflicting, unsafe, or not
+yet reviewed. This catalog maps the operations; it does not restate bundle style.
+
 | # | Operation | Workflow | Actor | Evidence | Output | PM approval |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Review roadmap and determine next issue | `workflow.review_only` | browser_chat / terminal_agent | `evidence.repo_state`, `evidence.source_basis` | `output.review_result` | none (read-only) |
-| 2 | Create next roadmap issue when none exists | `workflow.pm_intake` | browser_chat (draft) | `evidence.source_basis` | `output.draft_issue` + `output.pm_command_bundle` | PM runs the create bundle |
+| 2 | Create next roadmap issue when none exists | `workflow.pm_intake` | browser_chat (draft) | `evidence.source_basis` | `output.draft_issue` + `output.pm_command_bundle` | PM runs the create bundle (`templates/commands/PM_COMMAND_BUNDLE.md`, create example) |
 | 3 | Route next roadmap issue | `workflow.pm_intake` | browser_chat (draft) | `evidence.source_basis`, `evidence.issue_scope` | `output.route_prompt` | route prompt = scope only; PM grants exact authorization |
 | 4 | Route a specific issue | `workflow.pm_intake` | browser_chat (draft) | `evidence.issue_scope` | `output.route_prompt` | as #3 (`templates/prompts/route-issue-to-terminal-agent.md`) |
 | 5 | Route final PR review to a reviewer surface | `workflow.review_before_close` | browser_chat (draft route) → browser_chat/terminal_agent (review) | `evidence.issue_scope`, `evidence.pr_diff` | `output.route_prompt` → `output.review_result` | review is read-only; no merge/close |
 | 6 | Execute review-before-close | `workflow.review_before_close` | terminal_agent / browser_chat | `evidence.issue_scope`, `evidence.pr_diff`, `evidence.validation_output` | `output.review_result` (+ `output.closure_comment` draft) | verdict only; merge/close stay with PM |
-| 7 | Generate comment/ready/merge/close/cleanup bundle | `workflow.pm_intake` / `workflow.release_readiness` | browser_chat (draft) | `evidence.repo_state`, `evidence.review_evidence`, `evidence.closure_evidence` | `output.pm_command_bundle` (+ `output.closure_comment`) | PM executes; bundle = approval for that exact bundle (`templates/commands/ready-merge-close-cleanup.md`) |
+| 7 | Generate comment/ready/merge/close/cleanup bundle | `workflow.pm_intake` / `workflow.release_readiness` | browser_chat (draft) | `evidence.repo_state`, `evidence.review_evidence`, `evidence.closure_evidence` | `output.pm_command_bundle` (+ `output.closure_comment`) | PM executes; bundle = approval for that exact bundle (`templates/commands/PM_COMMAND_BUNDLE.md`, closeout example) |
 | 8 | Verify post-merge / post-close state | `workflow.review_only` | browser_chat / terminal_agent | `evidence.repo_state` | `output.review_result` or `output.status_result` | none (read-only; copy-safe `gh` reads only) |
 | 9 | Draft correction prompt for blockers / non-blockers | `workflow.pm_intake` | browser_chat (draft) | `evidence.pr_diff`, `evidence.review_evidence` | `output.route_prompt` | scope = listed findings only (`templates/prompts/correction-agent.md`) |
 | 10 | Draft Project instructions + activation chat for a target | `workflow.target_adoption` | browser_chat (draft) | `evidence.target_adoption` | `output.adoption_packet` | adapter writes need exact target PM approval (`templates/prompts/target-adapter-adoption.md`) |
-| 11 | Create follow-up issue from review findings | `workflow.pm_intake` | browser_chat (draft) | `evidence.review_evidence`, `evidence.source_basis` | `output.draft_issue` + `output.pm_command_bundle` | PM runs the create bundle (`templates/commands/create-issue.md`) |
+| 11 | Create follow-up issue from review findings | `workflow.pm_intake` | browser_chat (draft) | `evidence.review_evidence`, `evidence.source_basis` | `output.draft_issue` + `output.pm_command_bundle` | PM runs the create bundle (`templates/commands/PM_COMMAND_BUNDLE.md`, create example) |
 | 12 | Generate human QA checklist | `workflow.review_before_close` (QA-focused) | browser_chat (draft) → human QA recipient | `evidence.issue_scope`, `evidence.pr_diff` | `output.review_result` (QA checklist shape) | QA verdict is not write authorization; PM owns merge/close. Formal QA kernel objects, if needed, are scoped separately at OC.7. |
 | 13 | Generate asset request | `workflow.pm_intake` | browser_chat (draft) → asset creator recipient | `evidence.source_basis`, `evidence.issue_scope` | `output.draft_issue` (asset-request shape) | assets returned to the target repo under its own scoped approval; OC.7 may scope formal objects separately. |
 | 14 | Generate security review | `workflow.review_before_close` (security-focused) | terminal_agent / browser_chat | `evidence.issue_scope`, `evidence.pr_diff` | `output.review_result` (security focus) | `boundary.security_privacy` always applies; security findings can gate merge via `status.needs_pm_decision`. |
@@ -95,7 +101,10 @@ issue with the observed failure, per the kernel's anti-bureaucracy rule.
   No kernel rule duplication, no live traceability.
 - **Templates (`templates/`)** — reusable output and prompt shapes (issue, PR,
   closure comment, route prompts, command bundles, roadmap, ADR). Shape only;
-  shape never grants permission.
+  shape never grants permission. PM command-bundle style lives in exactly one
+  canonical source, `templates/commands/PM_COMMAND_BUNDLE.md`; the kernel,
+  outputs, docs, prompts, and the other command templates reference it instead
+  of restating command rules.
 - **Roadmap issue** — one canonical roadmap per project: what comes next and
   why. Superseded, not mutated into a status store.
 - **ADR (`templates/adr.md`)** — decisions that outlive issues, stored in the
