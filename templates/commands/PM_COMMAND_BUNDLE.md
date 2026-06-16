@@ -105,8 +105,8 @@ command families outside the model.
 
 ### Operation 7 — comment / ready / merge / close / cleanup
 
-Scope: optionally comment on PR `#N`, optionally mark it ready, merge it, close
-issue `#M` with a closure comment, and clean up the branch. Risk: merge and
+Scope: optionally comment on PR `#N`, optionally mark it ready, post closure
+evidence on issue `#M`, merge with a closing reference, and clean up the branch. Risk: merge and
 closure are not reversible by re-running; rollback is `git revert` of the merge
 commit and reopening the issue. `{{REVIEWED_HEAD_SHA}}` is the `headRefOid` from
 the review.
@@ -136,9 +136,9 @@ cat > /tmp/closure-comment.md <<'CLOSURE_BODY_END'
 {{closure comment following templates/closure-comment.md}}
 CLOSURE_BODY_END
 
-gh pr merge {{#N}} --repo {{org/repo}} --merge --delete-branch --match-head-commit {{REVIEWED_HEAD_SHA}}
+gh issue comment {{#M}} --repo {{org/repo}} --body-file /tmp/closure-comment.md
 
-gh issue close {{#M}} --repo {{org/repo}} --comment-file /tmp/closure-comment.md
+gh pr merge {{#N}} --repo {{org/repo}} --merge --delete-branch --match-head-commit {{REVIEWED_HEAD_SHA}} --body "Closes {{#M}}." 
 
 git -C {{local/path}} switch main
 git -C {{local/path}} pull --ff-only origin main
