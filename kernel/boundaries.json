@@ -62,9 +62,9 @@
     },
     {
       "id": "boundary.copy_safe_commands",
-      "rule": "PM-facing command bundles: use exact repository/issue/PR/branch targets; prefer visible preflight commands; keep scope, risk, and rollback outside executable blocks; no placeholder values when a prior command can provide the concrete value; phase bundles when later commands depend on earlier output; use body files with quoted heredoc delimiters for long GitHub bodies; no 'set -euo pipefail' in PM-facing bundles; never nest triple-backtick fences — when fenced content must carry Markdown that itself contains a fenced block, use a tilde-fenced outer block or move the inner content to a body file; pick a heredoc delimiter that cannot appear in the body.",
+      "rule": "PM-facing command bundles must stay copy-safe: exact repository/issue/PR/branch targets; scope, risk, and rollback kept outside executable blocks; body files with quoted heredoc delimiters for long GitHub bodies; no nested triple-backtick fences; supported GitHub CLI --json fields only (never unsupported pseudo-fields such as stateReason or merged); and no shell pattern that stops, cuts, or corrupts the terminal session. This is the hard floor only.",
       "on_violation": "status.needs_pm_decision",
-      "notes": "GitHub CLI --json field safety: only use fields the gh command actually supports. Never use unsupported pseudo-fields such as stateReason or merged in generated validation commands; prefer verified supported fields such as state, closedAt, mergedAt, mergeStateStatus, headRefName, and headRefOid when available. When uncertain, discover supported fields first (e.g. pass an invalid --json value to list them) before producing the bundle."
+      "notes": "Bundle style, the default short/linear shape, disallowed patterns, when a defensive/preflight-heavy bundle is allowed, and worked examples are defined once in templates/commands/PM_COMMAND_BUNDLE.md. The kernel keeps no detailed command-style guidance."
     }
   ]
 }
