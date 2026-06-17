@@ -22,7 +22,7 @@ PM_FACING_LANGUAGE = es
 AGENT_INSTRUCTIONS_LANGUAGE = en
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = kernel
-KERNEL_VERSION_ADOPTED = tracks latest (self-dogfood: the kernel lives in this repo)
+KERNEL_VERSION_ADOPTED = target-dogfood-baseline-2026-06-16
 
 ## Kernel resolution
 
