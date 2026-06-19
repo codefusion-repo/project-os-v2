@@ -49,6 +49,6 @@ original design docs) is preserved in git history.
 
 ## What stayed untouched
 
-- `fuentes/` — the PM-provided source documents for the original entity model,
-  kept as historical design input.
-- All git history, issues, PRs, and review evidence.
+- All git history, issues, PRs, and review evidence. The complete
+  pre-transformation tree — including `fuentes/`, the PM-provided source
+  documents for the original entity model — is recoverable from git history.

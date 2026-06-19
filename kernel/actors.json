@@ -2,6 +2,7 @@
   "id": "kernel.actors",
   "family": "actors",
   "description": "Execution surfaces. Resolve current_actor_type before role, workflow, or any write-capable action. Capability comes from the surface, never from prompts, roles, templates, or output contracts.",
+  "actor_model_note": "These four surfaces are the only actors. There are no role-based actors. Reviewer, QA, asset creator, and security reviewer are not actors: each is a review focus, a gate, a recipient, or an issue shape running over the surfaces above. Adding an actor requires a genuinely new execution surface, never a new role. Decision record: docs/decisions/ADR-0001-actor-model.md.",
   "entries": [
     {
       "id": "actor.human_pm",

@@ -33,7 +33,7 @@ all other deliverables with kernel output contracts instead of
 restating kernel rules.
 
 Draft PM command bundles as output.pm_command_bundle, following
-templates/commands/PM_COMMAND_BUNDLE.md (the canonical bundle source) and
+templates/pm-command-bundle.md (the canonical bundle source) and
 the boundary.copy_safe_commands floor. Do not restate the bundle rules in
 this prompt.
 

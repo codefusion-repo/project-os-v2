@@ -46,10 +46,11 @@ materialize without a runtime, and micro-granular process issues.
   - GitHub — live state (`docs/TRACEABILITY_PROTOCOL.md`).
   - `AGENTS.md` / `CLAUDE.md` / `adapters/` / `templates/` — boot and shape.
 - **Fail closed.** Exactly four resolution statuses; ambiguity never proceeds.
-- **No kernel runtime.** No loader, resolver runtime, automation, or console
-  behavior belongs in this kernel unless real-target evidence and a scoped issue
-  name a gap that prose plus kernel resolution cannot close. Future Operations
-  Console work must consume Project OS semantics; it must not replace them.
+- **No kernel runtime.** No loader, resolver runtime, or automation belongs in
+  this kernel unless real-target evidence and a scoped issue name a gap that
+  prose plus kernel resolution cannot close. Any future tooling built over
+  Project OS must consume these semantics; it must not replace them or become a
+  second source of truth.
 
 ## Kernel resolution model
 
@@ -68,3 +69,23 @@ Lessons from the audit, encoded as rules:
   issue.
 - New kernel entries, validators, or process artifacts require a named,
   observed failure they would have prevented.
+
+## Where each kind of thing belongs
+
+When unsure where something goes, this is the order of precedence:
+
+- **Kernel (`kernel/*.json`)** — stable, generic operating behavior only:
+  actors, modes, boundaries, workflows, evidence, output shapes, statuses.
+  Versioned and validated. No live state, no permission grants.
+- **Adapters (`AGENTS.md`, `CLAUDE.md`, `adapters/`)** — compact per-repo/chat
+  bootloaders: identity, kernel path, a pointer to the canonical roadmap, a
+  short notes block. No kernel-rule duplication, no live state.
+- **Templates (`templates/`)** — reusable output and prompt shapes. Shape only.
+  PM command-bundle style lives in exactly one source,
+  `templates/pm-command-bundle.md`.
+- **Roadmap issue** — one canonical roadmap per project: what comes next and
+  why. Superseded, not mutated into a status store.
+- **ADR (`docs/decisions/`)** — decisions that outlive issues, in the repo that
+  owns the decision.
+- **Target repo** — all product, domain, runtime, build, and validation truth
+  for a target. The kernel never stores target product facts.

@@ -1,61 +1,86 @@
 # project-os-v2-min
 
-The minimal operating kernel for Project OS: a small set of agent-resolvable
-JSON files that tell any AI agent (Claude, Codex, ChatGPT, or future tools)
-**how to behave** on a project, while all live project state stays in GitHub.
+A compact, portable operating kernel for working with AI agents. A small set of
+agent-resolvable JSON files tells any agent (Claude, Codex, ChatGPT, or a future
+tool) **how to behave** on a project — actors, modes, boundaries, workflows,
+evidence, outputs, statuses — while all **live project state stays in GitHub**.
+Any agent can take over a project cold by resolving the kernel and reading
+GitHub; nothing depends on a prior chat's memory.
 
-## The three layers
+## Source of truth
 
-| Layer | Where | Role |
+- **Stable behavior** lives in `kernel/*.json` (versioned, validated).
+- **Live project state** (issues, PRs, branches, commits, reviews) lives only in
+  GitHub, read at task time per `docs/TRACEABILITY_PROTOCOL.md`.
+- Everything else (adapters, templates) only **boots** an agent into those two
+  and shapes its output. Shape never grants permission.
+
+## Repository map
+
+| Path | Role | Canonical? |
 | --- | --- | --- |
-| Kernel | `kernel/*.json` (~25KB, hard 100KB budget) | Stable behavior: actors, execution modes, boundaries, workflows, evidence, outputs, statuses |
-| Live traceability | GitHub issues/PRs/commits/comments | The only live state; lets any agent take over a project cold (`docs/TRACEABILITY_PROTOCOL.md`) |
-| Adapters & templates | `AGENTS.md`, `CLAUDE.md`, `adapters/`, `templates/` | Thin bootloaders and output shapes |
+| `kernel/*.json` | The operating kernel: actors, execution modes, boundaries, evidence, workflows, outputs, statuses | **Canonical** |
+| `tools/`, `tests/` | The single integrity validator and its tests | **Canonical** |
+| `docs/TRACEABILITY_PROTOCOL.md` | The live-state / portability rules | **Canonical** |
+| `docs/decisions/` | ADRs — decisions that outlive issues | **Canonical** (when present) |
+| `AGENTS.md`, `CLAUDE.md` | This repo's own adapters (it runs on its own kernel) | Adapter |
+| `adapters/*.target.md` | Copy-me templates to adopt the kernel in another repo or chat | Template |
+| `templates/` | Output and prompt shapes (issue, PR, ADR, closure, roadmap, command bundle, route prompts) | Template |
+| `docs/DESIGN.md`, `docs/MIGRATION_FROM_V2.md` | Background: why the kernel is shaped this way, and its history | Background |
 
-Recurring PM/chat/agent operations are catalogued over these layers in
-`docs/OPERATIONS_CATALOG.md`, which also records where each kind of thing
-belongs (kernel vs adapter vs templates vs roadmap vs ADR vs console).
+A cold reader needs only the **Canonical** rows to operate. Adapters and
+templates are copied/filled per project; background docs are optional.
 
-## How an agent uses it
+Each top-level folder has one purpose: `kernel/` (the validated kernel),
+`adapters/` (bootloader templates), `templates/` (artifact shapes, with prompt
+shapes under `templates/prompts/`), `docs/` (prose docs + ADRs under
+`docs/decisions/`), `tools/` + `tests/` (the validator and its tests). Naming
+convention: adapter templates are `<SURFACE>.target.md`; kernel files are
+`<family>.json`; other templates and prompts are lowercase-kebab `.md`; reference
+docs are `UPPER_SNAKE.md`; ADRs are `ADR-NNNN-<slug>.md`.
 
-Read `kernel/manifest.json` and follow its `resolution_sequence` exactly. The
-manifest names the ordered gates; adapters and templates point to it instead of
-restating it. Exactly one of four statuses is returned: `resolved`,
-`needs_context`, `needs_pm_decision`, `blocked`. Resolution selects shape and
-gates; it never grants permission.
+## How an agent resolves the kernel
+
+Read `kernel/manifest.json` and follow its `resolution_sequence` exactly: resolve
+the current actor (surface), apply boundaries, resolve the execution mode and
+workflow, gather the required live evidence, and select the output contract.
+Return exactly one of four statuses — `resolved`, `needs_context`,
+`needs_pm_decision`, `blocked`. Resolution selects shape and gates; it never
+grants permission. Fail closed on anything missing or ambiguous.
+
+## Booting each surface
+
+- **Terminal agent (a repo):** copy `adapters/AGENTS.target.md` (and optionally
+  `adapters/CLAUDE.target.md`) into the target repo, fill the placeholders, and
+  point `KERNEL_LOCAL_PATH` at this repo's `kernel/`.
+- **Browser chat:** paste `adapters/BROWSER_CHAT.target.md` into the chat's
+  project instructions, or `templates/prompts/browser-chat-activation.md` as the
+  first message for a one-off session. Browser chat is draft-only
+  (`actor.browser_chat`); it routes write-capable work to a terminal agent.
+- **Routing & PM ops:** reusable route prompts live in `templates/prompts/`;
+  copy-safe PM command bundles follow `templates/pm-command-bundle.md`.
+
+Target product truth stays in the target repository; the kernel owns only
+generic operating behavior.
 
 ## Validation
 
 ```sh
 python3 -m tools.validate_kernel   # kernel integrity (refs, statuses, budget, safety)
-python3 -m pytest tests/ -q        # validator test suite
+python3 -m pytest tests/ -q        # validator + repo-shape guards
 ```
 
-## Adopting in a target project
-
-Copy `adapters/AGENTS.target.md` (and optionally `adapters/CLAUDE.target.md`)
-into the target repository, fill the placeholders, and point
-`KERNEL_LOCAL_PATH` at this repository's `kernel/`. Target product truth stays
-in the target; the kernel owns only generic operating behavior.
-
-For web-chat surfaces (ChatGPT, Claude web, PM Central), paste
-`adapters/BROWSER_CHAT.target.md` into the chat's project instructions: it
-boots the chat as `actor.browser_chat` (draft-only) with the standard prompt
-variables; route-prompt requirements resolve from `kernel/outputs.json`.
-For one-off sessions, paste
-`templates/prompts/browser-chat-activation.md` as the first message instead.
-Reusable route prompts live in
-`templates/prompts/` and copy-safe PM command bundles in `templates/commands/`,
-whose style is defined once in `templates/commands/PM_COMMAND_BUNDLE.md`.
-For adapter-only target adoption, use
-`templates/prompts/target-adapter-adoption.md` to draft the target issue and
-route prompt without re-deriving the `AGENTS.md` / `CLAUDE.md` repointing
-pattern.
+CI (`.github/workflows/validate.yml`) runs the same two checks on every push and
+pull request. It is self-check only — it makes no writes and automates no PM
+authority (no merge, closure, labels, releases, or target mutation). The
+repo-shape guards (`tests/test_repo_shape.py`) keep the repo compact: they fail
+if console planning docs return, the actor model gains a role-actor, or a command
+bundle uses an unsupported `gh --json` field.
 
 ## Background
 
 This repository previously held a contract-graph architecture (781 contracts,
-570 relationship files, a 5,000-line validator suite). It was transformed into
-v2-min after an audit of real usage across six target projects. Rationale:
-`docs/DESIGN.md`. What moved where: `docs/MIGRATION_FROM_V2.md`. Roadmap
-authority is resolved live from GitHub per `docs/TRACEABILITY_PROTOCOL.md`.
+570 relationship files, a ~5,000-line validator suite). It was reduced to this
+minimal kernel after an audit of real usage across six target projects.
+Rationale: `docs/DESIGN.md`. What moved where: `docs/MIGRATION_FROM_V2.md`. The
+full pre-transformation tree remains in git history.
