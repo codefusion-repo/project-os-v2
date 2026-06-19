@@ -7,8 +7,7 @@ AGENTS.md is the repository-wide terminal-agent adapter and bootloader for
 
 This file is not the source of truth. The kernel in `kernel/` is the source of
 truth for operating behavior. GitHub issues, PRs, commits, comments, and
-reviews are the only live project state. This repository operates under its
-own kernel (self-dogfood).
+reviews are the only live project state. This repository runs on its own kernel.
 
 This file must stay compact and must not store live traceability.
 
@@ -22,7 +21,7 @@ PM_FACING_LANGUAGE = es
 AGENT_INSTRUCTIONS_LANGUAGE = en
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = kernel
-KERNEL_VERSION_ADOPTED = target-dogfood-baseline-2026-06-16
+KERNEL_VERSION_ADOPTED = tracks latest
 
 ## Kernel resolution
 

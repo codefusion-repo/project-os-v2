@@ -121,12 +121,12 @@ action):
 gh pr ready {{#N}} --repo {{org/repo}}
 ~~~
 
-Then write the closure comment (per `templates/closure-comment.md`) to a body
+Then write the closure comment (per `templates/artifacts.md`, Closure comment) to a body
 file and run the closeout top to bottom:
 
 ~~~sh
 cat > /tmp/closure-comment.md <<'CLOSURE_BODY_END'
-{{closure comment following templates/closure-comment.md}}
+{{closure comment following templates/artifacts.md (Closure comment)}}
 CLOSURE_BODY_END
 
 gh issue comment {{#M}} --repo {{org/repo}} --body-file /tmp/closure-comment.md
@@ -152,12 +152,12 @@ issue when none exists, or a follow-up issue from review findings — one canoni
 pattern, no separate file per case.
 
 Scope: creates one issue in `{{org/repo}}`. Rollback: close the issue. The
-browser chat fills the body from `templates/issue.md` and the exact repo/title;
+browser chat fills the body from `templates/artifacts.md` (Issue) and the exact repo/title;
 the PM runs it.
 
 ~~~sh
 cat > /tmp/issue-body.md <<'ISSUE_BODY_END'
-{{issue body following templates/issue.md}}
+{{issue body following templates/artifacts.md (Issue)}}
 ISSUE_BODY_END
 
 gh issue create --repo {{org/repo}} \

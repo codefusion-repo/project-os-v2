@@ -15,6 +15,15 @@ GitHub; nothing depends on a prior chat's memory.
 - Everything else (adapters, templates) only **boots** an agent into those two
   and shapes its output. Shape never grants permission.
 
+## What it is — and is not
+
+It **is** a behavior kernel: small JSON files an agent *reads* to resolve how to
+act, plus a portability protocol and copy-in adapter/templates. It is **not** a
+runtime, service, database, agent framework, or prompt pack — there is nothing to
+install or run. It does not act for you, store project state, grant permissions,
+or automate merges, releases, or any PM decision. Capability comes from the
+execution surface, never a role.
+
 ## Repository map
 
 | Path | Purpose | Canonical? |
@@ -24,7 +33,7 @@ GitHub; nothing depends on a prior chat's memory.
 | `docs/TRACEABILITY_PROTOCOL.md` | The live-state / portability rules | **Canonical** |
 | `AGENTS.md`, `CLAUDE.md` | This repo's own adapters (it runs on its own kernel) | Adapter (self) |
 | `adapters/*.target.md` | Copy-me adapter templates to adopt the kernel in another repo or chat | Template |
-| `templates/*.md` | Fill-in shapes: issue, PR, closure comment, ADR, roadmap, route prompt, PM command bundle | Template |
+| `templates/*.md` | Fill-in shapes: `artifacts.md` (issue, PR, closure, ADR, roadmap), `route-prompt.md`, `pm-command-bundle.md` | Template |
 | `docs/DESIGN.md` | Background: why the kernel is shaped this way, the actor model, and its history | Background |
 
 A cold reader needs only the **Canonical** rows to operate. Adapters and

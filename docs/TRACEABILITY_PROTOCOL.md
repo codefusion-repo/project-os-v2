@@ -17,23 +17,23 @@ evidence can be re-read.
    memory, prior-session context, or durable files for live state.
 
 2. **Every issue carries its own context.** Issues follow
-   `templates/issue.md`: why it exists, objective, source basis (links to the
+   `templates/artifacts.md` (Issue): why it exists, objective, source basis (links to the
    decisions and work it builds on), scope, out of scope, acceptance criteria,
    validation expectations.
 
 3. **Every closure leaves a reconstruction packet.** No issue closes without a
-   closure comment per `templates/closure-comment.md`: completion evidence,
+   closure comment per `templates/artifacts.md` (Closure comment): completion evidence,
    validation evidence with real output, boundaries preserved (what was
    deliberately not done), accepted scoped validation/CI exceptions when
    present, a concise friction note, and commit/PR references.
 
 4. **Every PR documents its own verification.** PR bodies follow
-   `templates/pr.md`: summary, scope and boundaries, validation commands with
+   `templates/artifacts.md` (Pull request): summary, scope and boundaries, validation commands with
    results, security/privacy notes, linked issue.
 
 5. **One canonical roadmap issue per project.** It answers "what comes next
    and why" and is updated by superseding, not by storing mutable status.
-   Decisions that outlive issues become ADRs (`templates/adr.md`).
+   Decisions that outlive issues become ADRs (`templates/artifacts.md`, ADR).
 
 6. **No live state in durable files.** Repository docs, kernels, and adapters
    never store issue/PR/branch/validation state, SHAs, or release readiness

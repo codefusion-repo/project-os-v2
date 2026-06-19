@@ -18,13 +18,13 @@
       "id": "output.closure_comment",
       "use_for": "The GitHub comment that closes out an issue.",
       "required_sections": ["completion evidence (what now exists)", "validation evidence with real output", "accepted exceptions (a scoped PM-accepted validation/CI exception, or none)", "boundaries preserved (what was deliberately not done)", "friction note (one concise line, required)", "commit/PR references"],
-      "rule": "This comment is the reconstruction packet for the next agent. Template: templates/closure-comment.md."
+      "rule": "This comment is the reconstruction packet for the next agent. Template: templates/artifacts.md (Closure comment)."
     },
     {
       "id": "output.draft_issue",
       "use_for": "Drafting GitHub issues for PM review.",
       "required_sections": ["why this exists (1-3 sentences)", "objective", "source basis", "scope", "out of scope (short)", "acceptance criteria", "validation expectations", "risk and rollback"],
-      "rule": "Template: templates/issue.md. One outcome per issue. Body under ~5KB."
+      "rule": "Template: templates/artifacts.md (Issue). One outcome per issue. Body under ~5KB."
     },
     {
       "id": "output.route_prompt",
@@ -36,7 +36,7 @@
       "id": "output.pm_command_bundle",
       "use_for": "Copy-safe command bundles the PM executes manually.",
       "required_sections": ["what the bundle does and its scope (prose, outside code blocks)", "the commands with exact targets in run order", "expected verification output", "risk and rollback (prose)"],
-      "rule": "Names the contract sections only. The default short/linear shape, full style, disallowed patterns, when a defensive bundle is allowed, and examples are defined once in templates/pm-command-bundle.md; the hard floor is boundary.copy_safe_commands. Do not restate bundle rules here."
+      "rule": "Names the contract sections only. Shape, style, disallowed patterns, and examples live once in templates/pm-command-bundle.md; the hard floor is boundary.copy_safe_commands. Do not restate bundle rules here."
     },
     {
       "id": "output.handoff_packet",

@@ -35,8 +35,9 @@ materialize without a runtime, and micro-granular process issues.
   reading by agents, not for relational normalization. Prose-bearing JSON with
   stable ids beats a normalized graph.
 - **Hard size budget.** The kernel must stay under 100KB total (target 60KB);
-  the validator fails it otherwise. Current size: ~25KB — a ~95% reduction
-  against the v1 hot path. Growth requires shrinking something else.
+  the validator fails it otherwise. It currently sits at a small fraction of the
+  budget — roughly a 95% reduction against the v1 hot path. Growth requires
+  shrinking something else.
 - **One validator.** `tools/validate_kernel.py` checks integrity (references,
   canonical statuses, no permission grants, no live state, actor safety, size
   budget). There is no other validation layer. Validators guard the kernel;
