@@ -7,8 +7,9 @@ chat. Replace the `{{PLACEHOLDERS}}` and delete this heading block.
 Keep the adapter compact: it boots the chat into the kernel and live evidence.
 It never duplicates kernel rules, product documentation, or live project state.
 
-For sessions where project instructions cannot be set, paste
-`templates/prompts/browser-chat-activation.md` as the first message instead.
+For sessions where project instructions cannot be set, paste the
+"First-message activation" block at the end of this file as the first message
+instead.
 
 ---
 
@@ -63,33 +64,20 @@ internal memory or durable files for live state.
 
 ## Drafting interface
 
-Browser chat drafts outputs for PM review and for terminal-agent execution.
-When drafting route prompts or command bundles, use kernel ids instead of
-restating kernel rules. Keep route prompts compact and issue-referential:
-never duplicate the full issue body; the terminal agent reads the issue
-live, per `templates/prompts/route-issue-to-terminal-agent.md`.
+Browser chat drafts outputs for PM review and for terminal-agent execution,
+shaped by kernel output contracts (use kernel ids instead of restating rules):
 
-Use this variable block when applicable. Omit variables that do not apply.
+- Route write-capable work to a terminal agent with `output.route_prompt`,
+  following `templates/route-prompt.md` (the canonical route-prompt template and
+  variable block). Keep it compact and issue-referential; the terminal agent
+  reads the issue live.
+- Draft copy-safe PM command bundles with `output.pm_command_bundle`, following
+  `templates/pm-command-bundle.md` and the `boundary.copy_safe_commands` floor.
 
-~~~text
-PROJECT_NAME = {{PROJECT_NAME}}
-REPOSITORY_NAME = {{ORG/REPO}}
-TARGET_REPOSITORY = {{org/repo — repo where work happens, if different}}
-ISSUE_OR_PR = {{#N}}
-CURRENT_ACTOR_TYPE = actor.browser_chat
-TARGET_ACTOR_TYPE = actor.terminal_agent
-WORKFLOW = {{workflow.* id}}
-EXECUTION_MODE = {{mode.* id}}
-OUTPUT_CONTRACT = {{output.* id}}
-SCOPE = {{what is included, 1-3 lines}}
-OUT_OF_SCOPE = {{only plausible mistakes, 1-3 lines}}
-EVIDENCE_REQUIRED = {{evidence.* ids}}
-VALIDATION_REQUIRED = {{exact commands}}
-BRANCH_NAME = work/{{issue}}-{{slug}}
-EXPECTED_REPORT = {{deliverable in one line}}
-PM_AUTHORIZATION_STATUS = {{granted for this exact scope | pending}}
-RECOMMENDED_EFFORT = {{medium | high | xhigh}}
-~~~
+PM authorization for writes never expands this surface; it routes the work to a
+terminal agent. A PM-approved scoped route prompt or bundle is approval evidence
+for that exact scope and is not re-requested unless the
+`kernel/execution_modes.json` `approval_note` rule applies.
 
 ## Project-specific notes
 
@@ -99,3 +87,28 @@ domain boundaries. Keep under ~15 lines, compact, non-live, and target-owned:
 no issue/PR/branch state, no SHAs, no review status, no release status.
 Everything else belongs in the kernel, the roadmap issue, GitHub evidence, or
 ADRs.}}
+
+## First-message activation
+
+When project instructions cannot be set, paste this block as the first message
+of a new browser-chat session (fill the variables, delete unused lines). It
+carries boot context only and grants no permission.
+
+~~~text
+PROJECT_NAME = {{name}}
+REPOSITORY_NAME = {{org/repo}}
+CURRENT_ACTOR_TYPE = actor.browser_chat
+WORKFLOW = workflow.pm_intake
+ROADMAP_ISSUE = {{#N, if applicable}}
+
+Act as actor.browser_chat. Before non-trivial work, resolve behavior from
+kernel/manifest.json in REPOSITORY_NAME and follow its resolution_sequence;
+kernel boundaries always apply, including draft-only behavior for this surface.
+Reconstruct live state from GitHub and git per docs/TRACEABILITY_PROTOCOL.md;
+when evidence is unavailable, ask for it or mark the output pending — never
+invent state. Draft only: route write-capable work to a terminal agent with
+output.route_prompt (templates/route-prompt.md) and draft PM bundles with
+output.pm_command_bundle (templates/pm-command-bundle.md). A PM-approved scoped
+route prompt or bundle is approval evidence for that exact scope. This message
+grants no permission.
+~~~

@@ -17,27 +17,28 @@ GitHub; nothing depends on a prior chat's memory.
 
 ## Repository map
 
-| Path | Role | Canonical? |
+| Path | Purpose | Canonical? |
 | --- | --- | --- |
 | `kernel/*.json` | The operating kernel: actors, execution modes, boundaries, evidence, workflows, outputs, statuses | **Canonical** |
-| `tools/`, `tests/` | The single integrity validator and its tests | **Canonical** |
+| `tools/` + `tests/` | The single integrity validator and its tests | **Canonical** |
 | `docs/TRACEABILITY_PROTOCOL.md` | The live-state / portability rules | **Canonical** |
-| `docs/decisions/` | ADRs — decisions that outlive issues | **Canonical** (when present) |
-| `AGENTS.md`, `CLAUDE.md` | This repo's own adapters (it runs on its own kernel) | Adapter |
-| `adapters/*.target.md` | Copy-me templates to adopt the kernel in another repo or chat | Template |
-| `templates/` | Output and prompt shapes (issue, PR, ADR, closure, roadmap, command bundle, route prompts) | Template |
-| `docs/DESIGN.md`, `docs/MIGRATION_FROM_V2.md` | Background: why the kernel is shaped this way, and its history | Background |
+| `AGENTS.md`, `CLAUDE.md` | This repo's own adapters (it runs on its own kernel) | Adapter (self) |
+| `adapters/*.target.md` | Copy-me adapter templates to adopt the kernel in another repo or chat | Template |
+| `templates/*.md` | Fill-in shapes: issue, PR, closure comment, ADR, roadmap, route prompt, PM command bundle | Template |
+| `docs/DESIGN.md` | Background: why the kernel is shaped this way, the actor model, and its history | Background |
 
 A cold reader needs only the **Canonical** rows to operate. Adapters and
-templates are copied/filled per project; background docs are optional.
+templates are copied/filled per project; the background doc is optional.
 
-Each top-level folder has one purpose: `kernel/` (the validated kernel),
-`adapters/` (bootloader templates), `templates/` (artifact shapes, with prompt
-shapes under `templates/prompts/`), `docs/` (prose docs + ADRs under
-`docs/decisions/`), `tools/` + `tests/` (the validator and its tests). Naming
-convention: adapter templates are `<SURFACE>.target.md`; kernel files are
-`<family>.json`; other templates and prompts are lowercase-kebab `.md`; reference
-docs are `UPPER_SNAKE.md`; ADRs are `ADR-NNNN-<slug>.md`.
+**Self vs target adapters:** the root `AGENTS.md` / `CLAUDE.md` are *this* repo's
+live adapters. The `adapters/*.target.md` files are blank templates you copy into
+*another* repo or chat — the `.target.md` suffix marks "copy me, fill me in."
+
+**Naming convention:** adapter templates are `<SURFACE>.target.md`; kernel files
+are `<family>.json`; templates are lowercase-kebab `.md`; docs are
+`UPPER_SNAKE.md`. Each top-level folder has one purpose: `kernel/` (the kernel),
+`adapters/` (adapter templates), `templates/` (fill-in shapes), `docs/` (prose
+docs), `tools/` + `tests/` (validator and tests).
 
 ## How an agent resolves the kernel
 
@@ -54,11 +55,12 @@ grants permission. Fail closed on anything missing or ambiguous.
   `adapters/CLAUDE.target.md`) into the target repo, fill the placeholders, and
   point `KERNEL_LOCAL_PATH` at this repo's `kernel/`.
 - **Browser chat:** paste `adapters/BROWSER_CHAT.target.md` into the chat's
-  project instructions, or `templates/prompts/browser-chat-activation.md` as the
-  first message for a one-off session. Browser chat is draft-only
+  project instructions; for a one-off session, paste its "First-message
+  activation" block as the first message. Browser chat is draft-only
   (`actor.browser_chat`); it routes write-capable work to a terminal agent.
-- **Routing & PM ops:** reusable route prompts live in `templates/prompts/`;
-  copy-safe PM command bundles follow `templates/pm-command-bundle.md`.
+- **Routing & PM ops:** route work with `templates/route-prompt.md` (one template,
+  four variants: implement, review, correct, audit); copy-safe PM command bundles
+  follow `templates/pm-command-bundle.md`.
 
 Target product truth stays in the target repository; the kernel owns only
 generic operating behavior.
@@ -73,14 +75,13 @@ python3 -m pytest tests/ -q        # validator + repo-shape guards
 CI (`.github/workflows/validate.yml`) runs the same two checks on every push and
 pull request. It is self-check only — it makes no writes and automates no PM
 authority (no merge, closure, labels, releases, or target mutation). The
-repo-shape guards (`tests/test_repo_shape.py`) keep the repo compact: they fail
-if console planning docs return, the actor model gains a role-actor, or a command
-bundle uses an unsupported `gh --json` field.
+repo-shape guards in `tests/test_validate_kernel.py` keep the repo compact: they
+fail if console planning docs return, the actor model gains a role-actor, or a
+command bundle uses an unsupported `gh --json` field.
 
 ## Background
 
-This repository previously held a contract-graph architecture (781 contracts,
-570 relationship files, a ~5,000-line validator suite). It was reduced to this
-minimal kernel after an audit of real usage across six target projects.
-Rationale: `docs/DESIGN.md`. What moved where: `docs/MIGRATION_FROM_V2.md`. The
-full pre-transformation tree remains in git history.
+This repo previously held a contract-graph architecture (781 contracts, ~5,000
+lines of validators), reduced to this minimal kernel after a 2026-06 audit of
+real usage. Rationale, the actor model, and recovery of the old tree from git
+history: `docs/DESIGN.md`.

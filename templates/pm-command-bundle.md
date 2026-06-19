@@ -8,8 +8,8 @@ points here instead of restating these rules:
   safety floor and points here for shape and style;
 - `kernel/outputs.json` (`output.pm_command_bundle`) names the contract sections
   and points here;
-- `templates/prompts/*` point here and to `output.pm_command_bundle` and never
-  introduce separate command rules.
+- `templates/route-prompt.md` points here and to `output.pm_command_bundle` and
+  never introduces separate command rules.
 
 This is the single canonical command-bundle source: separate per-operation
 command files with their own style, safety, formatting, preflight, verification,

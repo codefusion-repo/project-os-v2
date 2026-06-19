@@ -8,7 +8,7 @@ a project, while all live project state stays in GitHub.
 
 It replaces the previous project-os-v2 contract-graph architecture (781
 contracts across 18 entity families, 570 relationship files, ~5,000 lines of
-meta-process validators). See `docs/MIGRATION_FROM_V2.md`.
+meta-process validators). See the History section below.
 
 ## Evidence basis
 
@@ -59,6 +59,20 @@ sequence is data in the manifest; adapters and docs point to it instead of
 owning a parallel copy. The agent executes it by reading, not by running code.
 Resolution selects shape and gates; it never grants permission.
 
+## Actor model
+
+Capability comes from the **execution surface**, never from a role. The four
+actors in `kernel/actors.json` (`human_pm`, `terminal_agent`, `browser_chat`,
+`unknown`) are the only actors. Reviewer, QA, asset creator, and security
+reviewer were once floated as candidate actors; they are deliberately **not**
+actors. Each is a review focus (a security/QA review is `workflow.review_*` on an
+existing surface), a gate (a QA/security verdict is evidence that can return
+`status.needs_pm_decision`, never write authorization), a recipient (a human QA
+tester or asset creator receives a packet), or an issue shape (an asset request
+is an `output.draft_issue`). Adding an actor requires a genuinely new execution
+surface, not a new role — and, per the guardrail below, a named observed failure.
+The operative rule is the `actor_model_note` in `kernel/actors.json`.
+
 ## Anti-bureaucracy guardrails
 
 Lessons from the audit, encoded as rules:
@@ -89,3 +103,20 @@ When unsure where something goes, this is the order of precedence:
   owns the decision.
 - **Target repo** — all product, domain, runtime, build, and validation truth
   for a target. The kernel never stores target product facts.
+
+## History
+
+project-os-v2 previously held a contract-graph architecture: 781 contracts
+across 18 entity families, 570 one-per-edge relationship files, 28 schema files,
+and a ~5,000-line meta-process validator suite with a 2,243-line test suite. A
+2026-06 audit found nothing consumed the relationship graph or the
+meta-contracts, and the validators guarded a process no runtime executed. It was
+reduced to this kernel: actor/mode/boundary/evidence/workflow/output/status
+behavior distilled into `kernel/*.json`, the no-live-state philosophy into
+`boundary.no_live_state_durable` plus `docs/TRACEABILITY_PROTOCOL.md`, and the
+validator intent into `tools/validate_kernel.py` (integrity only).
+
+Nothing was lost: the complete pre-transformation tree — contracts, schemas,
+validators, fixtures, the original `fuentes/` source documents, and all issues
+and PRs — remains in git history. Recover any path with
+`git log --oneline -- <path>` then `git checkout <baseline-sha> -- <path>`.
