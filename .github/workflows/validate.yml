@@ -1,0 +1,28 @@
+name: validate
+
+# Self-check only: runs kernel integrity validation and the test suite (validator
+# + repo-shape guards) on every push and pull request. It performs NO writes —
+# no merge, no issue/label/release changes, no target mutation, no auto-progression.
+# PM authority is never automated.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest
+      - name: Validate kernel integrity
+        run: python -m tools.validate_kernel
+      - name: Run test suite
+        run: python -m pytest tests/ -q

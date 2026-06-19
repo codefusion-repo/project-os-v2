@@ -26,8 +26,8 @@ traceability.
 
 ## Repository identity
 
-Standard metadata block. Keep these field names and order so agents and the
-future Operations Console read adapters the same way across repositories.
+Standard metadata block. Keep these field names and order so agents and any
+future tooling read adapters the same way across repositories.
 `REPOSITORY_LOCAL_PATH`, `KERNEL_LOCAL_PATH`, and `KERNEL_VERSION_ADOPTED` are
 per-machine/adoption configuration, not live project state.
 

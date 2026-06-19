@@ -1,8 +1,9 @@
-"""Tests for the project-os-v2-min kernel integrity validator."""
+"""Tests for the project-os-v2-min kernel validator and repo-shape guards."""
 
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -121,3 +122,64 @@ def test_size_budget_enforced(kernel_copy: Path) -> None:
         lambda d: d["size_budget"].update(kernel_total_bytes_max=100),
     )
     assert "KMIN-011" in codes(validate_kernel(kernel_copy))
+
+
+# --- Repo-shape guards (prevent regressing the #287 simplification) ---------
+#
+# Deterministic checks that keep project-os-v2 a compact, portable kernel:
+# console planning docs stay out, the actor model stays surface-only, command
+# bundles never emit unsupported gh --json fields, and the command-bundle source
+# keeps its normalized location. They guard repo shape only; no writes, no
+# authority.
+
+FORBIDDEN_CONSOLE_DOCS = (
+    "docs/OPERATIONS_CATALOG.md",
+    "docs/OPERATIONS_CONSOLE_IMPLEMENTATION_PLAN.md",
+)
+CANONICAL_ACTOR_IDS = {
+    "actor.human_pm",
+    "actor.terminal_agent",
+    "actor.browser_chat",
+    "actor.unknown",
+}
+FORBIDDEN_GH_JSON_FIELDS = {"stateReason", "merged"}
+GH_JSON_PATTERN = re.compile(r"--json\s+([A-Za-z0-9_,]+)")
+SKIP_DIRS = {".git", ".pytest_cache", "__pycache__", "node_modules", ".venv"}
+
+
+def _markdown_files() -> list[Path]:
+    return [p for p in REPO_ROOT.rglob("*.md") if not (set(p.parts) & SKIP_DIRS)]
+
+
+def test_no_console_planning_docs() -> None:
+    present = [rel for rel in FORBIDDEN_CONSOLE_DOCS if (REPO_ROOT / rel).exists()]
+    assert present == [], f"console planning docs must not return: {present}"
+
+
+def test_actor_model_is_surface_only() -> None:
+    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    ids = {entry["id"] for entry in actors["entries"]}
+    assert ids == CANONICAL_ACTOR_IDS, (
+        f"actor set drifted from the four surfaces: {sorted(ids)}. "
+        "A new actor requires a new execution surface (docs/DESIGN.md, Actor model)."
+    )
+    assert actors.get("actor_model_note"), "actors.json must keep the canonical actor_model_note"
+
+
+def test_no_unsupported_gh_json_fields() -> None:
+    offenders: list[str] = []
+    for path in _markdown_files():
+        for field_list in GH_JSON_PATTERN.findall(path.read_text(encoding="utf-8")):
+            bad = FORBIDDEN_GH_JSON_FIELDS & set(field_list.split(","))
+            if bad:
+                offenders.append(f"{path.relative_to(REPO_ROOT)}: {sorted(bad)}")
+    assert offenders == [], f"unsupported gh --json fields found: {offenders}"
+
+
+def test_canonical_command_bundle_source_normalized() -> None:
+    assert (REPO_ROOT / "templates" / "pm-command-bundle.md").exists(), (
+        "the single canonical command-bundle source must stay at templates/pm-command-bundle.md"
+    )
+    assert not (REPO_ROOT / "templates" / "commands").exists(), (
+        "the single-file templates/commands/ folder was flattened; do not reintroduce it"
+    )

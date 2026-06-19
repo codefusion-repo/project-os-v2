@@ -8,15 +8,13 @@ points here instead of restating these rules:
   safety floor and points here for shape and style;
 - `kernel/outputs.json` (`output.pm_command_bundle`) names the contract sections
   and points here;
-- `docs/OPERATIONS_CATALOG.md` maps the operations that emit bundles and points
-  here;
-- `templates/prompts/*` point here and to `output.pm_command_bundle` and never
-  introduce separate command rules.
+- `templates/route-prompt.md` points here and to `output.pm_command_bundle` and
+  never introduces separate command rules.
 
-This is the only file under `templates/commands/`: per-operation command files
-with their own style, safety, formatting, preflight, verification, heredoc, or
-shell-control-flow rules are not allowed. Worked examples belong here, as
-sections below.
+This is the single canonical command-bundle source: separate per-operation
+command files with their own style, safety, formatting, preflight, verification,
+heredoc, or shell-control-flow rules are not allowed. Worked examples belong
+here, as sections below.
 
 This file stores no live state. Exact issue/PR/branch/SHA values are read live
 from GitHub and git at task time (`docs/TRACEABILITY_PROTOCOL.md`) and filled in
@@ -86,24 +84,19 @@ When defensive phasing is justified, still avoid `exit` and terminal-stopping
 guards: phase the bundle (run, read output, fill the next value, run) and tell
 the PM the exact condition to check between phases in prose.
 
-## Examples (derived from the current kernel and catalog)
+## Examples (derived from the current kernel)
 
 These examples are not a generic command cookbook. They cover exactly the
-operations that emit `output.pm_command_bundle` today, derived from:
+work that emits `output.pm_command_bundle` today: only `workflow.pm_intake` and
+`workflow.release_readiness` list `output.pm_command_bundle` in their
+`allowed_output_refs` (`kernel/workflows.json`), which in practice means creating
+an issue and running a reviewed closeout.
 
-- `kernel/workflows.json` — only `workflow.pm_intake` and
-  `workflow.release_readiness` list `output.pm_command_bundle` in their
-  `allowed_output_refs`;
-- `docs/OPERATIONS_CATALOG.md` — the operations that produce it are
-  **2** (create next roadmap issue when none exists), **7** (generate
-  comment/ready/merge/close/cleanup bundle), and **11** (create follow-up issue
-  from review findings).
+If a future kernel change makes other work emit `output.pm_command_bundle`, add
+its example here with the evidence; do not invent command families outside the
+model.
 
-If a future kernel/catalog change makes another operation emit
-`output.pm_command_bundle`, add its example here with the evidence; do not invent
-command families outside the model.
-
-### Operation 7 — comment / ready / merge / close / cleanup
+### Closeout — comment / ready / merge / close / cleanup
 
 Scope: optionally comment on PR `#N`, optionally mark it ready, post closure
 evidence on issue `#M`, merge with a closing reference, and clean up the branch. Risk: merge and
@@ -128,12 +121,12 @@ action):
 gh pr ready {{#N}} --repo {{org/repo}}
 ~~~
 
-Then write the closure comment (per `templates/closure-comment.md`) to a body
+Then write the closure comment (per `templates/artifacts.md`, Closure comment) to a body
 file and run the closeout top to bottom:
 
 ~~~sh
 cat > /tmp/closure-comment.md <<'CLOSURE_BODY_END'
-{{closure comment following templates/closure-comment.md}}
+{{closure comment following templates/artifacts.md (Closure comment)}}
 CLOSURE_BODY_END
 
 gh issue comment {{#M}} --repo {{org/repo}} --body-file /tmp/closure-comment.md
@@ -152,19 +145,19 @@ do not apply, keep the rest linear. Verify with supported fields only:
 merged at the reviewed head; `gh issue view {{#M}} --repo {{org/repo}} --json
 state,closedAt` shows `CLOSED`; local `main` is at the merge commit.
 
-### Operations 2 and 11 — create an issue
+### Create an issue
 
-The same create pattern serves operation 2 (create the next roadmap issue when
-none exists) and operation 11 (create a follow-up issue from review findings) —
-one canonical pattern, no separate file per operation.
+The same create pattern serves any single-issue creation — the next roadmap
+issue when none exists, or a follow-up issue from review findings — one canonical
+pattern, no separate file per case.
 
 Scope: creates one issue in `{{org/repo}}`. Rollback: close the issue. The
-browser chat fills the body from `templates/issue.md` and the exact repo/title;
+browser chat fills the body from `templates/artifacts.md` (Issue) and the exact repo/title;
 the PM runs it.
 
 ~~~sh
 cat > /tmp/issue-body.md <<'ISSUE_BODY_END'
-{{issue body following templates/issue.md}}
+{{issue body following templates/artifacts.md (Issue)}}
 ISSUE_BODY_END
 
 gh issue create --repo {{org/repo}} \
