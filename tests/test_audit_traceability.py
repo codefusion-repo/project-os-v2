@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import textwrap
 
 import pytest
@@ -13,6 +14,7 @@ from tools.audit_traceability import (
     CLOSURE_SECTION_LABELS,
     Comment,
     Finding,
+    GithubClient,
     Issue,
     PullRequest,
     _issue_from_payload,
@@ -316,6 +318,11 @@ class FakeClient:
         return self.range_result
 
 
+class NoAuthGithubClient(GithubClient):
+    def ensure_ready(self) -> None:
+        return None
+
+
 def test_human_and_json_outputs_report_same_findings(capsys: pytest.CaptureFixture[str]) -> None:
     class FindingClient(FakeClient):
         issue = closed_issue()
@@ -364,6 +371,108 @@ def test_cli_accepts_bounded_range_without_live_network(capsys: pytest.CaptureFi
         == 0
     )
     assert "traceability audit: OK" in capsys.readouterr().out
+
+
+def test_paged_comments_payload_parses_into_comment_objects(monkeypatch: pytest.MonkeyPatch) -> None:
+    pages = [
+        [
+            {
+                "id": index,
+                "user": {"login": "agent"},
+                "body": f"Comment {index}",
+                "created_at": "2026-06-01T10:00:00Z",
+                "html_url": f"https://example.test/comments/{index}",
+            }
+            for index in range(1, 101)
+        ],
+        [
+            {
+                "id": 101,
+                "user": {"login": "pm"},
+                "body": "Final comment",
+                "created_at": "2026-06-01T10:01:00Z",
+                "html_url": "https://example.test/comments/101",
+            }
+        ],
+    ]
+    commands: list[list[str]] = []
+
+    def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        commands.append(cmd)
+        page_arg = next(part for part in cmd if part.startswith("page="))
+        page = int(page_arg.split("=", 1)[1])
+        return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps(pages[page - 1]), stderr="")
+
+    monkeypatch.setattr("tools.audit_traceability.subprocess.run", fake_run)
+
+    parsed = GithubClient(REPO)._fetch_issue_comments(10)
+
+    assert len(parsed) == 101
+    assert parsed[0] == Comment(
+        id=1,
+        author_login="agent",
+        body="Comment 1",
+        created_at="2026-06-01T10:00:00Z",
+        url="https://example.test/comments/1",
+    )
+    assert parsed[-1].author_login == "pm"
+    assert all("--jq" not in command and "--method" in command and "GET" in command for command in commands)
+    assert [part for command in commands for part in command if part.startswith("page=")] == ["page=1", "page=2"]
+
+
+def test_paged_pr_files_payload_parses_into_changed_file_objects(monkeypatch: pytest.MonkeyPatch) -> None:
+    payload = [
+        {"filename": "tools/audit_traceability.py", "status": "modified"},
+        {"filename": "tests/test_audit_traceability.py", "status": "added"},
+    ]
+
+    def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        assert "--jq" not in cmd
+        assert "--method" in cmd and "GET" in cmd
+        return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps(payload), stderr="")
+
+    monkeypatch.setattr("tools.audit_traceability.subprocess.run", fake_run)
+
+    parsed = GithubClient(REPO)._fetch_pr_files(20, {"changed_files": 2})
+
+    assert parsed == (
+        ChangedFile("tools/audit_traceability.py", "modified"),
+        ChangedFile("tests/test_audit_traceability.py", "added"),
+    )
+
+
+def test_malformed_paged_json_returns_tooling_error(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        endpoint = cmd[4]
+        if endpoint == f"/repos/{REPO}/issues/10":
+            payload = {"number": 10, "title": "Issue", "state": "open", "body": ""}
+            return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps(payload), stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="{not json", stderr="")
+
+    monkeypatch.setattr("tools.audit_traceability.subprocess.run", fake_run)
+
+    assert main(["--repository", REPO, "--issue", "10"], client_cls=NoAuthGithubClient) == 2
+    assert "invalid JSON" in capsys.readouterr().err
+
+
+def test_unsupported_paged_item_shape_returns_tooling_error(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        endpoint = cmd[4]
+        if endpoint == f"/repos/{REPO}/issues/10":
+            payload = {"number": 10, "title": "Issue", "state": "open", "body": ""}
+            return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps(payload), stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps([{"id": 1}, "bad item"]), stderr="")
+
+    monkeypatch.setattr("tools.audit_traceability.subprocess.run", fake_run)
+
+    assert main(["--repository", REPO, "--issue", "10"], client_cls=NoAuthGithubClient) == 2
+    assert "unsupported paginated item" in capsys.readouterr().err
 
 
 def test_read_failure_returns_tooling_error(capsys: pytest.CaptureFixture[str]) -> None:

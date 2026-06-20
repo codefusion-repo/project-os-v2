@@ -785,33 +785,20 @@ class GithubClient:
             raise AuditError(f"gh api returned invalid JSON for {endpoint}") from exc
 
     def _paged_list(self, endpoint: str) -> list[dict[str, object]]:
-        cmd = [
-            "gh",
-            "api",
-            "--method",
-            "GET",
-            "--paginate",
-            endpoint,
-            "-f",
-            "per_page=100",
-            "--jq",
-            ".[]",
-        ]
-        proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
-        if proc.returncode != 0:
-            detail = proc.stderr.strip() or proc.stdout.strip() or f"gh api failed: {endpoint}"
-            raise AuditError(detail)
         items: list[dict[str, object]] = []
-        for line in proc.stdout.splitlines():
-            if not line.strip():
-                continue
-            try:
-                item = json.loads(line)
-            except json.JSONDecodeError as exc:
-                raise AuditError(f"gh api returned invalid paginated JSON for {endpoint}") from exc
-            if not isinstance(item, dict):
-                raise AuditError(f"unsupported paginated item for {endpoint}")
-            items.append(item)
+        page = 1
+        per_page = 100
+        while True:
+            payload = self._api_json(endpoint, fields={"page": str(page), "per_page": str(per_page)})
+            if not isinstance(payload, list):
+                raise AuditError(f"unsupported paginated payload for {endpoint}")
+            for item in payload:
+                if not isinstance(item, dict):
+                    raise AuditError(f"unsupported paginated item for {endpoint}")
+                items.append(item)
+            if len(payload) < per_page:
+                break
+            page += 1
         return items
 
     def fetch_issue(self, number: int) -> Issue:
