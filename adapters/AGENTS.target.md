@@ -51,10 +51,11 @@ is missing, ambiguous, or conflicting.
 
 ## Live state
 
-Reconstruct project state from GitHub and git at task time, per the kernel
-traceability protocol: current issue, linked PRs, the canonical roadmap issue
-`{{#ROADMAP_ISSUE}}`, and `docs/decisions/` ADRs when present. Never trust
-internal memory or durable files for live state.
+Reconstruct target project state for `REPOSITORY_NAME` from GitHub and git at
+task time, per `KERNEL_REPOSITORY`'s traceability protocol: current issue,
+linked PRs, the canonical roadmap issue `{{#ROADMAP_ISSUE}}`, and the target
+repo's `docs/decisions/` ADRs when present. Never trust internal memory or
+durable files for live state.
 
 ## Project-specific notes
 

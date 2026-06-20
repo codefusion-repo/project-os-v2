@@ -15,14 +15,16 @@ prompt grants no permission. Copy-safe: plain text, at most one fenced block.
 PROJECT_NAME = {{name}}
 REPOSITORY_NAME = {{org/repo}}
 TARGET_REPOSITORY = {{org/repo, if work happens in a different repo}}
+KERNEL_REPOSITORY = {{kernel owner/repo, normally codefusion-repo/project-os-v2}}
+KERNEL_LOCAL_PATH = {{path to kernel/, or kernel when executing inside KERNEL_REPOSITORY}}
 ISSUE_OR_PR = {{#N}}
 TARGET_ACTOR_TYPE = actor.terminal_agent
-WORKFLOW = {{workflow.* id}}
-EXECUTION_MODE = {{mode.* id}}
-OUTPUT_CONTRACT = {{output.* id}}
+WORKFLOW = {{canonical workflow id from kernel/workflows.json}}
+EXECUTION_MODE = {{canonical mode id from kernel/execution_modes.json}}
+OUTPUT_CONTRACT = {{canonical output id from kernel/outputs.json}}
 SCOPE = {{1-3 lines, never the full issue body}}
 OUT_OF_SCOPE = {{1-3 lines, only plausible mistakes}}
-EVIDENCE_REQUIRED = {{evidence.* ids}}
+EVIDENCE_REQUIRED = {{canonical evidence ids from kernel/evidence.json}}
 VALIDATION_REQUIRED = {{exact commands}}
 BRANCH_NAME = work/{{issue}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{granted for this exact scope and mode | pending}}
@@ -41,13 +43,13 @@ Set the workflow/mode/output as shown, then add the instruction line.
 - **Implement an issue** — `WORKFLOW = workflow.issue_implementation`;
   `EXECUTION_MODE = mode.local_implementation | mode.delegated_commit_push | mode.delegated_commit_pr`;
   `OUTPUT_CONTRACT = output.execution_report`;
-  `EVIDENCE_REQUIRED = evidence.issue_scope, evidence.branch_preflight, evidence.validation_output`.
+  `EVIDENCE_REQUIRED = evidence.issue_scope, evidence.branch_preflight, evidence.pm_approval, evidence.validation_output`.
   *Instruction:* "Implement ISSUE_OR_PR in REPOSITORY_NAME. Resolve the kernel,
   run branch preflight, work only inside SCOPE on BRANCH_NAME, validate, and
   report per OUTPUT_CONTRACT." (Target-adapter adoption is this variant: SCOPE =
   repoint the target's `AGENTS.md`/`CLAUDE.md` to the kernel using
-  `adapters/AGENTS.target.md` and `adapters/CLAUDE.target.md`; keep target
-  product truth in the target.)
+  KERNEL_REPOSITORY's `adapters/AGENTS.target.md` and
+  `adapters/CLAUDE.target.md`; keep target product truth in the target.)
 
 - **Review a PR before merge/close** — `WORKFLOW = workflow.review_before_close`;
   `EXECUTION_MODE = mode.review_only`; `OUTPUT_CONTRACT = output.review_result`;
@@ -62,7 +64,7 @@ Set the workflow/mode/output as shown, then add the instruction line.
   `EXECUTION_MODE = mode.delegated_commit_push | mode.delegated_commit_pr`;
   `OUTPUT_CONTRACT = output.execution_report`;
   `SCOPE = fix only the findings listed below, same branch, same issue scope`;
-  `EVIDENCE_REQUIRED = evidence.pr_diff, evidence.branch_preflight, evidence.validation_output`.
+  `EVIDENCE_REQUIRED = evidence.pr_diff, evidence.branch_preflight, evidence.pm_approval, evidence.validation_output`.
   *Instruction:* "List findings as `file:line — finding`. Resolve the kernel,
   preflight on BRANCH_NAME, apply only these corrections, validate, push per
   EXECUTION_MODE, and report."

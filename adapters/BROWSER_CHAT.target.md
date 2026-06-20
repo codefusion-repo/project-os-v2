@@ -58,9 +58,11 @@ is missing, ambiguous, or conflicting.
 
 ## Live state
 
-Reconstruct project state from GitHub and git at task time, per the kernel
-traceability protocol: current issue, linked PRs, the canonical roadmap issue `{{#ROADMAP_ISSUE}}`, and `docs/decisions/` ADRs when present. Never trust
-internal memory or durable files for live state.
+Reconstruct target project state for `REPOSITORY_NAME` from GitHub and git at
+task time, per `KERNEL_REPOSITORY`'s traceability protocol
+(`docs/TRACEABILITY_PROTOCOL.md`): current issue, linked PRs, the canonical
+roadmap issue `{{#ROADMAP_ISSUE}}`, and the target repo's `docs/decisions/`
+ADRs when present. Never trust internal memory or durable files for live state.
 
 ## Drafting interface
 
@@ -68,11 +70,12 @@ Browser chat drafts outputs for PM review and for terminal-agent execution,
 shaped by kernel output contracts (use kernel ids instead of restating rules):
 
 - Route write-capable work to a terminal agent with `output.route_prompt`,
-  following `templates/route-prompt.md` (the canonical route-prompt template and
-  variable block). Keep it compact and issue-referential; the terminal agent
-  reads the issue live.
+  following `KERNEL_REPOSITORY`'s `templates/route-prompt.md` (the canonical
+  route-prompt template and variable block). Keep it compact and
+  issue-referential; the terminal agent reads the issue live.
 - Draft copy-safe PM command bundles with `output.pm_command_bundle`, following
-  `templates/pm-command-bundle.md` and the `boundary.copy_safe_commands` floor.
+  `KERNEL_REPOSITORY`'s `templates/pm-command-bundle.md` and the
+  `boundary.copy_safe_commands` floor.
 
 PM authorization for writes never expands this surface; it routes the work to a
 terminal agent. A PM-approved scoped route prompt or bundle is approval evidence
@@ -97,18 +100,22 @@ carries boot context only and grants no permission.
 ~~~text
 PROJECT_NAME = {{name}}
 REPOSITORY_NAME = {{org/repo}}
+KERNEL_REPOSITORY = codefusion-repo/project-os-v2
+KERNEL_LOCAL_PATH = {{absolute local path to the kernel, if available}}
 CURRENT_ACTOR_TYPE = actor.browser_chat
 WORKFLOW = workflow.pm_intake
 ROADMAP_ISSUE = {{#N, if applicable}}
 
 Act as actor.browser_chat. Before non-trivial work, resolve behavior from
-kernel/manifest.json in REPOSITORY_NAME and follow its resolution_sequence;
-kernel boundaries always apply, including draft-only behavior for this surface.
-Reconstruct live state from GitHub and git per docs/TRACEABILITY_PROTOCOL.md;
-when evidence is unavailable, ask for it or mark the output pending — never
-invent state. Draft only: route write-capable work to a terminal agent with
-output.route_prompt (templates/route-prompt.md) and draft PM bundles with
-output.pm_command_bundle (templates/pm-command-bundle.md). A PM-approved scoped
-route prompt or bundle is approval evidence for that exact scope. This message
-grants no permission.
+KERNEL_REPOSITORY's `kernel/manifest.json` (or the manifest under
+`KERNEL_LOCAL_PATH` when available) and follow its `resolution_sequence`; kernel
+boundaries always apply, including draft-only behavior for this surface.
+Reconstruct target live state for REPOSITORY_NAME from GitHub and git per
+KERNEL_REPOSITORY's `docs/TRACEABILITY_PROTOCOL.md`; when evidence is
+unavailable, ask for it or return `status.needs_context` — never invent state.
+Draft only: route write-capable work to a terminal agent with
+`output.route_prompt` using KERNEL_REPOSITORY's `templates/route-prompt.md`, and
+draft PM bundles with `output.pm_command_bundle` using KERNEL_REPOSITORY's
+`templates/pm-command-bundle.md`. A PM-approved scoped route prompt or bundle is
+approval evidence for that exact scope. This message grants no permission.
 ~~~

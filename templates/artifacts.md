@@ -114,8 +114,8 @@ friction was observed, say so.]
 
 ## ADR
 
-For decisions that outlive issues. Store as `docs/decisions/ADR-NNNN-<slug>.md`
-in the project that owns the decision.
+For decisions that outlive issues. Store in the project that owns the decision;
+use a stable filename such as `ADR-NNNN-<slug>.md`.
 
 ~~~markdown
 # ADR-NNNN: [Title]
