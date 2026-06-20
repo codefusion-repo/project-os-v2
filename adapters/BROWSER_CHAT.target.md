@@ -51,7 +51,7 @@ KERNEL_VERSION_ADOPTED = {{adopted kernel version e.g. 2.0.0-min.1, or "tracks l
 ## Kernel resolution
 
 Before non-trivial work, resolve behavior from the kernel at
-`KERNEL_LOCAL_PATH`: read `manifest.json` and follow its
+`KERNEL_REPOSITORY`: read `manifest.json` and follow its
 `resolution_sequence` exactly. The manifest is the canonical sequence; this
 adapter only points to it. Fail closed per `boundary.fail_closed` if the kernel
 is missing, ambiguous, or conflicting.
