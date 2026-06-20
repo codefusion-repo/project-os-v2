@@ -29,7 +29,7 @@ execution surface, never a role.
 | Path | Purpose | Canonical? |
 | --- | --- | --- |
 | `kernel/*.json` | The operating kernel: actors, execution modes, boundaries, evidence, workflows, outputs, statuses | **Canonical** |
-| `tools/` + `tests/` | The single integrity validator and its tests | **Canonical** |
+| `tools/` + `tests/` | Read-only diagnostics: kernel validation, target-adapter auditing, and tests | **Canonical** |
 | `docs/TRACEABILITY_PROTOCOL.md` | The live-state / portability rules | **Canonical** |
 | `AGENTS.md`, `CLAUDE.md` | This repo's own adapters (it runs on its own kernel) | Adapter (self) |
 | `adapters/*.target.md` | Copy-me adapter templates to adopt the kernel in another repo or chat | Template |
@@ -77,12 +77,25 @@ generic operating behavior.
 ## Validation
 
 ```sh
-python3 -m tools.validate_kernel   # kernel integrity (refs, statuses, budget, safety)
-python3 -m pytest tests/ -q        # validator + repo-shape guards
+python3 -m tools.validate_kernel   # the only kernel integrity validator
+python3 -m pytest tests/ -q        # validator, auditor, and repo-shape tests
 ```
 
-CI (`.github/workflows/validate.yml`) runs the same two checks on every push and
-pull request. It is self-check only — it makes no writes and automates no PM
+`tools.validate_kernel` is the only kernel integrity validator. It only
+validates `kernel/*.json`.
+
+`tools.audit_target_adapters` is a manual, explicit-target, read-only diagnostic
+for repositories that adopt this kernel. It audits filled target adapters for
+metadata, roadmap anchors, likely durable live state, and protected overlay
+removals without editing the target:
+
+```sh
+python3 -m tools.audit_target_adapters --target /path/to/target --repository org/repo
+```
+
+CI (`.github/workflows/validate.yml`) runs kernel validation and the test suite
+only. It must not run live target scans or audit external target repositories
+automatically. It is self-check only — it makes no writes and automates no PM
 authority (no merge, closure, labels, releases, or target mutation). The
 repo-shape guards in `tests/test_validate_kernel.py` keep the repo compact: they
 fail if console planning docs return, the actor model gains a role-actor, or a
