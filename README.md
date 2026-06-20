@@ -29,7 +29,7 @@ execution surface, never a role.
 | Path | Purpose | Canonical? |
 | --- | --- | --- |
 | `kernel/*.json` | The operating kernel: actors, execution modes, boundaries, evidence, workflows, outputs, statuses | **Canonical** |
-| `tools/` + `tests/` | Read-only diagnostics: kernel validation, target-adapter auditing, and tests | **Canonical** |
+| `tools/` + `tests/` | The single kernel validator, read-only auditors, and tests | **Canonical** |
 | `docs/TRACEABILITY_PROTOCOL.md` | The live-state / portability rules | **Canonical** |
 | `AGENTS.md`, `CLAUDE.md` | This repo's own adapters (it runs on its own kernel) | Adapter (self) |
 | `adapters/*.target.md` | Copy-me adapter templates to adopt the kernel in another repo or chat | Template |
@@ -54,22 +54,26 @@ docs), `tools/` + `tests/` (validator and tests).
 Read `kernel/manifest.json` and follow its `resolution_sequence` exactly: resolve
 the current actor (surface), apply boundaries, resolve the execution mode and
 workflow, gather the required live evidence, and select the output contract.
-Return exactly one of four statuses — `resolved`, `needs_context`,
-`needs_pm_decision`, `blocked`. Resolution selects shape and gates; it never
-grants permission. Fail closed on anything missing or ambiguous.
+Return exactly one of four statuses — `status.resolved`,
+`status.needs_context`, `status.needs_pm_decision`, `status.blocked`.
+Resolution selects shape and gates; it never grants permission. Fail closed on
+anything missing or ambiguous.
 
 ## Booting each surface
 
-- **Terminal agent (a repo):** copy `adapters/AGENTS.target.md` (and optionally
-  `adapters/CLAUDE.target.md`) into the target repo, fill the placeholders, and
-  point `KERNEL_LOCAL_PATH` at this repo's `kernel/`.
-- **Browser chat:** paste `adapters/BROWSER_CHAT.target.md` into the chat's
-  project instructions; for a one-off session, paste its "First-message
-  activation" block as the first message. Browser chat is draft-only
-  (`actor.browser_chat`); it routes write-capable work to a terminal agent.
-- **Routing & PM ops:** route work with `templates/route-prompt.md` (one template,
-  four variants: implement, review, correct, audit); copy-safe PM command bundles
-  follow `templates/pm-command-bundle.md`.
+- **Terminal agent (a repo):** copy `KERNEL_REPOSITORY`'s
+  `adapters/AGENTS.target.md` (and optionally `adapters/CLAUDE.target.md`) into
+  the target repo, fill the placeholders, and point `KERNEL_LOCAL_PATH` at this
+  repo's `kernel/`.
+- **Browser chat:** paste `KERNEL_REPOSITORY`'s
+  `adapters/BROWSER_CHAT.target.md` into the chat's project instructions; for a
+  one-off session, paste its "First-message activation" block as the first
+  message. Browser chat is draft-only (`actor.browser_chat`); it routes
+  write-capable work to a terminal agent.
+- **Routing & PM ops:** route work with `KERNEL_REPOSITORY`'s
+  `templates/route-prompt.md` (one template, four variants: implement, review,
+  correct, audit); copy-safe PM command bundles follow
+  `templates/pm-command-bundle.md`.
 
 Target product truth stays in the target repository; the kernel owns only
 generic operating behavior.

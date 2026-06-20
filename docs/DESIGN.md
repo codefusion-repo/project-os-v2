@@ -66,8 +66,9 @@ Capability comes from the **execution surface**, never from a role. The four
 actors in `kernel/actors.json` (`human_pm`, `terminal_agent`, `browser_chat`,
 `unknown`) are the only actors. Reviewer, QA, asset creator, and security
 reviewer were once floated as candidate actors; they are deliberately **not**
-actors. Each is a review focus (a security/QA review is `workflow.review_*` on an
-existing surface), a gate (a QA/security verdict is evidence that can return
+actors. Each is a review focus (a security/QA review is
+`workflow.review_before_close` or `workflow.review_only` on an existing
+surface), a gate (a QA/security verdict is evidence that can return
 `status.needs_pm_decision`, never write authorization), a recipient (a human QA
 tester or asset creator receives a packet), or an issue shape (an asset request
 is an `output.draft_issue`). Adding an actor requires a genuinely new execution
@@ -100,8 +101,8 @@ When unsure where something goes, this is the order of precedence:
   `templates/pm-command-bundle.md`.
 - **Roadmap issue** — one canonical roadmap per project: what comes next and
   why. Superseded, not mutated into a status store.
-- **ADR (`docs/decisions/`)** — decisions that outlive issues, in the repo that
-  owns the decision.
+- **ADR** — decisions that outlive issues, in the repo that owns the decision,
+  using the ADR shape in `templates/artifacts.md`.
 - **Target repo** — all product, domain, runtime, build, and validation truth
   for a target. The kernel never stores target product facts.
 

@@ -1,9 +1,10 @@
 name: validate
 
-# Self-check only: runs kernel integrity validation and the test suite (validator
-# + repo-shape guards) on every push and pull request. It performs NO writes —
-# no merge, no issue/label/release changes, no target mutation, no auto-progression.
-# PM authority is never automated.
+# Self-check only: runs the single kernel integrity validator and the local test
+# suite (auditor tests + repo-shape guards) on every push and pull request. It
+# does not run live target-adapter audits or GitHub traceability scans. It
+# performs NO writes: no merge, no issue/label/release changes, no target
+# mutation, no auto-progression. PM authority is never automated.
 
 on:
   push:
