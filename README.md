@@ -93,6 +93,15 @@ removals without editing the target:
 python3 -m tools.audit_target_adapters --target /path/to/target --repository org/repo
 ```
 
+`tools.audit_traceability` is a separate read-only GitHub traceability
+diagnostic for explicitly selected issues, PRs, or bounded ranges. It reports
+missing closure packets, validation evidence gaps, duplicate comments, and
+likely PR scope drift without editing GitHub state:
+
+```sh
+python3 -m tools.audit_traceability --repository org/repo --issue 123 --json
+```
+
 CI (`.github/workflows/validate.yml`) runs kernel validation and the test suite
 only. It must not run live target scans or audit external target repositories
 automatically. It is self-check only — it makes no writes and automates no PM
