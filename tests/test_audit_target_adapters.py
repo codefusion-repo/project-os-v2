@@ -27,9 +27,13 @@ def adapter_text(
     version: str = "tracks latest",
     repo: str = REPO,
     roadmap: str = ROADMAP,
+    repository_local_path: str | None = None,
+    kernel_local_path: str | None = None,
     notes: str = "Run `python3 -m pytest` for local validation.",
     extra: str = "",
 ) -> str:
+    repository_local_path = repository_local_path or str(target.resolve())
+    kernel_local_path = kernel_local_path or f"{target.resolve()}/../project-os-v2/kernel"
     return textwrap.dedent(
         f"""\
         # AGENTS.md
@@ -46,12 +50,12 @@ def adapter_text(
 
         PROJECT_NAME = {PROJECT}
         REPOSITORY_NAME = {repo}
-        REPOSITORY_LOCAL_PATH = {target.resolve()}
+        REPOSITORY_LOCAL_PATH = {repository_local_path}
         DEFAULT_BRANCH = main
         WORK_BRANCH_PATTERN = work/*
         PM_FACING_LANGUAGE = es
         KERNEL_REPOSITORY = codefusion-repo/project-os-v2
-        KERNEL_LOCAL_PATH = {target.resolve()}/../project-os-v2/kernel
+        KERNEL_LOCAL_PATH = {kernel_local_path}
         KERNEL_VERSION_ADOPTED = {version}
 
         ## Kernel resolution
@@ -81,6 +85,8 @@ def write_target(
     version: str = "tracks latest",
     repo: str = REPO,
     roadmap: str = ROADMAP,
+    repository_local_path: str | None = None,
+    kernel_local_path: str | None = None,
     notes: str = "Run `python3 -m pytest` for local validation.",
     extra: str = "",
     claude: bool = True,
@@ -88,7 +94,16 @@ def write_target(
     target = tmp_path / "target"
     target.mkdir()
     (target / "AGENTS.md").write_text(
-        adapter_text(target, version=version, repo=repo, roadmap=roadmap, notes=notes, extra=extra),
+        adapter_text(
+            target,
+            version=version,
+            repo=repo,
+            roadmap=roadmap,
+            repository_local_path=repository_local_path,
+            kernel_local_path=kernel_local_path,
+            notes=notes,
+            extra=extra,
+        ),
         encoding="utf-8",
     )
     if claude:
@@ -136,6 +151,18 @@ def test_metadata_and_vague_version_drift_detected(tmp_path: Path) -> None:
     assert "TAA-META-MISSING" in found
     assert "TAA-META-REPOSITORY" in found
     assert "TAA-VERSION-VAGUE" in found
+
+
+def test_relative_repository_local_path_is_detected(tmp_path: Path) -> None:
+    target = write_target(tmp_path, repository_local_path="relative/target")
+
+    assert "TAA-META-LOCAL-PATH" in codes(audit_target_adapters(target, REPO))
+
+
+def test_relative_kernel_local_path_is_detected(tmp_path: Path) -> None:
+    target = write_target(tmp_path, kernel_local_path="../project-os-v2/kernel")
+
+    assert "TAA-META-KERNEL-PATH" in codes(audit_target_adapters(target, REPO))
 
 
 def test_roadmap_anchor_errors_detected(tmp_path: Path) -> None:

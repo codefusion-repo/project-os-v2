@@ -196,8 +196,12 @@ def _is_placeholder(value: str) -> bool:
     return not value.strip() or bool(PLACEHOLDER_PATTERN.search(value))
 
 
-def _expanded_path(value: str) -> Path:
-    return Path(os.path.expandvars(os.path.expanduser(value))).resolve()
+def _raw_expanded_path(value: str) -> Path:
+    return Path(os.path.expandvars(os.path.expanduser(value)))
+
+
+def _resolved_expanded_path(value: str) -> Path:
+    return _raw_expanded_path(value).resolve()
 
 
 def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Finding]:
@@ -255,8 +259,20 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
 
     local_path = _metadata_value(metadata, "REPOSITORY_LOCAL_PATH")
     if local_path and not _is_placeholder(local_path):
+        raw_local_path = _raw_expanded_path(local_path)
         try:
-            if _expanded_path(local_path) != target.resolve():
+            if not raw_local_path.is_absolute():
+                findings.append(
+                    Finding(
+                        "TAA-META-LOCAL-PATH",
+                        "warning",
+                        source.name,
+                        _line_for(metadata, "REPOSITORY_LOCAL_PATH"),
+                        "REPOSITORY_LOCAL_PATH must be absolute",
+                        local_path,
+                    )
+                )
+            elif _resolved_expanded_path(local_path) != target.resolve():
                 findings.append(
                     Finding(
                         "TAA-META-LOCAL-PATH",
@@ -297,10 +313,11 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
         )
     kernel_path = _metadata_value(metadata, "KERNEL_LOCAL_PATH")
     if kernel_path and not _is_placeholder(kernel_path):
+        raw_kernel_path = _raw_expanded_path(kernel_path)
         try:
-            if not _expanded_path(kernel_path).is_absolute():
+            if not raw_kernel_path.is_absolute():
                 findings.append(
-                    Finding("TAA-META-KERNEL-PATH", "warning", source.name, _line_for(metadata, "KERNEL_LOCAL_PATH"), "KERNEL_LOCAL_PATH should resolve to an absolute path", kernel_path)
+                    Finding("TAA-META-KERNEL-PATH", "warning", source.name, _line_for(metadata, "KERNEL_LOCAL_PATH"), "KERNEL_LOCAL_PATH must be absolute", kernel_path)
                 )
         except RuntimeError:
             findings.append(
