@@ -29,7 +29,7 @@ execution surface, never a role.
 | Path | Purpose | Canonical? |
 | --- | --- | --- |
 | `kernel/*.json` | The operating kernel: actors, execution modes, boundaries, evidence, workflows, outputs, statuses | **Canonical** |
-| `tools/` + `tests/` | The single integrity validator and its tests | **Canonical** |
+| `tools/` + `tests/` | Read-only diagnostics: kernel validation, target-adapter auditing, and tests | **Canonical** |
 | `docs/TRACEABILITY_PROTOCOL.md` | The live-state / portability rules | **Canonical** |
 | `AGENTS.md`, `CLAUDE.md` | This repo's own adapters (it runs on its own kernel) | Adapter (self) |
 | `adapters/*.target.md` | Copy-me adapter templates to adopt the kernel in another repo or chat | Template |
@@ -79,6 +79,18 @@ generic operating behavior.
 ```sh
 python3 -m tools.validate_kernel   # kernel integrity (refs, statuses, budget, safety)
 python3 -m pytest tests/ -q        # validator + repo-shape guards
+```
+
+`tools.validate_kernel` is the kernel integrity validator. It only validates
+`kernel/*.json`.
+
+`tools.audit_target_adapters` is a separate read-only diagnostic for repositories
+that adopt this kernel. It audits filled target adapters for metadata, roadmap
+anchors, likely durable live state, and protected overlay removals without
+editing the target:
+
+```sh
+python3 -m tools.audit_target_adapters --target /path/to/target --repository org/repo
 ```
 
 CI (`.github/workflows/validate.yml`) runs the same two checks on every push and
