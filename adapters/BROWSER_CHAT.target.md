@@ -84,12 +84,27 @@ for that exact scope and is not re-requested unless the
 
 ## Project-specific notes
 
-{{Optional: the few repo-specific facts a browser chat needs that the kernel
-cannot know — preferred PM language, validation commands, protected paths,
-domain boundaries. Keep under ~15 lines, compact, non-live, and target-owned:
-no issue/PR/branch state, no SHAs, no review status, no release status.
-Everything else belongs in the kernel, the roadmap issue, GitHub evidence, or
-ADRs.}}
+Security / project constraints:
+- Follow target-specific security practices; for web/API/user-facing changes,
+  consider OWASP secure-coding risks such as auth, authorization, sessions,
+  input validation, file uploads, redirects, dependency risk, and admin surfaces.
+- Never print, paste, commit, upload, summarize, quote, or expose `.env`,
+  `.env.*`, private keys, API tokens, OAuth/client secrets, database URLs,
+  cookies, session tokens, JWTs, production credentials, payment-provider keys,
+  SSH/GPG keys, CI secrets, or secret-looking values.
+- Treat sensitive values as unsafe even in tests, logs, screenshots, shell output,
+  GitHub comments, PR bodies, validation reports, and copied command output.
+- Redact sensitive values as `[REDACTED]`; report only file paths, variable names,
+  and risk type.
+- Do not run broad environment/config dumps such as `env`, `printenv`, `set`,
+  framework config dumps, or CI secret-context dumps unless the PM explicitly
+  scopes a safe redacted diagnostic.
+- Do not modify secret stores, rotate keys, change production credentials, edit
+  deployment secrets, or touch payment/auth production settings without separate
+  exact PM approval.
+- Keep build commands, protected paths, domain constraints, and validation notes
+  here when they are stable and target-owned; never store issue/PR/branch state,
+  SHAs, review status, release status, or live validation results.
 
 ## First-message activation
 
