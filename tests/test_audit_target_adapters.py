@@ -141,6 +141,25 @@ def test_valid_pinned_adapter_passes(tmp_path: Path) -> None:
     assert findings == []
 
 
+def test_missing_agents_is_reported_as_adoption_state(tmp_path: Path) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+
+    found = codes(audit_target_adapters(target, REPO))
+
+    assert "TAA-ADOPTION-AGENTS-MISSING" in found
+    assert "TAA-ADOPTION-CLAUDE-MISSING" in found
+
+
+def test_missing_claude_is_reported_without_overwriting_agents(tmp_path: Path) -> None:
+    target = write_target(tmp_path, claude=False)
+
+    found = codes(audit_target_adapters(target, REPO))
+
+    assert "TAA-ADOPTION-AGENTS-MISSING" not in found
+    assert "TAA-ADOPTION-CLAUDE-MISSING" in found
+
+
 def test_metadata_and_vague_version_drift_detected(tmp_path: Path) -> None:
     target = write_target(tmp_path, version="latest", repo="wrong/repo")
     text = (target / "AGENTS.md").read_text(encoding="utf-8")

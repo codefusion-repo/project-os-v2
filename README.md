@@ -89,9 +89,9 @@ python3 -m pytest tests/ -q        # validator, auditor, and repo-shape tests
 validates `kernel/*.json`.
 
 `tools.audit_target_adapters` is a manual, explicit-target, read-only diagnostic
-for repositories that adopt this kernel. It audits filled target adapters for
-metadata, roadmap anchors, likely durable live state, and protected overlay
-removals without editing the target:
+for repositories that adopt this kernel. It reports missing target adapters and
+audits filled adapters for metadata, roadmap anchors, likely durable live state,
+and protected overlay removals without editing the target:
 
 ```sh
 python3 -m tools.audit_target_adapters --target /path/to/target --repository org/repo

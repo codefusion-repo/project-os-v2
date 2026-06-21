@@ -48,7 +48,7 @@
     {
       "id": "output.adoption_packet",
       "use_for": "Bootstrapping a target project onto the kernel.",
-      "required_sections": ["target repository", "kernel version adopted", "adapter file diff or full draft", "adoption checklist", "what stays target-owned (product truth)", "rollback (restore previous adapter)"]
+      "required_sections": ["target repository", "kernel version adopted", "current adoption state", "files missing/present", "audit findings", "adapter diff or full draft", "exact write scope when applicable", "adoption checklist", "what stays target-owned (product truth, notes, security/domain constraints, validation commands)", "rollback (restore previous adapter)"]
     },
     {
       "id": "output.status_result",
