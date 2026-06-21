@@ -381,6 +381,80 @@ def test_review_before_close_route_template_rejects_documentation_only_go() -> N
     assert "explicit not-reviewed gaps" in compact
 
 
+def test_target_adoption_kernel_guards_audit_draft_and_bootstrap_paths() -> None:
+    workflow = _kernel_entry("workflows.json", "workflow.target_adoption")
+    evidence = _kernel_entry("evidence.json", "evidence.target_adoption")
+    output = _kernel_entry("outputs.json", "output.adoption_packet")
+    delegated_pr = _kernel_entry("execution_modes.json", "mode.delegated_commit_pr")
+
+    steps = " ".join(workflow["steps"]).lower()
+    assert workflow["required_evidence_refs"] == ["evidence.target_adoption"]
+    assert "inspect target adoption state first" in steps
+    assert "agents.md" in steps
+    assert "claude.md" in steps
+    assert "browser-chat adapter" in steps
+    assert "audit them against kernel_repository adapters/*.target.md" in steps
+    assert "tools.audit_target_adapters" in steps
+    assert "protected overlay removal risk" in steps
+    assert "without overwriting target-owned notes" in steps
+    assert "mode.review_only" in steps
+    assert "draft adapter content and checklist only" in steps
+    assert "do not edit files or mutate git/github" in steps
+    assert "mode.delegated_commit_pr" in steps
+    assert "exact pm approval" in steps
+    assert "create only agents.md and claude.md" in steps
+    assert "adapter-only diff" in steps
+    assert "no product code" in steps
+    assert "secret-store authority" in steps
+
+    evidence_text = evidence["satisfied_by"].lower()
+    assert "agents.md/claude.md/browser-chat adapter presence" in evidence_text
+    assert "project notes" in evidence_text
+    assert "validation commands" in evidence_text
+    assert "audit findings" in evidence_text
+
+    assert "evidence.branch_preflight" in delegated_pr["required_evidence_refs"]
+    assert "evidence.pm_approval" in delegated_pr["required_evidence_refs"]
+    assert "evidence.validation_output" in delegated_pr["required_evidence_refs"]
+
+    sections = output["required_sections"]
+    assert "current adoption state" in sections
+    assert "files missing/present" in sections
+    assert "audit findings" in sections
+    assert "exact write scope when applicable" in sections
+    assert any("security/domain constraints" in section for section in sections)
+
+
+def test_target_adoption_route_template_is_draft_or_adapter_only() -> None:
+    text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    variant = text.split("**Adopt target repository**", 1)[1].split(
+        "- **Review a PR before merge/close**", 1
+    )[0]
+    compact = " ".join(variant.split())
+
+    assert "`WORKFLOW = workflow.target_adoption`" in variant
+    assert "`EXECUTION_MODE = mode.review_only | mode.delegated_commit_pr`" in variant
+    assert "`EVIDENCE_REQUIRED = evidence.target_adoption` for review-only" in variant
+    assert "evidence.branch_preflight" in variant
+    assert "evidence.pm_approval" in variant
+    assert "evidence.validation_output" in variant
+    assert "for delegated_commit_pr" in variant
+    assert "inspect TARGET_REPOSITORY first" in variant
+    assert "whether `AGENTS.md` exists" in variant
+    assert "whether `CLAUDE.md` exists" in variant
+    assert "whether a browser-chat" in variant
+    assert "adapter was supplied" in variant
+    assert "audit/compare them against KERNEL_REPOSITORY's" in variant
+    assert "`tools.audit_target_adapters`" in variant
+    assert "preserve target-owned notes, security/domain constraints, and validation commands" in compact
+    assert "review-only drafts only" in variant
+    assert "may create only `AGENTS.md` and `CLAUDE.md`" in variant
+    assert "open a draft PR" in compact
+    assert "Browser chat remains draft-only" in variant
+    assert "Do not merge, close, label" in variant
+    assert "touch secrets" in variant
+
+
 def test_artifact_templates_mark_review_claims_and_closure_precondition() -> None:
     text = (REPO_ROOT / "templates" / "artifacts.md").read_text(encoding="utf-8")
     pull_request = text.split("## Pull request", 1)[1].split("## Closure comment", 1)[0]

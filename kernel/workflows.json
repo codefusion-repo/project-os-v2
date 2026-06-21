@@ -57,14 +57,15 @@
     },
     {
       "id": "workflow.target_adoption",
-      "use_for": "Bootstrapping a target project onto this kernel.",
+      "use_for": "Auditing or bootstrapping a target project onto this kernel.",
       "steps": [
-        "read the target repository state and existing adapters live",
-        "draft the target AGENTS.md/CLAUDE.md from adapters/ templates",
-        "keep target product truth in the target; the kernel owns only generic operating behavior",
-        "deliver the adapter diff and adoption checklist; target writes follow the target's own scoped approval"
+        "inspect target adoption state first: AGENTS.md, CLAUDE.md, any supplied browser-chat adapter, metadata, roadmap anchor, kernel repo/path/version, target notes, and durable live-state risk",
+        "if adapters exist, audit them against KERNEL_REPOSITORY adapters/*.target.md and/or tools.audit_target_adapters; report drift, stale baseline, roadmap mismatch, live-state content, and protected overlay removal risk without overwriting target-owned notes, security constraints, domain constraints, or validation commands",
+        "if adoption is missing under mode.review_only, draft adapter content and checklist only; do not edit files or mutate git/GitHub",
+        "if adoption is missing under mode.delegated_commit_pr with exact PM approval, create only AGENTS.md and CLAUDE.md from canonical templates filled for the target, then open only a draft PR if the mode allows",
+        "keep hotfix adoption narrow: branch scoped to the adoption issue, adapter-only diff, no product code, CI/package/deploy/runtime config, environment, secret, deployment, merge, closure, label, release, tag, settings, or secret-store authority"
       ],
-      "required_evidence_refs": ["evidence.target_adoption", "evidence.pm_approval"],
+      "required_evidence_refs": ["evidence.target_adoption"],
       "allowed_output_refs": ["output.adoption_packet", "output.execution_report", "output.status_result"]
     }
   ]

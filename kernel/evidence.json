@@ -51,7 +51,7 @@
     },
     {
       "id": "evidence.target_adoption",
-      "satisfied_by": "For target-project bootstrap: the target repository identity, its adapter file state, and the kernel version being adopted, read live.",
+      "satisfied_by": "For target-project adoption: target repository identity; AGENTS.md/CLAUDE.md/browser-chat adapter presence; existing adapter metadata, roadmap anchor, kernel repo/path/version, project notes, validation commands, durable live-state risk, and audit findings from KERNEL_REPOSITORY templates or tools.audit_target_adapters, read live.",
       "missing_status": "status.needs_context"
     }
   ]

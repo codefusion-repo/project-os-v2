@@ -1,4 +1,4 @@
-"""Read-only auditor for target Project OS adapter drift.
+"""Read-only auditor for target Project OS adoption state and adapter drift.
 
 This diagnostic checks target-repository adapters. It does not validate the
 kernel itself, edit target files, grant permission, or mutate git/GitHub state.
@@ -163,11 +163,14 @@ def _git_show(target: Path, ref: str, rel_path: str, required: bool = True) -> S
 
 def _load_repo_sources(target: Path, ref: str | None = None) -> dict[str, Source]:
     if ref:
-        sources = {"AGENTS.md": _git_show(target, ref, "AGENTS.md", required=True)}
+        agents = _git_show(target, ref, "AGENTS.md", required=False)
         claude = _git_show(target, ref, "CLAUDE.md", required=False)
     else:
-        sources = {"AGENTS.md": _read_text(target / "AGENTS.md", "AGENTS.md", required=True)}
+        agents = _read_text(target / "AGENTS.md", "AGENTS.md", required=False)
         claude = _read_text(target / "CLAUDE.md", "CLAUDE.md", required=False)
+    sources = {}
+    if agents is not None:
+        sources["AGENTS.md"] = agents
     if claude is not None:
         sources["CLAUDE.md"] = claude
     return sources
@@ -511,6 +514,31 @@ def _check_claude_bootloader(source: Source) -> list[Finding]:
     return findings
 
 
+def _check_adoption_state(sources: dict[str, Source]) -> list[Finding]:
+    findings: list[Finding] = []
+    if "AGENTS.md" not in sources:
+        findings.append(
+            Finding(
+                "TAA-ADOPTION-AGENTS-MISSING",
+                "error",
+                "AGENTS.md",
+                None,
+                "target adoption is missing AGENTS.md; draft only unless mode and exact PM approval permit adapter bootstrap",
+            )
+        )
+    if "CLAUDE.md" not in sources:
+        findings.append(
+            Finding(
+                "TAA-ADOPTION-CLAUDE-MISSING",
+                "warning",
+                "CLAUDE.md",
+                None,
+                "target adoption is missing CLAUDE.md; bootstrap scope is limited to adapters only when writes are approved",
+            )
+        )
+    return findings
+
+
 def _parse_sections(source: Source) -> dict[str, Section]:
     sections: dict[str, Section] = {}
     current: str | None = None
@@ -602,7 +630,8 @@ def audit_target_adapters(
 
     findings: list[Finding] = []
     head_sources = _load_repo_sources(target_path, ref=head_ref)
-    full_sources = [head_sources["AGENTS.md"]]
+    findings.extend(_check_adoption_state(head_sources))
+    full_sources = [head_sources["AGENTS.md"]] if "AGENTS.md" in head_sources else []
     if browser_chat is not None:
         full_sources.append(browser_chat)
 
@@ -655,7 +684,7 @@ def _emit_human(findings: list[Finding]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--target", required=True, help="target repository checkout containing AGENTS.md")
+    parser.add_argument("--target", required=True, help="target repository checkout to inspect")
     parser.add_argument("--repository", required=True, help="expected target repository identity, e.g. owner/name")
     parser.add_argument("--browser-chat", help="full browser-chat adapter file, or '-' to read it from stdin")
     parser.add_argument("--base-ref", help="optional git ref to compare protected overlays against")
