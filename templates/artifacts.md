@@ -54,6 +54,10 @@ rollback for a terminal agent to execute after reading the issue body live.
 
 ## Pull request
 
+The PR body records claims and validation leads. For `workflow.review_before_close`,
+it is not proof of implementation until the linked issue is compared against the
+changed files, PR diff, and relevant final head files when needed.
+
 ~~~markdown
 ## Summary
 
@@ -80,6 +84,11 @@ Closes #[issue] (on PM merge decision).
 
 The reconstruction packet for the next agent (which may be a different AI tool).
 Post it on the issue before or at closing time.
+
+Draft this from `workflow.review_before_close` only after the reviewer compared
+the linked issue objective, scope, out-of-scope, and acceptance criteria against
+the PR changed files, diff, and relevant final head files when needed. PR bodies,
+comments, and agent reports are claims/evidence leads, not proof.
 
 ~~~markdown
 ## Completion evidence

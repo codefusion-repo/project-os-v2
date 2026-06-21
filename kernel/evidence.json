@@ -36,7 +36,7 @@
     },
     {
       "id": "evidence.pr_diff",
-      "satisfied_by": "The real diff and changed-file list of the PR under review, read live.",
+      "satisfied_by": "The PR's real changed-file list and diff, plus relevant final head file content when the diff alone is insufficient to understand behavior. PR body, comments, terminal-agent reports, and validation summaries are claims or evidence leads, not proof of implementation. If this code evidence cannot be inspected, use status.needs_context instead of GO.",
       "missing_status": "status.needs_context"
     },
     {

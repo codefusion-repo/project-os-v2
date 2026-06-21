@@ -57,8 +57,13 @@ Set the workflow/mode/output as shown, then add the instruction line.
   existing surface; do not invent a reviewer actor);
   `EVIDENCE_REQUIRED = evidence.issue_scope, evidence.pr_diff, evidence.validation_output`.
   *Instruction:* "Review PR ISSUE_OR_PR against its linked issue. Read the real
-  diff and validation live. Check scope, correctness, boundaries preserved, and
-  risks. Do not merge or close; report a verdict with findings by file:line."
+  PR body/comments/reports only as claims, then inspect changed files, PR diff,
+  and relevant final head files when the diff is insufficient. Compare
+  implementation behavior against issue objective/scope/out-of-scope/acceptance
+  criteria and validation against changed behavior. If code/diff/final file
+  evidence cannot be inspected, return `status.needs_context`, not GO. Do not
+  merge or close; report a verdict with findings by file:line and explicit
+  not-reviewed gaps."
 
 - **Apply review corrections** — `WORKFLOW = workflow.issue_implementation`;
   `EXECUTION_MODE = mode.delegated_commit_push | mode.delegated_commit_pr`;

@@ -194,6 +194,14 @@ def _kernel_ids() -> set[str]:
     return ids
 
 
+def _kernel_entry(file_name: str, entry_id: str) -> dict:
+    data = json.loads((REPO_ROOT / "kernel" / file_name).read_text(encoding="utf-8"))
+    for entry in data["entries"]:
+        if entry["id"] == entry_id:
+            return entry
+    raise AssertionError(f"{entry_id} not found in {file_name}")
+
+
 def _normalize_markdown_path_ref(token: str) -> str | None:
     value = token.strip().strip(",;:()[]{}\"'")
     if value.endswith(".") and not value.startswith("."):
@@ -320,3 +328,69 @@ def test_browser_activation_uses_kernel_owned_references() -> None:
     assert "KERNEL_REPOSITORY's `templates/route-prompt.md`" in block
     assert re.search(r"KERNEL_REPOSITORY's\s+`templates/pm-command-bundle\.md`", block)
     assert "`status.needs_context`" in block
+
+
+def test_review_before_close_requires_code_backed_kernel_evidence() -> None:
+    boundary = _kernel_entry("boundaries.json", "boundary.review_before_close")
+    workflow = _kernel_entry("workflows.json", "workflow.review_before_close")
+    evidence = _kernel_entry("evidence.json", "evidence.pr_diff")
+    review_output = _kernel_entry("outputs.json", "output.review_result")
+    closure_output = _kernel_entry("outputs.json", "output.closure_comment")
+
+    boundary_rule = boundary["rule"].lower()
+    assert "linked issue objective, scope, out-of-scope, and acceptance criteria" in boundary_rule
+    assert "pr body, comments, and reports are claims/evidence leads, not proof" in boundary_rule
+    assert "code/diff/final-file evidence cannot be inspected" in boundary_rule
+    assert "no closure comment is drafted" in boundary_rule
+
+    workflow_steps = " ".join(workflow["steps"]).lower()
+    assert "changed-file list" in workflow_steps
+    assert "pr diff" in workflow_steps
+    assert "relevant final head files" in workflow_steps
+    assert "compare implementation behavior and validation" in workflow_steps
+    assert "return status.needs_context instead of go" in workflow_steps
+
+    pr_diff_rule = evidence["satisfied_by"].lower()
+    assert "changed-file list and diff" in pr_diff_rule
+    assert "final head file content" in pr_diff_rule
+    assert "terminal-agent reports" in pr_diff_rule
+    assert "not proof of implementation" in pr_diff_rule
+    assert "status.needs_context instead of go" in pr_diff_rule
+
+    assert (
+        "implementation comparison mapping issue objective/scope/out-of-scope/acceptance criteria to code evidence"
+        in review_output["required_sections"]
+    )
+    assert "documentation-only review" in review_output["rule"].lower()
+    assert "not go" in review_output["rule"].lower()
+    assert "draft it only after code-backed review" in closure_output["rule"].lower()
+
+
+def test_review_before_close_route_template_rejects_documentation_only_go() -> None:
+    text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    review_variant = text.split("**Review a PR before merge/close**", 1)[1].split(
+        "- **Apply review corrections**", 1
+    )[0]
+    compact = " ".join(review_variant.split())
+
+    assert "PR body/comments/reports only as claims" in review_variant
+    assert "inspect changed files, PR diff" in review_variant
+    assert "relevant final head files" in review_variant
+    assert "Compare implementation behavior against issue objective/scope/out-of-scope/acceptance" in compact
+    assert "return `status.needs_context`, not GO" in review_variant
+    assert "explicit not-reviewed gaps" in compact
+
+
+def test_artifact_templates_mark_review_claims_and_closure_precondition() -> None:
+    text = (REPO_ROOT / "templates" / "artifacts.md").read_text(encoding="utf-8")
+    pull_request = text.split("## Pull request", 1)[1].split("## Closure comment", 1)[0]
+    closure_comment = text.split("## Closure comment", 1)[1].split("~~~markdown", 1)[0]
+
+    assert "records claims and validation leads" in pull_request
+    assert "not proof of implementation" in pull_request
+    assert "changed files, PR diff, and relevant final head files" in pull_request
+
+    assert "Draft this from `workflow.review_before_close` only after" in closure_comment
+    assert "linked issue objective, scope, out-of-scope, and acceptance criteria" in closure_comment
+    assert "PR changed files, diff, and relevant final head files" in closure_comment
+    assert "claims/evidence leads, not proof" in closure_comment
