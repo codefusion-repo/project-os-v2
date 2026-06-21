@@ -57,8 +57,9 @@ Set the workflow/mode/output as shown, then add the instruction line.
   AGENTS.md and CLAUDE.md from KERNEL_REPOSITORY's canonical templates`;
   `OUT_OF_SCOPE = product code, CI/package/deploy/runtime config, .env,
   secrets, deployment settings, merge/closure/labels/releases/tags/settings`;
+  `EVIDENCE_REQUIRED = evidence.target_adoption` for review-only;
   `EVIDENCE_REQUIRED = evidence.target_adoption, evidence.branch_preflight,
-  evidence.pm_approval, evidence.validation_output`.
+  evidence.pm_approval, evidence.validation_output` for delegated_commit_pr.
   *Instruction:* "Resolve the kernel and inspect TARGET_REPOSITORY first:
   whether `AGENTS.md` exists, whether `CLAUDE.md` exists, whether a browser-chat
   adapter was supplied, and whether metadata, roadmap anchor, kernel repo/path,

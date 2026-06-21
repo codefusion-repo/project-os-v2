@@ -65,7 +65,7 @@
         "if adoption is missing under mode.delegated_commit_pr with exact PM approval, create only AGENTS.md and CLAUDE.md from canonical templates filled for the target, then open only a draft PR if the mode allows",
         "keep hotfix adoption narrow: branch scoped to the adoption issue, adapter-only diff, no product code, CI/package/deploy/runtime config, environment, secret, deployment, merge, closure, label, release, tag, settings, or secret-store authority"
       ],
-      "required_evidence_refs": ["evidence.target_adoption", "evidence.pm_approval"],
+      "required_evidence_refs": ["evidence.target_adoption"],
       "allowed_output_refs": ["output.adoption_packet", "output.execution_report", "output.status_result"]
     }
   ]

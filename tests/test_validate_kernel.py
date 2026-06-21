@@ -385,8 +385,10 @@ def test_target_adoption_kernel_guards_audit_draft_and_bootstrap_paths() -> None
     workflow = _kernel_entry("workflows.json", "workflow.target_adoption")
     evidence = _kernel_entry("evidence.json", "evidence.target_adoption")
     output = _kernel_entry("outputs.json", "output.adoption_packet")
+    delegated_pr = _kernel_entry("execution_modes.json", "mode.delegated_commit_pr")
 
     steps = " ".join(workflow["steps"]).lower()
+    assert workflow["required_evidence_refs"] == ["evidence.target_adoption"]
     assert "inspect target adoption state first" in steps
     assert "agents.md" in steps
     assert "claude.md" in steps
@@ -411,6 +413,10 @@ def test_target_adoption_kernel_guards_audit_draft_and_bootstrap_paths() -> None
     assert "validation commands" in evidence_text
     assert "audit findings" in evidence_text
 
+    assert "evidence.branch_preflight" in delegated_pr["required_evidence_refs"]
+    assert "evidence.pm_approval" in delegated_pr["required_evidence_refs"]
+    assert "evidence.validation_output" in delegated_pr["required_evidence_refs"]
+
     sections = output["required_sections"]
     assert "current adoption state" in sections
     assert "files missing/present" in sections
@@ -428,6 +434,11 @@ def test_target_adoption_route_template_is_draft_or_adapter_only() -> None:
 
     assert "`WORKFLOW = workflow.target_adoption`" in variant
     assert "`EXECUTION_MODE = mode.review_only | mode.delegated_commit_pr`" in variant
+    assert "`EVIDENCE_REQUIRED = evidence.target_adoption` for review-only" in variant
+    assert "evidence.branch_preflight" in variant
+    assert "evidence.pm_approval" in variant
+    assert "evidence.validation_output" in variant
+    assert "for delegated_commit_pr" in variant
     assert "inspect TARGET_REPOSITORY first" in variant
     assert "whether `AGENTS.md` exists" in variant
     assert "whether `CLAUDE.md` exists" in variant
