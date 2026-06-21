@@ -12,13 +12,14 @@
     {
       "id": "output.review_result",
       "use_for": "Reporting review or analysis findings.",
-      "required_sections": ["scope reviewed", "evidence reviewed", "findings with file/line or issue/PR references", "verdict or recommendation", "risks", "what was not reviewed"]
+      "required_sections": ["scope reviewed", "evidence reviewed", "implementation comparison mapping issue objective/scope/out-of-scope/acceptance criteria to code evidence", "findings with file/line or issue/PR references", "verdict or recommendation", "risks", "what was not reviewed"],
+      "rule": "A GO verdict for workflow.review_before_close requires code-backed comparison against the PR changed files, diff, and relevant final head files when needed. Documentation-only review resolves to status.needs_context or findings, not GO."
     },
     {
       "id": "output.closure_comment",
       "use_for": "The GitHub comment that closes out an issue.",
       "required_sections": ["completion evidence (what now exists)", "validation evidence with real output", "accepted exceptions (a scoped PM-accepted validation/CI exception, or none)", "boundaries preserved (what was deliberately not done)", "friction note (one concise line, required)", "commit/PR references"],
-      "rule": "This comment is the reconstruction packet for the next agent. Template: templates/artifacts.md (Closure comment)."
+      "rule": "This comment is the reconstruction packet for the next agent. From workflow.review_before_close, draft it only after code-backed review compared implementation against the linked issue using the PR changed files, diff, and relevant final head files when needed. Template: templates/artifacts.md (Closure comment)."
     },
     {
       "id": "output.draft_issue",

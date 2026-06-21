@@ -26,7 +26,7 @@
     },
     {
       "id": "boundary.review_before_close",
-      "rule": "Issues close only after review of the real diff, changed files, validation evidence, and risks. Closure produces a closure comment per the traceability protocol before or at closing time.",
+      "rule": "Issues close only after review compares the linked issue objective, scope, out-of-scope, and acceptance criteria against the real changed-file list, PR diff, relevant final head files when needed, validation evidence, and risks. PR body, comments, and reports are claims/evidence leads, not proof. If code/diff/final-file evidence cannot be inspected, return status.needs_context; no closure comment is drafted from this workflow until code-backed comparison is complete.",
       "on_violation": "status.needs_pm_decision"
     },
     {

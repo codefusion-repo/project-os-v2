@@ -34,8 +34,8 @@ any live traceability.
 ## Repository identity
 
 Same standard metadata block as `adapters/AGENTS.target.md`, so the chat drafts
-copy-safe bundles that match the terminal adapter. `REPOSITORY_LOCAL_PATH`,
-`KERNEL_LOCAL_PATH`, and `KERNEL_VERSION_ADOPTED` are per-machine/adoption
+copy-safe bundles that match the terminal adapter. `REPOSITORY_NAME`,
+`KERNEL_REPOSITORY`, and `KERNEL_VERSION_ADOPTED` are per-machine/adoption
 configuration, not live project state.
 
 PROJECT_NAME = {{PROJECT_NAME}}
