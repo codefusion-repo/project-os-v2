@@ -2,7 +2,7 @@
   "id": "kernel.manifest",
   "family": "manifest",
   "kernel_name": "project-os-v2-min",
-  "kernel_version": "project-os-lab-v0.1.0",
+  "kernel_version": "project-os-lab-v0.1.1",
   "description": "Minimal agent-resolvable operating kernel for Project OS. Any agent resolves these files before non-trivial work. Stable behavior lives here; live project state lives only in GitHub; adapters only point back to this kernel.",
   "load_order": [
     "statuses.json",
