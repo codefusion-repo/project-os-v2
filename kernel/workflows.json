@@ -42,6 +42,30 @@
       "allowed_output_refs": ["output.draft_issue", "output.route_prompt", "output.pm_command_bundle", "output.status_result"]
     },
     {
+      "id": "workflow.design_asset",
+      "use_for": "Preparing a design-asset prompt for a graphic/design recipient. The recipient is not an actor surface and this workflow creates no asset files.",
+      "steps": [
+        "read the current issue, PR, target repository context, and PM-provided design evidence live",
+        "identify needed assets and product, page, feature, brand, accessibility, usage, file-format, dimension, and acceptance constraints",
+        "draft an asset prompt for a real graphic/design recipient; keep target product and design truth in the target repository or PM-provided evidence",
+        "do not generate images, create binary assets, edit target files, or claim design ownership unless a separate scoped workflow, mode, and PM approval allow it"
+      ],
+      "required_evidence_refs": ["evidence.repo_state", "evidence.source_basis"],
+      "allowed_output_refs": ["output.asset_prompt", "output.status_result"]
+    },
+    {
+      "id": "workflow.security_revision",
+      "use_for": "Preparing an OWASP-based security-review prompt for a security-review recipient. The recipient is not an actor surface and this workflow runs no scanner.",
+      "steps": [
+        "read the current issue, PR, repository context, and relevant security evidence live without exposing secrets",
+        "identify security-sensitive surfaces including auth, authorization, sessions/cookies, input validation, file uploads, redirects, dependencies, admin paths, secrets handling, logging, error exposure, and deployment/config risk where applicable",
+        "draft an OWASP-based security-review prompt with redaction requirements and concrete evidence to inspect",
+        "never ask anyone to print, paste, upload, quote, summarize, or expose .env values, keys, tokens, credentials, JWT secrets, database URLs, cookies, session tokens, payment-provider keys, CI secrets, or hidden environment values"
+      ],
+      "required_evidence_refs": ["evidence.repo_state", "evidence.source_basis"],
+      "allowed_output_refs": ["output.security_review_prompt", "output.status_result"]
+    },
+    {
       "id": "workflow.release_readiness",
       "use_for": "Assessing whether work is ready to release or tag. Tags and releases themselves need separate PM approval.",
       "steps": ["gather merged evidence, validation evidence, and open risks live", "report readiness with gaps named", "stop before any tag or release action"],
