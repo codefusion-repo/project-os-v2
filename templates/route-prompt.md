@@ -86,6 +86,39 @@ Set the workflow/mode/output as shown, then add the instruction line.
   merge or close; report a verdict with findings by file:line and explicit
   not-reviewed gaps."
 
+- **Design asset prompt** — `WORKFLOW = workflow.design_asset`;
+  `EXECUTION_MODE = mode.review_only`; `OUTPUT_CONTRACT = output.asset_prompt`;
+  `TARGET_ACTOR_TYPE = actor.terminal_agent | actor.browser_chat` (choose one
+  existing surface; graphic/design specialist is a recipient, not an actor);
+  `OUT_OF_SCOPE = target repo edits, binary assets, image generation automation,
+  Figma/design-tool integration, product/design ownership claims`;
+  `EVIDENCE_REQUIRED = evidence.repo_state, evidence.source_basis`.
+  *Instruction:* "Read ISSUE_OR_PR, target repo context, and PM-provided design
+  evidence live. Identify the needed assets and constraints: asset type, usage,
+  dimensions, file format, style/brand/product truth, accessibility notes, and
+  acceptance criteria where available. Draft a prompt/instructions packet for a
+  real graphic/design recipient. Do not generate or commit assets, edit target
+  files, or imply Project OS owns target product/design truth."
+
+- **Security review prompt** — `WORKFLOW = workflow.security_revision`;
+  `EXECUTION_MODE = mode.review_only`;
+  `OUTPUT_CONTRACT = output.security_review_prompt`;
+  `TARGET_ACTOR_TYPE = actor.terminal_agent | actor.browser_chat` (choose one
+  existing surface; security specialist is a recipient/focus, not an actor);
+  `OUT_OF_SCOPE = fixes, commits, SAST/DAST/dependency scanner runtime,
+  secret-store changes, deployment/settings changes, printing or exposing
+  secrets`;
+  `EVIDENCE_REQUIRED = evidence.repo_state, evidence.source_basis`.
+  *Instruction:* "Read ISSUE_OR_PR, repo context, and relevant evidence live
+  without exposing secrets. Identify security-sensitive surfaces and draft an
+  OWASP-based prompt for a real security-review recipient covering auth,
+  authorization, sessions/cookies, input validation, file uploads, redirects,
+  dependency risk, admin surfaces, secrets handling, logging, error exposure,
+  and deployment/config risk where applicable. Require redaction; never ask
+  anyone to print, paste, upload, quote, summarize, or expose `.env`, keys,
+  tokens, credentials, JWT secrets, database URLs, cookies, session tokens,
+  payment-provider keys, CI secrets, or hidden environment values."
+
 - **Apply review corrections** — `WORKFLOW = workflow.issue_implementation`;
   `EXECUTION_MODE = mode.delegated_commit_push | mode.delegated_commit_pr`;
   `OUTPUT_CONTRACT = output.execution_report`;

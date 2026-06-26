@@ -150,7 +150,10 @@ KERNEL_ID_PATTERN = re.compile(
     r"\b(?:status|actor|mode|boundary|evidence|workflow|output)\."
     r"(?!json\b|get\b|append\b)[A-Za-z0-9_*]+"
 )
-ROLE_ACTOR_ID_PATTERN = re.compile(r"\bactor\.(?:reviewer|qa|security|security_reviewer|asset|asset_creator)\b")
+ROLE_ACTOR_ID_PATTERN = re.compile(
+    r"\bactor\.(?:reviewer|qa|security|security_reviewer|owasp_security_reviewer|security_expert|asset|asset_creator|"
+    r"design_asset_creator|graphic_artist)\b"
+)
 MARKDOWN_PATH_PATTERN = re.compile(r"`([^`\n]+)`")
 SKIP_DIRS = {".git", ".pytest_cache", "__pycache__", "node_modules", ".venv"}
 
@@ -379,6 +382,111 @@ def test_review_before_close_route_template_rejects_documentation_only_go() -> N
     assert "Compare implementation behavior against issue objective/scope/out-of-scope/acceptance" in compact
     assert "return `status.needs_context`, not GO" in review_variant
     assert "explicit not-reviewed gaps" in compact
+
+
+def test_design_asset_workflow_routes_to_prompt_without_write_authority() -> None:
+    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    workflow = _kernel_entry("workflows.json", "workflow.design_asset")
+    output = _kernel_entry("outputs.json", "output.asset_prompt")
+
+    assert {entry["id"] for entry in actors["entries"]} == CANONICAL_ACTOR_IDS
+    workflow_text = " ".join([workflow["use_for"], *workflow["steps"]]).lower()
+    assert "recipient is not an actor surface" in workflow_text
+    assert "creates no asset files" in workflow_text
+    assert "read the current issue" in workflow_text
+    assert "needed assets" in workflow_text
+    assert "dimension" in workflow_text
+    assert "accessibility" in workflow_text
+    assert "file-format" in workflow_text
+    assert "target product and design truth" in workflow_text
+    assert "do not generate images" in workflow_text
+    assert "create binary assets" in workflow_text
+    assert workflow["allowed_output_refs"] == ["output.asset_prompt", "output.status_result"]
+
+    sections = output["required_sections"]
+    assert "recipient and non-actor decision" in sections
+    assert "dimensions, format, and delivery constraints" in sections
+    assert "brand/style/product constraints from target truth" in sections
+    assert "accessibility notes" in sections
+    assert "out of scope and authority limits" in sections
+    assert "grants no write authority" in output["rule"].lower()
+    assert "target product/design truth stays in the target repository" in output["rule"]
+
+
+def test_security_revision_workflow_routes_to_owasp_prompt_without_secret_exposure() -> None:
+    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    workflow = _kernel_entry("workflows.json", "workflow.security_revision")
+    output = _kernel_entry("outputs.json", "output.security_review_prompt")
+
+    assert {entry["id"] for entry in actors["entries"]} == CANONICAL_ACTOR_IDS
+    workflow_text = " ".join([workflow["use_for"], *workflow["steps"]]).lower()
+    assert "recipient is not an actor surface" in workflow_text
+    assert "runs no scanner" in workflow_text
+    assert "without exposing secrets" in workflow_text
+    for area in (
+        "auth",
+        "authorization",
+        "sessions/cookies",
+        "input validation",
+        "file uploads",
+        "redirects",
+        "dependencies",
+        "admin paths",
+        "secrets handling",
+        "logging",
+        "error exposure",
+        "deployment/config risk",
+    ):
+        assert area in workflow_text
+    for forbidden in (
+        "print",
+        "paste",
+        "upload",
+        "quote",
+        "summarize",
+        ".env",
+        "jwt secrets",
+        "database urls",
+        "session tokens",
+        "ci secrets",
+        "hidden environment values",
+    ):
+        assert forbidden in workflow_text
+    assert workflow["allowed_output_refs"] == ["output.security_review_prompt", "output.status_result"]
+
+    sections = output["required_sections"]
+    assert "recipient and non-actor decision" in sections
+    assert "security-sensitive surfaces" in sections
+    assert "OWASP areas to inspect" in sections
+    assert "secret redaction requirements" in sections
+    assert "out of scope and authority limits" in sections
+    assert "grants no write authority" in output["rule"].lower()
+    assert "runs no scanner" in output["rule"].lower()
+    assert "hidden environment values" in output["rule"].lower()
+
+
+def test_design_and_security_route_template_variants_are_draft_only() -> None:
+    text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    design_variant = text.split("**Design asset prompt**", 1)[1].split(
+        "- **Security review prompt**", 1
+    )[0]
+    security_variant = text.split("**Security review prompt**", 1)[1].split(
+        "- **Apply review corrections**", 1
+    )[0]
+
+    assert "`WORKFLOW = workflow.design_asset`" in design_variant
+    assert "`OUTPUT_CONTRACT = output.asset_prompt`" in design_variant
+    assert "graphic/design specialist is a recipient, not an actor" in design_variant
+    assert "Do not generate or commit assets" in design_variant
+    assert "Project OS owns target product/design truth" in design_variant
+
+    assert "`WORKFLOW = workflow.security_revision`" in security_variant
+    assert "`OUTPUT_CONTRACT = output.security_review_prompt`" in security_variant
+    assert "security specialist is a recipient/focus, not an actor" in security_variant
+    assert "OWASP-based prompt" in security_variant
+    assert "Require redaction" in security_variant
+    assert "never ask" in security_variant
+    assert "hidden environment values" in security_variant
 
 
 def test_target_adoption_kernel_guards_audit_draft_and_bootstrap_paths() -> None:

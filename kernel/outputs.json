@@ -40,6 +40,18 @@
       "rule": "Names the contract sections only. Shape, style, disallowed patterns, and examples live once in templates/pm-command-bundle.md; the hard floor is boundary.copy_safe_commands. Do not restate bundle rules here."
     },
     {
+      "id": "output.asset_prompt",
+      "use_for": "Drafting a compact prompt/instructions packet for a real graphic/design recipient.",
+      "required_sections": ["source context read live", "asset objective", "recipient and non-actor decision", "asset type and usage context", "dimensions, format, and delivery constraints", "brand/style/product constraints from target truth", "accessibility notes", "acceptance criteria", "out of scope and authority limits"],
+      "rule": "The prompt routes work only. It grants no write authority, does not create assets, and must say target product/design truth stays in the target repository or PM-provided evidence."
+    },
+    {
+      "id": "output.security_review_prompt",
+      "use_for": "Drafting a compact OWASP-based security-review prompt for a real security-review recipient.",
+      "required_sections": ["source context read live", "review objective", "recipient and non-actor decision", "security-sensitive surfaces", "OWASP areas to inspect", "secret redaction requirements", "evidence to review", "findings format", "out of scope and authority limits"],
+      "rule": "The prompt routes review only. It grants no write authority, runs no scanner, and must prohibit printing, pasting, uploading, quoting, summarizing, or exposing secret values or hidden environment values."
+    },
+    {
       "id": "output.handoff_packet",
       "use_for": "Transferring work between sessions, agents, or AI tools.",
       "required_sections": ["current state with live links (issues, PRs, branches)", "what was verified vs assumed", "next steps with their source basis", "open decisions for the PM", "boundaries active on the remaining work"],
