@@ -165,6 +165,7 @@ KERNEL_ID_REFERENCE_ALLOWLIST = {
     ("tests/test_validate_kernel.py", "status.maybe"): "negative non-canonical-status fixture",
 }
 MARKDOWN_PATH_REFERENCE_ALLOWLIST = {
+    ("AGENTS.md", "docs/decisions/"): "target-owned optional ADR directory",
     ("adapters/AGENTS.target.md", "docs/decisions/"): "target-owned optional ADR directory",
     ("adapters/BROWSER_CHAT.target.md", "docs/decisions/"): "target-owned optional ADR directory",
     ("docs/DESIGN.md", "fuentes/"): "historical path recoverable from git history",
