@@ -501,6 +501,7 @@ def test_target_adoption_kernel_guards_audit_draft_and_bootstrap_paths() -> None
     assert "inspect target adoption state first" in steps
     assert "agents.md" in steps
     assert "claude.md" in steps
+    assert "gemini.md" in steps
     assert "browser-chat adapter" in steps
     assert "audit them against kernel_repository adapters/*.target.md" in steps
     assert "tools.audit_target_adapters" in steps
@@ -511,13 +512,13 @@ def test_target_adoption_kernel_guards_audit_draft_and_bootstrap_paths() -> None
     assert "do not edit files or mutate git/github" in steps
     assert "mode.delegated_commit_pr" in steps
     assert "exact pm approval" in steps
-    assert "create only agents.md and claude.md" in steps
+    assert "create only agents.md, claude.md, and gemini.md" in steps
     assert "adapter-only diff" in steps
     assert "no product code" in steps
     assert "secret-store authority" in steps
 
     evidence_text = evidence["satisfied_by"].lower()
-    assert "agents.md/claude.md/browser-chat adapter presence" in evidence_text
+    assert "agents.md/claude.md/gemini.md/browser-chat adapter presence" in evidence_text
     assert "project notes" in evidence_text
     assert "validation commands" in evidence_text
     assert "audit findings" in evidence_text
@@ -551,15 +552,16 @@ def test_target_adoption_route_template_is_draft_or_adapter_only() -> None:
     assert "inspect TARGET_REPOSITORY first" in variant
     assert "whether `AGENTS.md` exists" in variant
     assert "whether `CLAUDE.md` exists" in variant
+    assert "whether `GEMINI.md`" in variant
     assert "whether a browser-chat" in variant
     assert "adapter was supplied" in variant
     assert "audit/compare them against KERNEL_REPOSITORY's" in variant
     assert "`tools.audit_target_adapters`" in variant
     assert "preserve target-owned notes, security/domain constraints, and validation commands" in compact
     assert "review-only drafts only" in variant
-    assert "may create only `AGENTS.md` and `CLAUDE.md`" in variant
+    assert "may create only `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md`" in compact
     assert "open a draft PR" in compact
-    assert "Browser chat remains draft-only" in variant
+    assert "Browser chat remains draft-only" in compact
     assert "Do not merge, close, label" in variant
     assert "touch secrets" in variant
 

@@ -90,6 +90,7 @@ def write_target(
     notes: str = "Run `python3 -m pytest` for local validation.",
     extra: str = "",
     claude: bool = True,
+    gemini: bool = True,
 ) -> Path:
     target = tmp_path / "target"
     target.mkdir()
@@ -113,6 +114,22 @@ def write_target(
                 # CLAUDE.md
 
                 CLAUDE.md is the Claude-specific adapter for `{repo}`. It is a compact
+                bootloader only.
+
+                Use `AGENTS.md` for repository-wide terminal-agent behavior. Resolve generic
+                operating behavior from the project-os-v2-min kernel referenced there
+                (`KERNEL_LOCAL_PATH`), and live project state from GitHub and git at task time.
+                """
+            ),
+            encoding="utf-8",
+        )
+    if gemini:
+        (target / "GEMINI.md").write_text(
+            textwrap.dedent(
+                f"""\
+                # GEMINI.md
+
+                GEMINI.md is the Gemini-specific adapter for `{repo}`. It is a compact
                 bootloader only.
 
                 Use `AGENTS.md` for repository-wide terminal-agent behavior. Resolve generic
@@ -149,6 +166,7 @@ def test_missing_agents_is_reported_as_adoption_state(tmp_path: Path) -> None:
 
     assert "TAA-ADOPTION-AGENTS-MISSING" in found
     assert "TAA-ADOPTION-CLAUDE-MISSING" in found
+    assert "TAA-ADOPTION-GEMINI-MISSING" in found
 
 
 def test_missing_claude_is_reported_without_overwriting_agents(tmp_path: Path) -> None:
@@ -158,6 +176,17 @@ def test_missing_claude_is_reported_without_overwriting_agents(tmp_path: Path) -
 
     assert "TAA-ADOPTION-AGENTS-MISSING" not in found
     assert "TAA-ADOPTION-CLAUDE-MISSING" in found
+    assert "TAA-ADOPTION-GEMINI-MISSING" not in found
+
+
+def test_missing_gemini_is_reported_without_overwriting_agents(tmp_path: Path) -> None:
+    target = write_target(tmp_path, gemini=False)
+
+    found = codes(audit_target_adapters(target, REPO))
+
+    assert "TAA-ADOPTION-AGENTS-MISSING" not in found
+    assert "TAA-ADOPTION-CLAUDE-MISSING" not in found
+    assert "TAA-ADOPTION-GEMINI-MISSING" in found
 
 
 def test_metadata_and_vague_version_drift_detected(tmp_path: Path) -> None:
@@ -243,7 +272,7 @@ def test_overlay_removal_between_base_and_worktree_is_detected(tmp_path: Path) -
     run_git(target, "init")
     run_git(target, "config", "user.email", "test@example.com")
     run_git(target, "config", "user.name", "Test User")
-    run_git(target, "add", "AGENTS.md", "CLAUDE.md")
+    run_git(target, "add", "AGENTS.md", "CLAUDE.md", "GEMINI.md")
     run_git(target, "commit", "-m", "base adapter")
 
     (target / "AGENTS.md").write_text(adapter_text(target, notes="Run local tests."), encoding="utf-8")
@@ -267,7 +296,7 @@ def test_preserved_or_extended_overlay_is_not_reported(tmp_path: Path) -> None:
     run_git(target, "init")
     run_git(target, "config", "user.email", "test@example.com")
     run_git(target, "config", "user.name", "Test User")
-    run_git(target, "add", "AGENTS.md", "CLAUDE.md")
+    run_git(target, "add", "AGENTS.md", "CLAUDE.md", "GEMINI.md")
     run_git(target, "commit", "-m", "base adapter")
 
     extended = custom_section + "\nReview new integrations before enabling them.\n"

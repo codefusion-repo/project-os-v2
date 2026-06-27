@@ -111,7 +111,7 @@ PATH_TOKEN_PATTERN = re.compile(
     r"(?<![\w./-])("
     r"(?:\.github/workflows/[A-Za-z0-9_.-]+)|"
     r"(?:[A-Za-z0-9_.-]+/[\w./*-]+)|"
-    r"(?:README(?:\.md)?|AGENTS\.md|CLAUDE\.md|pyproject\.toml|package(?:-lock)?\.json|"
+    r"(?:README(?:\.md)?|AGENTS\.md|CLAUDE\.md|GEMINI\.md|pyproject\.toml|package(?:-lock)?\.json|"
     r"requirements(?:-[\w.-]+)?\.txt|poetry\.lock|Pipfile\.lock|Dockerfile|docker-compose\.ya?ml)"
     r")(?![\w./-])"
 )
@@ -129,6 +129,7 @@ PROTECTED_PREFIXES = (
 PROTECTED_FILENAMES = {
     "AGENTS.md",
     "CLAUDE.md",
+    "GEMINI.md",
     "pyproject.toml",
     "package.json",
     "package-lock.json",

@@ -1,8 +1,8 @@
 # project-os-v2-min
 
 A compact, portable operating kernel for working with AI agents. A small set of
-agent-resolvable JSON files tells any agent (Claude, Codex, ChatGPT, or a future
-tool) **how to behave** on a project — actors, modes, boundaries, workflows,
+agent-resolvable JSON files tells any agent (Claude, Codex, Gemini, ChatGPT, or
+a future tool) **how to behave** on a project — actors, modes, boundaries, workflows,
 evidence, outputs, statuses — while all **live project state stays in GitHub**.
 Any agent can take over a project cold by resolving the kernel and reading
 GitHub; nothing depends on a prior chat's memory.
@@ -31,7 +31,7 @@ execution surface, never a role.
 | `kernel/*.json` | The operating kernel: actors, execution modes, boundaries, evidence, workflows, outputs, statuses | **Canonical** |
 | `tools/` + `tests/` | The single kernel validator, read-only auditors, and tests | **Canonical** |
 | `docs/TRACEABILITY_PROTOCOL.md` | The live-state / portability rules | **Canonical** |
-| `AGENTS.md`, `CLAUDE.md` | This repo's own adapters (it runs on its own kernel) | Adapter (self) |
+| `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` | This repo's own adapters (it runs on its own kernel) | Adapter (self) |
 | `adapters/*.target.md` | Copy-me adapter templates to adopt the kernel in another repo or chat | Template |
 | `templates/*.md` | Fill-in shapes: `artifacts.md` (issue, PR, closure, ADR, roadmap), `route-prompt.md`, `pm-command-bundle.md` | Template |
 | `docs/DESIGN.md` | Background: why the kernel is shaped this way, the actor model, and its history | Background |
@@ -39,9 +39,10 @@ execution surface, never a role.
 A cold reader needs only the **Canonical** rows to operate. Adapters and
 templates are copied/filled per project; the background doc is optional.
 
-**Self vs target adapters:** the root `AGENTS.md` / `CLAUDE.md` are *this* repo's
-live adapters. The `adapters/*.target.md` files are blank templates you copy into
-*another* repo or chat — the `.target.md` suffix marks "copy me, fill me in."
+**Self vs target adapters:** the root `AGENTS.md` / `CLAUDE.md` / `GEMINI.md`
+are *this* repo's live adapters. The `adapters/*.target.md` files are blank
+templates you copy into *another* repo or chat — the `.target.md` suffix marks
+"copy me, fill me in."
 
 **Naming convention:** adapter templates are `<SURFACE>.target.md`; kernel files
 are `<family>.json`; templates are lowercase-kebab `.md`; docs are
@@ -62,8 +63,9 @@ anything missing or ambiguous.
 ## Booting each surface
 
 - **Terminal agent (a repo):** copy `KERNEL_REPOSITORY`'s
-  `adapters/AGENTS.target.md` (and optionally `adapters/CLAUDE.target.md`) into
-  the target repo, fill the placeholders, and point `KERNEL_LOCAL_PATH` at this
+  `adapters/AGENTS.target.md` (and optionally
+  `adapters/CLAUDE.target.md` and/or `adapters/GEMINI.target.md`) into the
+  target repo, fill the placeholders, and point `KERNEL_LOCAL_PATH` at this
   repo's `kernel/`.
 - **Browser chat:** paste `KERNEL_REPOSITORY`'s
   `adapters/BROWSER_CHAT.target.md` into the chat's project instructions; for a
