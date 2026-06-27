@@ -60,25 +60,23 @@ Return exactly one of four statuses — `status.resolved`,
 Resolution selects shape and gates; it never grants permission. Fail closed on
 anything missing or ambiguous.
 
-## Booting each surface
+## Public Quick Start
 
-- **Terminal agent (a repo):** copy `KERNEL_REPOSITORY`'s
-  `adapters/AGENTS.target.md` (and optionally
-  `adapters/CLAUDE.target.md` and/or `adapters/GEMINI.target.md`) into the
-  target repo, fill the placeholders, and point `KERNEL_LOCAL_PATH` at this
-  repo's `kernel/`.
-- **Browser chat:** paste `KERNEL_REPOSITORY`'s
-  `adapters/BROWSER_CHAT.target.md` into the chat's project instructions; for a
-  one-off session, paste its "First-message activation" block as the first
-  message. Browser chat is draft-only (`actor.browser_chat`); it routes
-  write-capable work to a terminal agent.
-- **Routing & PM ops:** route work with `KERNEL_REPOSITORY`'s
-  `templates/route-prompt.md` (one template, four variants: implement, review,
-  correct, audit); copy-safe PM command bundles follow
-  `templates/pm-command-bundle.md`.
+Project OS uses operation templates and PM variables to safely delegate work to AI agents.
 
-Target product truth stays in the target repository; the kernel owns only
-generic operating behavior.
+**1. Adopt the kernel:**
+- **Terminal Agent**: Copy `adapters/AGENTS.target.md` to your repository, fill placeholders, and point to the kernel.
+- **Browser Chat**: Paste `adapters/BROWSER_CHAT.target.md` into your chat project instructions.
+
+**2. Use Operations:**
+- Operations are entry points to Project OS capabilities. See `docs/PM_OPERATIONS.md`.
+- Example: Execute `templates/operations/09-route-issue-implementation.md` by providing `ISSUE_NUMBER=123`.
+
+**3. Variables:**
+- Supply PM variables to control operations: `PM_QUESTION=Are we ready?`
+- See `docs/PM_VARIABLES.md` for details.
+
+For detailed guides, refer to `docs/GETTING_STARTED.md` and `docs/PUBLIC_USAGE_MODEL.md`.
 
 ## Validation
 
