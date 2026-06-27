@@ -47,7 +47,7 @@ A default bundle has:
 - **Final verification.** End with read-only `gh`/`git` checks confirming the
   intended end state.
 - **Supported GitHub CLI `--json` fields only.** Never emit unsupported
-  pseudo-fields such as `stateReason` or `merged`. Prefer verified fields:
+  pseudo-fields such as `stateReason`, `merged` or `isLatest`. Prefer verified fields:
   `state`, `isDraft`, `mergeable`, `mergeStateStatus`, `headRefName`,
   `headRefOid`, `mergedAt`, `closedAt`. When unsure, discover supported fields
   first (e.g. pass an invalid `--json` value to list them).

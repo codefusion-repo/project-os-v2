@@ -62,7 +62,7 @@
     },
     {
       "id": "boundary.copy_safe_commands",
-      "rule": "PM-facing command bundles must stay copy-safe: exact repository/issue/PR/branch targets; scope, risk, and rollback kept outside executable blocks; body files with quoted heredoc delimiters for long GitHub bodies; no nested triple-backtick fences; supported GitHub CLI --json fields only (never unsupported pseudo-fields such as stateReason or merged); and no shell pattern that stops, cuts, or corrupts the terminal session. This is the hard floor only.",
+      "rule": "PM-facing command bundles must stay copy-safe: exact repository/issue/PR/branch targets; scope, risk, and rollback kept outside executable blocks; body files with quoted heredoc delimiters for long GitHub bodies; no nested triple-backtick fences; supported GitHub CLI --json fields only (never unsupported pseudo-fields such as stateReason, merged or isLatest); and no shell pattern that stops, cuts, or corrupts the terminal session. This is the hard floor only.",
       "on_violation": "status.needs_pm_decision",
       "notes": "Bundle shape, style, disallowed patterns, when a defensive bundle is allowed, and examples live once in templates/pm-command-bundle.md; the kernel keeps no command-style detail."
     }

@@ -144,7 +144,7 @@ CANONICAL_ACTOR_IDS = {
     "actor.browser_chat",
     "actor.unknown",
 }
-FORBIDDEN_GH_JSON_FIELDS = {"stateReason", "merged"}
+FORBIDDEN_GH_JSON_FIELDS = {"stateReason", "merged", "isLatest"}
 GH_JSON_PATTERN = re.compile(r"--json\s+([A-Za-z0-9_,]+)")
 KERNEL_ID_PATTERN = re.compile(
     r"\b(?:status|actor|mode|boundary|evidence|workflow|output)\."
