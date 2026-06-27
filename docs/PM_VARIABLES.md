@@ -1,30 +1,27 @@
-# PM Variables
+# PM Variables (Variables del PM)
 
-This document explains the PM variable system used in operations and templates. Variables are input selectors for operations, not authorization boundaries.
+Este documento explica el sistema de variables del PM usado en operaciones y plantillas. Las variables son **selectores de contexto y parámetros de entrada**, NO son fronteras de autorización.
 
-## Syntax
-- **Placeholder Syntax**: `<VARIABLE_NAME>` (e.g. `<ISSUE_NUMBER>`)
-- **Override Syntax**: `VARIABLE_NAME=VALUE` (e.g. `ISSUE_NUMBER=123` or `ISSUE_NUMBER=#123`)
+## Sintaxis
+- **Sintaxis de Placeholder**: `<NOMBRE_VARIABLE>` (ej. `<ISSUE_NUMBER>`)
+- **Sintaxis de Invocación (Override)**: `NOMBRE_VARIABLE=VALOR` (ej. `ISSUE_NUMBER=123` o `ISSUE_NUMBER=#123`)
 
-## Types of Variables
-- **Required Variables**: Must be provided for the operation to proceed. Missing variables will resolve to `status.needs_context` or `status.needs_pm_decision`.
-- **Optional Variables**: Can be provided to customize behavior.
-- **Inferred Variables**: Values that may be inferred from live state (e.g., current branch, open issues).
+## Reglas de Normalización y Conflictos
+1. `ISSUE_NUMBER` y `PR_NUMBER` aceptan tanto `123` como `#123`. En el texto humano/Markdown generado, siempre deben renderizarse como `#123`.
+2. Las variables explícitas dadas en el mensaje actual del PM tienen la prioridad más alta.
+3. El estado de Github inferido se usa solo cuando falta la variable.
+4. Si falta una variable requerida, se emite `status.needs_context` o `status.needs_pm_decision`.
+5. Si las variables entran en conflicto con la realidad (ej. PR_NUMBER no existe), el sistema debe fallar cerradamente.
+6. Tipos/Nombres son canónicos: `FEEDBACK_PM_HUMANO` (No se permite usar PM_FEEDBACK_HUMANNO u otras variantes con errores de tipeo).
 
-## Precedence Rules
-1. Explicit PM-provided variables in the current message have highest precedence.
-2. Filled template values come next.
-3. Live GitHub/git evidence may be used only when the operation requires live state.
+## Reglas de Secret-Safety
+Las variables **NUNCA** deben portar o exponer contraseñas, secretos, tokens, credenciales, variables `.env`, cookies, o strings que parezcan llaves privadas.
+Toda información confidencial hallada debe redactarse como `[REDACTED]` reportando el tipo de riesgo.
 
-## Normalization & Conflict Rules
-- Issue and PR variables accept either `123` or `#123`. Human-facing references always render as `#123`.
-- Missing required variables resolve to `status.needs_context` or `status.needs_pm_decision`.
-- Conflicting variables must be surfaced; do not silently choose one.
+## Autorización
+`PM_AUTHORIZATION_STATUS` es especial. No se asume por defecto; debe pasarse explícitamente cuando un route-prompt asegura contar con la autorización del humano PM para trabajos de escritura.
 
-## Secret-Safety Rules
-Variables must **never** carry secrets, tokens, credentials, `.env` values, cookies, session tokens, private keys, or secret-looking values. If a variable contains a secret, the system will fail closed.
-
-## Examples
-- `ISSUE_NUMBER=#305 TARGET_REPOSITORY=codefusion-repo/project-os-v2`
-- `PM_QUESTION=What should we do with #286?`
-- `FEEDBACK_PM_HUMANO=Please adjust the wording in the PR.`
+## Ejemplos de Uso
+- Invocando un análisis de PR: `templates/operations/09-revisar-pr-antes-de-cierre-y-draftear-paquete.md PR_NUMBER=#305`
+- Rutear corrección: `templates/operations/08-draftear-route-prompt-para-correcciones-de-review.md ISSUE_NUMBER=305 FEEDBACK_PM_HUMANO="Por favor, ajusta los nombres de archivos."`
+- Pregunta ad-hoc: `templates/operations/05-revisar-estado-del-proyecto-y-desalineaciones.md PM_QUESTION="¿Estamos listos para el tag v0.2.0?"`

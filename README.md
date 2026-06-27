@@ -62,22 +62,17 @@ anything missing or ambiguous.
 
 ## Public Quick Start
 
-Project OS uses operation templates and PM variables to safely delegate work to AI agents.
+Project OS delega trabajo seguro a IA mediante plantillas de operaciones y variables PM.
 
-**1. Adopt the kernel:**
-- **Terminal Agent**: Copy `adapters/AGENTS.target.md` to your repository, fill placeholders, and point to the kernel.
-- **Browser Chat**: Paste `adapters/BROWSER_CHAT.target.md` into your chat project instructions.
+**1. Adopta el Kernel:**
+- **Terminal Agent**: Copia `adapters/AGENTS.target.md` a la raíz de tu repositorio objetivo.
+- **Browser Chat**: Pega el template `templates/operations/00-activar-sesion-browser-chat.md` en tu prompt inicial.
 
-**2. Use Operations:**
-- Operations are entry points to Project OS capabilities. See `docs/PM_OPERATIONS.md`.
-- Example: Execute `templates/operations/09-route-issue-implementation.md` by providing `ISSUE_NUMBER=123`.
+**2. Uso de Operaciones:**
+- El catálogo completo está en `docs/PM_OPERATIONS.md`.
+- Invoca pasando variables; por ejemplo: `templates/operations/07-draftear-route-prompt-para-implementar-issue.md ISSUE_NUMBER=#305`
 
-**3. Variables:**
-- Supply PM variables to control operations: `PM_QUESTION=Are we ready?`
-- See `docs/PM_VARIABLES.md` for details.
-
-For detailed guides, refer to `docs/GETTING_STARTED.md` and `docs/PUBLIC_USAGE_MODEL.md`.
-
+Para guías en detalle, revisa `docs/GETTING_STARTED.md`, `docs/PUBLIC_USAGE_MODEL.md`, y la guía de accesos en `docs/GITHUB_ACCESS.md`.
 ## Validation
 
 ```sh

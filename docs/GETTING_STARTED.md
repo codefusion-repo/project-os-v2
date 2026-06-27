@@ -1,30 +1,28 @@
-# Getting Started with Project OS
+# Getting Started (Primeros Pasos con Project OS)
 
-## Existing Repository Adoption
-1. Copy `adapters/AGENTS.target.md` into your repository as `AGENTS.md`.
-2. Fill the placeholders (`TARGET_REPOSITORY`, `KERNEL_LOCAL_PATH`).
-3. (Optional) Run `python3 -m tools.audit_target_adapters` to verify.
+Project OS facilita la planificación, revisión y delegación segura hacia agentes de IA usando **GitHub como la única memoria viva compartida**. No depende de la memoria de las sesiones de chat.
 
-## New Project Bootstrap
-1. Initialize a new git repository.
-2. Adopt the kernel following the existing repository adoption steps.
-3. Configure your initial roadmap issue.
+## 1. Adopción en Target Existente
+1. Copia `adapters/AGENTS.target.md` hacia tu repositorio y nómbralo `AGENTS.md`.
+2. Completa los placeholders de `TARGET_REPOSITORY` y `KERNEL_LOCAL_PATH`.
+3. (Opcional) Adapta/copia `CLAUDE.md` o `GEMINI.md` según el LLM principal.
 
-## Browser Chat Setup
-1. Use `templates/operations/00-browser-chat-activation.md` to start a session.
-2. Browser chat acts as a draft-only actor that uses operations to prepare route-prompts or PM command bundles.
+## 2. Iniciar un Nuevo Proyecto (Bootstrap)
+Si no existe el repositorio:
+1. Inicia un nuevo repositorio en blanco.
+2. Invoca la operación `templates/operations/02-iniciar-bootstrap-nuevo-proyecto.md` desde tu Browser Chat.
+3. El sistema sugerirá la estructura inicial y el roadmap de fundación. Adopta el kernel como se indica arriba.
 
-## Terminal Agent Setup
-1. Use `templates/operations/01-terminal-agent-setup.md` to activate a terminal agent session.
-2. The agent will read `AGENTS.md` and resolve the kernel automatically.
+## 3. Uso en Browser Chat (Compañero PM)
+Browser Chat es tu **compañero de revisión y redacción (draft-only)**:
+- Empieza pasando `templates/operations/00-activar-sesion-browser-chat.md` al LLM en el navegador.
+- Pide revisiones de PRs, redactar route-prompts, o buscar desalineaciones.
+- Browser Chat **no escribe código**, pero prepara comandos o delegaciones exactas.
 
-## PM Variable Invocation
-Set variables directly in your message or via placeholders to control operation behavior.
-Example: `ISSUE_NUMBER=42`
-See `docs/PM_VARIABLES.md` for precedence and rules.
+## 4. Uso de Terminal Agents (Ejecutores)
+Los Terminal Agents **ejecutan trabajo ruteado**:
+- **No hay una operación aislada "setup terminal agent" para el PM**. El setup real es el archivo `AGENTS.md` subido en tu repo.
+- El agente lee el kernel automáticamente desde su sistema de archivos local y recibe un "route-prompt" (ej. redactado por `templates/operations/07-draftear-route-prompt-para-implementar-issue.md`).
+- Ejecutará el código solo bajo autorización (ej. `PM_AUTHORIZATION_STATUS`).
 
-## GitHub Traceability
-All live project state is stored in GitHub. Do not duplicate issue status, reviews, or branch state in local docs.
-
-## What Project OS does NOT do
-Project OS is not an installer, package manager, service, database, web app, or console implementation. It does not store state or grant permissions implicitly.
+Para instrucciones de seguridad de Github, lee `docs/GITHUB_ACCESS.md`.

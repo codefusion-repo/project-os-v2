@@ -1,22 +1,20 @@
-# Public Usage Model
+# Public Usage Model (Modelo de Uso Público)
 
-Project OS operates as a minimal kernel with copy-in adapters and operation templates.
+## ¿Qué es Project OS?
+Project OS se comporta como un pequeño kernel de sistema operativo. Posee archivos de reglas (`kernel/*.json`) inmutables en tiempo de ejecución.
 
-## The Kernel
-The operating kernel (`kernel/*.json`) is the absolute source of truth for generic operating behavior (actors, modes, boundaries, workflows, evidence, outputs). It is immutable during task execution.
+## Actores y Superficies
+1. **Human PM**: El originador de prioridades, alcances y autoridad. Único que debe realizar comandos peligrosos (mezclar, configurar secretos, lanzar tags).
+2. **Browser Chat** (`actor.browser_chat`): Entorno de charla, efímero. Lee GitHub para recuperar la historia. Sirve de acompañante analítico y prepara *drafts* (borradores de comandos o de prompts).
+3. **Terminal Agent** (`actor.terminal_agent`): Agente local con acceso a consola. Recibe `route-prompts` (órdenes de trabajo estructuradas) para resolver issues específicos. Ejecuta escrituras de código y pull requests, nunca cambia prioridades sin autorización.
 
-## Adapters
-Adapters (e.g., `AGENTS.md`) point back to the kernel and define repository-wide terminal-agent behavior. They are bootloaders and never override the kernel.
+## La Memoria (Source of Truth)
+- **NO** se confía en la retentiva del chat (`.txt` locales de historial, variables de contexto pasadas).
+- La memoria a largo plazo es 100% trazable en **GitHub** (Issues, PRs, Comments).
+- Si el chat falla o se vuelve incoherente, invoca `templates/operations/17-draftear-paquete-de-handoff-para-nueva-sesion.md` para empaquetar lo inmediato y abrir una nueva sesión basada puramente en el estado de GitHub.
 
-## Templates and Operations
-Templates (`templates/operations/`) are public-facing starting points for workflows. They define required variables and canonical behavior but do not duplicate kernel rules.
+## Operaciones / Templates
+Las operaciones de la carpeta `templates/operations/` dictan instrucciones estándar y predecibles, pero no portan autorización ni estado vivo.
 
-## GitHub as Source of Truth
-All live project state (issues, PRs, review verdicts, branch state) lives ONLY in GitHub. Docs and templates must never store live state.
-
-## PM Approval
-Permission comes only from exact scoped PM approval plus kernel-resolved gates. Variables are input selectors and do not confer authorization. `PM_AUTHORIZATION_STATUS` must be explicit when a route prompt claims approval for write-capable work.
-
-## Browser Chat vs Terminal Agent Responsibilities
-- **Browser Chat**: Draft-only (`actor.browser_chat`). It drafts responses, route prompts, and PM command bundles. It cannot execute writes.
-- **Terminal Agent**: Executes write-capable work (`actor.terminal_agent`) if routed and PM-authorized.
+## Aprobación
+Los `route-prompts` a terminal agents no deben asumir permisos. Deben contener un `PM_AUTHORIZATION_STATUS` explícito.
