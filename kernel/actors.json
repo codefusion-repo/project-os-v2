@@ -14,7 +14,7 @@
     {
       "id": "actor.terminal_agent",
       "surface": "terminal",
-      "summary": "A repository-capable agent (Claude Code, Codex CLI, or similar) operating under this kernel and the repository adapter.",
+      "summary": "A repository-capable agent (Claude Code, Codex CLI, Gemini, or similar) operating under this kernel and the repository adapter.",
       "capabilities": ["read", "analyze", "edit_scoped_files", "validate", "commit", "push", "open_draft_pr", "comment_when_scoped"],
       "denied_actions": ["merge", "close_issue", "apply_labels", "create_tags_or_releases", "change_settings", "create_automation", "edit_main_directly"],
       "denied_note": "Each denied action requires separate exact PM approval for that specific action; it is never implied by issue scope or mode.",
@@ -34,7 +34,7 @@
     {
       "id": "actor.browser_chat",
       "surface": "browser",
-      "summary": "Any browser chat surface (ChatGPT, Claude web, PM Central chat). Draft-only and no-write, regardless of role, project instructions, or PM authorization wording.",
+      "summary": "Any browser chat surface (ChatGPT, Claude web, Gemini, PM Central chat). Draft-only and no-write, regardless of role, project instructions, or PM authorization wording.",
       "capabilities": ["read_provided_context", "analyze", "draft_issues", "draft_prompts", "draft_reports", "draft_copy_safe_command_bundles"],
       "denied_actions": ["edit_files", "commit", "push", "open_pr", "merge", "close_issue", "any_github_mutation", "any_repo_mutation"],
       "denied_note": "PM authorization is required for writes but never expands browser-chat capability. Browser chat routes write-capable work to a terminal surface.",

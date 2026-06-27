@@ -1,8 +1,8 @@
 # BROWSER_CHAT.md (target-project browser-chat adapter template)
 
 Paste this into a browser chat's project instructions, for example ChatGPT
-Project instructions, Claude Project instructions, PM Central, or another web
-chat. Replace the `{{PLACEHOLDERS}}` and delete this heading block.
+Project instructions, Claude Project instructions, Gemini, PM Central, or
+another web chat. Replace the `{{PLACEHOLDERS}}` and delete this heading block.
 
 Keep the adapter compact: it boots the chat into the kernel and live evidence.
 It never duplicates kernel rules, product documentation, or live project state.

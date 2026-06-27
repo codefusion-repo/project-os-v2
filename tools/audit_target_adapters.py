@@ -48,6 +48,7 @@ CANONICAL_HEADINGS = {
         "First-message activation",
     },
     "CLAUDE.md": set(),
+    "GEMINI.md": set(),
 }
 
 METADATA_PATTERN = re.compile(r"^([A-Z][A-Z0-9_]*)\s*=\s*(.*?)\s*$")
@@ -165,14 +166,18 @@ def _load_repo_sources(target: Path, ref: str | None = None) -> dict[str, Source
     if ref:
         agents = _git_show(target, ref, "AGENTS.md", required=False)
         claude = _git_show(target, ref, "CLAUDE.md", required=False)
+        gemini = _git_show(target, ref, "GEMINI.md", required=False)
     else:
         agents = _read_text(target / "AGENTS.md", "AGENTS.md", required=False)
         claude = _read_text(target / "CLAUDE.md", "CLAUDE.md", required=False)
+        gemini = _read_text(target / "GEMINI.md", "GEMINI.md", required=False)
     sources = {}
     if agents is not None:
         sources["AGENTS.md"] = agents
     if claude is not None:
         sources["CLAUDE.md"] = claude
+    if gemini is not None:
+        sources["GEMINI.md"] = gemini
     return sources
 
 
@@ -499,17 +504,29 @@ def _check_live_state(source: Source, expected_repo: str, canonical_anchors: set
     return findings
 
 
-def _check_claude_bootloader(source: Source) -> list[Finding]:
+def _check_compact_bootloader(source: Source, adapter_name: str, code_prefix: str) -> list[Finding]:
     text = source.text.lower()
     findings: list[Finding] = []
     if "agents.md" not in text:
         findings.append(
-            Finding("TAA-CLAUDE-DELEGATION", "warning", source.name, None, "CLAUDE.md should delegate repository-wide behavior to AGENTS.md")
+            Finding(
+                f"TAA-{code_prefix}-DELEGATION",
+                "warning",
+                source.name,
+                None,
+                f"{adapter_name} should delegate repository-wide behavior to AGENTS.md",
+            )
         )
     full_metadata_count = sum(1 for field in REQUIRED_METADATA if re.search(rf"^{field}\s*=", source.text, re.M))
     if full_metadata_count >= 4:
         findings.append(
-            Finding("TAA-CLAUDE-FULL-METADATA", "warning", source.name, None, "CLAUDE.md should stay compact and delegate instead of repeating the full metadata block")
+            Finding(
+                f"TAA-{code_prefix}-FULL-METADATA",
+                "warning",
+                source.name,
+                None,
+                f"{adapter_name} should stay compact and delegate instead of repeating the full metadata block",
+            )
         )
     return findings
 
@@ -534,6 +551,16 @@ def _check_adoption_state(sources: dict[str, Source]) -> list[Finding]:
                 "CLAUDE.md",
                 None,
                 "target adoption is missing CLAUDE.md; bootstrap scope is limited to adapters only when writes are approved",
+            )
+        )
+    if "GEMINI.md" not in sources:
+        findings.append(
+            Finding(
+                "TAA-ADOPTION-GEMINI-MISSING",
+                "warning",
+                "GEMINI.md",
+                None,
+                "target adoption is missing GEMINI.md; bootstrap scope is limited to adapters only when writes are approved",
             )
         )
     return findings
@@ -638,7 +665,10 @@ def audit_target_adapters(
     for source in full_sources:
         findings.extend(_check_metadata(source, target_path, expected_repository))
         findings.extend(_check_version_strategy(source))
-    findings.extend(_check_claude_bootloader(head_sources["CLAUDE.md"]) if "CLAUDE.md" in head_sources else [])
+    if "CLAUDE.md" in head_sources:
+        findings.extend(_check_compact_bootloader(head_sources["CLAUDE.md"], "CLAUDE.md", "CLAUDE"))
+    if "GEMINI.md" in head_sources:
+        findings.extend(_check_compact_bootloader(head_sources["GEMINI.md"], "GEMINI.md", "GEMINI"))
 
     roadmap_findings, canonical_anchors = _check_roadmaps(full_sources, expected_repository)
     findings.extend(roadmap_findings)

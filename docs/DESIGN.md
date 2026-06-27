@@ -23,7 +23,7 @@ projects established what actually delivers value in practice:
 2. **Live GitHub traceability.** Issue source-basis chains, closure-evidence
    comments, and PR validation bodies let any agent reconstruct project state
    cold. This is the portability layer between AI tools.
-3. **Thin prose adapters.** AGENTS.md/CLAUDE.md bootstrap any agent into 1 and 2.
+3. **Thin prose adapters.** AGENTS.md/CLAUDE.md/GEMINI.md bootstrap any agent into 1 and 2.
 
 What did **not** deliver value: the v2 normalized relationship graph (nothing
 consumed it), meta-contracts, validator hardening against risks that cannot
@@ -45,7 +45,7 @@ materialize without a runtime, and micro-granular process issues.
 - **Three layers, strictly separated.**
   - `kernel/` — stable behavior (versioned, validated).
   - GitHub — live state (`docs/TRACEABILITY_PROTOCOL.md`).
-  - `AGENTS.md` / `CLAUDE.md` / `adapters/` / `templates/` — boot and shape.
+  - `AGENTS.md` / `CLAUDE.md` / `GEMINI.md` / `adapters/` / `templates/` — boot and shape.
 - **Fail closed.** Exactly four resolution statuses; ambiguity never proceeds.
 - **No kernel runtime.** No loader, resolver runtime, or automation belongs in
   this kernel unless real-target evidence and a scoped issue name a gap that
@@ -93,7 +93,7 @@ When unsure where something goes, this is the order of precedence:
 - **Kernel (`kernel/*.json`)** — stable, generic operating behavior only:
   actors, modes, boundaries, workflows, evidence, output shapes, statuses.
   Versioned and validated. No live state, no permission grants.
-- **Adapters (`AGENTS.md`, `CLAUDE.md`, `adapters/`)** — compact per-repo/chat
+- **Adapters (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `adapters/`)** — compact per-repo/chat
   bootloaders: identity, kernel path, a pointer to the canonical roadmap, a
   short notes block. No kernel-rule duplication, no live state.
 - **Templates (`templates/`)** — reusable output and prompt shapes. Shape only.

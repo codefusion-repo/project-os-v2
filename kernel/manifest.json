@@ -26,7 +26,7 @@
     "stable_behavior": "kernel/*.json in this repository",
     "live_state": "GitHub issues, PRs, commits, comments, reviews, branches, and local git output, read at task time",
     "traceability_protocol": "docs/TRACEABILITY_PROTOCOL.md",
-    "adapters": "AGENTS.md and CLAUDE.md are compact bootloaders only and never override the kernel"
+    "adapters": "AGENTS.md, CLAUDE.md, and GEMINI.md are compact bootloaders only and never override the kernel"
   },
   "size_budget": {
     "kernel_total_bytes_max": 102400,

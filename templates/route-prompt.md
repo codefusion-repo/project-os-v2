@@ -54,22 +54,24 @@ Set the workflow/mode/output as shown, then add the instruction line.
   `TARGET_REPOSITORY = {{target org/repo}}`;
   `SCOPE = inspect target adoption; audit existing adapters; draft only under
   review-only; under delegated_commit_pr with exact PM approval create only
-  AGENTS.md and CLAUDE.md from KERNEL_REPOSITORY's canonical templates`;
+  AGENTS.md, CLAUDE.md, and GEMINI.md from KERNEL_REPOSITORY's canonical
+  templates`;
   `OUT_OF_SCOPE = product code, CI/package/deploy/runtime config, .env,
   secrets, deployment settings, merge/closure/labels/releases/tags/settings`;
   `EVIDENCE_REQUIRED = evidence.target_adoption` for review-only;
   `EVIDENCE_REQUIRED = evidence.target_adoption, evidence.branch_preflight,
   evidence.pm_approval, evidence.validation_output` for delegated_commit_pr.
   *Instruction:* "Resolve the kernel and inspect TARGET_REPOSITORY first:
-  whether `AGENTS.md` exists, whether `CLAUDE.md` exists, whether a browser-chat
-  adapter was supplied, and whether metadata, roadmap anchor, kernel repo/path,
-  kernel version, target notes, validation commands, and durable live-state risk
-  are present. If adapters exist, audit/compare them against KERNEL_REPOSITORY's
-  `adapters/*.target.md` and/or `tools.audit_target_adapters`; report drift and
-  preserve target-owned notes, security/domain constraints, and validation
-  commands. If adoption is missing, review-only drafts only; delegated_commit_pr
-  with exact PM approval may create only `AGENTS.md` and `CLAUDE.md` and open a
-  draft PR. Browser chat remains draft-only. Do not merge, close, label,
+  whether `AGENTS.md` exists, whether `CLAUDE.md` exists, whether `GEMINI.md`
+  exists, whether a browser-chat adapter was supplied, and whether metadata,
+  roadmap anchor, kernel repo/path, kernel version, target notes, validation
+  commands, and durable live-state risk are present. If adapters exist,
+  audit/compare them against KERNEL_REPOSITORY's `adapters/*.target.md` and/or
+  `tools.audit_target_adapters`; report drift and preserve target-owned notes,
+  security/domain constraints, and validation commands. If adoption is missing,
+  review-only drafts only; delegated_commit_pr with exact PM approval may create
+  only `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` and open a draft PR. Browser
+  chat remains draft-only. Do not merge, close, label,
   release, tag, change settings, deploy, or touch secrets."
 
 - **Review a PR before merge/close** — `WORKFLOW = workflow.review_before_close`;

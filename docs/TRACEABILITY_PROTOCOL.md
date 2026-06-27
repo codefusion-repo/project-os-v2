@@ -1,10 +1,10 @@
 # Live Traceability Protocol
 
 This protocol is what makes a project portable between AI agents. Any agent
-(Claude, Codex, ChatGPT, or a future tool) must be able to take over a project
-cold and reconstruct what happened, what is missing, why, with what evidence,
-and under what limits — from GitHub alone, never from another model's internal
-memory.
+(Claude, Codex, Gemini, ChatGPT, or a future tool) must be able to take over a
+project cold and reconstruct what happened, what is missing, why, with what
+evidence, and under what limits — from GitHub alone, never from another model's
+internal memory.
 
 State is **reconstructed from evidence, not recalled**. Recall can hallucinate;
 evidence can be re-read.
