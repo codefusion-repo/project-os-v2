@@ -6,17 +6,17 @@ Crear un prompt o instrucción para someter cambios sensibles (auth, roles) a un
 ## Detalle de Comportamiento
 - **Qué fuentes lee en vivo**: Diff de PR_NUMBER con componentes sensibles.
 - **Qué compara/decide**: Detecta zonas de riesgo, inyecciones y validación de entrada.
-- **Qué entrega (Output)**: Prompt de auditoría formal (`output.security_review_prompt`).
-- **Qué NO debe hacer (Límites)**: No expone secretos reales; exige redacción (redaction). No aprueba código inseguro.
+- **Qué entrega (Output)**: Un `output.security_review_prompt` basado en OWASP para un destinatario real de revisión de seguridad.
+- **Qué NO debe hacer (Límites)**: Nunca pide imprimir, pegar, subir, citar, resumir ni exponer `.env`, tokens, credenciales, cookies, JWTs, llaves privadas, secretos de CI, URLs de base de datos ni valores que parezcan secretos; exige redacción como `[REDACTED]`. No corre escáneres ni aprueba código inseguro. El destinatario de seguridad es un recipiente/foco, no un actor.
 
 ## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea revisión experta).**
+**Primaria: `browser_chat` (draftea el prompt de revisión). Destinatario: especialista de seguridad externo (recipiente, no actor).**
 
 ## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.pm_intake`
+- **Workflow**: `workflow.security_revision`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.security_review_prompt`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.repo_state, evidence.source_basis`
 
 ## Variables PM
 - **Requeridas**: `PR_NUMBER`

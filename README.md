@@ -70,7 +70,7 @@ Project OS delega trabajo seguro a IA mediante plantillas de operaciones y varia
 
 **2. Uso de Operaciones:**
 - El catálogo completo está en `docs/PM_OPERATIONS.md`.
-- Invoca pasando variables; por ejemplo: `templates/operations/07-draftear-route-prompt-para-implementar-issue.md ISSUE_NUMBER=#305`
+- Invoca pasando variables; por ejemplo: `templates/operations/07-draftear-route-prompt-para-implementar-issue.md ISSUE_NUMBER=#123`
 
 Para guías en detalle, revisa `docs/GETTING_STARTED.md`, `docs/PUBLIC_USAGE_MODEL.md`, y la guía de accesos en `docs/GITHUB_ACCESS.md`.
 ## Validation

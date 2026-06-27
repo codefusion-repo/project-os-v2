@@ -10,7 +10,7 @@ Verificar la existencia de evidencia de cierre (closure evidence) y trazabilidad
 - **Qué NO debe hacer (Límites)**: No re-escribe comentarios pasados ni edita historial.
 
 ## Propiedad de Superficie (Surface)
-**Primaria: `terminal_agent` (script) o `browser_chat` (inspección manual).**
+**Primaria: `browser_chat` (revisión de trazabilidad PM-facing). Secundaria: `terminal_agent` (solo cuando se requiere correr el auditor local read-only sobre GitHub).**
 
 ## Configuración Canónica (Kernel)
 - **Workflow**: `workflow.review_only`

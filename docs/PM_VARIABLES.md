@@ -22,6 +22,6 @@ Toda información confidencial hallada debe redactarse como `[REDACTED]` reporta
 `PM_AUTHORIZATION_STATUS` es especial. No se asume por defecto; debe pasarse explícitamente cuando un route-prompt asegura contar con la autorización del humano PM para trabajos de escritura.
 
 ## Ejemplos de Uso
-- Invocando un análisis de PR: `templates/operations/09-revisar-pr-antes-de-cierre-y-draftear-paquete.md PR_NUMBER=#305`
-- Rutear corrección: `templates/operations/08-draftear-route-prompt-para-correcciones-de-review.md ISSUE_NUMBER=305 FEEDBACK_PM_HUMANO="Por favor, ajusta los nombres de archivos."`
+- Invocando un análisis de PR: `templates/operations/09-revisar-pr-antes-de-cierre-y-draftear-paquete.md PR_NUMBER=#456`
+- Rutear corrección: `templates/operations/08-draftear-route-prompt-para-correcciones-de-review.md ISSUE_NUMBER=123 FEEDBACK_PM_HUMANO="Por favor, ajusta los nombres de archivos."`
 - Pregunta ad-hoc: `templates/operations/05-revisar-estado-del-proyecto-y-desalineaciones.md PM_QUESTION="¿Estamos listos para el tag v0.2.0?"`

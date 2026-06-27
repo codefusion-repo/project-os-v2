@@ -10,7 +10,7 @@ Inspeccionar las plantillas y archivos del kernel en un proyecto target para ase
 - **Qué NO debe hacer (Límites)**: No aplica arreglos por sí mismo. (Eso sería upgrade).
 
 ## Propiedad de Superficie (Surface)
-**Primaria: `terminal_agent` (ejecutando script de auditoría read-only).**
+**Primaria: `browser_chat` (revisión PM-facing del adaptador). Secundaria: `terminal_agent` (solo cuando se requiere correr el auditor local read-only sobre el repo).**
 
 ## Configuración Canónica (Kernel)
 - **Workflow**: `workflow.review_only`

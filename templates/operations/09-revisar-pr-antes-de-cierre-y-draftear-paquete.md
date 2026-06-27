@@ -6,8 +6,8 @@ Analizar la implementación en un PR comparándola contra el issue vinculado par
 ## Detalle de Comportamiento
 - **Qué fuentes lee en vivo**: PR_NUMBER diff, archivos cambiados, issue original vinculado, criterios de aceptación.
 - **Qué compara/decide**: Verifica scope, out-of-scope, reglas de secret-safety y que todo se cumplió.
-- **Qué entrega (Output)**: Primero un `output.review_result` (verdict: resolved, correction_needed, etc.). Segundo, si resolved, un `output.closure_comment` o command bundle.
-- **Qué NO debe hacer (Límites)**: No utiliza evidence.review_evidence o closure_evidence como sustituto de inspeccionar el código del PR. Debe evaluar el diff (evidence.pr_diff).
+- **Qué entrega (Output)**: Primero un `output.review_result` (verdict: resolved, correction_needed, etc.). Segundo, solo si resolved, un `output.closure_comment` o el bundle de cierre.
+- **Qué NO debe hacer (Límites)**: No usa `evidence.review_evidence` ni `evidence.closure_evidence` como sustituto de leer el scope del issue, el diff del PR y la salida de validación. Debe inspeccionar `evidence.issue_scope`, `evidence.pr_diff` y `evidence.validation_output`.
 
 ## Propiedad de Superficie (Surface)
 **Primaria: `browser_chat` o `terminal_agent` (dependiendo de dónde se hace el review).**
@@ -16,7 +16,7 @@ Analizar la implementación en un PR comparándola contra el issue vinculado par
 - **Workflow**: `workflow.review_before_close`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.review_result`
-- **Evidence Required**: `evidence.pr_diff, evidence.review_evidence`
+- **Evidence Required**: `evidence.issue_scope, evidence.pr_diff, evidence.validation_output`
 
 ## Variables PM
 - **Requeridas**: `PR_NUMBER`

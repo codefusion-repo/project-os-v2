@@ -4,7 +4,7 @@
 Reconstruir el estado a partir de issues abiertos, cerrados, PRs, y el roadmap para inferir cuál es el próximo outcome real y draftear su creación.
 
 ## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Roadmap (ej. #274), estado actual, decisiones previas del PM.
+- **Qué fuentes lee en vivo**: Roadmap (`<ROADMAP_ISSUE>`), estado actual, decisiones previas del PM.
 - **Qué compara/decide**: Compara progreso logrado vs planeado en el roadmap.
 - **Qué entrega (Output)**: Un bundle de comando `gh issue create` para un (1) único issue específico, no un backlog amplio inventado.
 - **Qué NO debe hacer (Límites)**: No inventa issues no derivados explícitamente de la trazabilidad viva.
