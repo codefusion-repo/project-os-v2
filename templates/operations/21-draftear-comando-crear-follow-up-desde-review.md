@@ -16,7 +16,7 @@ Extraer findings menores no bloqueantes encontrados durante un review de PR, par
 - **Workflow**: `workflow.pm_intake`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.pm_command_bundle`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.source_basis`
 
 ## Variables PM
 - **Requeridas**: `PR_NUMBER`

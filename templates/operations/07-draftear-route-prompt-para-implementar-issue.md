@@ -16,7 +16,7 @@ Preparar un payload estructurado según `templates/route-prompt.md` para despach
 - **Workflow**: `workflow.pm_intake`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.route_prompt`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.source_basis, evidence.repo_state`
 
 ## Variables PM
 - **Requeridas**: `ISSUE_NUMBER`

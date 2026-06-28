@@ -16,7 +16,7 @@ Reconstruir el estado a partir de issues abiertos, cerrados, PRs, y el roadmap p
 - **Workflow**: `workflow.pm_intake`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.pm_command_bundle`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.source_basis, evidence.repo_state`
 
 ## Variables PM
 - **Requeridas**: `Ninguna`

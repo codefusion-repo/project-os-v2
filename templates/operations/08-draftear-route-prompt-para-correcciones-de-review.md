@@ -16,7 +16,7 @@ Encapsular feedback humano en un route-prompt para corregir un PR o branch espec
 - **Workflow**: `workflow.pm_intake`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.route_prompt`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.source_basis, evidence.repo_state`
 
 ## Variables PM
 - **Requeridas**: `ISSUE_NUMBER, FEEDBACK_PM_HUMANO`

@@ -16,7 +16,7 @@ Recibir una descripción de feature/bug por parte del PM y convertirla en un com
 - **Workflow**: `workflow.pm_intake`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.pm_command_bundle`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.source_basis`
 
 ## Variables PM
 - **Requeridas**: `DESCRIPTION`

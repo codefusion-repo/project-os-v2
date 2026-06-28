@@ -16,7 +16,7 @@ Generar un PM command bundle con `gh release create` para publicar un objeto Rel
 - **Workflow**: `workflow.release_readiness`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.pm_command_bundle`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.repo_state, evidence.validation_output`
 
 ## Variables PM
 - **Requeridas**: `Ninguna`

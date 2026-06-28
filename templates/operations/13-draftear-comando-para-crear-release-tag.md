@@ -16,7 +16,7 @@ Generar los comandos `git tag` y `git push --tags` de forma segura, basándose e
 - **Workflow**: `workflow.release_readiness`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.pm_command_bundle`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.repo_state, evidence.validation_output`
 
 ## Variables PM
 - **Requeridas**: `Ninguna`

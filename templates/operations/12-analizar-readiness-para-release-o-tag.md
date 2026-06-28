@@ -16,7 +16,7 @@ Evaluar si el estado actual del repositorio, los issues merged y la validación 
 - **Workflow**: `workflow.release_readiness`
 - **Execution Mode**: `mode.review_only`
 - **Output Contract**: `output.status_result`
-- **Evidence Required**: `evidence.repo_state`
+- **Evidence Required**: `evidence.repo_state, evidence.validation_output`
 
 ## Variables PM
 - **Requeridas**: `Ninguna`
