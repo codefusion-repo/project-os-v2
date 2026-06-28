@@ -35,6 +35,22 @@
       "allowed_output_refs": ["output.review_result", "output.closure_comment", "output.pm_command_bundle", "output.status_result"]
     },
     {
+      "id": "workflow.implementation_discipline_audit",
+      "use_for": "Read-only audits of codebase or PR implementation quality against boundary.implementation_discipline.",
+      "steps": [
+        "resolve kernel and gather live repository evidence",
+        "read optional issue or PR scope live when provided",
+        "inspect codebase structure and selected files within the requested path or focus",
+        "compare evidence against boundary.implementation_discipline as the canonical rule",
+        "report only evidence-backed findings with file/line references where possible and severity or follow-up priority",
+        "distinguish implementation-discipline gaps from acceptable local tradeoffs or explicit project conventions",
+        "recommend or draft follow-up issues when useful without mutating GitHub",
+        "never refactor, edit files, or treat the audit as a style manifesto"
+      ],
+      "required_evidence_refs": ["evidence.repo_state"],
+      "allowed_output_refs": ["output.review_result", "output.status_result", "output.draft_issue"]
+    },
+    {
       "id": "workflow.pm_intake",
       "use_for": "Turning PM input into well-formed draft issues or decision requests. No writes.",
       "steps": ["gather source basis live", "draft issues using the issue template", "surface decisions the PM must make", "deliver drafts and copy-safe command bundles only"],

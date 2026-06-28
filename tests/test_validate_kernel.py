@@ -430,6 +430,43 @@ def test_implementation_discipline_boundary_is_compact_and_scoped() -> None:
     assert "implementation-discipline findings when relevant" in review_output["required_sections"]
 
 
+def test_implementation_discipline_audit_workflow_and_operation_are_read_only() -> None:
+    workflow = _kernel_entry("workflows.json", "workflow.implementation_discipline_audit")
+    template = (REPO_ROOT / "templates" / "operations" / "25-audit-implementation-discipline-gaps.md").read_text(
+        encoding="utf-8"
+    )
+    catalog = (REPO_ROOT / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
+
+    workflow_text = " ".join([workflow["use_for"], *workflow["steps"]]).lower()
+    assert workflow["required_evidence_refs"] == ["evidence.repo_state"]
+    assert workflow["allowed_output_refs"] == ["output.review_result", "output.status_result", "output.draft_issue"]
+    assert "read-only" in workflow_text
+    assert "boundary.implementation_discipline" in workflow_text
+    assert "file/line references" in workflow_text
+    assert "severity or follow-up priority" in workflow_text
+    assert "acceptable local tradeoffs" in workflow_text
+    assert "without mutating github" in workflow_text
+    assert "never refactor" in workflow_text
+    assert "style manifesto" in workflow_text
+
+    assert "workflow.implementation_discipline_audit" in template
+    assert "mode.review_only" in template
+    assert "TARGET_REPOSITORY=<TARGET_REPOSITORY>" in template
+    for optional_var in ("PATH_SCOPE", "FOCUS", "ISSUE_NUMBER", "PR_NUMBER"):
+        assert f"{optional_var}=<{optional_var}> optional" in template
+    assert "Use boundary.implementation_discipline as the canonical audit rule." in template
+    assert "Return status.needs_context" in template
+    assert "Draft output.draft_issue content for PM review only. Do not create issues." in template
+    assert "never refactor, edit files, commit, push, merge, close, label, or mutate GitHub" in template
+    assert "Do not duplicate a Clean Code manifesto" in template
+    assert "smallest" not in template
+
+    assert "templates/operations/25-audit-implementation-discipline-gaps.md" in catalog
+    assert "implementation_discipline_audit" in catalog
+    assert "`repo_state`" in catalog
+    assert "Este catálogo contiene **26 templates** (`00`–`25`)" in catalog
+
+
 def test_review_before_close_route_template_rejects_documentation_only_go() -> None:
     text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
     review_variant = text.split("**Review a PR before merge/close**", 1)[1].split(
