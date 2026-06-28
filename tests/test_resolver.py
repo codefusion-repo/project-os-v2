@@ -201,6 +201,29 @@ class TestEffective:
         assert pm_entry is not None
         assert pm_entry["missing_status"] == "status.blocked"
 
+    def test_effective_boundaries_include_global(self) -> None:
+        """Effective boundaries should include global/hard boundaries."""
+        result = _resolve_ok(
+            "actor.terminal_agent",
+            "workflow.issue_implementation",
+            "mode.delegated_commit_pr",
+        )
+        effective = result["resolved"]["effective"]
+        # boundary.fail_closed is a global boundary, not specifically
+        # in actor.terminal_agent's boundary_refs.
+        assert "boundary.fail_closed" in effective["effective_boundary_refs"]
+        # And actor's specific boundaries should also be there.
+        assert "boundary.no_main_edits" in effective["effective_boundary_refs"]
+
+    def test_unresolved_actor_capabilities(self) -> None:
+        """Effective summary should report unresolved actor capabilities."""
+        result = _resolve_ok(
+            "actor.terminal_agent",
+            "workflow.issue_implementation",
+            "mode.delegated_commit_pr",
+        )
+        effective = result["resolved"]["effective"]
+        assert "edit_scoped_files" in effective["unresolved_actor_capabilities"]
 
 # ---------------------------------------------------------------------------
 # Error case: unknown selectors
@@ -269,6 +292,14 @@ class TestIncompatibleCombos:
         )
         assert any("not in actor" in e for e in result["errors"])
 
+    def test_terminal_agent_issue_implementation_review_only(self) -> None:
+        """Write-capable workflow is incompatible with read-only mode."""
+        result = _resolve_error(
+            "actor.terminal_agent",
+            "workflow.issue_implementation",
+            "mode.review_only",
+        )
+        assert any("requires write capabilities" in e for e in result["errors"])
 
 # ---------------------------------------------------------------------------
 # Kernel loading error tests

@@ -116,14 +116,24 @@ def _resolve_mode(
     return dict(mode), []
 
 
+WRITE_CAPABLE_ACTIONS = {
+    "edit_scoped_files",
+    "commit",
+    "push_work_branch",
+    "open_draft_pr",
+}
+
+
 def _check_compatibility(
     actor: dict[str, Any],
-    workflow_id: str,
-    mode_id: str,
+    workflow: dict[str, Any],
+    mode: dict[str, Any],
 ) -> list[str]:
     """Validate that the workflow and mode are allowed for this actor."""
     errors: list[str] = []
     actor_id = actor.get("id", "unknown")
+    workflow_id = workflow.get("id", "unknown")
+    mode_id = mode.get("id", "unknown")
 
     # Actor allowed_mode_refs gates which modes this actor may use.
     allowed_modes = actor.get("allowed_mode_refs", [])
@@ -133,11 +143,23 @@ def _check_compatibility(
             f"(allowed: {allowed_modes})"
         )
 
-    # Workflow compatibility: the kernel does not have explicit allowed_workflow_refs
-    # on actors, so any workflow is selectable for any actor. However, we check
-    # that the selected mode's allowed_actions are compatible with the workflow's
-    # needs (write-capable workflows need write-capable modes, etc.) through the
-    # mode validation above.
+    # Workflow compatibility: if a workflow requires branch preflight (local edits)
+    # or PM approval (writes), it is a write-capable workflow and cannot be run
+    # under a read-only mode.
+    mode_actions = set(mode.get("allowed_actions", []))
+    is_read_only_mode = not bool(mode_actions & WRITE_CAPABLE_ACTIONS)
+
+    req_evidence = workflow.get("required_evidence_refs", [])
+    is_write_workflow = (
+        "evidence.branch_preflight" in req_evidence or
+        "evidence.pm_approval" in req_evidence
+    )
+
+    if is_write_workflow and is_read_only_mode:
+        errors.append(
+            f"workflow '{workflow_id}' requires write capabilities "
+            f"but mode '{mode_id}' is read-only"
+        )
 
     return errors
 
@@ -236,7 +258,7 @@ def resolve(
 
     # Validate compatibility.
     assert actor is not None and workflow is not None and mode is not None
-    compat_errors = _check_compatibility(actor, workflow_id, mode_id)
+    compat_errors = _check_compatibility(actor, workflow, mode)
     if compat_errors:
         return {"resolved": None, "status": "error", "errors": compat_errors}
 
@@ -261,16 +283,22 @@ def resolve(
     outputs, errs = _expand_outputs(output_refs, outputs_index)
     all_errors.extend(errs)
 
-    # Boundaries: from actor boundary_refs (all always apply).
-    boundary_refs = actor.get("boundary_refs", [])
-    boundaries, errs = _expand_boundaries(boundary_refs, boundaries_index)
+    # Boundaries: manifest states all boundaries always apply.
+    # We include all global/hard boundaries plus any actor-specific ones.
+    global_boundary_refs = sorted(boundaries_index.keys())
+    actor_boundary_refs = actor.get("boundary_refs", [])
+    effective_boundary_refs = sorted(set(global_boundary_refs) | set(actor_boundary_refs))
+
+    boundaries, errs = _expand_boundaries(effective_boundary_refs, boundaries_index)
     all_errors.extend(errs)
 
     if all_errors:
         return {"resolved": None, "status": "error", "errors": all_errors}
 
     # Build the effective resolution summary.
-    effective = _build_effective(actor, workflow, mode, effective_evidence_refs, evidence)
+    effective = _build_effective(
+        actor, workflow, mode, effective_evidence_refs, evidence, effective_boundary_refs
+    )
 
     resolved = {
         "actor": actor,
@@ -301,6 +329,7 @@ def _build_effective(
     mode: dict[str, Any],
     effective_evidence_refs: list[str],
     evidence: dict[str, dict[str, Any]],
+    effective_boundary_refs: list[str],
 ) -> dict[str, Any]:
     """Build the effective resolution summary combining actor, workflow, and mode."""
     # Effective allowed actions: mode's allowed_actions constrained by actor capabilities.
@@ -310,7 +339,9 @@ def _build_effective(
     # Actor denied actions are always denied regardless of mode.
     actor_denied = set(actor.get("denied_actions", []))
 
-    effective_allowed = sorted(mode_allowed)
+    # We explicitly model unresolved action mapping since exact normalization
+    # isn't strictly enforced between actor capabilities and mode allowed actions.
+    effective_allowed = sorted(mode_allowed - actor_denied)
     effective_prohibited = sorted(mode_prohibited | actor_denied)
 
     # Missing evidence: evidence entries whose missing_status is not status.resolved.
@@ -328,7 +359,9 @@ def _build_effective(
         "effective_evidence_refs": effective_evidence_refs,
         "effective_allowed_actions": effective_allowed,
         "effective_prohibited_actions": effective_prohibited,
+        "unresolved_actor_capabilities": sorted(set(actor.get("capabilities", []))),
         "actor_denied_actions": sorted(actor_denied),
+        "effective_boundary_refs": effective_boundary_refs,
         "missing_evidence_statuses": missing_evidence,
     }
 
