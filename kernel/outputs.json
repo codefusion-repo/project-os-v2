@@ -6,13 +6,13 @@
     {
       "id": "output.execution_report",
       "use_for": "Reporting implementation work.",
-      "required_sections": ["issue or PR", "repository", "branch", "evidence reviewed", "files changed", "validation performed with results (or reason not run)", "risks and limitations", "commit or PR reference when applicable", "remaining work"],
+      "required_sections": ["issue or PR", "repository", "branch", "evidence reviewed", "files changed", "implementation-discipline note when relevant", "validation performed with results (or reason not run)", "risks and limitations", "commit or PR reference when applicable", "remaining work"],
       "rule": "Never claim done unless scope is complete, out-of-scope was respected, validation is reported, and review can verify the result."
     },
     {
       "id": "output.review_result",
       "use_for": "Reporting review or analysis findings.",
-      "required_sections": ["scope reviewed", "evidence reviewed", "implementation comparison mapping issue objective/scope/out-of-scope/acceptance criteria to code evidence", "findings with file/line or issue/PR references", "verdict or recommendation", "risks", "what was not reviewed"],
+      "required_sections": ["scope reviewed", "evidence reviewed", "implementation comparison mapping issue objective/scope/out-of-scope/acceptance criteria to code evidence", "implementation-discipline findings when relevant", "findings with file/line or issue/PR references", "verdict or recommendation", "risks", "what was not reviewed"],
       "rule": "A GO verdict for workflow.review_before_close requires code-backed comparison against the PR changed files, diff, and relevant final head files when needed. Documentation-only review resolves to status.needs_context or findings, not GO."
     },
     {

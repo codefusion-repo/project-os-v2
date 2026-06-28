@@ -370,6 +370,66 @@ def test_review_before_close_requires_code_backed_kernel_evidence() -> None:
     assert "draft it only after code-backed review" in closure_output["rule"].lower()
 
 
+def test_implementation_discipline_boundary_is_compact_and_scoped() -> None:
+    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    boundary = _kernel_entry("boundaries.json", "boundary.implementation_discipline")
+    issue_workflow = _kernel_entry("workflows.json", "workflow.issue_implementation")
+    review_workflow = _kernel_entry("workflows.json", "workflow.review_before_close")
+    execution_output = _kernel_entry("outputs.json", "output.execution_report")
+    review_output = _kernel_entry("outputs.json", "output.review_result")
+
+    assert {entry["id"] for entry in actors["entries"]} == CANONICAL_ACTOR_IDS
+    terminal_agent = next(entry for entry in actors["entries"] if entry["id"] == "actor.terminal_agent")
+    non_terminal_refs = {
+        entry["id"]: entry.get("boundary_refs", [])
+        for entry in actors["entries"]
+        if entry["id"] != "actor.terminal_agent"
+    }
+    assert "boundary.implementation_discipline" in terminal_agent["boundary_refs"]
+    assert all("boundary.implementation_discipline" not in refs for refs in non_terminal_refs.values())
+
+    rule = boundary["rule"].lower()
+    notes = boundary["notes"].lower()
+    assert boundary["on_violation"] == "status.blocked"
+    assert len(rule) < 800
+    assert len(notes) < 400
+    assert "complete change" in rule
+    assert "satisfies the live issue scope" in rule
+    assert "complete means" in rule
+    assert "required behavior, validation, error handling, integration points, and tests" in rule
+    assert "minimalism never permits missing required work" in rule
+    assert "responsibilities separated" in rule
+    assert "source of truth" in rule
+    assert "duplicated logic unless explicitly justified" in rule
+    assert "direct simple structure" in rule
+    assert "speculative abstraction" in rule
+    for forbidden in (
+        "unrelated rewrites",
+        "over-correction",
+        "over-implementation",
+        "scope expansion",
+    ):
+        assert forbidden in rule
+    for review_example in (
+        "duplicated logic introduced by the pr",
+        "mixed responsibilities",
+        "unnecessary monoliths",
+        "speculative abstractions",
+        "under-implementation disguised as minimalism",
+    ):
+        assert review_example in notes
+
+    issue_steps = " ".join(issue_workflow["steps"]).lower()
+    review_steps = " ".join(review_workflow["steps"]).lower()
+    assert "boundary.implementation_discipline" in issue_steps
+    assert "boundary.implementation_discipline" in review_steps
+    assert "implementation-discipline violations when relevant" in review_steps
+    assert "speculative abstractions" not in review_steps
+    assert "unrelated rewrites" not in review_steps
+    assert "implementation-discipline note when relevant" in execution_output["required_sections"]
+    assert "implementation-discipline findings when relevant" in review_output["required_sections"]
+
+
 def test_review_before_close_route_template_rejects_documentation_only_go() -> None:
     text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
     review_variant = text.split("**Review a PR before merge/close**", 1)[1].split(

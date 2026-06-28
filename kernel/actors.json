@@ -28,6 +28,7 @@
         "boundary.security_privacy",
         "boundary.fail_closed",
         "boundary.output_not_permission",
+        "boundary.implementation_discipline",
         "boundary.code_clarity"
       ]
     },
