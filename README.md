@@ -60,25 +60,26 @@ Return exactly one of four statuses — `status.resolved`,
 Resolution selects shape and gates; it never grants permission. Fail closed on
 anything missing or ambiguous.
 
-## Booting each surface
+## Public Quick Start
 
-- **Terminal agent (a repo):** copy `KERNEL_REPOSITORY`'s
-  `adapters/AGENTS.target.md` (and optionally
-  `adapters/CLAUDE.target.md` and/or `adapters/GEMINI.target.md`) into the
-  target repo, fill the placeholders, and point `KERNEL_LOCAL_PATH` at this
-  repo's `kernel/`.
-- **Browser chat:** paste `KERNEL_REPOSITORY`'s
-  `adapters/BROWSER_CHAT.target.md` into the chat's project instructions; for a
-  one-off session, paste its "First-message activation" block as the first
-  message. Browser chat is draft-only (`actor.browser_chat`); it routes
-  write-capable work to a terminal agent.
-- **Routing & PM ops:** route work with `KERNEL_REPOSITORY`'s
-  `templates/route-prompt.md` (one template, four variants: implement, review,
-  correct, audit); copy-safe PM command bundles follow
-  `templates/pm-command-bundle.md`.
+Project OS delega trabajo seguro a IA mediante plantillas de operaciones,
+variables PM y trazabilidad viva en GitHub.
 
-Target product truth stays in the target repository; the kernel owns only
-generic operating behavior.
+**1. Adopta el Kernel:**
+- **Terminal Agent**: Copia `adapters/AGENTS.target.md` a la raíz de tu repositorio objetivo.
+- **Browser Chat**: Pega el template `templates/operations/00-browser-chat-activation.md` en tu prompt inicial.
+
+**2. Distingue repositorios:**
+- **Project OS repo / `KERNEL_REPOSITORY`**: provee kernel, adapters, templates, docs y contratos.
+- **Target repo / `TARGET_REPOSITORY`**: el producto/proyecto adoptado, revisado o implementado.
+- Para desarrollar Project OS, ambos pueden ser `codefusion-repo/project-os-v2`.
+
+**3. Uso de Operaciones:**
+- El catálogo completo está en `docs/PM_OPERATIONS.md`.
+- Invoca pasando variables; por ejemplo: `templates/operations/07-draft-issue-implementation-route-prompt.md ISSUE_NUMBER=<ISSUE_NUMBER>`
+- Browser chat necesita contexto GitHub de ambos repos cuando aplique. Si no puede leer el repo Project OS o el target, debe devolver `status.needs_context` nombrando lo que falta.
+
+Para guías en detalle, revisa `docs/GETTING_STARTED.md`, `docs/PUBLIC_USAGE_MODEL.md`, y la guía de accesos en `docs/GITHUB_ACCESS.md`.
 
 ## Validation
 
