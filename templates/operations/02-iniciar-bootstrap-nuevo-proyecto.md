@@ -1,33 +1,27 @@
 # Iniciar Bootstrap de Nuevo Proyecto
 
-## Objetivo de la Operación
-Draftear la estructura inicial para un repositorio totalmente nuevo, definiendo el roadmap inicial y la configuración del kernel.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.target_adoption, mode.review_only.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Reglas de kernel, descripción inicial.
-- **Qué compara/decide**: Define estructura vs mejores prácticas del kernel.
-- **Qué entrega (Output)**: Plan de estructura, issue de roadmap fundacional.
-- **Qué NO debe hacer (Límites)**: No asume que el terminal agent ya existe sin antes completar la adopción.
+INPUT:
+  TARGET_REPOSITORY=<TARGET_REPOSITORY>
+  DESCRIPTION=<DESCRIPTION>   # optional: initial project intent
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (planificación PM-facing).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if target identity or required adoption evidence is missing or ambiguous.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.target_adoption`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.adoption_packet`
-- **Evidence Required**: `evidence.target_adoption`
+LIVE_STATE:
+  Read the new TARGET_REPOSITORY state live and any PM-provided initial intent.
+  Confirm whether adoption files already exist; do not assume a terminal agent is configured before adoption.
 
-## Variables PM
-- **Requeridas**: `TARGET_REPOSITORY`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Ninguna
+DO:
+  Draft the initial adoption structure: canonical adapters filled for the target and a foundational roadmap-issue draft.
+  Draft an adoption checklist for the PM.
 
-## Placeholders PM (para templates de uso manual)
-- <TARGET_REPOSITORY>
+OUTPUT:
+  output.adoption_packet with adapter drafts, the foundational roadmap-issue draft, and the checklist.
 
-## Ejemplo de Invocación
-```
-02-iniciar-bootstrap-nuevo-proyecto.md
-TARGET_REPOSITORY=VALOR_AQUI
-```
+LIMITS:
+  Review/draft only on this surface; no file, git, or GitHub mutation.
+  No product code, settings, or kernel rewrite; product truth stays in the target repository.

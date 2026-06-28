@@ -1,33 +1,27 @@
 # Solicitar Assets de Diseño Externos
 
-## Objetivo de la Operación
-Draftear una solicitud de especificaciones, mocks o imágenes a un destinatario humano de diseño, en base a lo requerido en una feature.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.design_asset, mode.review_only.
+  Recipient is a real graphic/design specialist: a recipient, not an actor surface.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: DESCRIPTION de la característica de UI.
-- **Qué compara/decide**: Determina qué medidas, formatos y resoluciones son necesarios para la UI.
-- **Qué entrega (Output)**: Un `output.asset_prompt`: prompt/instrucciones compactas para un destinatario real de diseño.
-- **Qué NO debe hacer (Límites)**: No genera imágenes ni crea archivos de asset; la verdad de producto/diseño permanece en el repositorio target o en la evidencia provista por el PM. Redacta cualquier valor sensible como `[REDACTED]`. Es comunicación externa a un destinatario de diseño, que NO es un actor.
+INPUT:
+  DESCRIPTION=<DESCRIPTION>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea el prompt). Destinatario: especialista de diseño externo (recipiente, no actor).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the source context and design evidence cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.design_asset`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.asset_prompt`
-- **Evidence Required**: `evidence.repo_state, evidence.source_basis`
+LIVE_STATE:
+  Read live: the issue/PR, target repository context, and PM-provided design evidence for the UI DESCRIPTION.
 
-## Variables PM
-- **Requeridas**: `DESCRIPTION`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Restricciones de UI del repositorio
+DO:
+  Identify needed assets and constraints: asset type, usage, dimensions, file format, brand/style/product truth,
+  accessibility notes, and acceptance criteria.
+  Draft an asset prompt/instructions packet for the design recipient. Redact any sensitive value as [REDACTED].
 
-## Placeholders PM (para templates de uso manual)
-- <DESCRIPTION>
+OUTPUT:
+  output.asset_prompt that routes the request only.
 
-## Ejemplo de Invocación
-```
-19-solicitar-assets-de-diseno-externos.md
-DESCRIPTION=VALOR_AQUI
-```
+LIMITS:
+  Browser chat drafts only; generates no images and creates no asset files.
+  Target product/design truth stays in the target repository or PM-provided evidence; the recipient is not an actor.

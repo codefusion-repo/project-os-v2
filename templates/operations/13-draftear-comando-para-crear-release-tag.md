@@ -1,33 +1,28 @@
 # Draftear Comando para Crear Release Tag
 
-## Objetivo de la Operación
-Generar los comandos `git tag` y `git push --tags` de forma segura, basándose en la versión evaluada en la operación de readiness.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.release_readiness, mode.review_only.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: TAG_NAME explícito si el PM lo provee; si falta, el tag recomendado derivado de la operación de readiness.
-- **Qué compara/decide**: Asegura que el tag no colisione con existentes y que la versión sea coherente con el readiness.
-- **Qué entrega (Output)**: PM command bundle con `git tag` y `git push --tags`. Si falta TAG_NAME, se detiene en la recomendación de readiness y NO emite los comandos finales de ejecución.
-- **Qué NO debe hacer (Límites)**: El browser chat solo draftea; los agentes no ejecutan tags. La ejecución de los comandos de tag es autoridad exclusiva del Humano PM.
+INPUT:
+  TAG_NAME=<TAG_NAME>   # optional; if missing, derive a recommendation from readiness first
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea). Humano PM (ejecuta y autoriza).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if repo state or validation output cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.release_readiness`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.pm_command_bundle`
-- **Evidence Required**: `evidence.repo_state, evidence.validation_output`
+LIVE_STATE:
+  Read live: readiness evidence, existing tags, and the current default-branch head.
+  Treat reports as claims or evidence leads.
 
-## Variables PM
-- **Requeridas**: `Ninguna`
-- **Opcionales**: `TAG_NAME`
-- **Inferidas (Contexto)**: TAG_NAME recomendado desde `release_readiness` cuando falta; último hash de main
+DO:
+  Confirm TAG_NAME does not collide with existing tags and is coherent with the readiness verdict.
+  Draft a copy-safe PM command bundle (templates/pm-command-bundle.md) with `git tag` and `git push --tags`.
 
-## Placeholders PM (para templates de uso manual)
-- <TAG_NAME>
+IF TAG_NAME missing:
+  Stop at the readiness recommendation. Do not emit the final execution commands.
 
-## Ejemplo de Invocación
-```
-13-draftear-comando-para-crear-release-tag.md
-TAG_NAME=VALOR_AQUI
-```
+OUTPUT:
+  output.pm_command_bundle the Human PM runs and authorizes.
+
+LIMITS:
+  Browser chat drafts only; agents never create tags. Tag execution is the Human PM's exclusive authority.

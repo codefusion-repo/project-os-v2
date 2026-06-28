@@ -1,33 +1,26 @@
 # Verificar Adopción en Repositorio Target
 
-## Objetivo de la Operación
-Auditar un repositorio para confirmar que las reglas de Project OS están correctamente instaladas y referencian al kernel actual.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.target_adoption, mode.review_only.
+  A terminal agent may run this read-only against a local target checkout.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Archivos del target (AGENTS.md, etc.)
-- **Qué compara/decide**: Busca desviaciones entre el adaptador del target y el kernel canónico.
-- **Qué entrega (Output)**: Reporte de hallazgos y estado de la adopción.
-- **Qué NO debe hacer (Límites)**: No aplica mutaciones al target. Es solo lectura.
+INPUT:
+  TARGET_REPOSITORY=<TARGET_REPOSITORY>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` o `terminal_agent` (read-only audit).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if target identity or adoption evidence cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.target_adoption`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.status_result`
-- **Evidence Required**: `evidence.target_adoption`
+LIVE_STATE:
+  Read target adapters (AGENTS.md, CLAUDE.md, GEMINI.md, any browser-chat adapter) and their metadata live.
+  Compare kernel repo/path/version, roadmap anchor, and durable live-state risk against KERNEL_REPOSITORY adapters/*.target.md.
 
-## Variables PM
-- **Requeridas**: `TARGET_REPOSITORY`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Estado del código en target
+DO:
+  Report whether adoption is present, correct, and references the current kernel.
+  Name drift, stale baseline, roadmap mismatch, durable live-state content, and missing files.
 
-## Placeholders PM (para templates de uso manual)
-- <TARGET_REPOSITORY>
+OUTPUT:
+  output.status_result with adoption findings; no fixes applied.
 
-## Ejemplo de Invocación
-```
-03-verificar-adopcion-en-repositorio-target.md
-TARGET_REPOSITORY=VALOR_AQUI
-```
+LIMITS:
+  Read-only audit; no mutation of the target. Fixing drift is the upgrade operation, not this one.

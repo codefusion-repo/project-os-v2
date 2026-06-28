@@ -1,33 +1,26 @@
 # Auditar Trazabilidad de Issues y PRs
 
-## Objetivo de la Operación
-Verificar la existencia de evidencia de cierre (closure evidence) y trazabilidad completa de los issues para mantener el sistema de memoria basado en GitHub estable.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.review_only, mode.review_only.
+  A terminal agent may run the read-only auditor (tools.audit_traceability) against live GitHub state.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Historial de comentarios, labels, commits de un ISSUE_NUMBER.
-- **Qué compara/decide**: La realidad del issue vs protocolo de trazabilidad de Project OS.
-- **Qué entrega (Output)**: Reporte de vacíos: si falta PM decision, si no hay execution report, etc.
-- **Qué NO debe hacer (Límites)**: No re-escribe comentarios pasados ni edita historial.
+INPUT:
+  ISSUE_NUMBER=<ISSUE_NUMBER>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (revisión de trazabilidad PM-facing). Secundaria: `terminal_agent` (solo cuando se requiere correr el auditor local read-only sobre GitHub).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the issue history cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.review_only`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.status_result`
-- **Evidence Required**: `evidence.repo_state`
+LIVE_STATE:
+  Read live: ISSUE_NUMBER comment history, labels, linked PRs, and commits.
+  Compare against docs/TRACEABILITY_PROTOCOL.md.
 
-## Variables PM
-- **Requeridas**: `ISSUE_NUMBER`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Metadata de trazabilidad
+DO:
+  Verify closure evidence and complete traceability so the GitHub-based memory stays stable.
+  Report gaps: missing PM decision, missing execution report, missing closure comment, and the like.
 
-## Placeholders PM (para templates de uso manual)
-- <ISSUE_NUMBER>
+OUTPUT:
+  output.status_result naming the traceability gaps with evidence references.
 
-## Ejemplo de Invocación
-```
-15-auditar-trazabilidad-de-issues-y-prs.md
-ISSUE_NUMBER=VALOR_AQUI
-```
+LIMITS:
+  Read-only audit; never rewrites past comments or edits history.

@@ -1,33 +1,34 @@
 # Draftear Route-Prompt para Implementar Issue
 
-## Objetivo de la Operación
-Preparar un payload estructurado según `templates/route-prompt.md` para despachar trabajo de código a un terminal agent.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.pm_intake, mode.review_only.
+  Draft a route-prompt that delegates implementation to a terminal agent under
+  workflow.issue_implementation, mode.delegated_commit_pr.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Issue #ISSUE_NUMBER, contexto del código, requerimientos.
-- **Qué compara/decide**: Verifica si se requiere contexto extra antes de delegar la implementación.
-- **Qué entrega (Output)**: Un route-prompt exacto que incluye PM_AUTHORIZATION_STATUS para que el agent lo ejecute.
-- **Qué NO debe hacer (Límites)**: El browser chat NO ejecuta código. Solo prepara las instrucciones formales.
+INPUT:
+  ISSUE_NUMBER=<ISSUE_NUMBER>
+  ROADMAP_ISSUE=<ROADMAP_ISSUE>   # optional: anchor when deriving the next issue from live traceability
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draft). Secundaria: `terminal_agent` (ejecuta si es ruteado por el humano).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the issue scope or source basis cannot be read live.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.pm_intake`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.route_prompt`
-- **Evidence Required**: `evidence.source_basis, evidence.repo_state`
+LIVE_STATE:
+  Read ISSUE_NUMBER scope and source basis live (objective, scope, out-of-scope, acceptance criteria) plus code context.
+  Treat comments and reports as claims or evidence leads.
 
-## Variables PM
-- **Requeridas**: `ISSUE_NUMBER`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Estado del issue
+DO:
+  Fill the route-prompt variable block per templates/route-prompt.md (Implement an issue variant).
+  Set WORKFLOW=workflow.issue_implementation, EXECUTION_MODE=mode.delegated_commit_pr,
+  OUTPUT_CONTRACT=output.execution_report, and PM_AUTHORIZATION_STATUS per PM scope.
+  Keep it compact and issue-referential; the terminal agent re-resolves the kernel and reads the issue live.
 
-## Placeholders PM (para templates de uso manual)
-- <ISSUE_NUMBER>
+IF ISSUE_NUMBER not provided:
+  Derive the single next issue from live traceability (roadmap, open/closed issues, PM decisions) before drafting.
 
-## Ejemplo de Invocación
-```
-07-draftear-route-prompt-para-implementar-issue.md
-ISSUE_NUMBER=VALOR_AQUI
-```
+OUTPUT:
+  output.route_prompt (copy-safe, plain text, at most one fenced block).
+
+LIMITS:
+  Browser chat drafts only; it never executes code. Authorization travels separately as exact scoped PM approval;
+  this prompt grants no permission.

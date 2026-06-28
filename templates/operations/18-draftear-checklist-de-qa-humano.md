@@ -1,33 +1,25 @@
 # Draftear Checklist de QA Humano
 
-## Objetivo de la Operación
-Extraer los requerimientos no automatizables de un issue cerrado o en revisión, para un tercero (qa team, testing humano).
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.review_only, mode.review_only.
+  Recipient is a human QA tester: not an actor surface and receives no route-prompt.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Requisitos originales, aceptación de PM, cambios clave de UI/UX.
-- **Qué compara/decide**: Mapea los technical changes contra flujos de uso humanos.
-- **Qué entrega (Output)**: Lista Markdown lista para copiar o comentar en GitHub.
-- **Qué NO debe hacer (Límites)**: El QA humano no es un actor de Project OS (no recibe route-prompts).
+INPUT:
+  ISSUE_NUMBER=<ISSUE_NUMBER>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea). Destinatario: QA externo.**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the issue requirements and acceptance basis cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.review_only`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.status_result`
-- **Evidence Required**: `evidence.repo_state`
+LIVE_STATE:
+  Read live: original requirements, PM acceptance, and key UI/UX changes for ISSUE_NUMBER.
 
-## Variables PM
-- **Requeridas**: `ISSUE_NUMBER`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Testing instructions previas
+DO:
+  Map the technical changes against human usage flows.
+  Extract the non-automatable requirements into a copy-ready Markdown checklist.
 
-## Placeholders PM (para templates de uso manual)
-- <ISSUE_NUMBER>
+OUTPUT:
+  output.status_result carrying the QA checklist ready to copy or comment on GitHub.
 
-## Ejemplo de Invocación
-```
-18-draftear-checklist-de-qa-humano.md
-ISSUE_NUMBER=VALOR_AQUI
-```
+LIMITS:
+  Draft only for an external QA recipient (not an actor). No mutation.

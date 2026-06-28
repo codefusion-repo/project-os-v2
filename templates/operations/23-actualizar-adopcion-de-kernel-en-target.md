@@ -1,33 +1,28 @@
 # Actualizar Adopción de Kernel en Target
 
-## Objetivo de la Operación
-Llevar un repositorio que ya adoptó Project OS a una versión de kernel más reciente, actualizando los adaptadores (AGENTS.md, CLAUDE.md, GEMINI.md) sin sobrescribir notas, restricciones de seguridad/dominio ni comandos de validación propios del target.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.target_adoption, mode.delegated_commit_pr.
+  Browser chat drafts; a terminal agent applies the update under mode.delegated_commit_pr only with exact PM approval.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Adaptadores actuales del target, la versión de kernel adoptada declarada, la versión vigente del kernel canónico, anclas de roadmap.
-- **Qué compara/decide**: Detecta drift de versión, baseline obsoleto y mismatch de roadmap entre el adaptador del target y el kernel canónico.
-- **Qué entrega (Output)**: Un `output.adoption_packet` con el diff de actualización de adaptadores y un checklist; el PR solo si el modo y la aprobación PM exacta lo permiten.
-- **Qué NO debe hacer (Límites)**: No toca código de producto, no migra estado vivo a archivos durables, no cambia visibilidad/settings, no ejecuta merge/tag/release y no borra notas, restricciones ni comandos de validación propios del target.
+INPUT:
+  TARGET_REPOSITORY=<TARGET_REPOSITORY>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea el diff y el checklist de actualización). Secundaria: `terminal_agent` (aplica la actualización solo si es ruteado con route-prompt + `mode.delegated_commit_pr` + aprobación PM exacta).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if target identity, adoption evidence, or PM approval for writes is missing or ambiguous.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.target_adoption`
-- **Execution Mode**: `mode.delegated_commit_pr`
-- **Output Contract**: `output.adoption_packet`
-- **Evidence Required**: `evidence.target_adoption`
+LIVE_STATE:
+  Read live: current target adapters, the declared adopted kernel version vs the current canonical version,
+  and roadmap anchors.
 
-## Variables PM
-- **Requeridas**: `TARGET_REPOSITORY`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Versión de kernel adoptada vs versión vigente
+DO:
+  Detect version drift, stale baseline, and roadmap mismatch between target adapters and the canonical kernel.
+  Draft an adoption packet with the adapter-update diff for AGENTS.md, CLAUDE.md, GEMINI.md and an update checklist.
+  Draft a delegated route-prompt (templates/route-prompt.md) when the PM approves applying the update.
 
-## Placeholders PM (para templates de uso manual)
-- <TARGET_REPOSITORY>
+OUTPUT:
+  output.adoption_packet (plus a route-prompt when delegated application is approved).
 
-## Ejemplo de Invocación
-```
-23-actualizar-adopcion-de-kernel-en-target.md
-TARGET_REPOSITORY=VALOR_AQUI
-```
+LIMITS:
+  No product code, no migrating live state into durable files, no visibility/settings changes, no merge/tag/release.
+  Preserve target-owned notes, security/domain constraints, and validation commands.

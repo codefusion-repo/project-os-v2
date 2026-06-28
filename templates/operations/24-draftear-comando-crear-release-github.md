@@ -1,33 +1,28 @@
 # Draftear Comando para Crear Release de GitHub
 
-## Objetivo de la Operación
-Generar un PM command bundle con `gh release create` para publicar un objeto Release de GitHub (notas + tag asociado), distinto del simple tag de git que produce la operación de release tag.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.release_readiness, mode.review_only.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Readiness previo, último tag/release, commits desde el último release, notas/changelog candidatos, validaciones.
-- **Qué compara/decide**: Confirma que existe o se recomienda un TAG_NAME y que las notas reflejan los outcomes merged; evita colisión con releases existentes.
-- **Qué entrega (Output)**: PM command bundle con `gh release create`. Si falta TAG_NAME, se detiene en la recomendación derivada del readiness y NO emite el comando final de publicación.
-- **Qué NO debe hacer (Límites)**: El browser chat solo draftea; el Humano PM ejecuta y autoriza la publicación. No publica releases, no etiqueta ni hace merge por su cuenta.
+INPUT:
+  TAG_NAME=<TAG_NAME>   # optional; if missing, derive a recommendation from readiness first
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea el bundle). Humano PM (ejecuta y autoriza).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if repo state or validation output cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.release_readiness`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.pm_command_bundle`
-- **Evidence Required**: `evidence.repo_state, evidence.validation_output`
+LIVE_STATE:
+  Read live: prior readiness evidence, the last tag/release, commits since the last release, candidate notes, and validation.
 
-## Variables PM
-- **Requeridas**: `Ninguna`
-- **Opcionales**: `TAG_NAME`
-- **Inferidas (Contexto)**: TAG_NAME recomendado desde `release_readiness` cuando falta; notas derivadas de los commits merged
+DO:
+  Confirm TAG_NAME exists or is recommended and that notes reflect the merged outcomes; avoid collision with existing releases.
+  Draft a copy-safe PM command bundle (templates/pm-command-bundle.md) that runs `gh release create` (a GitHub Release
+  object: notes + tag), distinct from the plain git tag of operation 13.
 
-## Placeholders PM (para templates de uso manual)
-- <TAG_NAME>
+IF TAG_NAME missing:
+  Stop at the readiness-derived recommendation. Do not emit the final publish command.
 
-## Ejemplo de Invocación
-```
-24-draftear-comando-crear-release-github.md
-TAG_NAME=VALOR_AQUI
-```
+OUTPUT:
+  output.pm_command_bundle the Human PM runs and authorizes.
+
+LIMITS:
+  Browser chat drafts only; the Human PM executes and authorizes publication. Publishes no release and tags nothing on its own.

@@ -1,33 +1,26 @@
 # Draftear Comando Crear Follow Up desde Review
 
-## Objetivo de la Operación
-Extraer findings menores no bloqueantes encontrados durante un review de PR, para aislarlos en un nuevo issue a resolver luego.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.pm_intake, mode.review_only.
+  The drafted follow-up issue targets workflow.issue_implementation execution later.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Findings, reviews incompletos, notas de out-of-scope.
-- **Qué compara/decide**: Diferencia un issue bloqueante (corrección inmediata) de uno diferido (follow-up).
-- **Qué entrega (Output)**: PM command bundle para generar el nuevo issue, sin detener el merge actual.
-- **Qué NO debe hacer (Límites)**: No asume que se deben ignorar problemas de seguridad.
+INPUT:
+  PR_NUMBER=<PR_NUMBER>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea bundle).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the review findings and source basis cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.pm_intake`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.pm_command_bundle`
-- **Evidence Required**: `evidence.source_basis`
+LIVE_STATE:
+  Read live: PR_NUMBER review findings, incomplete reviews, and out-of-scope notes.
 
-## Variables PM
-- **Requeridas**: `PR_NUMBER`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Comentarios de review
+DO:
+  Distinguish a blocking finding (immediate correction) from a deferred one (follow-up).
+  Shape one deferred issue body per templates/artifacts.md (Issue).
+  Draft a copy-safe PM command bundle (templates/pm-command-bundle.md) that runs `gh issue create` with a body file.
 
-## Placeholders PM (para templates de uso manual)
-- <PR_NUMBER>
+OUTPUT:
+  output.pm_command_bundle for the new follow-up issue, without stopping the current merge.
 
-## Ejemplo de Invocación
-```
-21-draftear-comando-crear-follow-up-desde-review.md
-PR_NUMBER=VALOR_AQUI
-```
+LIMITS:
+  Browser chat drafts only. Do not assume security problems may be deferred or ignored.

@@ -1,33 +1,26 @@
 # Verificar Estado Post-Merge
 
-## Objetivo de la Operación
-Comprobar que tras el cierre de un PR, la rama principal quedó saludable y las referencias de issues se resolvieron correctamente en GitHub.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.review_only, mode.review_only.
+  A terminal agent may run this read-only against a local checkout.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Main branch actual, issue status, GitHub actions.
-- **Qué compara/decide**: Detecta si el merge causó quiebres, archivos no intencionados, o si el issue vinculado no se cerró.
-- **Qué entrega (Output)**: Reporte de sanidad del repositorio (status_result).
-- **Qué NO debe hacer (Límites)**: No arregla errores automáticamente, solo reporta.
+INPUT:
+  PR_NUMBER=<PR_NUMBER>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` o `terminal_agent` (read-only verification).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the live repo/issue state cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.review_only`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.status_result`
-- **Evidence Required**: `evidence.repo_state`
+LIVE_STATE:
+  Read live: default-branch state and latest commits, the linked issue status, and CI/checks for the merge.
+  Treat reports as claims or evidence leads.
 
-## Variables PM
-- **Requeridas**: `PR_NUMBER`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Últimos commits en main
+DO:
+  Confirm the default branch is healthy after merge and the linked issue resolved.
+  Name any breakage, unintended files, or issue references that did not close.
 
-## Placeholders PM (para templates de uso manual)
-- <PR_NUMBER>
+OUTPUT:
+  output.status_result with the post-merge sanity findings; no fixes applied.
 
-## Ejemplo de Invocación
-```
-11-verificar-estado-post-merge.md
-PR_NUMBER=VALOR_AQUI
-```
+LIMITS:
+  Read-only verification; report only, do not fix. No file, git, or GitHub mutation.

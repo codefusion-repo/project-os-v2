@@ -1,33 +1,29 @@
 # Draftear Route-Prompt para Correcciones de Review
 
-## Objetivo de la Operación
-Encapsular feedback humano en un route-prompt para corregir un PR o branch específico sin expandir el scope.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.pm_intake, mode.review_only.
+  Draft a correction route-prompt that delegates fixes to a terminal agent under
+  workflow.issue_implementation, mode.delegated_commit_pr.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Issue original, PR asociado, FEEDBACK_PM_HUMANO.
-- **Qué compara/decide**: Alinea el feedback contra la implementación actual para focalizar la corrección.
-- **Qué entrega (Output)**: Route-prompt de corrección (variante de corrección).
-- **Qué NO debe hacer (Límites)**: No debe reimplementar el issue entero, ni expandir el scope de la tarea.
+INPUT:
+  ISSUE_NUMBER=<ISSUE_NUMBER>
+  FEEDBACK_PM_HUMANO=<FEEDBACK_PM_HUMANO>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draft). Secundaria: `terminal_agent` (ejecutor de corrección).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the original issue, its associated PR, or the feedback cannot be read live.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.pm_intake`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.route_prompt`
-- **Evidence Required**: `evidence.source_basis, evidence.repo_state`
+LIVE_STATE:
+  Read the original ISSUE_NUMBER scope, the associated PR diff and changed files, and FEEDBACK_PM_HUMANO live.
+  Align the feedback against the current implementation to focus the correction.
 
-## Variables PM
-- **Requeridas**: `ISSUE_NUMBER, FEEDBACK_PM_HUMANO`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Archivos modificados por el PR
+DO:
+  Fill the route-prompt variable block per templates/route-prompt.md (Apply review corrections variant).
+  List findings as `file:line — finding`; keep SCOPE to the same branch and the same issue scope.
+  Set PM_AUTHORIZATION_STATUS per PM scope.
 
-## Placeholders PM (para templates de uso manual)
-- <ISSUE_NUMBER> <FEEDBACK_PM_HUMANO>
+OUTPUT:
+  output.route_prompt (copy-safe) for the scoped correction.
 
-## Ejemplo de Invocación
-```
-08-draftear-route-prompt-para-correcciones-de-review.md
-ISSUE_NUMBER=VALOR_AQUI FEEDBACK_PM_HUMANO=VALOR_AQUI
-```
+LIMITS:
+  Browser chat drafts only. Do not re-implement the whole issue or expand the task scope.

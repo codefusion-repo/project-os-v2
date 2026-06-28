@@ -1,33 +1,26 @@
 # Auditar Adaptadores en Target
 
-## Objetivo de la Operación
-Inspeccionar las plantillas y archivos del kernel en un proyecto target para asegurar que no han sufrido 'drift' o modificaciones invasivas.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.review_only, mode.review_only.
+  A terminal agent may run the read-only auditor (tools.audit_target_adapters) against a local target checkout.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Directorio .github/, AGENTS.md, docs de adopción en target.
-- **Qué compara/decide**: Adaptador actual vs modelo canónico de este repositorio.
-- **Qué entrega (Output)**: Reporte descriptivo de drift y fallos estructurales (read-only).
-- **Qué NO debe hacer (Límites)**: No aplica arreglos por sí mismo. (Eso sería upgrade).
+INPUT:
+  TARGET_REPOSITORY=<TARGET_REPOSITORY>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (revisión PM-facing del adaptador). Secundaria: `terminal_agent` (solo cuando se requiere correr el auditor local read-only sobre el repo).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the target adapter state cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.review_only`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.status_result`
-- **Evidence Required**: `evidence.repo_state`
+LIVE_STATE:
+  Read the target adapters and adoption docs live (AGENTS.md and any adoption files under the target).
+  Compare the current adapter against this repository's canonical model.
 
-## Variables PM
-- **Requeridas**: `TARGET_REPOSITORY`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Estado del adaptador
+DO:
+  Detect drift or invasive modifications versus the canonical adapters/*.target.md.
+  Report structural failures and drift with evidence references.
 
-## Placeholders PM (para templates de uso manual)
-- <TARGET_REPOSITORY>
+OUTPUT:
+  output.status_result with a read-only drift report.
 
-## Ejemplo de Invocación
-```
-14-auditar-adaptadores-en-target.md
-TARGET_REPOSITORY=VALOR_AQUI
-```
+LIMITS:
+  Read-only audit; applies no fixes. Repairing drift is the upgrade operation, not this one.

@@ -1,33 +1,27 @@
 # Registrar Decisión Arquitectural (ADR)
 
-## Objetivo de la Operación
-Generar y proponer formalmente la inclusión de un Architecture Decision Record cuando una elección trasciende el alcance de un issue efímero.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.pm_intake, mode.review_only.
+  Browser chat drafts; writing the ADR file is delegated to a terminal agent via route-prompt under
+  mode.delegated_commit_pr with exact PM approval.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: El debate del issue y la DECISION técnica tomada por el PM o equipo.
-- **Qué compara/decide**: Formaliza el contexto, alternativas y la justificación final de la solución elegida.
-- **Qué entrega (Output)**: El contenido del ADR drafteado y, si el PM decide escribir el archivo, un `output.route_prompt` que delega la creación del archivo ADR a un terminal agent. El browser chat no escribe archivos.
-- **Qué NO debe hacer (Límites)**: No se usa para guardar 'estado vivo' de qué issues están abiertos; solo decisiones perennes de diseño. La escritura del archivo ADR requiere route-prompt + `mode.delegated_commit_pr` + aprobación PM exacta. El terminal agent no tiene autoridad de planeación/review más allá del route-prompt scoped.
+INPUT:
+  DECISION=<DECISION>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea el contenido del ADR y, si se debe escribir el archivo, el route-prompt). Secundaria: `terminal_agent` (ejecutor del archivo ADR solo bajo route-prompt + `mode.delegated_commit_pr` + aprobación PM exacta).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the decision context and source basis cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.pm_intake`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.route_prompt`
-- **Evidence Required**: `evidence.source_basis`
+LIVE_STATE:
+  Read live: the issue discussion and the technical DECISION taken by the PM/team.
 
-## Variables PM
-- **Requeridas**: `DECISION`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Template estándar de ADR (`templates/artifacts.md`)
+DO:
+  Formalize context, alternatives, and the rationale for the chosen solution into ADR content per templates/artifacts.md.
+  IF the PM decides to write the file, draft a route-prompt (templates/route-prompt.md) that delegates ADR file creation.
 
-## Placeholders PM (para templates de uso manual)
-- <DECISION>
+OUTPUT:
+  output.route_prompt for the ADR file write (alongside the drafted ADR content).
 
-## Ejemplo de Invocación
-```
-22-registrar-decision-adr.md
-DECISION=VALOR_AQUI
-```
+LIMITS:
+  Browser chat writes no files. Use only for perennial design decisions, never to store live state.
+  The ADR file write requires route-prompt + mode.delegated_commit_pr + exact PM approval.

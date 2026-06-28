@@ -1,33 +1,30 @@
 # Revisar Estado del Proyecto y Desalineaciones
 
-## Objetivo de la Operación
-Tomar las decisiones del PM Humano y documentos fijos como fuente principal de la verdad, para encontrar desalineaciones con el código actual, roadmap o issues abiertos.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.review_only, mode.review_only.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Decisiones PM, roadmap, issues abiertos y cerrados recientemente, código actual.
-- **Qué compara/decide**: Detecta contradicciones entre la documentación/roadmap y la realidad viva de GitHub.
-- **Qué entrega (Output)**: Reporte de hallazgos de alineación, y respuesta a PM_QUESTION usando live-state como contexto.
-- **Qué NO debe hacer (Límites)**: No genera issues ni asume resoluciones; solo reporta.
+INPUT:
+  PM_QUESTION=<PM_QUESTION>   # optional
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (análisis PM-facing).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the live state required to judge alignment cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.review_only`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.status_result`
-- **Evidence Required**: `evidence.repo_state`
+LIVE_STATE:
+  Read live: PM decisions and fixed docs (primary truth), roadmap, open issues, the most recent closed
+  issues, and current code state. Treat comments and reports as claims or evidence leads.
 
-## Variables PM
-- **Requeridas**: `Ninguna`
-- **Opcionales**: `PM_QUESTION`
-- **Inferidas (Contexto)**: Roadmap actual, issues recientes
+DO:
+  Take PM decisions and fixed docs as the main source of truth.
+  Find misalignments in the roadmap, open issues, and recently closed issues.
+  Find misalignments against the current code state.
 
-## Placeholders PM (para templates de uso manual)
-- <PM_QUESTION>
+IF PM_QUESTION present:
+  Draft the answer using the live-state result as context.
 
-## Ejemplo de Invocación
-```
-05-revisar-estado-del-proyecto-y-desalineaciones.md
-PM_QUESTION="¿Qué procede con el error 500?"
-```
+OUTPUT:
+  output.status_result carrying the misalignment findings by evidence reference and the safe next step
+  (and the PM_QUESTION answer when asked).
+
+LIMITS:
+  Report only; do not create issues or assume resolutions. No file, git, or GitHub mutation.

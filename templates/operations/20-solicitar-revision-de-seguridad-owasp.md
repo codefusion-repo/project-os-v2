@@ -1,33 +1,28 @@
 # Solicitar Revisión de Seguridad OWASP
 
-## Objetivo de la Operación
-Crear un prompt o instrucción para someter cambios sensibles (auth, roles) a un chequeo de un auditor de seguridad o agente dedicado a OWASP.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.security_revision, mode.review_only.
+  Recipient is a real security-review specialist: a recipient/focus, not an actor surface.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: Diff de PR_NUMBER con componentes sensibles.
-- **Qué compara/decide**: Detecta zonas de riesgo, inyecciones y validación de entrada.
-- **Qué entrega (Output)**: Un `output.security_review_prompt` basado en OWASP para un destinatario real de revisión de seguridad.
-- **Qué NO debe hacer (Límites)**: Nunca pide imprimir, pegar, subir, citar, resumir ni exponer `.env`, tokens, credenciales, cookies, JWTs, llaves privadas, secretos de CI, URLs de base de datos ni valores que parezcan secretos; exige redacción como `[REDACTED]`. No corre escáneres ni aprueba código inseguro. El destinatario de seguridad es un recipiente/foco, no un actor.
+INPUT:
+  PR_NUMBER=<PR_NUMBER>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (draftea el prompt de revisión). Destinatario: especialista de seguridad externo (recipiente, no actor).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the source context cannot be read without exposing secrets.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.security_revision`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.security_review_prompt`
-- **Evidence Required**: `evidence.repo_state, evidence.source_basis`
+LIVE_STATE:
+  Read live: the PR_NUMBER diff and sensitive components, plus repository context, without exposing secrets.
 
-## Variables PM
-- **Requeridas**: `PR_NUMBER`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Áreas críticas del código
+DO:
+  Identify security-sensitive surfaces (auth, authorization, sessions/cookies, input validation, file uploads,
+  redirects, dependencies, admin paths, secrets handling, logging, error exposure, deployment/config risk).
+  Draft an OWASP-based security-review prompt with redaction requirements and concrete evidence to inspect.
 
-## Placeholders PM (para templates de uso manual)
-- <PR_NUMBER>
+OUTPUT:
+  output.security_review_prompt that routes the review only.
 
-## Ejemplo de Invocación
-```
-20-solicitar-revision-de-seguridad-owasp.md
-PR_NUMBER=VALOR_AQUI
-```
+LIMITS:
+  Never ask anyone to print, paste, upload, quote, summarize, or expose .env, tokens, credentials, cookies, JWTs,
+  private keys, CI secrets, database URLs, or secret-looking values; require [REDACTED].
+  Runs no scanner and approves no insecure code; the recipient is not an actor.

@@ -1,33 +1,26 @@
 # Analizar Idea como Feature del Sistema
 
-## Objetivo de la Operación
-Evaluar propuestas abstractas para determinar su encaje dentro del kernel, roadmap, y código actual sin forzar la creación inmediata de un issue.
+OPERATION:
+  Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.review_only, mode.review_only.
 
-## Detalle de Comportamiento
-- **Qué fuentes lee en vivo**: IDEA dada por el PM, documentación arquitectural (DESIGN.md), estado vivo.
-- **Qué compara/decide**: Determina viabilidad, riesgos, redundancias, y posibles ubicaciones en el código.
-- **Qué entrega (Output)**: Diagnóstico de factibilidad y próximos pasos recomendados.
-- **Qué NO debe hacer (Límites)**: No convierte la idea automáticamente en un issue sin una decisión explícita del PM.
+INPUT:
+  IDEA=<IDEA>
 
-## Propiedad de Superficie (Surface)
-**Primaria: `browser_chat` (review conceptual y arquitectura).**
+KERNEL:
+  Resolve kernel/manifest.json. Follow resolution_sequence exactly.
+  Fail closed if the live state needed to judge fit cannot be read.
 
-## Configuración Canónica (Kernel)
-- **Workflow**: `workflow.review_only`
-- **Execution Mode**: `mode.review_only`
-- **Output Contract**: `output.status_result`
-- **Evidence Required**: `evidence.repo_state`
+LIVE_STATE:
+  Read live: current code state, PM decisions, roadmap, fixed docs (including docs/DESIGN.md),
+  open issues, and the most recent closed issues.
 
-## Variables PM
-- **Requeridas**: `IDEA`
-- **Opcionales**: `Ninguna`
-- **Inferidas (Contexto)**: Documentos de diseño actuales
+DO:
+  Determine whether IDEA is viable as a feature within the system (kernel, roadmap, code).
+  IF viable, propose next steps to integrate it without breaking anything.
+  Name risks, redundancies, and plausible code locations.
 
-## Placeholders PM (para templates de uso manual)
-- <IDEA>
+OUTPUT:
+  output.status_result with the feasibility diagnosis and recommended next steps.
 
-## Ejemplo de Invocación
-```
-16-analizar-idea-como-feature-del-sistema.md
-IDEA=VALOR_AQUI
-```
+LIMITS:
+  Report only; do not turn the idea into an issue without an explicit PM decision. No mutation.
