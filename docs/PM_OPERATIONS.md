@@ -46,6 +46,7 @@ uno resuelve a un id real del kernel.
 | `templates/operations/22-record-adr-decision.md` | Draftear contenido ADR y, si se escribe el archivo, un route-prompt que delega su creación. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` | `source_basis` | `DECISION` / — | Sí (escritura del archivo) |
 | `templates/operations/23-upgrade-kernel-adoption-in-target.md` | Refrescar adaptadores de un target ya adoptado a una versión de kernel más reciente. | `browser_chat` → `terminal_agent` | `target_adoption` | `delegated_commit_pr` | `adoption_packet` | `target_adoption` | `TARGET_REPOSITORY` / — | Sí |
 | `templates/operations/24-draft-create-github-release-command.md` | Draftear el bundle `gh release create` (objeto Release: notas + tag), distinto del tag simple. | `browser_chat` → Humano PM | `release_readiness` | `review_only` | `pm_command_bundle` | `repo_state`, `validation_output` | — / `TAG_NAME` | Sí |
+| `templates/operations/25-audit-implementation-discipline-gaps.md` | Auditar read-only brechas de implementación contra `boundary.implementation_discipline`. | `browser_chat` / `terminal_agent` | `implementation_discipline_audit` | `review_only` | `review_result` (+`draft_issue`) | `repo_state` | `TARGET_REPOSITORY` / `PATH_SCOPE`, `FOCUS`, `ISSUE_NUMBER`, `PR_NUMBER` | No |
 
 Cuando una operación emite `route_prompt` o `pm_command_bundle`, la forma del
 artefacto vive una sola vez en su template canónico (`templates/route-prompt.md`,
@@ -54,7 +55,7 @@ duplican esas reglas.
 
 ## Cobertura de operaciones
 
-Este catálogo contiene **25 templates** (`00`–`24`). Cada uno es un prompt de
+Este catálogo contiene **26 templates** (`00`–`25`). Cada uno es un prompt de
 operación ejecutable; ninguno permanece en el formato de ficha descriptiva
 (*Objetivo / Detalle / Superficie / Configuración / Variables*).
 
@@ -66,6 +67,9 @@ operación ejecutable; ninguno permanece en el formato de ficha descriptiva
 - *GitHub release object* → `templates/operations/24-draft-create-github-release-command.md`.
   Publica un objeto Release de GitHub (`gh release create`, notas + tag),
   distinto del tag de git simple de `13`.
+- *Implementation discipline audit* → `templates/operations/25-audit-implementation-discipline-gaps.md`.
+  Revisa código o PRs contra `boundary.implementation_discipline` con evidencia
+  de archivos/líneas y produce findings o drafts de follow-up sin mutar el target.
 
 **Cierre de PR/issue**: las operaciones `09` y `10` emiten `pm_command_bundle`
 bajo `workflow.review_before_close` por decisión del PM; el paquete común de
