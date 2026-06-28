@@ -389,29 +389,42 @@ def test_implementation_discipline_boundary_is_compact_and_scoped() -> None:
     assert all("boundary.implementation_discipline" not in refs for refs in non_terminal_refs.values())
 
     rule = boundary["rule"].lower()
+    notes = boundary["notes"].lower()
     assert boundary["on_violation"] == "status.blocked"
+    assert len(rule) < 800
+    assert len(notes) < 400
     assert "smallest complete change" in rule
-    assert "required behavior, validation, error handling, integration points, and tests when in scope" in rule
-    assert "never permits missing required work" in rule
+    assert "complete means" in rule
+    assert "required behavior, validation, error handling, integration points, and tests" in rule
+    assert "minimalism never permits missing required work" in rule
     assert "responsibilities separated" in rule
-    assert "small cohesive functions/modules" in rule
     assert "source of truth" in rule
-    assert "duplicate logic only when explicitly justified" in rule
+    assert "duplicated logic unless explicitly justified" in rule
+    assert "direct simple structure" in rule
+    assert "speculative abstraction" in rule
     for forbidden in (
-        "speculative abstractions",
         "unrelated rewrites",
         "over-correction",
         "over-implementation",
         "scope expansion",
-        "under-implementation disguised as minimalism",
     ):
         assert forbidden in rule
+    for review_example in (
+        "duplicated logic introduced by the pr",
+        "mixed responsibilities",
+        "unnecessary monoliths",
+        "speculative abstractions",
+        "under-implementation disguised as minimalism",
+    ):
+        assert review_example in notes
 
     issue_steps = " ".join(issue_workflow["steps"]).lower()
     review_steps = " ".join(review_workflow["steps"]).lower()
     assert "boundary.implementation_discipline" in issue_steps
     assert "boundary.implementation_discipline" in review_steps
     assert "implementation-discipline violations when relevant" in review_steps
+    assert "speculative abstractions" not in review_steps
+    assert "unrelated rewrites" not in review_steps
     assert "implementation-discipline note when relevant" in execution_output["required_sections"]
     assert "implementation-discipline findings when relevant" in review_output["required_sections"]
 

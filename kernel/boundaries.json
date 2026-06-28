@@ -57,8 +57,9 @@
     },
     {
       "id": "boundary.implementation_discipline",
-      "rule": "Write-capable implementation must deliver the smallest complete change that satisfies the live issue scope. Minimal complete implementation includes required behavior, validation, error handling, integration points, and tests when in scope; it never permits missing required work. Keep responsibilities separated; prefer small cohesive functions/modules over unnecessary monoliths; reuse or extend the existing source of truth where practical; duplicate logic only when explicitly justified as the safer local choice; avoid speculative abstractions, unrelated rewrites, over-correction, over-implementation, and scope expansion. Review may flag duplicated logic introduced by the PR, responsibility mixing, unrelated rewrites, speculative abstractions, unnecessary monoliths, over-correction, over-implementation, and under-implementation disguised as minimalism.",
-      "on_violation": "status.blocked"
+      "rule": "Write-capable implementation must make the smallest complete change that satisfies the live issue scope. Complete means required behavior, validation, error handling, integration points, and tests are preserved or added when in scope; minimalism never permits missing required work. Keep responsibilities separated, reuse or extend the existing source of truth where practical, avoid duplicated logic unless explicitly justified as the safer local choice, and prefer direct simple structure over speculative abstraction. Do not perform unrelated rewrites, over-correction, over-implementation, or scope expansion.",
+      "on_violation": "status.blocked",
+      "notes": "Review may flag duplicated logic introduced by the PR, mixed responsibilities, unnecessary monoliths, speculative abstractions, unrelated rewrites, over-correction, over-implementation, and under-implementation disguised as minimalism."
     },
     {
       "id": "boundary.code_clarity",
