@@ -54,5 +54,5 @@ Chat.
 Esa optimización futura no debe almacenar estado vivo en instrucciones, no debe
 reemplazar GitHub como fuente de verdad para issues, PRs, branches, diffs,
 validación o estado del target, y no se implementa en este PR. Debe esperar hasta
-después del issue #305 y de los follow-ups #307 y #308, si el PM todavía la
-quiere.
+que el modelo público de operaciones y sus follow-ups de estabilización estén
+finalizados, si el PM todavía la quiere.
