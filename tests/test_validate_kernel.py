@@ -393,7 +393,8 @@ def test_implementation_discipline_boundary_is_compact_and_scoped() -> None:
     assert boundary["on_violation"] == "status.blocked"
     assert len(rule) < 800
     assert len(notes) < 400
-    assert "smallest complete change" in rule
+    assert "complete change" in rule
+    assert "satisfies the live issue scope" in rule
     assert "complete means" in rule
     assert "required behavior, validation, error handling, integration points, and tests" in rule
     assert "minimalism never permits missing required work" in rule
