@@ -62,17 +62,25 @@ anything missing or ambiguous.
 
 ## Public Quick Start
 
-Project OS delega trabajo seguro a IA mediante plantillas de operaciones y variables PM.
+Project OS delega trabajo seguro a IA mediante plantillas de operaciones,
+variables PM y trazabilidad viva en GitHub.
 
 **1. Adopta el Kernel:**
 - **Terminal Agent**: Copia `adapters/AGENTS.target.md` a la raíz de tu repositorio objetivo.
-- **Browser Chat**: Pega el template `templates/operations/00-activar-sesion-browser-chat.md` en tu prompt inicial.
+- **Browser Chat**: Pega el template `templates/operations/00-browser-chat-activation.md` en tu prompt inicial.
 
-**2. Uso de Operaciones:**
+**2. Distingue repositorios:**
+- **Project OS repo / `KERNEL_REPOSITORY`**: provee kernel, adapters, templates, docs y contratos.
+- **Target repo / `TARGET_REPOSITORY`**: el producto/proyecto adoptado, revisado o implementado.
+- Para desarrollar Project OS, ambos pueden ser `codefusion-repo/project-os-v2`.
+
+**3. Uso de Operaciones:**
 - El catálogo completo está en `docs/PM_OPERATIONS.md`.
-- Invoca pasando variables; por ejemplo: `templates/operations/07-draftear-route-prompt-para-implementar-issue.md ISSUE_NUMBER=<ISSUE_NUMBER>`
+- Invoca pasando variables; por ejemplo: `templates/operations/07-draft-issue-implementation-route-prompt.md ISSUE_NUMBER=<ISSUE_NUMBER>`
+- Browser chat necesita contexto GitHub de ambos repos cuando aplique. Si no puede leer el repo Project OS o el target, debe devolver `status.needs_context` nombrando lo que falta.
 
 Para guías en detalle, revisa `docs/GETTING_STARTED.md`, `docs/PUBLIC_USAGE_MODEL.md`, y la guía de accesos en `docs/GITHUB_ACCESS.md`.
+
 ## Validation
 
 ```sh

@@ -27,7 +27,7 @@ IF ISSUE_NUMBER not provided:
   Derive the single next issue from live traceability (roadmap, open/closed issues, PM decisions) before drafting.
 
 OUTPUT:
-  output.route_prompt (copy-safe, plain text, at most one fenced block).
+  output.route_prompt per templates/route-prompt.md.
 
 LIMITS:
   Browser chat drafts only; it never executes code. Authorization travels separately as exact scoped PM approval;
