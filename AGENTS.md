@@ -35,10 +35,22 @@ KERNEL_VERSION_ADOPTED = tracks latest
 ## Kernel resolution
 
 Before non-trivial work, resolve behavior from the kernel at
-`KERNEL_LOCAL_PATH`: read `manifest.json` and follow its
-`resolution_sequence` exactly. The manifest is the canonical sequence; this
-adapter only points to it. Fail closed per `boundary.fail_closed` if the kernel
-is missing, ambiguous, or conflicting.
+`KERNEL_LOCAL_PATH`: follow `manifest.json`'s `resolution_sequence` exactly.
+`manifest.json` is the canonical resolution source; this adapter only points to
+it.
+
+On a terminal surface with the kernel checkout and repo-local Python available,
+prefer the resolver fast path:
+`python3 -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode>`.
+It reads the current kernel JSON at runtime and deterministically expands the
+resolved actor, workflow, mode, evidence, outputs, and boundaries; it never
+replaces `manifest.json`. When the resolver is unavailable or the surface cannot
+execute repo-local Python, resolve manually from `manifest.json` and the kernel
+JSON files — that manual resolution is always the canonical fallback.
+
+Resolver output shapes behavior only; like the kernel itself it grants no
+permission (`boundary.output_not_permission`). Fail closed per
+`boundary.fail_closed` if the kernel is missing, ambiguous, or conflicting.
 
 ## Live state
 
