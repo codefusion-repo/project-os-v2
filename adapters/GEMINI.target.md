@@ -10,10 +10,10 @@ placeholders, delete this heading block.
 GEMINI.md is the Gemini-specific adapter for `{{ORG/REPO}}`. It is a compact
 bootloader only.
 
-Use `AGENTS.md` for repository-wide terminal-agent behavior, including the
-`tools.project_os_resolve` fast path for kernel resolution on terminal surfaces
-(with manifest/manual resolution as the canonical fallback). Resolve generic
-operating behavior from the project-os-v2-min kernel referenced there
+Use `AGENTS.md` for repository-wide terminal-agent behavior; it points to the
+kernel manifest's surface-aware resolution, including the
+`tools.project_os_resolve` terminal fast path. Resolve generic operating
+behavior from the project-os-v2-min kernel referenced there
 (`KERNEL_LOCAL_PATH`), and live project state from GitHub and git at task
 time.
 

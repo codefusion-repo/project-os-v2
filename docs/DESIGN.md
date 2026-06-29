@@ -57,14 +57,16 @@ materialize without a runtime, and micro-granular process issues.
 
 ## Kernel resolution model
 
-An agent follows the `resolution_sequence` in `kernel/manifest.json`. The
-sequence is data in the manifest; adapters and docs point to it instead of
-owning a parallel copy. The agent executes it by reading, not by running code.
+An agent follows the `resolution_sequence` in `kernel/manifest.json`, whose
+`resolution_strategy` owns surface-aware routing (terminal resolver fast path vs
+browser/non-terminal manual). The sequence and strategy are data in the manifest;
+adapters, templates, and docs point to them instead of owning a parallel or
+competing copy. The agent executes resolution by reading, not by running code.
 Resolution selects shape and gates; it never grants permission.
 
-On a terminal surface with repo-local Python, `tools/project_os_resolve.py` is an
-optional deterministic accelerator for that same resolution: it reads the current
-kernel JSON at runtime and expands the resolved
+On a terminal surface with repo-local Python, `tools/project_os_resolve.py` is the
+manifest's default deterministic accelerator for that same resolution: it reads
+the current kernel JSON at runtime and expands the resolved
 actor/workflow/mode/evidence/output/boundary data. It lives outside `kernel/`,
 consumes kernel semantics rather than replacing them, is not a second source of
 truth, and grants no permission (`boundary.output_not_permission`). Manual

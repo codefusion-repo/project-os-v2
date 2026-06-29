@@ -1,9 +1,13 @@
 """Repo-shape guards for issue #315 — adoption of the resolver fast path.
 
-These tests assert the durable adoption behavior in adapters, templates, and
-docs:
+These tests assert the durable adoption behavior in the kernel manifest,
+adapters, templates, and docs:
 
-- terminal adapters/templates point at the `tools.project_os_resolve` fast path;
+- `kernel/manifest.json` owns surface-aware resolution routing via
+  `resolution_strategy`; adapters/templates/docs point to it and never define a
+  competing order;
+- terminal adapters keep the `tools.project_os_resolve` fast path as the
+  manifest's terminal default;
 - browser-chat materials resolve manually and never execute repo-local Python;
 - manifest/manual resolution stays the canonical fallback;
 - resolver output is described as non-authorizing;
@@ -15,12 +19,15 @@ They guard wording, not kernel rules: the kernel itself is validated by
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 RESOLVER_REF = "tools.project_os_resolve"
+
+MANIFEST = REPO_ROOT / "kernel" / "manifest.json"
 
 # Durable Project OS materials that mention kernel resolution and must stay
 # free of live implementation state.
@@ -75,8 +82,36 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+class TestManifestRouting:
+    """The manifest owns surface-aware resolution routing (PM decision)."""
+
+    def test_manifest_declares_resolution_strategy(self) -> None:
+        strategy = json.loads(_read(MANIFEST)).get("resolution_strategy")
+        assert isinstance(strategy, dict), "manifest must declare resolution_strategy"
+        blob = " ".join(str(value) for value in strategy.values()).lower()
+        # The terminal fast path, browser no-Python rule, canonical fallback, and
+        # non-authorizing behavior all live in the manifest, not in adapters.
+        assert RESOLVER_REF in blob
+        assert "repo-local python" in blob
+        assert "canonical fallback" in blob
+        assert "boundary.output_not_permission" in blob
+
+    def test_resolution_sequence_points_to_strategy(self) -> None:
+        sequence = json.loads(_read(MANIFEST)).get("resolution_sequence", [])
+        assert "resolution_strategy" in " ".join(sequence).lower()
+
+    def test_terminal_agents_defer_routing_to_manifest(self) -> None:
+        """AGENTS adapters point to the manifest instead of owning a rival order."""
+        for path in (REPO_ROOT / "AGENTS.md", REPO_ROOT / "adapters" / "AGENTS.target.md"):
+            text = _read(path)
+            assert "resolution_strategy" in text, f"{path.name} should point to the manifest strategy"
+            assert "competing resolution order" in text, (
+                f"{path.name} should state it defines no competing resolution order"
+            )
+
+
 class TestTerminalFastPath:
-    """Terminal adapters prefer the resolver fast path with manual fallback."""
+    """Terminal adapters keep the resolver fast path as the manifest's default."""
 
     def test_terminal_adapters_mention_resolver(self) -> None:
         for path in TERMINAL_ADAPTERS:
@@ -112,10 +147,16 @@ class TestBrowserChatNoPython:
 
 
 class TestRoutePrompt:
-    """Route-prompt guidance mentions the fast path, copy-safe."""
+    """Route prompts route to manifest resolution and never own resolver strategy."""
 
-    def test_route_prompt_mentions_fast_path(self) -> None:
-        assert RESOLVER_REF in _read(REPO_ROOT / "templates" / "route-prompt.md")
+    def test_route_prompt_points_to_manifest(self) -> None:
+        assert "kernel/manifest.json" in _read(REPO_ROOT / "templates" / "route-prompt.md")
+
+    def test_route_prompt_does_not_own_resolver_strategy(self) -> None:
+        # Resolution is the manifest's; the route prompt must not carry the CLI.
+        assert "python3 -m tools.project_os_resolve" not in _read(
+            REPO_ROOT / "templates" / "route-prompt.md"
+        )
 
 
 class TestDesignDoc:
