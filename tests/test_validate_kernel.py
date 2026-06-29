@@ -138,6 +138,14 @@ FORBIDDEN_CONSOLE_DOCS = (
     "docs/OPERATIONS_CATALOG.md",
     "docs/OPERATIONS_CONSOLE_IMPLEMENTATION_PLAN.md",
 )
+FORBIDDEN_BROWSER_COMPANION_PACKAGE_PATHS = (
+    "browser-companion",
+    "browser_companion",
+    "packages/browser-companion",
+    "packages/browser_companion",
+    "apps/browser-companion",
+    "apps/browser_companion",
+)
 CANONICAL_ACTOR_IDS = {
     "actor.human_pm",
     "actor.terminal_agent",
@@ -155,7 +163,135 @@ ROLE_ACTOR_ID_PATTERN = re.compile(
     r"design_asset_creator|graphic_artist)\b"
 )
 MARKDOWN_PATH_PATTERN = re.compile(r"`([^`\n]+)`")
+LIVE_GITHUB_OBJECT_PATTERN = re.compile(r"https://github\.com/[^/\s]+/[^/\s]+/(?:issues|pull)/\d+")
+SECRET_LOOKING_PATTERN = re.compile(
+    r"\b(?:gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|"
+    r"AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{12,})\b"
+)
 SKIP_DIRS = {".git", ".pytest_cache", "__pycache__", "node_modules", ".venv"}
+
+CANONICAL_KERNEL_ENTRY_IDS = {
+    "actors.json": {
+        "actor.human_pm",
+        "actor.terminal_agent",
+        "actor.browser_chat",
+        "actor.unknown",
+    },
+    "execution_modes.json": {
+        "mode.review_only",
+        "mode.local_implementation",
+        "mode.delegated_commit_push",
+        "mode.delegated_commit_pr",
+    },
+    "statuses.json": {
+        "status.resolved",
+        "status.needs_context",
+        "status.needs_pm_decision",
+        "status.blocked",
+    },
+    "boundaries.json": {
+        "boundary.branch_preflight",
+        "boundary.no_main_edits",
+        "boundary.draft_only_browser",
+        "boundary.separate_pm_approval",
+        "boundary.review_before_close",
+        "boundary.no_live_state_durable",
+        "boundary.no_invented_state",
+        "boundary.security_privacy",
+        "boundary.fail_closed",
+        "boundary.output_not_permission",
+        "boundary.implementation_discipline",
+        "boundary.primary_path_discipline",
+        "boundary.validation_discipline",
+        "boundary.code_clarity",
+        "boundary.copy_safe_commands",
+    },
+    "evidence.json": {
+        "evidence.issue_scope",
+        "evidence.source_basis",
+        "evidence.branch_preflight",
+        "evidence.repo_state",
+        "evidence.pm_approval",
+        "evidence.validation_output",
+        "evidence.pr_diff",
+        "evidence.review_evidence",
+        "evidence.closure_evidence",
+        "evidence.target_adoption",
+    },
+    "workflows.json": {
+        "workflow.review_only",
+        "workflow.issue_implementation",
+        "workflow.review_before_close",
+        "workflow.implementation_discipline_audit",
+        "workflow.pm_intake",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.release_readiness",
+        "workflow.handoff",
+        "workflow.target_adoption",
+    },
+    "outputs.json": {
+        "output.execution_report",
+        "output.review_result",
+        "output.closure_comment",
+        "output.draft_issue",
+        "output.route_prompt",
+        "output.pm_command_bundle",
+        "output.asset_prompt",
+        "output.security_review_prompt",
+        "output.handoff_packet",
+        "output.adoption_packet",
+        "output.status_result",
+    },
+}
+
+TRANSFORMATION_OPERATIONS = {
+    "conversation_to_docs": {
+        "path": "templates/operations/26-draft-docs-from-conversation.md",
+        "required": {
+            "workflow.pm_intake",
+            "mode.review_only",
+            "output.route_prompt",
+            "output.draft_issue",
+            "output.status_result",
+            "evidence.source_basis",
+        },
+    },
+    "docs_to_roadmap": {
+        "path": "templates/operations/27-draft-roadmap-from-docs.md",
+        "required": {
+            "workflow.pm_intake",
+            "mode.review_only",
+            "output.draft_issue",
+            "output.pm_command_bundle",
+            "output.status_result",
+            "evidence.source_basis",
+            "evidence.repo_state",
+        },
+    },
+    "docs_from_description": {
+        "path": "templates/operations/28-draft-docs-from-description.md",
+        "required": {
+            "workflow.pm_intake",
+            "mode.review_only",
+            "output.route_prompt",
+            "output.draft_issue",
+            "output.status_result",
+            "evidence.source_basis",
+        },
+    },
+    "bounded_roadmap_to_issues": {
+        "path": "templates/operations/29-draft-bounded-roadmap-issues-command.md",
+        "required": {
+            "workflow.pm_intake",
+            "mode.review_only",
+            "output.pm_command_bundle",
+            "output.status_result",
+            "evidence.source_basis",
+            "evidence.repo_state",
+        },
+    },
+}
 
 # Narrow allowlists for intentional negative fixtures, target-owned optional
 # paths in copy-in adapters, and historical recovery references.
@@ -228,6 +364,10 @@ def _kernel_entry(file_name: str, entry_id: str) -> dict:
     raise AssertionError(f"{entry_id} not found in {file_name}")
 
 
+def _operation_text(relative_path: str) -> str:
+    return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+
 def _normalize_markdown_path_ref(token: str) -> str | None:
     value = token.strip().strip(",;:()[]{}\"'")
     if value.endswith(".") and not value.startswith("."):
@@ -274,6 +414,11 @@ def _tracked_ref_exists(ref: str, tracked: set[str]) -> bool:
 def test_no_console_planning_docs() -> None:
     present = [rel for rel in FORBIDDEN_CONSOLE_DOCS if (REPO_ROOT / rel).exists()]
     assert present == [], f"console planning docs must not return: {present}"
+
+
+def test_no_browser_companion_package_created() -> None:
+    present = [rel for rel in FORBIDDEN_BROWSER_COMPANION_PACKAGE_PATHS if (REPO_ROOT / rel).exists()]
+    assert present == [], f"#309 Browser Companion package is out of scope: {present}"
 
 
 def test_actor_model_is_surface_only() -> None:
@@ -606,7 +751,83 @@ def test_implementation_discipline_audit_workflow_and_operation_are_read_only() 
     assert "templates/operations/25-audit-implementation-discipline-gaps.md" in catalog
     assert "implementation_discipline_audit" in catalog
     assert "`repo_state`" in catalog
-    assert "Este catálogo contiene **26 templates** (`00`–`25`)" in catalog
+    assert "Este catálogo contiene **30 templates** (`00`–`29`)" in catalog
+
+
+def test_issue_324_transformation_operations_exist_and_use_existing_kernel_ids() -> None:
+    kernel_ids = _kernel_ids()
+    for operation_name, spec in TRANSFORMATION_OPERATIONS.items():
+        path = REPO_ROOT / spec["path"]
+        assert path.exists(), f"{operation_name} operation is missing"
+        text = path.read_text(encoding="utf-8")
+        for required_ref in spec["required"]:
+            assert required_ref in text, f"{operation_name} missing {required_ref}"
+            assert required_ref in kernel_ids, f"{operation_name} references non-kernel id {required_ref}"
+        for ref in sorted(set(KERNEL_ID_PATTERN.findall(text))):
+            assert ref in kernel_ids, f"{operation_name} references unresolved kernel id {ref}"
+
+
+def test_issue_324_single_next_issue_operation_remains_available() -> None:
+    text = _operation_text("templates/operations/06-draft-create-next-issue-command-from-traceability.md")
+    assert "single next real outcome" in text
+    assert "OUTPUT:\n  output.pm_command_bundle for exactly one issue" in text
+    assert "One outcome per issue" in text
+    assert "ISSUE_COUNT_LIMIT" not in text
+    assert "SCOPE_LIMIT" not in text
+
+
+def test_issue_324_bounded_roadmap_to_issues_requires_explicit_bound() -> None:
+    text = _operation_text("templates/operations/29-draft-bounded-roadmap-issues-command.md")
+    assert "ISSUE_COUNT_LIMIT=<ISSUE_COUNT_LIMIT> optional" in text
+    assert "SCOPE_LIMIT=<SCOPE_LIMIT> optional" in text
+    assert "Require at least one explicit bound: ISSUE_COUNT_LIMIT or SCOPE_LIMIT." in text
+    assert "IF neither ISSUE_COUNT_LIMIT nor SCOPE_LIMIT is provided:" in text
+    assert "Return status.needs_pm_decision requesting one explicit bound" in text
+    assert "one `gh issue create`" in text
+    assert "One issue per outcome" in text
+
+
+def test_issue_324_command_bundle_docs_include_review_before_close() -> None:
+    text = _operation_text("templates/pm-command-bundle.md")
+    examples_intro = text.split("## Examples", 1)[1].split("### Closeout", 1)[0]
+    compact = " ".join(examples_intro.split())
+    assert "`workflow.pm_intake`" in examples_intro
+    assert "`workflow.review_before_close`" in examples_intro
+    assert "`workflow.release_readiness`" in examples_intro
+    assert "only `workflow.pm_intake` and" not in examples_intro
+    assert "reviewed closeout" in compact
+
+
+def test_issue_324_preserves_design_asset_operation_workflow_and_output() -> None:
+    template = _operation_text("templates/operations/19-request-external-design-assets.md")
+    workflow = _kernel_entry("workflows.json", "workflow.design_asset")
+    output = _kernel_entry("outputs.json", "output.asset_prompt")
+
+    assert "workflow.design_asset" in template
+    assert "output.asset_prompt" in template
+    assert workflow["allowed_output_refs"] == ["output.asset_prompt", "output.status_result"]
+    assert output["id"] == "output.asset_prompt"
+    assert "asset objective" in output["required_sections"]
+
+
+def test_issue_324_kernel_entry_ids_are_unchanged() -> None:
+    for file_name, expected_ids in CANONICAL_KERNEL_ENTRY_IDS.items():
+        data = json.loads((REPO_ROOT / "kernel" / file_name).read_text(encoding="utf-8"))
+        actual_ids = {entry["id"] for entry in data["entries"]}
+        assert actual_ids == expected_ids, f"{file_name} kernel ids changed"
+
+
+def test_issue_324_transformation_docs_do_not_embed_live_state_or_secret_examples() -> None:
+    checked_paths = [spec["path"] for spec in TRANSFORMATION_OPERATIONS.values()]
+    checked_paths.append("docs/PM_OPERATIONS.md")
+    offenders: list[str] = []
+    for rel in checked_paths:
+        text = _operation_text(rel)
+        if LIVE_GITHUB_OBJECT_PATTERN.search(text):
+            offenders.append(f"{rel}: live GitHub object URL")
+        if SECRET_LOOKING_PATTERN.search(text):
+            offenders.append(f"{rel}: secret-looking value")
+    assert offenders == [], f"durable live state or secret-looking examples found: {offenders}"
 
 
 def test_review_before_close_route_template_rejects_documentation_only_go() -> None:
