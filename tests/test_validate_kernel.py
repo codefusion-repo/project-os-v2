@@ -452,6 +452,53 @@ def test_implementation_discipline_boundary_is_compact_and_scoped() -> None:
     assert "implementation-discipline findings when relevant" in review_output["required_sections"]
 
 
+def test_primary_path_discipline_boundary_is_compact_and_scoped() -> None:
+    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    boundary = _kernel_entry("boundaries.json", "boundary.primary_path_discipline")
+    impl_boundary = _kernel_entry("boundaries.json", "boundary.implementation_discipline")
+    issue_workflow = _kernel_entry("workflows.json", "workflow.issue_implementation")
+    review_workflow = _kernel_entry("workflows.json", "workflow.review_before_close")
+    audit_workflow = _kernel_entry("workflows.json", "workflow.implementation_discipline_audit")
+
+    rule = boundary["rule"].lower()
+    assert boundary["on_violation"] == "status.blocked"
+    # Keep it compact and non-duplicative: no notes field unless it adds non-duplicative context.
+    assert "notes" not in boundary
+    assert len(rule) < 600
+    assert "primary path correct, explicit, and validated" in rule
+    assert "hide, bypass, normalize, or avoid investigating errors" in rule
+    assert "investigate and fix the root cause" in rule
+    assert "real alternate path, graceful degradation, or compatibility behavior" in rule
+    assert "preserve correctness and be validated when in scope" in rule
+
+    # Must not duplicate or bloat boundary.implementation_discipline.
+    assert "primary path" not in impl_boundary["rule"].lower()
+    assert "fallback" not in impl_boundary["rule"].lower()
+    assert "fallback" not in impl_boundary["notes"].lower()
+    # No broad reliability manifesto: stay focused on primary-path vs fallback.
+    for manifesto_term in ("reliability", "resilien", "retry", "circuit breaker", "availability"):
+        assert manifesto_term not in rule
+
+    # terminal_agent inherits it; no other actor does (it is write-capable only).
+    terminal_agent = next(entry for entry in actors["entries"] if entry["id"] == "actor.terminal_agent")
+    non_terminal_refs = [
+        entry.get("boundary_refs", [])
+        for entry in actors["entries"]
+        if entry["id"] != "actor.terminal_agent"
+    ]
+    assert "boundary.primary_path_discipline" in terminal_agent["boundary_refs"]
+    assert all("boundary.primary_path_discipline" not in refs for refs in non_terminal_refs)
+
+    issue_steps = " ".join(issue_workflow["steps"]).lower()
+    review_steps = " ".join(review_workflow["steps"]).lower()
+    audit_text = " ".join([audit_workflow["use_for"], *audit_workflow["steps"]]).lower()
+    assert "boundary.primary_path_discipline" in issue_steps
+    assert "boundary.primary_path_discipline" in review_steps
+    assert "unjustified fallback paths" in review_steps
+    assert "boundary.primary_path_discipline" in audit_text
+    assert "fallback abuse" in audit_text
+
+
 def test_implementation_discipline_audit_workflow_and_operation_are_read_only() -> None:
     workflow = _kernel_entry("workflows.json", "workflow.implementation_discipline_audit")
     template = (REPO_ROOT / "templates" / "operations" / "25-audit-implementation-discipline-gaps.md").read_text(

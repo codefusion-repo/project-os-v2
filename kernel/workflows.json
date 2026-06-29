@@ -18,7 +18,7 @@
         "read the issue scope and source basis live",
         "branch preflight",
         "create or switch to the scoped work branch (work/<issue>-<slug>)",
-        "implement only inside scope under boundary.implementation_discipline",
+        "implement only inside scope under boundary.implementation_discipline and boundary.primary_path_discipline",
         "run validation",
         "commit and push only if the mode allows",
         "open a draft PR only if the mode allows",
@@ -30,7 +30,7 @@
     {
       "id": "workflow.review_before_close",
       "use_for": "Reviewing finished work before the PM merges or closes.",
-      "steps": ["read the linked issue objective, scope, out-of-scope, and acceptance criteria live", "read PR body, comments, and reports only as claims or evidence leads", "read the changed-file list, inspect the PR diff, and open relevant final head files when diff context is insufficient", "compare implementation behavior and validation, including boundary.implementation_discipline, against the linked issue requirements", "return status.needs_context instead of GO when code/diff/final-file evidence cannot be inspected", "report a verdict with findings by file/line or explicit not-reviewed gaps, including implementation-discipline violations when relevant", "leave merge and closure to the PM"],
+      "steps": ["read the linked issue objective, scope, out-of-scope, and acceptance criteria live", "read PR body, comments, and reports only as claims or evidence leads", "read the changed-file list, inspect the PR diff, and open relevant final head files when diff context is insufficient", "compare implementation behavior and validation, including boundary.implementation_discipline and boundary.primary_path_discipline, against the linked issue requirements", "return status.needs_context instead of GO when code/diff/final-file evidence cannot be inspected", "report a verdict with findings by file/line or explicit not-reviewed gaps, including implementation-discipline violations when relevant and unjustified fallback paths", "leave merge and closure to the PM"],
       "required_evidence_refs": ["evidence.issue_scope", "evidence.pr_diff", "evidence.validation_output"],
       "allowed_output_refs": ["output.review_result", "output.closure_comment", "output.pm_command_bundle", "output.status_result"]
     },
@@ -41,7 +41,7 @@
         "resolve kernel and gather live repository evidence",
         "read optional issue or PR scope live when provided",
         "inspect codebase structure and selected files within the requested path or focus",
-        "compare evidence against boundary.implementation_discipline as the canonical rule",
+        "compare evidence against boundary.implementation_discipline as the canonical rule, reporting fallback abuse as a boundary.primary_path_discipline gap",
         "report only evidence-backed findings with file/line references where possible and severity or follow-up priority",
         "distinguish implementation-discipline gaps from acceptable local tradeoffs or explicit project conventions",
         "recommend or draft follow-up issues when useful without mutating GitHub",
