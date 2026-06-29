@@ -62,6 +62,11 @@
       "notes": "Review may flag duplicated logic introduced by the PR, mixed responsibilities, unnecessary monoliths, speculative abstractions, unrelated rewrites, over-correction, over-implementation, and under-implementation disguised as minimalism."
     },
     {
+      "id": "boundary.primary_path_discipline",
+      "rule": "Write-capable implementation must keep the primary path correct, explicit, and validated. Do not add fallback paths merely to hide, bypass, normalize, or avoid investigating errors; investigate and fix the root cause instead. Add a fallback only when the live issue scope or evidence requires a real alternate path, graceful degradation, or compatibility behavior; any fallback must preserve correctness and be validated when in scope.",
+      "on_violation": "status.blocked"
+    },
+    {
       "id": "boundary.code_clarity",
       "rule": "Code clarity: prefer self-documenting code. When creating or editing code, add concise comments or docstrings for non-obvious intent, domain invariants, state transitions, security-sensitive behavior, external API assumptions, migrations, constraints, and tradeoffs. Do not comment obvious syntax or restate what the code already says.",
       "on_violation": "status.needs_pm_decision"

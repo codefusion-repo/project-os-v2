@@ -29,6 +29,7 @@
         "boundary.fail_closed",
         "boundary.output_not_permission",
         "boundary.implementation_discipline",
+        "boundary.primary_path_discipline",
         "boundary.code_clarity"
       ]
     },
