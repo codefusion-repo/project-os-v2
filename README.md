@@ -116,6 +116,16 @@ likely PR scope drift without editing GitHub state:
 python3 -m tools.audit_traceability --repository org/repo --issue 123 --json
 ```
 
+`tools.measure_resolution` is a read-only size diagnostic. It reports the byte,
+character, and approximate-token size of a manual manifest/kernel read versus the
+terminal `tools.project_os_resolve` fast-path output, plus a projected
+non-terminal stable-context package, so the cost of each resolution path is
+reproducible. It reads the kernel only and grants no permission:
+
+```sh
+python3 -m tools.measure_resolution
+```
+
 CI (`.github/workflows/validate.yml`) runs kernel validation and the test suite
 only. It must not run live target scans or audit external target repositories
 automatically. It is self-check only — it makes no writes and automates no PM
