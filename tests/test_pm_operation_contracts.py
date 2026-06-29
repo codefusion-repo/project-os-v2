@@ -302,7 +302,9 @@ def test_issue_309_browser_companion_setup_packet_has_required_shape() -> None:
         assert section in text, f"Browser Companion packet missing {section}"
 
     required_phrases = [
-        "Project OS Browser Companion",
+        "Project OS Browser Companion - GitHub PM Copilot",
+        "read-only GitHub planning assistant for PMs",
+        "drafts issues, PR review packets, terminal-agent handoff prompts",
         "actor.browser_chat",
         "draft-only",
         "ChatGPT is the first tested reference browser_chat packaging surface",
@@ -321,6 +323,63 @@ def test_issue_309_browser_companion_setup_packet_has_required_shape() -> None:
     ]
     for phrase in required_phrases:
         assert phrase in compact_text, f"Browser Companion packet missing required phrase: {phrase}"
+
+
+def test_issue_309_browser_companion_public_onboarding_and_github_read_gate() -> None:
+    text = _operation_text(BROWSER_COMPANION_PACKET)
+    compact_text = " ".join(text.split())
+    starters = text.split("## Conversation Starters", 1)[1].split("## Capability Recommendations", 1)[0]
+
+    public_positioning = [
+        "GitHub PM Copilot",
+        "read-only GitHub planning assistant for PMs",
+        "For public users",
+        "before using Project OS-specific terms",
+    ]
+    for phrase in public_positioning:
+        assert phrase in compact_text, f"public positioning missing: {phrase}"
+
+    onboarding_starters = [
+        "I am new here. Explain what this GitHub PM assistant can and cannot do",
+        "Help me turn this product idea into a clear GitHub issue draft",
+        "I have a pull request to review before closing an issue",
+        "Prepare a safe handoff prompt for a terminal coding agent",
+        "I want to use this with my repository",
+    ]
+    for starter in onboarding_starters:
+        assert starter in starters, f"onboarding starter missing: {starter}"
+
+    insider_first_starters = [
+        "Activate Project OS browser_chat",
+        "Draft a Project OS issue",
+        "TARGET_REPOSITORY=<org/repo>",
+    ]
+    for starter in insider_first_starters:
+        assert starter not in starters, f"starter remains Project-OS-insider-first: {starter}"
+
+    github_gate_phrases = [
+        "required for real operational use",
+        "Configure it as read-only",
+        "do not publish or use it as an operational assistant",
+        "downgrade it to a static explainer only",
+        "Preview or Store setup",
+        "operational publication is blocked",
+        "returns `status.needs_context` for operation requests",
+    ]
+    for phrase in github_gate_phrases:
+        assert phrase in compact_text, f"GitHub read gate missing: {phrase}"
+
+    out_of_scope_phrases = [
+        "Keep Actions/custom integrations disabled",
+        "This package does not define ChatGPT Actions",
+        "GitHub App",
+        "OAuth flow",
+        "custom integration",
+        "cloud automation",
+        "permission automation",
+    ]
+    for phrase in out_of_scope_phrases:
+        assert phrase in compact_text, f"out-of-scope integration guard missing: {phrase}"
 
 
 def test_issue_309_browser_companion_safe_knowledge_is_exact_and_current_model_based() -> None:

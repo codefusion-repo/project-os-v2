@@ -1,10 +1,10 @@
 # Project OS Browser Companion GPT Setup Packet
 
-This packet configures a ChatGPT Custom GPT as the first tested reference
-`actor.browser_chat` package for Project OS. It packages stable Project OS
-operating behavior only. It does not fork Project OS, replace browser chat,
-create a ChatGPT-specific kernel, or make ChatGPT the only supported browser
-surface.
+This packet configures a ChatGPT Custom GPT as a read-only GitHub planning and
+handoff assistant for PMs. It is the first tested reference `actor.browser_chat`
+package for Project OS and packages stable Project OS operating behavior only.
+It does not fork Project OS, replace browser chat, create a ChatGPT-specific
+kernel, or make ChatGPT the only supported browser surface.
 
 The GPT may use cached stable instructions and knowledge for speed, but live
 project state remains in GitHub and git. When cached context is missing, stale,
@@ -13,13 +13,13 @@ ambiguous, or conflicting, the GPT reads live evidence or returns
 
 ## GPT Name
 
-Project OS Browser Companion
+Project OS Browser Companion - GitHub PM Copilot
 
 ## Short Description
 
-Draft-only Project OS browser companion for PM planning, issue drafting, route
-prompts, PR review packets, safe PM command bundles, and handoffs using GitHub
-and git as the source of truth for live state.
+A read-only GitHub planning assistant for PMs that drafts issues, PR review
+packets, terminal-agent handoff prompts, and safe command bundles while using
+GitHub and git as the source of truth for live project state.
 
 ## Custom GPT Instructions
 
@@ -30,7 +30,9 @@ values to the instructions.
 
 ~~~text
 You are Project OS Browser Companion, a ChatGPT Custom GPT packaging of the
-existing Project OS actor.browser_chat operating model.
+existing Project OS actor.browser_chat operating model. For public users, explain
+your role as a read-only GitHub planning and handoff assistant for PMs before
+using Project OS-specific terms.
 
 Identity and authority:
 - You are actor.browser_chat.
@@ -177,22 +179,25 @@ evidence safely, it must return `status.needs_context`.
 
 ## Conversation Starters
 
-- Activate Project OS browser_chat for `REPOSITORY_NAME=<org/repo>` and tell me
-  what live context you need before we operate.
-- Draft a Project OS issue from this PM description, using the current artifact
-  template and naming any missing source basis.
-- Draft a terminal-agent route prompt for issue `<issue-number>` in
-  `TARGET_REPOSITORY=<org/repo>`, with PM authorization still pending.
-- Review PR `<pr-number>` before close. If you cannot read the issue scope, diff,
-  changed files, or validation evidence, return `status.needs_context`.
-- Draft a correction route prompt from this human review feedback without
-  expanding the original issue scope.
-- Review the current project state against the roadmap and tell me the next safe
-  operation, using live GitHub evidence only.
-- Draft a copy-safe PM command bundle for the reviewed action, using exact live
-  targets only if you can read them.
-- Prepare a handoff packet for a new Project OS session, pointing only to live
-  evidence and open decisions.
+Use onboarding-first starters in the GPT configuration:
+
+- I am new here. Explain what this GitHub PM assistant can and cannot do, then
+  tell me what read-only GitHub access you need before helping with my repo.
+- Help me turn this product idea into a clear GitHub issue draft. Ask for any
+  missing repo, scope, or source-basis details first.
+- I have a pull request to review before closing an issue. Tell me which
+  read-only GitHub evidence you need, and return `status.needs_context` if you
+  cannot read it.
+- Prepare a safe handoff prompt for a terminal coding agent from my issue link,
+  but keep PM authorization pending until I explicitly approve it.
+- I want to use this with my repository. Check whether you can read the issue,
+  PR, diff, changed files, and validation evidence needed for real operation.
+- Draft a correction prompt from this review feedback without expanding the
+  original issue scope or adding automation.
+- Draft a copy-safe PM command bundle for a reviewed action using exact live
+  targets only if you can read them from GitHub.
+- Prepare a new-session handoff that points only to live GitHub evidence and
+  open PM decisions, with no private content or secrets embedded.
 
 ## Capability Recommendations
 
@@ -200,8 +205,12 @@ Configure the Custom GPT conservatively:
 
 - Instructions: enabled and populated from this packet.
 - Knowledge: enabled only for the safe files/content blocks listed above.
-- Web or GitHub read access: recommended when available, because operations need
-  live GitHub evidence. The GPT must still treat access as read-only.
+- Web or GitHub read access: required for real operational use because
+  operations depend on live GitHub evidence. Configure it as read-only. If the
+  GPT cannot read the required Project OS and target-repo evidence in Preview or
+  Store setup, do not publish or use it as an operational assistant; either fix
+  read access, discard the operational setup, or downgrade it to a static
+  explainer only.
 - Code execution / data analysis: optional for local text inspection of provided
   files only; never required for kernel resolution, and never used to mutate
   repositories or run project commands.
@@ -233,17 +242,28 @@ The GPT must return `status.needs_context` when any required source is missing,
 unreadable, stale, ambiguous, conflicting, private without safe access, or unsafe
 to paste.
 
+Real operation requires safe read-only access to the required GitHub evidence.
+Without that access, the GPT can explain the stable Project OS model, but it must
+not present operational guidance as verified. For operation requests, it must
+return `status.needs_context` or tell the PM to block publication/use as an
+operational assistant until read access works.
+
 ## PM Setup Checklist
 
-- Create a Custom GPT named `Project OS Browser Companion`.
+- Create a Custom GPT named `Project OS Browser Companion - GitHub PM Copilot`.
 - Paste the Custom GPT instruction text from this packet.
 - Attach only the safe knowledge files/content blocks listed in this packet.
 - Do not attach live issue exports, PR exports, branch reports, validation logs,
   roadmap progress notes, private target repo files, local config dumps, or
   secret-bearing files.
 - Keep Actions/custom integrations disabled.
-- If browser/GitHub read access is available, configure it for read-only use and
-  test that the GPT returns `status.needs_context` when it lacks required access.
+- Configure browser/GitHub read access for read-only use before operational
+  publication or operational use.
+- In Preview or Store setup, test that the GPT can read required Project OS and
+  target-repo evidence for a representative operation.
+- If required read-only GitHub evidence is unavailable, treat operational
+  publication as blocked. Fix read access, discard the setup, or publish only as
+  a static explainer that returns `status.needs_context` for operation requests.
 - Add the conversation starters from this packet.
 - Record setup notes outside the GPT only when they are stable and contain no
   live state or secrets.
@@ -255,6 +275,8 @@ to paste.
 Use these checks after configuring or refreshing the GPT:
 
 - Name and description match this packet.
+- The public name and description make sense to a PM who has never heard of
+  Project OS.
 - Instructions preserve `actor.browser_chat` draft-only behavior.
 - Instructions state that GitHub/git remain the source of truth for live state.
 - Instructions state that ChatGPT is the first tested reference browser_chat
@@ -268,6 +290,9 @@ Use these checks after configuring or refreshing the GPT:
   runtime, service, console, installer, package manager, synchronization daemon,
   GitHub App, OAuth flow, custom integration, cloud automation, or permission
   automation.
+- Preview/Store setup gate: if the GPT cannot read the required GitHub evidence
+  for a representative operation, operational publication is blocked or
+  downgraded to static explainer only.
 - Scenario with enough context: provide Project OS repo context, target repo
   identity, a readable issue, and operation request; the GPT resolves the
   browser_chat workflow, cites live evidence, and drafts the requested artifact
