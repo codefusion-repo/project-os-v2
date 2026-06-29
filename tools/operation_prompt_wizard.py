@@ -1,7 +1,9 @@
-"""Line-based local wizard for generating filled operation prompts.
+"""Local wizard for generating filled operation prompts.
 
-The wizard reads operation templates from ``templates/operations`` and writes a
-local Markdown prompt artifact. It does not execute operations, run commands, or
+If prompt_toolkit is importable, the wizard uses an enhanced interactive mode.
+If unavailable, it falls back to a standard line-based flow.
+The wizard reads templates from ``templates/operations`` and only writes local
+Markdown prompt artifacts. It does not execute operations, run commands, or
 call GitHub, git, or network services.
 """
 
