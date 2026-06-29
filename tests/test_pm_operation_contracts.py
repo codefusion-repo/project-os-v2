@@ -139,6 +139,11 @@ TRANSFORMATION_OPERATIONS = {
         },
     },
 }
+BROWSER_COMPANION_PACKET = "docs/PROJECT_OS_BROWSER_COMPANION_GPT.md"
+ISSUE_309_CHECKED_PATHS = [
+    BROWSER_COMPANION_PACKET,
+    "docs/PUBLIC_USAGE_MODEL.md",
+]
 
 
 def _kernel_ids() -> set[str]:
@@ -276,3 +281,111 @@ def test_issue_324_transformation_docs_do_not_embed_live_state_or_secret_example
         if SECRET_LOOKING_PATTERN.search(text):
             offenders.append(f"{rel}: secret-looking value")
     assert offenders == [], f"durable live state or secret-looking examples found: {offenders}"
+
+
+def test_issue_309_browser_companion_setup_packet_has_required_shape() -> None:
+    text = _operation_text(BROWSER_COMPANION_PACKET)
+    compact_text = " ".join(text.split())
+    required_sections = [
+        "## GPT Name",
+        "## Short Description",
+        "## Custom GPT Instructions",
+        "## Safe Knowledge And Context Candidates",
+        "## Must Not Be Included",
+        "## Conversation Starters",
+        "## Capability Recommendations",
+        "## GitHub Context Requirements",
+        "## PM Setup Checklist",
+        "## Validation Checklist",
+    ]
+    for section in required_sections:
+        assert section in text, f"Browser Companion packet missing {section}"
+
+    required_phrases = [
+        "Project OS Browser Companion",
+        "actor.browser_chat",
+        "draft-only",
+        "ChatGPT is the first tested reference browser_chat packaging surface",
+        "not the only supported browser surface",
+        "GitHub and git",
+        "source of truth for live state",
+        "return `status.needs_context`",
+        "Do not execute repo-local Python",
+        "does not define ChatGPT Actions",
+        "deterministic kernel resolver",
+        "LLM interpreter",
+        "GitHub App",
+        "OAuth flow",
+        "cloud automation",
+        "permission automation",
+    ]
+    for phrase in required_phrases:
+        assert phrase in compact_text, f"Browser Companion packet missing required phrase: {phrase}"
+
+
+def test_issue_309_browser_companion_safe_knowledge_is_exact_and_current_model_based() -> None:
+    text = _operation_text(BROWSER_COMPANION_PACKET)
+    safe_candidates = [
+        "adapters/BROWSER_CHAT.target.md",
+        "kernel/manifest.json",
+        "kernel/statuses.json",
+        "kernel/actors.json",
+        "kernel/execution_modes.json",
+        "kernel/boundaries.json",
+        "kernel/evidence.json",
+        "kernel/workflows.json",
+        "kernel/outputs.json",
+        "templates/route-prompt.md",
+        "templates/pm-command-bundle.md",
+        "templates/artifacts.md",
+        "templates/operations/*.md",
+        "docs/TRACEABILITY_PROTOCOL.md",
+        "docs/PUBLIC_USAGE_MODEL.md",
+        "docs/PM_OPERATIONS.md",
+        "docs/GITHUB_ACCESS.md",
+        "docs/GETTING_STARTED.md",
+    ]
+    for candidate in safe_candidates:
+        assert candidate in text, f"safe knowledge candidate missing: {candidate}"
+
+    excluded_content = [
+        "current issue state",
+        "current PR state",
+        "current branch names as state",
+        "validation output",
+        "roadmap progress",
+        "private target repository content",
+        "root `AGENTS.md`, `CLAUDE.md`, or `GEMINI.md`",
+        "ChatGPT Actions schemas",
+    ]
+    for item in excluded_content:
+        assert item in text, f"excluded content category missing: {item}"
+
+    public_usage = _operation_text("docs/PUBLIC_USAGE_MODEL.md")
+    public_usage_compact = " ".join(public_usage.split())
+    assert "docs/PROJECT_OS_BROWSER_COMPANION_GPT.md" in public_usage
+    assert "no un fork de Project OS ni" in public_usage
+    assert "no requiere que Browser Chat ejecute Python" in public_usage_compact
+
+
+def test_issue_309_browser_companion_docs_do_not_embed_live_state_or_secrets() -> None:
+    sha_pattern = re.compile(r"\b[0-9a-f]{40}\b")
+    forbidden_live_literals = {
+        "#309",
+        "#274",
+        "work/309-browser-companion-gpt",
+        "210c3a7",
+    }
+    offenders: list[str] = []
+    for rel in ISSUE_309_CHECKED_PATHS:
+        text = _operation_text(rel)
+        if LIVE_GITHUB_OBJECT_PATTERN.search(text):
+            offenders.append(f"{rel}: live GitHub object URL")
+        if SECRET_LOOKING_PATTERN.search(text):
+            offenders.append(f"{rel}: secret-looking value")
+        if sha_pattern.search(text):
+            offenders.append(f"{rel}: commit-like SHA")
+        for literal in sorted(forbidden_live_literals):
+            if literal in text:
+                offenders.append(f"{rel}: live-state literal {literal}")
+    assert offenders == [], f"#309 package embedded live state or secrets: {offenders}"

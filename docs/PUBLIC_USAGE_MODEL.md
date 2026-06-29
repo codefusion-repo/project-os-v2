@@ -51,20 +51,20 @@ mutar GitHub. El Human PM conserva merge, close, tag, release, settings,
 labels/milestones, secretos y deployment. El Terminal Agent ejecuta solo tras
 adopción, route-prompt, modo de ejecución correcto y autorización PM exacta.
 
-## Future optimization / follow-up
-Después de estabilizar el modelo público de operaciones, un issue futuro puede
-explorar incrustar JSON estable seleccionado del kernel Project OS y templates
-no operacionales en instrucciones de Browser Chat. El objetivo sería reducir
-lecturas repetidas de GitHub y acelerar la resolución del kernel para Browser
-Chat.
+## Browser Companion packaging
+`docs/PROJECT_OS_BROWSER_COMPANION_GPT.md` empaqueta el modelo actual de
+`actor.browser_chat` como Custom GPT de referencia llamado Project OS Browser
+Companion. Es una aceleración de setup para ChatGPT, no un fork de Project OS ni
+una superficie exclusiva: otros browser chats y terminal agents siguen
+soportados por el mismo kernel, adapters y templates.
 
-Esa optimización futura no debe almacenar estado vivo en instrucciones, no debe
-reemplazar GitHub como fuente de verdad para issues, PRs, branches, diffs,
-validación o estado del target. Debe esperar hasta que el modelo público de
-operaciones y sus follow-ups de estabilización estén finalizados, si el PM
-todavía la quiere.
+Ese paquete puede incluir comportamiento estable seleccionado del kernel,
+adapter browser_chat, templates y docs públicos. No almacena estado vivo en
+instrucciones, no reemplaza GitHub como fuente de verdad para issues, PRs,
+branches, diffs, validación, roadmap, decisiones PM o estado del target, y no
+requiere que Browser Chat ejecute Python.
 
 Esto es distinto del fast path `tools.project_os_resolve`, que es solo para
-superficies de terminal y no aplica a Browser Chat: no resuelve el kernel para
-Browser Chat ni mueve esta frontera de optimización futura, que sigue pendiente
-e independiente.
+superficies de terminal. Browser Chat sigue resolviendo manualmente
+`kernel/manifest.json` y falla cerrado con `status.needs_context` cuando falta
+evidencia viva.
