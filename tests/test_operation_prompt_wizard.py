@@ -116,17 +116,28 @@ def test_validate_common_variable_shapes() -> None:
     scope_limit = InputVariable("SCOPE_LIMIT", "<SCOPE_LIMIT>", False, "")
     action = InputVariable("ROADMAP_ACTION", "<create|update>", False, "")
 
-    assert validate_variable_value(required_issue, "") == "ISSUE_NUMBER is required."
+    assert validate_variable_value(required_issue, "") == (
+        "ISSUE_NUMBER is required. Example: 123 or #123."
+    )
     assert validate_variable_value(required_issue, "#123") is None
-    assert validate_variable_value(required_issue, "0") is not None
+    assert validate_variable_value(required_issue, "0") == (
+        "ISSUE_NUMBER must be a positive issue/PR number. Examples: 123 or #123."
+    )
     assert validate_variable_value(optional_roadmap, "") is None
     assert validate_variable_value(repository, "codefusion-repo/project-os-v2") is None
-    assert validate_variable_value(repository, "codefusion-repo") is not None
+    assert validate_variable_value(repository, "codefusion-repo") == (
+        "TARGET_REPOSITORY must look like owner/repo. Example: codefusion-repo/project-os-v2."
+    )
     assert validate_variable_value(count_limit, "3") is None
-    assert validate_variable_value(count_limit, "0") is not None
+    assert validate_variable_value(count_limit, "0") == (
+        "ISSUE_COUNT_LIMIT must be a positive integer. Example: 3."
+    )
     assert validate_variable_value(scope_limit, "docs only") is None
     assert validate_variable_value(action, "create") is None
-    assert validate_variable_value(action, "delete") is not None
+    assert validate_variable_value(action, "delete") == (
+        "ROADMAP_ACTION must be one of the allowed placeholder choices: create, update. "
+        "Example: create."
+    )
 
 
 def test_collect_values_reprompts_required_and_allows_optional_skip() -> None:
@@ -228,12 +239,13 @@ def test_run_wizard_writes_only_after_preview_confirmation(tmp_path: Path) -> No
         "Route",
         "  ISSUE_NUMBER=<ISSUE_NUMBER>\n  ROADMAP_ISSUE=<ROADMAP_ISSUE> optional",
     )
+    stream = io.StringIO()
 
     path = run_wizard(
         operations_dir=operations_dir,
         output_dir=output_dir,
         input_func=answers("", "1", "123", "", "y"),
-        output_stream=io.StringIO(),
+        output_stream=stream,
     )
 
     assert path is not None
@@ -242,6 +254,99 @@ def test_run_wizard_writes_only_after_preview_confirmation(tmp_path: Path) -> No
     text = path.read_text(encoding="utf-8")
     assert "ISSUE_NUMBER=123" in text
     assert "ROADMAP_ISSUE=(optional skipped)" in text
+    output = stream.getvalue()
+    assert "[Step 1/3] Search and select an operation" in output
+    assert "[Step 2/3] Fill INPUT variables" in output
+    assert "[Step 3/3] Preview and choose next action" in output
+    assert "Required (1): ISSUE_NUMBER <ISSUE_NUMBER>" in output
+    assert "Optional (1): ROADMAP_ISSUE <ROADMAP_ISSUE>" in output
+    assert "Actions: write, edit, operation, cancel, ? help." in output
+
+
+def test_run_wizard_can_search_again_before_write(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-alpha.md", "Alpha")
+    write_operation(operations_dir / "02-beta.md", "Beta")
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("alpha", "s", "beta", "2", "write"),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    assert "Source template: 02-beta.md" in path.read_text(encoding="utf-8")
+
+
+def test_run_wizard_preview_can_return_to_edit_variables(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "07-route.md", "Route", "  ISSUE_NUMBER=<ISSUE_NUMBER>")
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "123", "edit", "456", "write"),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "ISSUE_NUMBER=456" in text
+    assert "ISSUE_NUMBER=123" not in text
+
+
+def test_run_wizard_edit_can_clear_optional_variable(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(
+        operations_dir / "07-route.md",
+        "Route",
+        "  ISSUE_NUMBER=<ISSUE_NUMBER>\n  ROADMAP_ISSUE=<ROADMAP_ISSUE> optional",
+    )
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "123", "274", "edit", "", "/clear", "write"),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "ISSUE_NUMBER=123" in text
+    assert "ROADMAP_ISSUE=(optional skipped)" in text
+    assert "ROADMAP_ISSUE=274" not in text
+
+
+def test_run_wizard_preview_can_return_to_operation_selection(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-alpha.md", "Alpha", "  ISSUE_NUMBER=<ISSUE_NUMBER>")
+    write_operation(
+        operations_dir / "02-beta.md",
+        "Beta",
+        "  TARGET_REPOSITORY=<TARGET_REPOSITORY>",
+    )
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "123", "operation", "", "2", "owner/repo", "write"),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "Source template: 02-beta.md" in text
+    assert "TARGET_REPOSITORY=owner/repo" in text
+    assert "ISSUE_NUMBER=123" not in text
 
 
 def test_run_wizard_does_not_write_when_preview_is_declined(tmp_path: Path) -> None:
@@ -254,6 +359,23 @@ def test_run_wizard_does_not_write_when_preview_is_declined(tmp_path: Path) -> N
         operations_dir=operations_dir,
         output_dir=output_dir,
         input_func=answers("", "1", "n"),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is None
+    assert not output_dir.exists()
+
+
+def test_run_wizard_cancel_during_variable_entry_writes_no_file(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-test.md", "Test", "  ISSUE_NUMBER=<ISSUE_NUMBER>")
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "cancel"),
         output_stream=io.StringIO(),
     )
 

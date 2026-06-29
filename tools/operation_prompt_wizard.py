@@ -33,6 +33,15 @@ SECRET_LOOKING_PATTERN = re.compile(
     r"sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{12,})\b"
 )
 
+CANCEL_COMMANDS = {"c", "cancel", "q", "quit", "exit"}
+HELP_COMMANDS = {"?", "h", "help"}
+BACK_COMMANDS = {"b", "back"}
+SEARCH_COMMANDS = {"s", "search", "again"}
+WRITE_COMMANDS = {"w", "write", "y", "yes"}
+EDIT_COMMANDS = {"e", "edit", "variables"}
+OPERATION_COMMANDS = {"o", "operation", "operations", "choose"}
+CLEAR_COMMANDS = {"/clear"}
+
 
 class WizardError(RuntimeError):
     """Raised when the local wizard cannot proceed safely."""
@@ -67,6 +76,14 @@ class OperationTemplate:
     def file_number(self) -> int | None:
         match = re.match(r"^(\d+)", self.path.name)
         return int(match.group(1)) if match else None
+
+
+@dataclass(frozen=True)
+class ValueCollectionResult:
+    """Result of variable entry, including navigation requests."""
+
+    action: str
+    values: dict[str, str]
 
 
 def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[OperationTemplate]:
@@ -211,7 +228,7 @@ def validate_variable_value(variable: InputVariable, value: str) -> str | None:
 
     stripped = value.strip()
     if variable.required and not stripped:
-        return f"{variable.name} is required."
+        return f"{variable.name} is required. {validation_example(variable)}"
     if not stripped:
         return None
     if SECRET_LOOKING_PATTERN.search(stripped):
@@ -219,18 +236,36 @@ def validate_variable_value(variable: InputVariable, value: str) -> str | None:
 
     choices = placeholder_choices(variable.placeholder)
     if choices is not None and stripped not in choices:
-        return f"{variable.name} must be one of: {', '.join(choices)}."
+        return (
+            f"{variable.name} must be one of the allowed placeholder choices: "
+            f"{', '.join(choices)}. Example: {choices[0]}."
+        )
 
     if is_issue_or_pr_number(variable.name) and not POSITIVE_NUMBER_PATTERN.fullmatch(stripped):
-        return f"{variable.name} must be a positive issue/PR number, optionally prefixed with #."
+        return f"{variable.name} must be a positive issue/PR number. Examples: 123 or #123."
 
     if is_repository_variable(variable.name) and not REPOSITORY_PATTERN.fullmatch(stripped):
-        return f"{variable.name} must look like owner/name."
+        return f"{variable.name} must look like owner/repo. Example: codefusion-repo/project-os-v2."
 
     if is_positive_limit_variable(variable.name) and not re.fullmatch(r"[1-9][0-9]*", stripped):
-        return f"{variable.name} must be a positive integer."
+        return f"{variable.name} must be a positive integer. Example: 3."
 
     return None
+
+
+def validation_example(variable: InputVariable) -> str:
+    """Return a concise example for the common validated variable shapes."""
+
+    choices = placeholder_choices(variable.placeholder)
+    if choices is not None:
+        return f"Use one of: {', '.join(choices)}."
+    if is_issue_or_pr_number(variable.name):
+        return "Example: 123 or #123."
+    if is_repository_variable(variable.name):
+        return "Example: codefusion-repo/project-os-v2."
+    if is_positive_limit_variable(variable.name):
+        return "Example: 3."
+    return "Enter a non-empty value."
 
 
 def placeholder_choices(placeholder: str) -> tuple[str, ...] | None:
@@ -356,6 +391,80 @@ def display_operations(operations: list[OperationTemplate], output_stream: TextI
         )
 
 
+def print_stage(label: str, title: str, output_stream: TextIO) -> None:
+    """Print a compact stage marker for the line-based flow."""
+
+    print("", file=output_stream)
+    print(f"[{label}] {title}", file=output_stream)
+
+
+def is_cancel_command(value: str) -> bool:
+    return value.strip().lower() in CANCEL_COMMANDS
+
+
+def is_help_command(value: str) -> bool:
+    return value.strip().lower() in HELP_COMMANDS
+
+
+def is_back_command(value: str) -> bool:
+    return value.strip().lower() in BACK_COMMANDS
+
+
+def is_search_command(value: str) -> bool:
+    return value.strip().lower() in SEARCH_COMMANDS
+
+
+def is_clear_command(value: str) -> bool:
+    return value.strip().lower() in CLEAR_COMMANDS
+
+
+def print_selection_help(output_stream: TextIO) -> None:
+    """Print operation-selection help without leaving the current flow."""
+
+    print("", file=output_stream)
+    print("Selection help:", file=output_stream)
+    print("  Type text to filter by title or filename.", file=output_stream)
+    print("  Type a displayed number, filename number, filename, or stem to select.", file=output_stream)
+    print("  Use / to reset the filtered list, s to search again, or cancel to exit.", file=output_stream)
+
+
+def variable_summary_lines(operation: OperationTemplate) -> list[str]:
+    """Return a compact selected-operation summary for variable entry."""
+
+    lines = [f"Selected: {operation.filename} - {operation.title}"]
+    required = [variable for variable in operation.variables if variable.required]
+    optional = [variable for variable in operation.variables if not variable.required]
+    lines.append(f"Required ({len(required)}): {format_variable_list(required)}")
+    lines.append(f"Optional ({len(optional)}): {format_variable_list(optional)}")
+    return lines
+
+
+def format_variable_list(variables: list[InputVariable]) -> str:
+    """Format variables compactly for the selected-operation summary."""
+
+    if not variables:
+        return "none"
+    return ", ".join(f"{variable.name} {variable.placeholder}" for variable in variables)
+
+
+def display_operation_summary(operation: OperationTemplate, output_stream: TextIO) -> None:
+    """Print the selected operation and its INPUT variable summary."""
+
+    for line in variable_summary_lines(operation):
+        print(line, file=output_stream)
+
+
+def print_value_help(output_stream: TextIO) -> None:
+    """Print variable-entry help without leaving the current flow."""
+
+    print("", file=output_stream)
+    print("Variable entry help:", file=output_stream)
+    print("  Required values must be filled; optional values may be left blank.", file=output_stream)
+    print("  During edits, pressing Enter keeps the current value.", file=output_stream)
+    print("  Use /clear to blank the current optional value.", file=output_stream)
+    print("  Use back to choose another operation, cancel to exit, or ? for this help.", file=output_stream)
+
+
 def select_operation(
     operations: list[OperationTemplate],
     input_func: Callable[[str], str] = input,
@@ -364,34 +473,54 @@ def select_operation(
     """Interactively search/filter and select one operation."""
 
     filtered = list(operations)
+    print_stage("Step 1/3", "Search and select an operation", output_stream)
+    print("Commands: / reset, s search again, ? help, cancel exit.", file=output_stream)
     while True:
         display_operations(filtered, output_stream)
         query = input_func(
             "\nSearch by number, filename, or title "
-            "(Enter to keep list, / to reset, q to quit): "
+            "(Enter to keep list, / reset, ? help, cancel): "
         ).strip()
-        if query.lower() in {"q", "quit", "exit"}:
+        if is_cancel_command(query):
             return None
+        if is_help_command(query):
+            print_selection_help(output_stream)
+            continue
         if query == "/":
+            filtered = list(operations)
+            print("Search reset.", file=output_stream)
+            continue
+        if is_search_command(query):
             filtered = list(operations)
             continue
         if query:
             matches = filter_operations(operations, query)
             if not matches:
-                print("No matching operations.", file=output_stream)
+                print(
+                    "No matching operations. Try a different title word, filename, or number.",
+                    file=output_stream,
+                )
                 continue
             filtered = matches
             display_operations(filtered, output_stream)
 
-        selection = input_func("Select operation by listed number or filename (s to search again): ").strip()
-        if selection.lower() in {"s", "search"}:
+        selection = input_func(
+            "Select operation by number or filename (s search again, ? help, cancel): "
+        ).strip()
+        if is_search_command(selection):
             continue
-        if selection.lower() in {"q", "quit", "exit"}:
+        if is_help_command(selection):
+            print_selection_help(output_stream)
+            continue
+        if is_cancel_command(selection):
             return None
         operation = resolve_operation_selection(filtered, selection)
         if operation is not None:
             return operation
-        print("Invalid selection.", file=output_stream)
+        print(
+            "Invalid selection. Use a listed number, filename number, filename, or stem.",
+            file=output_stream,
+        )
 
 
 def collect_values(
@@ -401,24 +530,127 @@ def collect_values(
 ) -> dict[str, str]:
     """Prompt for required and optional variable values with validation."""
 
-    values: dict[str, str] = {}
+    result = collect_values_with_controls(
+        operation,
+        input_func=input_func,
+        output_stream=output_stream,
+    )
+    return result.values
+
+
+def collect_values_with_controls(
+    operation: OperationTemplate,
+    input_func: Callable[[str], str] = input,
+    output_stream: TextIO = sys.stdout,
+    initial_values: dict[str, str] | None = None,
+) -> ValueCollectionResult:
+    """Prompt for variable values and return navigation decisions."""
+
+    values = dict(initial_values or {})
+    print_stage("Step 2/3", "Fill INPUT variables", output_stream)
+    display_operation_summary(operation, output_stream)
     if not operation.variables:
         print("This operation declares no INPUT variables.", file=output_stream)
-        return values
+        return ValueCollectionResult("values", values)
 
     print("", file=output_stream)
-    print("Fill INPUT variables. Optional values may be left blank.", file=output_stream)
+    print(
+        "Optional values may be left blank. Commands: back, cancel, /clear optional, ? help.",
+        file=output_stream,
+    )
     for variable in operation.variables:
         label = "required" if variable.required else "optional"
         while True:
-            raw_value = input_func(f"{variable.name} ({label}, {variable.placeholder}): ")
+            current = values.get(variable.name, "")
+            current_hint = f", current: {single_line(current)}" if current else ""
+            raw_value = input_func(
+                f"{variable.name} ({label}, {variable.placeholder}{current_hint}): "
+            )
+            if is_help_command(raw_value):
+                print_value_help(output_stream)
+                continue
+            if is_cancel_command(raw_value):
+                return ValueCollectionResult("cancel", values)
+            if is_back_command(raw_value):
+                return ValueCollectionResult("operation", values)
+            if is_clear_command(raw_value):
+                if variable.required:
+                    print(
+                        f"Invalid value: {variable.name} is required. {validation_example(variable)}",
+                        file=output_stream,
+                    )
+                    continue
+                values[variable.name] = ""
+                break
+
             value = raw_value.strip()
+            if not value and current:
+                value = current
             error = validate_variable_value(variable, value)
             if error is None:
                 values[variable.name] = value
                 break
             print(f"Invalid value: {error}", file=output_stream)
-    return values
+    return ValueCollectionResult("values", values)
+
+
+def print_preview_help(output_stream: TextIO) -> None:
+    """Print preview-action help without leaving the current flow."""
+
+    print("", file=output_stream)
+    print("Preview help:", file=output_stream)
+    print("  write: create the local .md prompt artifact.", file=output_stream)
+    print("  edit: return to variable entry and keep current values.", file=output_stream)
+    print("  operation: choose another operation from the list.", file=output_stream)
+    print("  cancel: exit without creating an output file.", file=output_stream)
+
+
+def choose_preview_action(
+    rendered_prompt: str,
+    output_path: Path,
+    input_func: Callable[[str], str] = input,
+    output_stream: TextIO = sys.stdout,
+) -> str:
+    """Show a preview and return the selected next action."""
+
+    print_stage("Step 3/3", "Preview and choose next action", output_stream)
+    print("Preview:", file=output_stream)
+    print("=" * 72, file=output_stream)
+    print(rendered_prompt.rstrip(), file=output_stream)
+    print("=" * 72, file=output_stream)
+    print(f"Output path if written: {output_path}", file=output_stream)
+    print("Actions: write, edit, operation, cancel, ? help.", file=output_stream)
+
+    while True:
+        answer = input_func("Choose action [write/edit/operation/cancel]: ").strip().lower()
+        if not answer or answer in {"n", "no"} or answer in CANCEL_COMMANDS:
+            return "cancel"
+        if answer in WRITE_COMMANDS:
+            if confirm_overwrite(output_path, input_func=input_func, output_stream=output_stream):
+                return "write"
+            print("Overwrite declined. Choose another preview action.", file=output_stream)
+            continue
+        if answer in EDIT_COMMANDS:
+            return "edit"
+        if answer in OPERATION_COMMANDS:
+            return "operation"
+        if answer in HELP_COMMANDS:
+            print_preview_help(output_stream)
+            continue
+        print("Invalid action. Choose write, edit, operation, cancel, or ? help.", file=output_stream)
+
+
+def confirm_overwrite(
+    output_path: Path,
+    input_func: Callable[[str], str] = input,
+    output_stream: TextIO = sys.stdout,
+) -> bool:
+    """Ask before overwriting an existing deterministic output path."""
+
+    if not output_path.exists():
+        return True
+    overwrite = input_func(f"{output_path} exists. Overwrite? [y/N]: ").strip().lower()
+    return overwrite in {"y", "yes"}
 
 
 def confirm_write(
@@ -429,18 +661,15 @@ def confirm_write(
 ) -> bool:
     """Show a preview and ask before writing the generated prompt."""
 
-    print("", file=output_stream)
-    print("Preview:", file=output_stream)
-    print("=" * 72, file=output_stream)
-    print(rendered_prompt.rstrip(), file=output_stream)
-    print("=" * 72, file=output_stream)
-    answer = input_func(f"Write this prompt to {output_path}? [y/N]: ").strip().lower()
-    if answer not in {"y", "yes"}:
-        return False
-    if output_path.exists():
-        overwrite = input_func(f"{output_path} exists. Overwrite? [y/N]: ").strip().lower()
-        return overwrite in {"y", "yes"}
-    return True
+    return (
+        choose_preview_action(
+            rendered_prompt,
+            output_path,
+            input_func=input_func,
+            output_stream=output_stream,
+        )
+        == "write"
+    )
 
 
 def write_prompt(output_path: Path, rendered_prompt: str) -> Path:
@@ -460,23 +689,50 @@ def run_wizard(
     """Run the interactive operation prompt wizard."""
 
     operations = discover_operations(operations_dir)
-    operation = select_operation(operations, input_func=input_func, output_stream=output_stream)
-    if operation is None:
-        print("Cancelled before operation selection.", file=output_stream)
-        return None
-
-    values = collect_values(operation, input_func=input_func, output_stream=output_stream)
-    rendered = render_prompt(operation, values)
     output_directory = resolve_output_dir(output_dir)
-    output_path = output_directory / generated_filename(operation, rendered)
 
-    if not confirm_write(rendered, output_path, input_func=input_func, output_stream=output_stream):
-        print("Cancelled before write. No file was created.", file=output_stream)
-        return None
+    while True:
+        operation = select_operation(operations, input_func=input_func, output_stream=output_stream)
+        if operation is None:
+            print("Cancelled before operation selection. No file was created.", file=output_stream)
+            return None
 
-    path = write_prompt(output_path, rendered)
-    print(f"Wrote generated prompt: {path}", file=output_stream)
-    return path
+        values: dict[str, str] = {}
+        while True:
+            value_result = collect_values_with_controls(
+                operation,
+                input_func=input_func,
+                output_stream=output_stream,
+                initial_values=values,
+            )
+            if value_result.action == "cancel":
+                print("Cancelled before write. No file was created.", file=output_stream)
+                return None
+            if value_result.action == "operation":
+                print("Returning to operation selection.", file=output_stream)
+                break
+
+            values = value_result.values
+            rendered = render_prompt(operation, values)
+            output_path = output_directory / generated_filename(operation, rendered)
+            action = choose_preview_action(
+                rendered,
+                output_path,
+                input_func=input_func,
+                output_stream=output_stream,
+            )
+            if action == "write":
+                path = write_prompt(output_path, rendered)
+                print(f"Wrote generated prompt: {path}", file=output_stream)
+                return path
+            if action == "edit":
+                print("Returning to variable entry.", file=output_stream)
+                continue
+            if action == "operation":
+                print("Returning to operation selection.", file=output_stream)
+                break
+            print("Cancelled before write. No file was created.", file=output_stream)
+            return None
 
 
 def build_parser() -> argparse.ArgumentParser:
