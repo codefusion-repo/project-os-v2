@@ -163,8 +163,8 @@ def test_collect_values_reprompts_required_and_allows_optional_skip() -> None:
     assert "Invalid value" in stream.getvalue()
 
 
-def test_render_prompt_includes_filled_input_and_template() -> None:
-    text = "# Test Operation\n\nINPUT:\n  ISSUE_NUMBER=<ISSUE_NUMBER>\n"
+def test_render_prompt_substitutes_values_inline_without_wrapper() -> None:
+    text = "# Test Operation\n\nINPUT:\n  ISSUE_NUMBER=<ISSUE_NUMBER>\n\ncontent here\n"
     operation = OperationTemplate(
         index=1,
         path=Path("07-test.md"),
@@ -175,12 +175,7 @@ def test_render_prompt_includes_filled_input_and_template() -> None:
 
     rendered = render_prompt(operation, {"ISSUE_NUMBER": "123"})
 
-    assert "# Generated Operation Prompt: Test Operation" in rendered
-    assert "Source template: 07-test.md" in rendered
-    assert "  ISSUE_NUMBER=123" in rendered
-    assert "## Operation Template" in rendered
-    assert text.rstrip() in rendered
-    assert "does not execute the operation" in rendered
+    assert rendered == "# Test Operation\n\nINPUT:\n  ISSUE_NUMBER=123\n\ncontent here\n"
 
 
 def test_generated_filename_is_deterministic_and_safe() -> None:
@@ -253,7 +248,8 @@ def test_run_wizard_writes_only_after_preview_confirmation(tmp_path: Path) -> No
     assert path.suffix == ".md"
     text = path.read_text(encoding="utf-8")
     assert "ISSUE_NUMBER=123" in text
-    assert "ROADMAP_ISSUE=(optional skipped)" in text
+    assert "ROADMAP_ISSUE=" in text
+    assert "ROADMAP_ISSUE=(optional skipped)" not in text
     output = stream.getvalue()
     assert "[Step 1/3] Search and select an operation" in output
     assert "[Step 2/3] Fill INPUT variables" in output
@@ -278,7 +274,7 @@ def test_run_wizard_can_search_again_before_write(tmp_path: Path) -> None:
     )
 
     assert path is not None
-    assert "Source template: 02-beta.md" in path.read_text(encoding="utf-8")
+    assert "# Beta" in path.read_text(encoding="utf-8")
 
 
 def test_run_wizard_preview_can_return_to_edit_variables(tmp_path: Path) -> None:
@@ -320,7 +316,7 @@ def test_run_wizard_edit_can_clear_optional_variable(tmp_path: Path) -> None:
     assert path is not None
     text = path.read_text(encoding="utf-8")
     assert "ISSUE_NUMBER=123" in text
-    assert "ROADMAP_ISSUE=(optional skipped)" in text
+    assert "ROADMAP_ISSUE=" in text
     assert "ROADMAP_ISSUE=274" not in text
 
 
@@ -344,7 +340,7 @@ def test_run_wizard_preview_can_return_to_operation_selection(tmp_path: Path) ->
 
     assert path is not None
     text = path.read_text(encoding="utf-8")
-    assert "Source template: 02-beta.md" in text
+    assert "# Beta" in text
     assert "TARGET_REPOSITORY=owner/repo" in text
     assert "ISSUE_NUMBER=123" not in text
 

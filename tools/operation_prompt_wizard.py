@@ -316,46 +316,19 @@ def is_positive_limit_variable(name: str) -> bool:
 
 
 def render_prompt(operation: OperationTemplate, values: dict[str, str]) -> str:
-    """Render the filled local prompt artifact."""
+    """Render the filled local prompt artifact inline."""
 
-    lines = [
-        f"# Generated Operation Prompt: {operation.title}",
-        "",
-        f"Source template: {operation.filename}",
-        "",
-        "This local artifact fills INPUT values only. It does not execute the operation,",
-        "call GitHub/git/network services, or grant authorization.",
-        "",
-        "## Filled INPUT",
-        "",
-        "```text",
-        *filled_input_lines(operation, values),
-        "```",
-        "",
-        "## Operation Template",
-        "",
-        operation.text.rstrip(),
-        "",
-    ]
-    return "\n".join(lines)
-
-
-def filled_input_lines(operation: OperationTemplate, values: dict[str, str]) -> list[str]:
-    """Format filled variables as a reusable ``INPUT:`` block."""
-
-    if not operation.variables:
-        return ["  (none)"]
-
-    lines: list[str] = []
-    for variable in operation.variables:
-        value = values.get(variable.name, "").strip()
-        if value:
-            lines.append(f"  {variable.name}={single_line(value)}")
-        elif variable.required:
-            lines.append(f"  {variable.name}=")
-        else:
-            lines.append(f"  {variable.name}=(optional skipped)")
-    return lines
+    lines = operation.text.splitlines()
+    for i, line in enumerate(lines):
+        for variable in operation.variables:
+            if line.rstrip() == variable.raw_line:
+                value = values.get(variable.name, "").strip()
+                if value:
+                    lines[i] = f"  {variable.name}={single_line(value)}"
+                else:
+                    lines[i] = f"  {variable.name}="
+                break
+    return "\n".join(lines) + "\n"
 
 
 def single_line(value: str) -> str:
