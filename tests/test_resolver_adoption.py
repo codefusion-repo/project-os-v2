@@ -237,3 +237,38 @@ class TestNoStaleLiveState:
                     f"{path.name} contains stale live-state token "
                     f"{match.group(0)!r} (pattern {pattern.pattern})"
                 )
+
+
+class TestSingleEntrypoint:
+    """#320: the manifest is the single resolution entrypoint and nothing copies it."""
+
+    def test_manifest_names_itself_single_entrypoint(self) -> None:
+        manifest = json.loads(_read(MANIFEST))
+        blob = (
+            manifest.get("description", "")
+            + " "
+            + json.dumps(manifest.get("resolution_strategy", {}))
+        ).lower()
+        assert "single resolution entrypoint" in blob
+
+    def test_durable_files_do_not_copy_resolution_sequence(self) -> None:
+        # The numbered resolution_sequence is data owned by the manifest; adapters,
+        # templates, and docs point to it and never restate the ordered steps.
+        distinctive = "emit exactly one status from statuses.json"
+        for path in DURABLE_FILES:
+            assert distinctive not in _read(path).lower(), (
+                f"{path.name} restates the manifest resolution_sequence"
+            )
+
+
+class TestMeasurementPath:
+    """#320: a read-only measurement path reports manual vs fast-path size."""
+
+    def test_measurement_tool_exists_and_is_read_only(self) -> None:
+        tool = REPO_ROOT / "tools" / "measure_resolution.py"
+        assert tool.exists(), "the resolution size diagnostic must exist"
+        text = tool.read_text(encoding="utf-8")
+        assert "boundary.output_not_permission" in text
+        # It is a diagnostic: it must not perform writes or git/GitHub mutation.
+        for forbidden in ("subprocess", "open(", ".write_text", "os.system"):
+            assert forbidden not in text, f"measurement tool must not {forbidden}"

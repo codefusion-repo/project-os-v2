@@ -36,7 +36,7 @@ KERNEL_VERSION_ADOPTED = tracks latest
 
 Before non-trivial work, resolve behavior from the kernel at
 `KERNEL_LOCAL_PATH` by following `manifest.json`'s `resolution_sequence` exactly.
-`manifest.json` is the canonical resolution source and owns surface-aware routing
+`manifest.json` is the single resolution entrypoint and owns surface-aware routing
 through its `resolution_strategy`; this adapter only points to it and defines no
 competing resolution order. On this terminal surface the manifest's default is
 the resolver fast path
