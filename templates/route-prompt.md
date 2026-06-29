@@ -9,6 +9,12 @@ the terminal agent reads the issue live. Authorization travels separately as
 exact scoped PM approval (`kernel/execution_modes.json` `approval_note`); this
 prompt grants no permission. Copy-safe: plain text, at most one fenced block.
 
+How the executing agent resolves the kernel is owned by `kernel/manifest.json`
+(its `resolution_sequence` and surface-aware `resolution_strategy`); the route
+prompt routes work and never restates or overrides resolver strategy. It stays
+the same regardless of surface — keep it compact and never restate issue bodies
+or kernel rules.
+
 ## Variable block (omit lines that do not apply)
 
 ~~~text

@@ -37,6 +37,13 @@ Cada template mantiene bloques `OPERATION`, `INPUT`, `KERNEL`, `LIVE_STATE`,
 `resolution_sequence`, y falla cerrado ante evidencia, autoridad o estado
 faltante, ambiguo o conflictivo.
 
+La resolución del kernel se distingue por superficie: un Terminal Agent con
+checkout del kernel y repo-local Python puede usar el fast path
+`tools.project_os_resolve` para expandir esa secuencia, mientras que Browser Chat
+y otras superficies sin repo-local Python resuelven manualmente `manifest.json`.
+La resolución manual es siempre el fallback canónico y la salida del resolver no
+otorga permisos.
+
 ## Aprobación
 Los `route-prompts` a terminal agents no deben asumir permisos. Deben contener un `PM_AUTHORIZATION_STATUS` explícito.
 Browser Chat sigue siendo draft-only aunque su método de acceso pueda técnicamente
@@ -53,6 +60,11 @@ Chat.
 
 Esa optimización futura no debe almacenar estado vivo en instrucciones, no debe
 reemplazar GitHub como fuente de verdad para issues, PRs, branches, diffs,
-validación o estado del target, y no se implementa en este PR. Debe esperar hasta
-que el modelo público de operaciones y sus follow-ups de estabilización estén
-finalizados, si el PM todavía la quiere.
+validación o estado del target. Debe esperar hasta que el modelo público de
+operaciones y sus follow-ups de estabilización estén finalizados, si el PM
+todavía la quiere.
+
+Esto es distinto del fast path `tools.project_os_resolve`, que es solo para
+superficies de terminal y no aplica a Browser Chat: no resuelve el kernel para
+Browser Chat ni mueve esta frontera de optimización futura, que sigue pendiente
+e independiente.

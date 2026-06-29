@@ -51,14 +51,28 @@ materialize without a runtime, and micro-granular process issues.
   this kernel unless real-target evidence and a scoped issue name a gap that
   prose plus kernel resolution cannot close. Any future tooling built over
   Project OS must consume these semantics; it must not replace them or become a
-  second source of truth.
+  second source of truth. `tools/project_os_resolve.py` is exactly such tooling:
+  an optional accelerator outside `kernel/` that reads kernel JSON and consumes
+  its semantics, never a replacement for manifest resolution.
 
 ## Kernel resolution model
 
-An agent follows the `resolution_sequence` in `kernel/manifest.json`. The
-sequence is data in the manifest; adapters and docs point to it instead of
-owning a parallel copy. The agent executes it by reading, not by running code.
+An agent follows the `resolution_sequence` in `kernel/manifest.json`, whose
+`resolution_strategy` owns surface-aware routing (terminal resolver fast path vs
+browser/non-terminal manual). The sequence and strategy are data in the manifest;
+adapters, templates, and docs point to them instead of owning a parallel or
+competing copy. The agent executes resolution by reading, not by running code.
 Resolution selects shape and gates; it never grants permission.
+
+On a terminal surface with repo-local Python, `tools/project_os_resolve.py` is the
+manifest's default deterministic accelerator for that same resolution: it reads
+the current kernel JSON at runtime and expands the resolved
+actor/workflow/mode/evidence/output/boundary data. It lives outside `kernel/`,
+consumes kernel semantics rather than replacing them, is not a second source of
+truth, and grants no permission (`boundary.output_not_permission`). Manual
+manifest resolution stays the canonical fallback for every surface; browser chat
+and other non-terminal surfaces resolve by reading the manifest and kernel JSON,
+never by executing repo-local Python.
 
 ## Actor model
 

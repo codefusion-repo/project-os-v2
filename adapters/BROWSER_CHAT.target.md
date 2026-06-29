@@ -52,9 +52,15 @@ KERNEL_VERSION_ADOPTED = {{adopted kernel version e.g. 2.0.0-min.1, or "tracks l
 
 Before non-trivial work, resolve behavior from the kernel at
 `KERNEL_REPOSITORY`: read `manifest.json` and follow its
-`resolution_sequence` exactly. The manifest is the canonical sequence; this
-adapter only points to it. Fail closed per `boundary.fail_closed` if the kernel
-is missing, ambiguous, or conflicting.
+`resolution_sequence` exactly. `manifest.json` is the canonical resolution
+source; this adapter only points to it.
+
+Browser chat resolves the kernel by reading `kernel/manifest.json` and the
+kernel JSON files through GitHub/file access. It does not execute repo-local
+Python and does not use the `tools.project_os_resolve` fast path — that fast
+path is for terminal surfaces only; this surface always resolves manually.
+Fail closed per `boundary.fail_closed` if the kernel is missing, ambiguous, or
+conflicting.
 
 ## Live state
 
@@ -123,7 +129,9 @@ ROADMAP_ISSUE = {{#N, if applicable}}
 
 Act as actor.browser_chat. Before non-trivial work, resolve behavior from
 KERNEL_REPOSITORY's `kernel/manifest.json` (or the manifest under
-`KERNEL_LOCAL_PATH` when available) and follow its `resolution_sequence`; kernel
+`KERNEL_LOCAL_PATH` when available) by reading it and following its
+`resolution_sequence`; do not execute repo-local Python and do not use the
+`tools.project_os_resolve` fast path (terminal surfaces only). Kernel
 boundaries always apply, including draft-only behavior for this surface.
 Reconstruct target live state for REPOSITORY_NAME from GitHub and git per
 KERNEL_REPOSITORY's `docs/TRACEABILITY_PROTOCOL.md`; when evidence is

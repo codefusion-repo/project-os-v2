@@ -14,7 +14,7 @@
     "outputs.json"
   ],
   "resolution_sequence": [
-    "1. Identify the current execution surface and resolve current_actor_type from actors.json. Unknown surface resolves to actor.unknown and fails closed.",
+    "1. Identify the current execution surface and resolve current_actor_type from actors.json, then apply resolution_strategy for surface-aware resolution (terminal resolver fast path vs browser/non-terminal manual). Unknown surface resolves to actor.unknown and fails closed.",
     "2. Load statuses.json and boundaries.json. Boundaries always apply; no later selection relaxes them.",
     "3. Resolve execution_mode from the PM instruction for this task. Default is mode.review_only when no mode is explicitly scoped.",
     "4. Select the workflow from workflows.json that matches the requested task.",
@@ -22,6 +22,13 @@
     "6. Select the output contract from outputs.json required by the workflow. Output shape never grants permission.",
     "7. Emit exactly one status from statuses.json. When gates conflict, the stricter status wins."
   ],
+  "resolution_strategy": {
+    "owner": "This manifest owns surface-aware kernel resolution. Adapters, templates, and docs point here and never define a competing resolution order.",
+    "terminal_default": "On a terminal surface with a kernel checkout and repo-local Python, the default is the deterministic resolver fast path 'python3 -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode>', which reads the current kernel JSON and expands this resolution_sequence.",
+    "browser_and_non_terminal": "Browser chat (actor.browser_chat) and other non-terminal surfaces never run repo-local Python; they resolve by reading this manifest and the kernel JSON directly.",
+    "canonical_fallback": "Manual resolution from this manifest and the kernel JSON is the canonical fallback for every surface and the source the fast path expands; the resolver never replaces this manifest.",
+    "non_authorization": "Resolver output and manual resolution both only shape behavior and gates; neither grants permission (boundary.output_not_permission)."
+  },
   "source_of_truth": {
     "stable_behavior": "kernel/*.json in this repository",
     "live_state": "GitHub issues, PRs, commits, comments, reviews, branches, and local git output, read at task time",
