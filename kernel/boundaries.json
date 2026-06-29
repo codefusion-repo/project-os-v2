@@ -67,6 +67,11 @@
       "on_violation": "status.blocked"
     },
     {
+      "id": "boundary.validation_discipline",
+      "rule": "Write-capable implementation must use proportional validation. Add or update automated tests when they protect deterministic behavior, regression risk, security/privacy boundaries, protocol contracts, billing/storage logic, routing, or stable UI state contracts. Do not add broad, duplicated, brittle, or implementation-detail tests merely to create confidence theater. When acceptance depends on UX feel, copy quality, product judgment, hardware behavior, Google Play behavior, or ambiguous PM preference, report the required manual validation instead of pretending automated tests prove it.",
+      "on_violation": "status.blocked"
+    },
+    {
       "id": "boundary.code_clarity",
       "rule": "Code clarity: prefer self-documenting code. When creating or editing code, add concise comments or docstrings for non-obvious intent, domain invariants, state transitions, security-sensitive behavior, external API assumptions, migrations, constraints, and tradeoffs. Do not comment obvious syntax or restate what the code already says.",
       "on_violation": "status.needs_pm_decision"

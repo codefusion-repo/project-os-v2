@@ -30,6 +30,7 @@
         "boundary.output_not_permission",
         "boundary.implementation_discipline",
         "boundary.primary_path_discipline",
+        "boundary.validation_discipline",
         "boundary.code_clarity"
       ]
     },
