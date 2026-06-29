@@ -86,11 +86,12 @@ the PM the exact condition to check between phases in prose.
 
 ## Examples (derived from the current kernel)
 
-These examples are not a generic command cookbook. They cover exactly the
-work that emits `output.pm_command_bundle` today: only `workflow.pm_intake` and
-`workflow.release_readiness` list `output.pm_command_bundle` in their
-`allowed_output_refs` (`kernel/workflows.json`), which in practice means creating
-an issue and running a reviewed closeout.
+These examples are not a generic command cookbook. They cover the work that
+emits `output.pm_command_bundle` today: `workflow.pm_intake`,
+`workflow.review_before_close`, and `workflow.release_readiness` list
+`output.pm_command_bundle` in their `allowed_output_refs`
+(`kernel/workflows.json`). In practice this includes issue creation, reviewed
+closeout, and release/tag bundles.
 
 If a future kernel change makes other work emit `output.pm_command_bundle`, add
 its example here with the evidence; do not invent command families outside the

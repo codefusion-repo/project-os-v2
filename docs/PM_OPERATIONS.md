@@ -47,6 +47,10 @@ uno resuelve a un id real del kernel.
 | `templates/operations/23-upgrade-kernel-adoption-in-target.md` | Refrescar adaptadores de un target ya adoptado a una versión de kernel más reciente. | `browser_chat` → `terminal_agent` | `target_adoption` | `delegated_commit_pr` | `adoption_packet` | `target_adoption` | `TARGET_REPOSITORY` / — | Sí |
 | `templates/operations/24-draft-create-github-release-command.md` | Draftear el bundle `gh release create` (objeto Release: notas + tag), distinto del tag simple. | `browser_chat` → Humano PM | `release_readiness` | `review_only` | `pm_command_bundle` | `repo_state`, `validation_output` | — / `TAG_NAME` | Sí |
 | `templates/operations/25-audit-implementation-discipline-gaps.md` | Auditar read-only brechas de implementación contra `boundary.implementation_discipline`. | `browser_chat` / `terminal_agent` | `implementation_discipline_audit` | `review_only` | `review_result` (+`draft_issue`) | `repo_state` | `TARGET_REPOSITORY` / `PATH_SCOPE`, `FOCUS`, `ISSUE_NUMBER`, `PR_NUMBER` | No |
+| `templates/operations/26-draft-docs-from-conversation.md` | Convertir contexto conversacional del PM en contenido docs, issue draft o route-prompt de escritura exacta. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` (+`draft_issue`) | `source_basis` | `CONVERSATION_CONTEXT` / `DOC_TARGET` | Sí (solo escritura del archivo) |
+| `templates/operations/27-draft-roadmap-from-docs.md` | Leer docs estables y draftear un roadmap issue body o bundle de creación/actualización. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `draft_issue` (+`pm_command_bundle`) | `source_basis`, `repo_state` | `SOURCE_DOCS` / `TARGET_REPOSITORY`, `ROADMAP_ACTION` | Sí (solo GitHub write) |
+| `templates/operations/28-draft-docs-from-description.md` | Draftear documentación desde una descripción PM y routear creación de archivo solo con aprobación exacta. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` (+`draft_issue`) | `source_basis` | `DESCRIPTION` / `DOC_TARGET` | Sí (solo escritura del archivo) |
+| `templates/operations/29-draft-bounded-roadmap-issues-command.md` | Draftear issues acotados desde roadmap con `ISSUE_COUNT_LIMIT` o `SCOPE_LIMIT`, uno por outcome. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `pm_command_bundle` | `source_basis`, `repo_state` | `ROADMAP_ISSUE` + (`ISSUE_COUNT_LIMIT` o `SCOPE_LIMIT`) / — | No |
 
 Cuando una operación emite `route_prompt` o `pm_command_bundle`, la forma del
 artefacto vive una sola vez en su template canónico (`templates/route-prompt.md`,
@@ -55,9 +59,24 @@ duplican esas reglas.
 
 ## Cobertura de operaciones
 
-Este catálogo contiene **26 templates** (`00`–`25`). Cada uno es un prompt de
+Este catálogo contiene **30 templates** (`00`–`29`). Cada uno es un prompt de
 operación ejecutable; ninguno permanece en el formato de ficha descriptiva
 (*Objetivo / Detalle / Superficie / Configuración / Variables*).
+
+**Transformaciones PM añadidas**:
+
+- *Conversation-to-docs* → `templates/operations/26-draft-docs-from-conversation.md`.
+  Extrae decisiones y contenido estable desde contexto conversacional y routea
+  escritura de archivo solo cuando existe aprobación PM exacta.
+- *Docs-to-roadmap* → `templates/operations/27-draft-roadmap-from-docs.md`.
+  Convierte docs/source basis estables en roadmap issue body o bundle de
+  creación/actualización PM-facing.
+- *Docs-from-description* → `templates/operations/28-draft-docs-from-description.md`.
+  Draftea documentación desde descripción del PM y usa route-prompt solo para
+  escritura terminal aprobada.
+- *Bounded roadmap-to-issues* → `templates/operations/29-draft-bounded-roadmap-issues-command.md`.
+  Complementa `06` sin reemplazarlo: exige `ISSUE_COUNT_LIMIT` o `SCOPE_LIMIT`,
+  y mantiene un issue por outcome.
 
 **Familias restauradas** (no fueron autorizadas para eliminarse):
 
