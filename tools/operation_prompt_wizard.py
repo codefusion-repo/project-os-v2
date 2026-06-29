@@ -1,7 +1,9 @@
-"""Line-based local wizard for generating filled operation prompts.
+"""Local wizard for generating filled operation prompts.
 
-The wizard reads operation templates from ``templates/operations`` and writes a
-local Markdown prompt artifact. It does not execute operations, run commands, or
+If prompt_toolkit is importable, the wizard uses an enhanced interactive mode.
+If unavailable, it falls back to a standard line-based flow.
+The wizard reads templates from ``templates/operations`` and only writes local
+Markdown prompt artifacts. It does not execute operations, run commands, or
 call GitHub, git, or network services.
 """
 
@@ -15,6 +17,16 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, TextIO
+
+try:
+    from prompt_toolkit import prompt
+    from prompt_toolkit.completion import Completer, Completion, WordCompleter
+    from prompt_toolkit.validation import Validator, ValidationError
+    from prompt_toolkit.styles import Style
+    from prompt_toolkit.formatted_text import HTML
+    HAVE_PROMPT_TOOLKIT = True
+except ImportError:
+    HAVE_PROMPT_TOOLKIT = False
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
@@ -304,46 +316,19 @@ def is_positive_limit_variable(name: str) -> bool:
 
 
 def render_prompt(operation: OperationTemplate, values: dict[str, str]) -> str:
-    """Render the filled local prompt artifact."""
+    """Render the filled local prompt artifact inline."""
 
-    lines = [
-        f"# Generated Operation Prompt: {operation.title}",
-        "",
-        f"Source template: {operation.filename}",
-        "",
-        "This local artifact fills INPUT values only. It does not execute the operation,",
-        "call GitHub/git/network services, or grant authorization.",
-        "",
-        "## Filled INPUT",
-        "",
-        "```text",
-        *filled_input_lines(operation, values),
-        "```",
-        "",
-        "## Operation Template",
-        "",
-        operation.text.rstrip(),
-        "",
-    ]
-    return "\n".join(lines)
-
-
-def filled_input_lines(operation: OperationTemplate, values: dict[str, str]) -> list[str]:
-    """Format filled variables as a reusable ``INPUT:`` block."""
-
-    if not operation.variables:
-        return ["  (none)"]
-
-    lines: list[str] = []
-    for variable in operation.variables:
-        value = values.get(variable.name, "").strip()
-        if value:
-            lines.append(f"  {variable.name}={single_line(value)}")
-        elif variable.required:
-            lines.append(f"  {variable.name}=")
-        else:
-            lines.append(f"  {variable.name}=(optional skipped)")
-    return lines
+    lines = operation.text.splitlines()
+    for i, line in enumerate(lines):
+        for variable in operation.variables:
+            if line.rstrip() == variable.raw_line:
+                value = values.get(variable.name, "").strip()
+                if value:
+                    lines[i] = f"  {variable.name}={single_line(value)}"
+                else:
+                    lines[i] = f"  {variable.name}="
+                break
+    return "\n".join(lines) + "\n"
 
 
 def single_line(value: str) -> str:
@@ -735,6 +720,256 @@ def run_wizard(
             return None
 
 
+if HAVE_PROMPT_TOOLKIT:
+    class OperationCompleter(Completer):
+        def __init__(self, operations):
+            self.operations = operations
+
+        def get_completions(self, document, complete_event):
+            text = document.text.lower()
+            for op in self.operations:
+                if text in op.filename.lower() or text in op.title.lower() or text == str(op.index):
+                    display_text = f"{op.index:>2}. {op.filename} - {op.title}"
+                    yield Completion(op.filename, start_position=-len(document.text), display=display_text)
+
+    class OperationValidator(Validator):
+        def __init__(self, operations):
+            self.operations = operations
+
+        def validate(self, document):
+            text = document.text.strip().lower()
+            if not text:
+                return
+            if is_cancel_command(text) or is_search_command(text) or is_help_command(text) or text == "/":
+                return
+            if resolve_operation_selection(self.operations, text) is None:
+                raise ValidationError(
+                    message="Invalid selection. Use a listed number, filename, or cancel.",
+                    cursor_position=len(document.text)
+                )
+
+    def select_operation_pt(operations: list[OperationTemplate], output_stream: TextIO) -> OperationTemplate | None:
+        print_stage("Step 1/3", "Search and select an operation", output_stream)
+        display_operations(operations, output_stream)
+        style = Style.from_dict({
+            'bottom-toolbar': 'bg:#333333 #ffffff',
+        })
+        def bottom_toolbar():
+            return HTML(' <b>Commands</b>: type to search/select, enter to confirm, cancel to exit, ? for help.')
+
+        completer = OperationCompleter(operations)
+        validator = OperationValidator(operations)
+
+        while True:
+            try:
+                selection = prompt(
+                    "Search/select operation: ",
+                    completer=completer,
+                    validator=validator,
+                    style=style,
+                    bottom_toolbar=bottom_toolbar
+                ).strip()
+            except (EOFError, KeyboardInterrupt):
+                return None
+
+            if is_cancel_command(selection):
+                return None
+            if is_help_command(selection):
+                print_selection_help(output_stream)
+                continue
+            if selection == "/" or is_search_command(selection):
+                display_operations(operations, output_stream)
+                continue
+
+            operation = resolve_operation_selection(operations, selection)
+            if operation is not None:
+                return operation
+
+    def collect_values_with_controls_pt(operation: OperationTemplate, output_stream: TextIO, initial_values: dict[str, str] | None = None) -> ValueCollectionResult:
+        values = dict(initial_values or {})
+        print_stage("Step 2/3", "Fill INPUT variables", output_stream)
+        display_operation_summary(operation, output_stream)
+        if not operation.variables:
+            print("This operation declares no INPUT variables.", file=output_stream)
+            return ValueCollectionResult("values", values)
+
+        print("", file=output_stream)
+
+        style = Style.from_dict({
+            'bottom-toolbar': 'bg:#333333 #ffffff',
+        })
+
+        for variable in operation.variables:
+            label = "required" if variable.required else "optional"
+
+            def bottom_toolbar():
+                return HTML(f' <b>{variable.name}</b> ({label}) | Commands: back, cancel, /clear, ? help')
+
+            class VariableValidator(Validator):
+                def validate(self, document):
+                    text = document.text.strip()
+                    if is_cancel_command(text) or is_back_command(text) or is_clear_command(text) or is_help_command(text):
+                        return
+                    if not text:
+                        if variable.required:
+                            raise ValidationError(message=f"Required. {validation_example(variable)}", cursor_position=len(document.text))
+                        return
+                    error = validate_variable_value(variable, text)
+                    if error is not None:
+                        raise ValidationError(message=error, cursor_position=len(document.text))
+
+            completer = None
+            choices = placeholder_choices(variable.placeholder)
+            if choices:
+                completer = WordCompleter(list(choices), ignore_case=True)
+
+            while True:
+                current = values.get(variable.name, "")
+                try:
+                    raw_value = prompt(
+                        f"{variable.name} ({label}, {variable.placeholder}): ",
+                        default=current,
+                        validator=VariableValidator(),
+                        completer=completer,
+                        style=style,
+                        bottom_toolbar=bottom_toolbar
+                    )
+                except (EOFError, KeyboardInterrupt):
+                    return ValueCollectionResult("cancel", values)
+
+                if is_help_command(raw_value):
+                    print_value_help(output_stream)
+                    continue
+                if is_cancel_command(raw_value):
+                    return ValueCollectionResult("cancel", values)
+                if is_back_command(raw_value):
+                    return ValueCollectionResult("operation", values)
+                if is_clear_command(raw_value):
+                    if variable.required:
+                        print(
+                            f"Invalid value: {variable.name} is required. {validation_example(variable)}",
+                            file=output_stream,
+                        )
+                        continue
+                    values[variable.name] = ""
+                    break
+
+                value = raw_value.strip()
+                values[variable.name] = value
+                break
+
+        return ValueCollectionResult("values", values)
+
+    def choose_preview_action_pt(rendered_prompt: str, output_path: Path, output_stream: TextIO) -> str:
+        print_stage("Step 3/3", "Preview and choose next action", output_stream)
+        print("Preview:", file=output_stream)
+        print("=" * 72, file=output_stream)
+        print(rendered_prompt.rstrip(), file=output_stream)
+        print("=" * 72, file=output_stream)
+        print(f"Output path if written: {output_path}", file=output_stream)
+
+        style = Style.from_dict({
+            'bottom-toolbar': 'bg:#333333 #ffffff',
+        })
+        def bottom_toolbar():
+            return HTML(' <b>Actions</b>: write, edit, operation, cancel, ? help')
+
+        completer = WordCompleter(["write", "edit", "operation", "cancel", "help", "?"], ignore_case=True)
+
+        class ActionValidator(Validator):
+            def validate(self, document):
+                val = document.text.strip().lower()
+                if not val or val in {"n", "no"}:
+                    return
+                if val in CANCEL_COMMANDS or val in WRITE_COMMANDS or val in EDIT_COMMANDS or val in OPERATION_COMMANDS or val in HELP_COMMANDS:
+                    return
+                raise ValidationError(message="Choose write, edit, operation, cancel, or ? help.", cursor_position=len(document.text))
+
+        while True:
+            try:
+                answer = prompt(
+                    "Choose action [write/edit/operation/cancel]: ",
+                    completer=completer,
+                    validator=ActionValidator(),
+                    style=style,
+                    bottom_toolbar=bottom_toolbar
+                ).strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                return "cancel"
+
+            if not answer or answer in {"n", "no"} or answer in CANCEL_COMMANDS:
+                return "cancel"
+            if answer in WRITE_COMMANDS:
+                if output_path.exists():
+                    try:
+                        overwrite = prompt(
+                            f"{output_path} exists. Overwrite? [y/N]: ",
+                            style=style
+                        ).strip().lower()
+                    except (EOFError, KeyboardInterrupt):
+                        return "cancel"
+                    if overwrite not in {"y", "yes"}:
+                        print("Overwrite declined. Choose another preview action.", file=output_stream)
+                        continue
+                return "write"
+            if answer in EDIT_COMMANDS:
+                return "edit"
+            if answer in OPERATION_COMMANDS:
+                return "operation"
+            if answer in HELP_COMMANDS:
+                print_preview_help(output_stream)
+                continue
+
+    def run_wizard_pt(
+        operations_dir: Path = DEFAULT_OPERATIONS_DIR,
+        output_dir: Path | None = None,
+        output_stream: TextIO = sys.stdout,
+    ) -> Path | None:
+        operations = discover_operations(operations_dir)
+        output_directory = resolve_output_dir(output_dir)
+
+        while True:
+            operation = select_operation_pt(operations, output_stream=output_stream)
+            if operation is None:
+                print("Cancelled before operation selection. No file was created.", file=output_stream)
+                return None
+
+            values: dict[str, str] = {}
+            while True:
+                value_result = collect_values_with_controls_pt(
+                    operation,
+                    output_stream=output_stream,
+                    initial_values=values,
+                )
+                if value_result.action == "cancel":
+                    print("Cancelled before write. No file was created.", file=output_stream)
+                    return None
+                if value_result.action == "operation":
+                    print("Returning to operation selection.", file=output_stream)
+                    break
+
+                values = value_result.values
+                rendered = render_prompt(operation, values)
+                output_path = output_directory / generated_filename(operation, rendered)
+                action = choose_preview_action_pt(
+                    rendered,
+                    output_path,
+                    output_stream=output_stream,
+                )
+                if action == "write":
+                    path = write_prompt(output_path, rendered)
+                    print(f"Wrote generated prompt: {path}", file=output_stream)
+                    return path
+                if action == "edit":
+                    print("Returning to variable entry.", file=output_stream)
+                    continue
+                if action == "operation":
+                    print("Returning to operation selection.", file=output_stream)
+                    break
+                print("Cancelled before write. No file was created.", file=output_stream)
+                return None
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -759,7 +994,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
-        result = run_wizard(operations_dir=args.operations_dir, output_dir=args.output_dir)
+        if HAVE_PROMPT_TOOLKIT:
+            result = run_wizard_pt(operations_dir=args.operations_dir, output_dir=args.output_dir)
+        else:
+            result = run_wizard(operations_dir=args.operations_dir, output_dir=args.output_dir)
     except WizardError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
