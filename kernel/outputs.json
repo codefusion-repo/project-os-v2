@@ -6,7 +6,7 @@
     {
       "id": "output.execution_report",
       "use_for": "Reporting implementation work.",
-      "required_sections": ["issue or PR", "repository", "branch", "evidence reviewed", "files changed", "implementation-discipline note when relevant", "validation performed with results (or reason not run)", "risks and limitations", "commit or PR reference when applicable", "remaining work"],
+      "required_sections": ["issue or PR", "repository", "branch", "evidence reviewed", "files changed", "implementation-discipline note when relevant", "validation performed: automated validation with results, validation not run and why, manual PM/user validation required, and accepted validation exceptions", "risks and limitations", "commit or PR reference when applicable", "remaining work"],
       "rule": "Never claim done unless scope is complete, out-of-scope was respected, validation is reported, and review can verify the result."
     },
     {

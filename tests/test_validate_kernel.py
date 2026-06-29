@@ -499,6 +499,79 @@ def test_primary_path_discipline_boundary_is_compact_and_scoped() -> None:
     assert "fallback abuse" in audit_text
 
 
+def test_validation_discipline_boundary_is_compact_and_scoped() -> None:
+    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    boundary = _kernel_entry("boundaries.json", "boundary.validation_discipline")
+    impl_boundary = _kernel_entry("boundaries.json", "boundary.implementation_discipline")
+    primary_boundary = _kernel_entry("boundaries.json", "boundary.primary_path_discipline")
+    issue_workflow = _kernel_entry("workflows.json", "workflow.issue_implementation")
+    review_workflow = _kernel_entry("workflows.json", "workflow.review_before_close")
+    audit_workflow = _kernel_entry("workflows.json", "workflow.implementation_discipline_audit")
+    execution_output = _kernel_entry("outputs.json", "output.execution_report")
+
+    rule = boundary["rule"].lower()
+    assert boundary["on_violation"] == "status.blocked"
+    # Keep it compact and non-duplicative: no notes field; flagging language lives in workflows.
+    assert "notes" not in boundary
+    assert len(rule) < 700
+
+    # Proportional automated tests, preserved for deterministic/regression/contract risk.
+    assert "proportional validation" in rule
+    assert "add or update automated tests" in rule
+    assert (
+        "deterministic behavior, regression risk, security/privacy boundaries, protocol contracts, "
+        "billing/storage logic, routing, or stable ui state contracts" in rule
+    )
+    # No confidence theater.
+    assert "broad, duplicated, brittle, or implementation-detail tests merely to create confidence theater" in rule
+    # Distinguish automated validation from manual PM/user validation.
+    assert "ux feel" in rule
+    assert "ambiguous pm preference" in rule
+    assert "report the required manual validation instead of pretending automated tests prove it" in rule
+
+    # No broad QA/testing manifesto: stay focused on proportional validation, not a strategy doc.
+    for manifesto_term in ("coverage", "test pyramid", "test strategy", "linter", "static analysis", "qa framework"):
+        assert manifesto_term not in rule
+
+    # Must not duplicate or bloat the sibling discipline boundaries.
+    assert "proportional validation" not in impl_boundary["rule"].lower()
+    assert "confidence theater" not in impl_boundary["rule"].lower()
+    assert "confidence theater" not in impl_boundary["notes"].lower()
+    assert "proportional validation" not in primary_boundary["rule"].lower()
+    assert "confidence theater" not in primary_boundary["rule"].lower()
+
+    # terminal_agent inherits it; no other actor does (it is write-capable only).
+    assert {entry["id"] for entry in actors["entries"]} == CANONICAL_ACTOR_IDS
+    terminal_agent = next(entry for entry in actors["entries"] if entry["id"] == "actor.terminal_agent")
+    non_terminal_refs = [
+        entry.get("boundary_refs", [])
+        for entry in actors["entries"]
+        if entry["id"] != "actor.terminal_agent"
+    ]
+    assert "boundary.validation_discipline" in terminal_agent["boundary_refs"]
+    assert all("boundary.validation_discipline" not in refs for refs in non_terminal_refs)
+
+    # Applied in issue_implementation; flaggable in review; auditable in the discipline audit.
+    issue_steps = " ".join(issue_workflow["steps"]).lower()
+    review_steps = " ".join(review_workflow["steps"]).lower()
+    audit_text = " ".join([audit_workflow["use_for"], *audit_workflow["steps"]]).lower()
+    assert "boundary.validation_discipline" in issue_steps
+    assert "boundary.validation_discipline" in review_steps
+    assert "confidence-theater tests" in review_steps
+    assert "missing manual-validation reporting" in review_steps
+    assert "boundary.validation_discipline" in audit_text
+    assert "validation overreach or missing manual-validation reporting" in audit_text
+
+    # Execution report distinguishes automated vs manual validation and accepted exceptions,
+    # without duplicating the boundary text.
+    sections = execution_output["required_sections"]
+    validation_section = next(section for section in sections if "validation performed" in section)
+    assert "automated validation with results" in validation_section
+    assert "validation not run and why" in validation_section
+    assert "manual PM/user validation required" in validation_section
+    assert "accepted validation exceptions" in validation_section
+
+
 def test_implementation_discipline_audit_workflow_and_operation_are_read_only() -> None:
     workflow = _kernel_entry("workflows.json", "workflow.implementation_discipline_audit")
     template = (REPO_ROOT / "templates" / "operations" / "25-audit-implementation-discipline-gaps.md").read_text(
