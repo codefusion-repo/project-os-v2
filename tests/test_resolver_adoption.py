@@ -34,7 +34,29 @@ DURABLE_FILES = [
     REPO_ROOT / "adapters" / "BROWSER_CHAT.target.md",
     REPO_ROOT / "templates" / "route-prompt.md",
     REPO_ROOT / "docs" / "DESIGN.md",
+    REPO_ROOT / "README.md",
+    REPO_ROOT / "docs" / "GETTING_STARTED.md",
+    REPO_ROOT / "docs" / "PUBLIC_USAGE_MODEL.md",
 ]
+
+# Public-facing docs that explain kernel resolution to readers. They must
+# distinguish the terminal fast path from manual/manifest resolution and keep
+# resolver output non-authorizing, without restating kernel rules.
+PUBLIC_DOCS = [
+    REPO_ROOT / "README.md",
+    REPO_ROOT / "docs" / "GETTING_STARTED.md",
+    REPO_ROOT / "docs" / "PUBLIC_USAGE_MODEL.md",
+]
+
+# Docs whose resolution prose also covers browser/non-terminal surfaces and so
+# must state that those surfaces do not run repo-local Python.
+PUBLIC_DOCS_WITH_BROWSER = [
+    REPO_ROOT / "README.md",
+    REPO_ROOT / "docs" / "PUBLIC_USAGE_MODEL.md",
+]
+
+# Either-language phrasings that tie resolver output to "grants no permission".
+NON_AUTHORIZING_PHRASES = ("grants no permission", "no otorga permiso")
 
 # Terminal-capable adapters that should prefer the resolver fast path.
 TERMINAL_ADAPTERS = [
@@ -104,6 +126,39 @@ class TestDesignDoc:
         assert "project_os_resolve" in text
         assert "second source of truth" in text
         assert "boundary.output_not_permission" in text
+
+
+class TestPublicDocs:
+    """Public docs distinguish the terminal fast path from manual resolution."""
+
+    def test_public_docs_mention_resolver_fast_path(self) -> None:
+        for path in PUBLIC_DOCS:
+            assert RESOLVER_REF in _read(path), (
+                f"{path.name} should reference the {RESOLVER_REF} fast path"
+            )
+
+    def test_public_docs_keep_manifest_manual_fallback(self) -> None:
+        for path in PUBLIC_DOCS:
+            text = _read(path).lower()
+            assert "manifest" in text, f"{path.name} should keep manifest resolution"
+            assert "fallback" in text, (
+                f"{path.name} should keep manual resolution as the canonical fallback"
+            )
+
+    def test_public_docs_describe_resolver_as_non_authorizing(self) -> None:
+        for path in PUBLIC_DOCS:
+            text = re.sub(r"\s+", " ", _read(path).lower())
+            assert any(phrase in text for phrase in NON_AUTHORIZING_PHRASES), (
+                f"{path.name} should describe resolver output as non-authorizing"
+            )
+
+    def test_public_docs_state_browser_no_repo_local_python(self) -> None:
+        for path in PUBLIC_DOCS_WITH_BROWSER:
+            text = re.sub(r"\s+", " ", _read(path).lower())
+            assert "repo-local python" in text, (
+                f"{path.name} should state browser/non-terminal surfaces "
+                f"do not run repo-local Python"
+            )
 
 
 class TestNonAuthorizing:

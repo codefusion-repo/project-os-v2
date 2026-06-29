@@ -60,6 +60,13 @@ Return exactly one of four statuses — `status.resolved`,
 Resolution selects shape and gates; it never grants permission. Fail closed on
 anything missing or ambiguous.
 
+On a terminal surface with a kernel checkout and repo-local Python, a terminal
+agent may take the `tools.project_os_resolve` fast path to expand that sequence
+deterministically; manual resolution from `kernel/manifest.json` stays the
+canonical fallback and source. Browser/non-terminal surfaces never run
+repo-local Python — they always resolve manually from the manifest. Either way
+the resolved output only shapes behavior and grants no permission.
+
 ## Public Quick Start
 
 Project OS delega trabajo seguro a IA mediante plantillas de operaciones,
