@@ -106,6 +106,26 @@ class TestHappyPath:
         # Browser chat boundaries should include draft_only_browser.
         assert "boundary.draft_only_browser" in resolved["boundaries"]
 
+    def test_browser_chat_manual_implementation_plan_is_review_only(self) -> None:
+        result = _resolve_ok(
+            "actor.browser_chat",
+            "workflow.issue_implementation_manual",
+            "mode.review_only",
+        )
+        resolved = result["resolved"]
+        effective_refs = resolved["effective"]["effective_evidence_refs"]
+
+        assert resolved["actor"]["id"] == "actor.browser_chat"
+        assert resolved["workflow"]["id"] == "workflow.issue_implementation_manual"
+        assert resolved["execution_mode"]["id"] == "mode.review_only"
+        assert "output.manual_implementation_plan" in resolved["outputs"]
+        assert "boundary.draft_only_browser" in resolved["boundaries"]
+        assert "evidence.issue_scope" in effective_refs
+        assert "evidence.source_basis" in effective_refs
+        assert "evidence.repo_state" in effective_refs
+        assert "evidence.branch_preflight" not in effective_refs
+        assert "evidence.pm_approval" not in effective_refs
+
     def test_terminal_agent_review_only(self) -> None:
         result = _resolve_ok(
             "actor.terminal_agent",

@@ -22,7 +22,7 @@ Arquitectura final de docs de operaciones:
   aprobación PM aplica y cuál es la siguiente operación segura.
 
 La división evita duplicar la tabla canónica de templates dentro de un manual de
-flujo más largo. Ambos docs apuntan a las mismas operaciones `00`–`32`; ninguno
+flujo más largo. Ambos docs apuntan a las mismas operaciones `00`–`33`; ninguno
 renumera, autoriza escritura ni guarda estado vivo.
 
 Las superficies (browser chat, terminal agent, Humano PM, destinatario externo)
@@ -66,6 +66,7 @@ uno resuelve a un id real del kernel.
 | `templates/operations/30-process-human-qa-results.md` | Procesar resultados de ejecución de QA humano y draftear route-prompt de corrección o follow-up. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `QA_RESULT` / `ISSUE_NUMBER`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/31-process-security-review-results.md` | Procesar resultados de revisión de seguridad y draftear route-prompt de corrección o follow-up. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `SECURITY_REVIEW_RESULT` / `PR_NUMBER`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/32-process-design-asset-delivery.md` | Procesar entrega de assets o feedback de diseño y mapearlo a tareas técnicas o drafts. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `DESIGN_DELIVERY` / `ISSUE_NUMBER`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
+| `templates/operations/33-draft-manual-implementation-plan.md` | Draftear un plan de implementación humano-ejecutable para un issue scoped sin afirmar ejecución ni mutar repositorios. | `browser_chat` → Humano PM | `issue_implementation_manual` | `review_only` | `manual_implementation_plan` | `issue_scope`, `source_basis`, `repo_state` | `ISSUE_NUMBER` / `TARGET_REPOSITORY`, `PATH_SCOPE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 
 Cuando una operación emite `route_prompt` o `pm_command_bundle`, la forma del
 artefacto vive una sola vez en su template canónico (`templates/route-prompt.md`,
@@ -112,10 +113,11 @@ Esta matriz detalla estrictamente las variables requeridas, opcionales (incluyen
 | 30 | QA_RESULT | ISSUE_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 08, 21, or 09 |
 | 31 | SECURITY_REVIEW_RESULT | PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 08, 21, or 09 |
 | 32 | DESIGN_DELIVERY | ISSUE_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 07, 08, 04, or 21 |
+| 33 | ISSUE_NUMBER | TARGET_REPOSITORY, PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 09, 08, or 21 |
 
 ## Cobertura de operaciones
 
-Este catálogo contiene **33 templates** (`00`–`32`). Cada uno es un prompt de
+Este catálogo contiene **34 templates** (`00`–`33`). Cada uno es un prompt de
 operación ejecutable; ninguno permanece en el formato de ficha descriptiva
 (*Objetivo / Detalle / Superficie / Configuración / Variables*).
 
@@ -169,27 +171,29 @@ aprobación exacta otorgada vs pendiente/draft/read-only planning.
 El ciclo abarca todas las fases del ciclo de vida del desarrollo de software (SDLC) de forma flexible, permitiendo encadenarlas mediante `RECOMMENDED_NEXT_OPERATION`:
 1. **Idea Intake y Requirements**: Se evalúan ideas (16) y se transforman en issues (04, 06) o documentación (28, 26, 27).
 2. **Docs y Design**: Decisiones de arquitectura (22), assets de diseño externo (19) o documentación estable se draftean sin mutar inmediatamente la rama principal.
-3. **Implementation**: El PM delega trabajo al Terminal Agent (07) para ejecutar commits y PRs acotados.
+3. **Implementation**: El PM delega trabajo al Terminal Agent (07) para ejecutar commits y PRs acotados, o usa el plan manual (33) cuando browser chat debe producir instrucciones humano-ejecutables sin escribir archivos.
 4. **QA y Security**: Revisión de PR (09), checklists manuales de QA (18), análisis OWASP (20), y procesamiento de resultados QA/seguridad (30, 31) proveen gates de calidad.
 5. **Assets y Mantenimiento**: Solicitudes y entregas de assets de diseño (19, 32), correcciones menores (08), y hallazgos sistémicos (25, 14, 15, 23) mantienen la integridad del kernel y del repositorio.
 6. **Release, Follow-up y Handoff**: El PR se cierra (10) y verifica (11), los hallazgos no bloqueantes se difieren (21), se generan tags y releases (12, 13, 24), y el contexto se transfiere a una nueva sesión (17).
 
 ### Cobertura Post-Gate
 
-Las operaciones nuevas cubren los tres gates externos que ya existían como
+Las operaciones post-gate cubren los tres gates externos que ya existían como
 operaciones de solicitud: QA humano (`18` → `30`), revisión de seguridad
-(`20` → `31`) y assets/diseño (`19` → `32`). No se agregan más templates en
+(`20` → `31`) y assets/diseño (`19` → `32`). No se agregan operaciones KOPS.3 en
 este corte porque los demás puntos del ciclo ya tienen rutas mínimas:
-implementación y reportes se revisan en `09`; findings de review se convierten
+implementación terminal se routea con `07`; implementación manual se planifica
+con `33`; reportes y PRs se revisan en `09`; findings de review se convierten
 en corrección con `08` o follow-up con `21`; fallas de validación bloqueantes
 vuelven por `08`; readiness de cierre vive en `09`/`10`; post-merge y release
 viven en `11`/`12`/`13`/`24`; handoff vive en `17`.
 
 Si el PM quiere una operación genérica para procesar cualquier
-`status.needs_pm_decision` o cualquier execution report fuera de PR review,
-debe decidirse como follow-up PM: ese template cruzaría varias familias de
-workflow y necesita reglas de selección propias para no convertirse en un motor
-de workflow encubierto.
+`status.needs_pm_decision`, cualquier execution report fuera de PR review o el
+resultado de una implementación manual ya aplicada, debe decidirse como
+follow-up KOPS.3: ese template cruzaría varias familias de workflow y necesita
+reglas de selección propias para no convertirse en un motor de workflow
+encubierto.
 
 ### Justificación de Variables Discursivas
 - `PM_QUESTION_HUMANO`: Es la única variable canónica para preguntas del PM. Es

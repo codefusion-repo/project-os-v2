@@ -28,6 +28,20 @@
       "allowed_output_refs": ["output.execution_report", "output.status_result"]
     },
     {
+      "id": "workflow.issue_implementation_manual",
+      "use_for": "Drafting human-executable implementation plans for a scoped issue without repository or GitHub mutation.",
+      "steps": [
+        "resolve kernel and confirm the current surface remains no-write under mode.review_only",
+        "read the issue objective, scope, out-of-scope, acceptance criteria, and source basis live",
+        "inspect available repository code context and path scope before naming file or line anchors",
+        "fail closed with status.needs_context when issue scope, repository context, validation expectations, or implementation anchors cannot be inspected sufficiently",
+        "draft a human-executable implementation plan with files to inspect, files to modify, anchored change instructions, reasoning, validation commands, manual QA, risks, rollback, and recommended next Project OS operation",
+        "state explicitly that no code was edited, no files were written, and no git or GitHub mutation occurred"
+      ],
+      "required_evidence_refs": ["evidence.issue_scope", "evidence.source_basis", "evidence.repo_state"],
+      "allowed_output_refs": ["output.manual_implementation_plan", "output.status_result"]
+    },
+    {
       "id": "workflow.review_before_close",
       "use_for": "Reviewing finished work before the PM merges or closes.",
       "steps": ["read the linked issue objective, scope, out-of-scope, and acceptance criteria live", "read PR body, comments, and reports only as claims or evidence leads", "read the changed-file list, inspect the PR diff, and open relevant final head files when diff context is insufficient", "compare implementation behavior and validation, including boundary.implementation_discipline, boundary.primary_path_discipline, and boundary.validation_discipline, against the linked issue requirements", "return status.needs_context instead of GO when code/diff/final-file evidence cannot be inspected", "report a verdict with findings by file/line or explicit not-reviewed gaps, including implementation-discipline violations when relevant, unjustified fallback paths, and validation-discipline gaps such as over-testing, brittle or confidence-theater tests, or missing manual-validation reporting against boundary.validation_discipline", "leave merge and closure to the PM"],

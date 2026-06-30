@@ -57,7 +57,7 @@ def test_pm_operations_catalog_alignment():
     ops_dir = "templates/operations"
     templates = [f for f in sorted(os.listdir(ops_dir)) if f.endswith(".md")]
 
-    assert len(templates) == 33
+    assert len(templates) == 34
 
     for template in templates:
         idx = template[:2]
@@ -107,9 +107,21 @@ def test_pm_operations_catalog_alignment():
         # Check no live-state durable content
         assert "github.com/" not in content, f"Live state found in {template}"
 
-def test_no_unjustified_kernel_growth():
-    # Enforce no kernel changes by checking git status of kernel/
+def test_issue_343_kernel_growth_is_limited_to_manual_implementation_contracts():
+    # Kernel growth is allowed here only for the KOPS.2 manual no-write path.
     import subprocess
     result = subprocess.run(["git", "diff", "--name-only", "origin/main...HEAD", "kernel/"], capture_output=True, text=True)
     changed_files = [f for f in result.stdout.strip().split('\n') if f]
-    assert not changed_files, f"Kernel files were modified: {changed_files}"
+    allowed_files = {"kernel/workflows.json", "kernel/outputs.json"}
+    assert set(changed_files).issubset(allowed_files), f"Unexpected kernel files were modified: {changed_files}"
+
+    if changed_files:
+        import json
+        from pathlib import Path
+
+        workflows = json.loads(Path("kernel/workflows.json").read_text(encoding="utf-8"))
+        outputs = json.loads(Path("kernel/outputs.json").read_text(encoding="utf-8"))
+        workflow_ids = {entry["id"] for entry in workflows["entries"]}
+        output_ids = {entry["id"] for entry in outputs["entries"]}
+        assert "workflow.issue_implementation_manual" in workflow_ids
+        assert "output.manual_implementation_plan" in output_ids
