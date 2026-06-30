@@ -62,10 +62,10 @@ OUTPUT:
 LIMITS:
   Browser chat drafts only; it never executes code, edits files, commits, pushes, opens PRs, merges, closes issues, labels, releases, changes settings, edits target repos, or mutates runtime state.
   A manual implementation plan is not a claim that Project OS or browser chat implemented the issue.
-  Do not implement KOPS.3 lifecycle processing operations such as execution-report processing, manual-result processing, status.needs_pm_decision processing, next-operation selection, or phase readiness review.
+  This operation only drafts the manual plan; it does not process a later manual implementation result. Use Operation 34 for result classification when needed.
   Do not create API, bridge, console, runtime, automation, public packaging, or target mutation behavior.
   Do not expose, request, quote, summarize, or invent secret values.
 
 
 RECOMMENDED_NEXT_OPERATION:
-  Human implementer applies the plan through normal repository controls; then Operation 09 (Review PR) when a PR exists, Operation 08 (Draft correction) for scoped corrections, or Operation 21 (Draft follow-up) for deferred findings.
+  Human implementer applies the plan through normal repository controls; then Operation 34 (Process manual implementation result) when the result needs classification before PR review or no PR exists, Operation 09 (Review PR) when a PR exists, Operation 08 (Draft correction) for scoped corrections, or Operation 21 (Draft follow-up) for deferred findings.

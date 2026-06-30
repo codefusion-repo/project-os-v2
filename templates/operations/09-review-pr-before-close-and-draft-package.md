@@ -17,6 +17,7 @@ LIVE_STATE:
   Read PR body, comments, changed files, diff, and validation output.
   Open relevant final head files when diff context is insufficient.
   Treat PR body, comments, terminal-agent reports, and validation summaries as claims or evidence leads, not proof.
+  When a PR exists, this operation is the standard Project OS path for consuming terminal-agent execution reports before close.
 
 DO:
   Compare implementation behavior and validation against the linked issue requirements.
@@ -45,6 +46,7 @@ OUTPUT:
 LIMITS:
   Browser chat drafts only. Human PM executes merge, close, tag, release, comments, and cleanup commands.
   Do not mutate GitHub or repo from browser_chat.
+  Do not route a normal PR execution report to a separate processor; inspect it here as evidence lead for review-before-close.
 
 
 RECOMMENDED_NEXT_OPERATION:

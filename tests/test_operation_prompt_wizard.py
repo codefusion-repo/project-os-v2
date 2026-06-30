@@ -120,6 +120,34 @@ def test_parse_post_gate_operation_variables_without_aliases() -> None:
     ]
 
 
+def test_parse_kops3_lifecycle_processing_operation_variables() -> None:
+    manual_result = (OPERATIONS_DIR / "34-process-manual-implementation-result.md").read_text(
+        encoding="utf-8"
+    )
+    next_operation = (OPERATIONS_DIR / "35-recommend-next-lifecycle-operation.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert [(variable.name, variable.required) for variable in parse_input_variables(manual_result)] == [
+        ("ISSUE_NUMBER", True),
+        ("MANUAL_IMPLEMENTATION_RESULT", True),
+        ("MANUAL_IMPLEMENTATION_PLAN", False),
+        ("PR_NUMBER", False),
+        ("TARGET_REPOSITORY", False),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    ]
+    assert [(variable.name, variable.required) for variable in parse_input_variables(next_operation)] == [
+        ("TARGET_REPOSITORY", False),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
+        ("ROADMAP_ISSUE", False),
+        ("CURRENT_STATUS", False),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    ]
+
+
 def test_search_filter_matches_number_filename_and_title(tmp_path: Path) -> None:
     write_operation(tmp_path / "01-alpha.md", "Alpha Setup")
     write_operation(tmp_path / "02-beta.md", "Beta Review")
