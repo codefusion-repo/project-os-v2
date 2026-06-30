@@ -1,9 +1,8 @@
 import os
 import re
 
-PM_QUESTION_ALLOWED = {"00", "05", "30", "31", "32"}
-PM_FEEDBACK_OPTIONAL_ALLOWED = {"30", "31", "32"}
-PM_FEEDBACK_REQUIRED_ALLOWED = {"08"}
+HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
+LEGACY_PM_QUESTION_PATTERN = re.compile(r"\bPM_QUESTION\b")
 
 
 def parse_markdown_table(content: str, header: str):
@@ -91,15 +90,11 @@ def test_pm_operations_catalog_alignment():
         assert req_vars == expected["req"], f"Req vars mismatch in {template}: {req_vars} vs {expected['req']}"
         assert opt_vars == expected["opt"], f"Opt vars mismatch in {template}: {opt_vars} vs {expected['opt']}"
 
-        assert "PM_QUESTION" not in req_vars, f"PM_QUESTION must never be required in {template}"
-        if "PM_QUESTION" in opt_vars:
-            assert idx in PM_QUESTION_ALLOWED, f"PM_QUESTION not justified in {template}"
-        if "PM_FEEDBACK_HUMANO" in req_vars:
-            assert idx in PM_FEEDBACK_REQUIRED_ALLOWED, f"PM_FEEDBACK_HUMANO required only for correction routing: {template}"
-        if "PM_FEEDBACK_HUMANO" in opt_vars:
-            assert idx in PM_FEEDBACK_OPTIONAL_ALLOWED, f"PM_FEEDBACK_HUMANO not justified in {template}"
+        assert not LEGACY_PM_QUESTION_PATTERN.search(content), f"legacy PM_QUESTION token remains in {template}"
+        assert HUMAN_CONTEXT_VARIABLES.isdisjoint(req_vars), f"human context vars must be optional in {template}"
+        assert HUMAN_CONTEXT_VARIABLES.issubset(opt_vars), f"missing optional human context vars in {template}"
         expected_discursive = [
-            var for var in [*req_vars, *opt_vars] if var in {"PM_QUESTION", "PM_FEEDBACK_HUMANO"}
+            var for var in [*req_vars, *opt_vars] if var in HUMAN_CONTEXT_VARIABLES
         ]
         assert expected["discursive"] == expected_discursive, (
             f"Discursive vars mismatch in docs row {idx}: {expected['discursive']} vs {expected_discursive}"

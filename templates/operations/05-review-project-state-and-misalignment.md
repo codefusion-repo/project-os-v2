@@ -4,7 +4,8 @@ OPERATION:
   Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.review_only, mode.review_only.
 
 INPUT:
-  PM_QUESTION=<PM_QUESTION>   # optional
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
+  PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -19,12 +20,12 @@ DO:
   Find misalignments in the roadmap, open issues, and recently closed issues.
   Find misalignments against the current code state.
 
-IF PM_QUESTION present:
+IF PM_QUESTION_HUMANO present:
   Draft the answer using the live-state result as context.
 
 OUTPUT:
   output.status_result carrying the misalignment findings by evidence reference and the safe next step
-  (and the PM_QUESTION answer when asked).
+  (and the PM_QUESTION_HUMANO answer when asked).
 
 LIMITS:
   Report only; do not create issues or assume resolutions. No file, git, or GitHub mutation.

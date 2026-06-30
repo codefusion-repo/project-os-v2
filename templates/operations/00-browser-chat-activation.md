@@ -5,7 +5,8 @@ OPERATION:
   Establish the PM session context on this surface; later operations select their own workflow and mode.
 
 INPUT:
-  PM_QUESTION=<PM_QUESTION>   # optional
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
+  PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -22,7 +23,7 @@ DO:
   Route write-capable work to a terminal agent with output.route_prompt (templates/route-prompt.md).
   Draft PM bundles with output.pm_command_bundle (templates/pm-command-bundle.md).
 
-IF PM_QUESTION present:
+IF PM_QUESTION_HUMANO present:
   Answer it using live-state evidence as context; take no write action.
 
 OUTPUT:

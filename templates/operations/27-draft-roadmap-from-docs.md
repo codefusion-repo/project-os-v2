@@ -8,6 +8,8 @@ INPUT:
   SOURCE_DOCS=<SOURCE_DOCS>
   TARGET_REPOSITORY=<TARGET_REPOSITORY>   # optional
   ROADMAP_ACTION=<create|update>   # optional
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
+  PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -17,6 +19,7 @@ KERNEL:
 LIVE_STATE:
   Read SOURCE_DOCS, linked issues/PRs/ADRs, existing roadmap issue when present, and PM decisions live.
   Treat docs as stable source basis, not as proof of current issue/PR completion state.
+  Use PM_FEEDBACK_HUMANO and PM_QUESTION_HUMANO, when provided, only to interpret roadmap direction or surface PM choices.
 
 DO:
   Convert stable direction into one roadmap issue body per templates/artifacts.md (Roadmap issue).
