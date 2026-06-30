@@ -29,7 +29,7 @@ uno resuelve a un id real del kernel.
 | `templates/operations/05-review-project-state-and-misalignment.md` | Usar decisiones PM y docs fijos como verdad principal para hallar desalineaciones de roadmap/issues/código. | `browser_chat` | `review_only` | `review_only` | `status_result` | `repo_state` | — / `PM_QUESTION` | No |
 | `templates/operations/06-draft-create-next-issue-command-from-traceability.md` | Inferir el próximo outcome real desde la trazabilidad viva y draftear su `gh issue create`. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `pm_command_bundle` | `source_basis`, `repo_state` | — / `ROADMAP_ISSUE` | No |
 | `templates/operations/07-draft-issue-implementation-route-prompt.md` | Draftear un route-prompt para delegar la implementación de un issue a un terminal agent. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` | `source_basis`, `repo_state` | `ISSUE_NUMBER` / `ROADMAP_ISSUE` | No |
-| `templates/operations/08-draft-review-correction-route-prompt.md` | Encapsular feedback humano en un route-prompt de corrección sin expandir el scope. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` | `source_basis`, `repo_state` | `ISSUE_NUMBER`, `FEEDBACK_PM_HUMANO` / — | No |
+| `templates/operations/08-draft-review-correction-route-prompt.md` | Encapsular feedback humano en un route-prompt de corrección sin expandir el scope. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` | `source_basis`, `repo_state` | `ISSUE_NUMBER`, `PM_FEEDBACK_HUMANO` / — | No |
 | `templates/operations/09-review-pr-before-close-and-draft-package.md` | Comparar la implementación del PR contra el issue vinculado y, solo si resuelve, draftear el cierre. | `browser_chat` | `review_before_close` | `review_only` | `review_result` (+`pm_command_bundle`) | `issue_scope`, `pr_diff`, `validation_output` | `PR_NUMBER` / — | No |
 | `templates/operations/10-draft-pr-closeout-and-cleanup-command.md` | Draftear el paquete común de cierre de PR/issue según el estado vivo. | `browser_chat` → Humano PM | `review_before_close` | `review_only` | `pm_command_bundle` | `issue_scope`, `pr_diff`, `validation_output` | `PR_NUMBER`, `ISSUE_NUMBER` / — | No |
 | `templates/operations/11-verify-post-merge-state.md` | Comprobar read-only que la rama principal quedó saludable y el issue se resolvió tras el merge. | `browser_chat` / `terminal_agent` | `review_only` | `review_only` | `status_result` | `repo_state` | `PR_NUMBER` / — | No |
@@ -56,6 +56,44 @@ Cuando una operación emite `route_prompt` o `pm_command_bundle`, la forma del
 artefacto vive una sola vez en su template canónico (`templates/route-prompt.md`,
 `templates/pm-command-bundle.md`); los templates de operación apuntan ahí y no
 duplican esas reglas.
+
+
+## Matriz de Variables de Operación (Operation-Variable Matrix)
+
+Esta matriz detalla estrictamente las variables requeridas, opcionales (incluyendo discursivas) y la próxima operación recomendada para cada template, alineadas al catálogo.
+
+| Template | Req Variables | Opt Variables | Discursive | Recommended Next Operation |
+|----------|---------------|---------------|------------|----------------------------|
+| 00 | (none) | PM_QUESTION | PM_QUESTION | 01, 02, 05, or intake/audit |
+| 01 | TARGET_REPOSITORY | (none) | (none) | 03 |
+| 02 | TARGET_REPOSITORY | DESCRIPTION | (none) | 03 |
+| 03 | TARGET_REPOSITORY | (none) | (none) | 05, 06, or 14 |
+| 04 | DESCRIPTION | (none) | (none) | 07 |
+| 05 | (none) | PM_QUESTION | PM_QUESTION | 06, 29, or 21 |
+| 06 | (none) | ROADMAP_ISSUE | (none) | 07 |
+| 07 | ISSUE_NUMBER | ROADMAP_ISSUE | (none) | 09 or 08 |
+| 08 | ISSUE_NUMBER, PM_FEEDBACK_HUMANO | (none) | PM_FEEDBACK_HUMANO | 09 |
+| 09 | PR_NUMBER | (none) | (none) | 10 or 08 |
+| 10 | PR_NUMBER, ISSUE_NUMBER | (none) | (none) | 11 |
+| 11 | PR_NUMBER | (none) | (none) | 06 or 12 |
+| 12 | (none) | TAG_NAME | (none) | 13 or 24 |
+| 13 | (none) | TAG_NAME | (none) | Human PM executes |
+| 14 | TARGET_REPOSITORY | (none) | (none) | 23 or manual correction |
+| 15 | ISSUE_NUMBER | (none) | (none) | 08 or 21 |
+| 16 | IDEA | (none) | (none) | 04 or 28 |
+| 17 | (none) | (none) | (none) | 00 |
+| 18 | ISSUE_NUMBER | (none) | (none) | 09 or 08 |
+| 19 | DESCRIPTION | (none) | (none) | 07 |
+| 20 | PR_NUMBER | (none) | (none) | 08 |
+| 21 | PR_NUMBER | (none) | (none) | 07 |
+| 22 | DECISION | (none) | (none) | 06 or 07 |
+| 23 | TARGET_REPOSITORY | (none) | (none) | 03 |
+| 24 | (none) | TAG_NAME | (none) | Human PM executes |
+| 25 | TARGET_REPOSITORY | PATH_SCOPE, FOCUS, ISSUE_NUMBER, PR_NUMBER | (none) | 08 or 21 |
+| 26 | CONVERSATION_CONTEXT | DOC_TARGET | (none) | Terminal Agent executes or 28 |
+| 27 | SOURCE_DOCS | TARGET_REPOSITORY, ROADMAP_ACTION | (none) | 06 or 29 |
+| 28 | DESCRIPTION | DOC_TARGET | (none) | Terminal Agent executes, then 09 |
+| 29 | ROADMAP_ISSUE | ISSUE_COUNT_LIMIT, SCOPE_LIMIT | (none) | 07 |
 
 ## Cobertura de operaciones
 
@@ -104,13 +142,14 @@ operación PM-facing de configuración del agente.
 
 Project OS no es un runtime ni un motor de workflow enforcado por software. El flujo del ciclo de vida se basa en la lectura del estado vivo (GitHub/git) y se facilita a través del bloque `RECOMMENDED_NEXT_OPERATION` en cada template, permitiendo al Humano PM encadenar tareas lógicamente sin restricciones de máquina de estados.
 
-El ciclo típico sigue este patrón:
-1. **Intake y Planificación**: Las operaciones (04, 06, 29, 27) generan bundles de comandos para crear issues acotados en GitHub.
-2. **Delegación**: A partir de un issue vivo, las operaciones (07, 22, 26, 28) emiten `route_prompt` para delegar el trabajo a un Terminal Agent.
-3. **Revisión y Corrección**: El PR resultante es evaluado (09). Si hay faltantes, se emite una corrección (08); si se detectan problemas mayores, se audita (25) o se solicitan revisiones externas (20).
-4. **Cierre**: Un PR validado produce un bundle de cierre (10) ejecutado por el PM, seguido de una verificación post-merge (11).
-5. **Auditoría y Releases**: Finalmente, se evalúa la preparación (12) y se draftea el release o tag (13, 24).
+El ciclo abarca todas las fases del ciclo de vida del desarrollo de software (SDLC) de forma flexible, permitiendo encadenarlas mediante `RECOMMENDED_NEXT_OPERATION`:
+1. **Idea Intake y Requirements**: Se evalúan ideas (16) y se transforman en issues (04, 06) o documentación (28, 26, 27).
+2. **Docs y Design**: Decisiones de arquitectura (22), assets de diseño externo (19) o documentación estable se draftean sin mutar inmediatamente la rama principal.
+3. **Implementation**: El PM delega trabajo al Terminal Agent (07) para ejecutar commits y PRs acotados.
+4. **QA y Security**: Revisión de PR (09), checklists manuales de QA (18) y análisis OWASP (20) proveen gates de calidad.
+5. **Assets y Mantenimiento**: Correcciones menores (08) o hallazgos sistémicos (25, 14, 15, 23) mantienen la integridad del kernel y del repositorio.
+6. **Release, Follow-up y Handoff**: El PR se cierra (10) y verifica (11), los hallazgos no bloqueantes se difieren (21), se generan tags y releases (12, 13, 24), y el contexto se transfiere a una nueva sesión (17).
 
 ### Justificación de Variables Discursivas
 - `PM_QUESTION` (en 00, 05): Es estrictamente opcional. Su uso está justificado únicamente para contextualizar el draft-only analysis con base en el `repo_state` vivo y la evidencia. Nunca se utiliza para proveer directivas de implementación o saltar boundaries.
-- `FEEDBACK_PM_HUMANO` (en 08): Es requerida para esta operación. Sirve exclusivamente para encapsular y documentar las correcciones solicitadas sobre un PR abierto sin expandir el scope original del issue. Garantiza trazabilidad entre el humano que revisa y el agente de terminal que aplica el fix.
+- `PM_FEEDBACK_HUMANO` (en 08): Es requerida para esta operación. Sirve exclusivamente para encapsular y documentar las correcciones solicitadas sobre un PR abierto sin expandir el scope original del issue. Garantiza trazabilidad entre el humano que revisa y el agente de terminal que aplica el fix.
