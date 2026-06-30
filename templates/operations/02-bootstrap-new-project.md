@@ -5,7 +5,7 @@ OPERATION:
 
 INPUT:
   TARGET_REPOSITORY=<TARGET_REPOSITORY>
-  DESCRIPTION=<DESCRIPTION>   # optional: initial project intent
+  DESCRIPTION=<DESCRIPTION>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -25,3 +25,7 @@ OUTPUT:
 LIMITS:
   Review/draft only on this surface; no file, git, or GitHub mutation.
   No product code, settings, or kernel rewrite; product truth stays in the target repository.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Operation 03 (Verify target adoption).

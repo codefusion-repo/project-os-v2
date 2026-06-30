@@ -24,3 +24,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only. Do not assume security problems may be deferred or ignored.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Human PM executes the bundle, then Operation 07 (Draft issue implementation).

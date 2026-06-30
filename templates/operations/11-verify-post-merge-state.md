@@ -24,3 +24,7 @@ OUTPUT:
 
 LIMITS:
   Read-only verification; report only, do not fix. No file, git, or GitHub mutation.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Operation 06 (Draft next issue) or 12 (Analyze release readiness).

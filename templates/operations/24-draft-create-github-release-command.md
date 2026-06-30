@@ -4,7 +4,7 @@ OPERATION:
   Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.release_readiness, mode.review_only.
 
 INPUT:
-  TAG_NAME=<TAG_NAME>   # optional; if missing, derive a recommendation from readiness first
+  TAG_NAME=<TAG_NAME>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -26,3 +26,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only; the Human PM executes and authorizes publication. Publishes no release and tags nothing on its own.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Human PM executes the bundle.

@@ -7,14 +7,14 @@ OPERATION:
 
 INPUT:
   ISSUE_NUMBER=<ISSUE_NUMBER>
-  FEEDBACK_PM_HUMANO=<FEEDBACK_PM_HUMANO>
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
   Fail closed if the original issue, its associated PR, or the feedback cannot be read live.
 
 LIVE_STATE:
-  Read the original ISSUE_NUMBER scope, the associated PR diff and changed files, and FEEDBACK_PM_HUMANO live.
+  Read the original ISSUE_NUMBER scope, the associated PR diff and changed files, and PM_FEEDBACK_HUMANO live.
   Align the feedback against the current implementation to focus the correction.
 
 DO:
@@ -27,3 +27,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only. Do not re-implement the whole issue or expand the task scope.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Terminal Agent executes correction; then Operation 09 (Review PR before close).

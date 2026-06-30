@@ -26,3 +26,7 @@ LIMITS:
   Never ask anyone to print, paste, upload, quote, summarize, or expose .env, tokens, credentials, cookies, JWTs,
   private keys, CI secrets, database URLs, or secret-looking values; require [REDACTED].
   Runs no scanner and approves no insecure code; the recipient is not an actor.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  External security reviews, then Operation 08 (Draft correction) if findings exist.

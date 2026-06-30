@@ -24,3 +24,7 @@ OUTPUT:
 
 LIMITS:
   Assess only; never create a tag or release. Tags and releases need separate exact PM approval.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  If ready, Operation 13 (Draft release tag) or 24 (Draft GitHub release).

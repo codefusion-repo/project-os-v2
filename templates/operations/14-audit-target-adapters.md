@@ -24,3 +24,7 @@ OUTPUT:
 
 LIMITS:
   Read-only audit; applies no fixes. Repairing drift is the upgrade operation, not this one.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  If drift found, Operation 23 (Upgrade kernel adoption) or manual correction.

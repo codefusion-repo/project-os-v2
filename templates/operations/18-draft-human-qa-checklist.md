@@ -23,3 +23,7 @@ OUTPUT:
 
 LIMITS:
   Draft only for an external QA recipient (not an actor). No mutation.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  External QA executes checklist, then Operation 09 (Review PR) or 08 (Draft correction).

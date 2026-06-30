@@ -5,7 +5,7 @@ OPERATION:
   The drafted issue targets workflow.issue_implementation, mode.delegated_commit_pr execution.
 
 INPUT:
-  ROADMAP_ISSUE=<ROADMAP_ISSUE>   # optional: canonical roadmap anchor
+  ROADMAP_ISSUE=<ROADMAP_ISSUE>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -28,3 +28,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only. One outcome per issue; never invent issues not grounded in live traceability.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Human PM executes the bundle, then Operation 07 (Draft issue implementation).

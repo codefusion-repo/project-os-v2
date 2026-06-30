@@ -24,3 +24,7 @@ OUTPUT:
 
 LIMITS:
   Report only; do not turn the idea into an issue without an explicit PM decision. No mutation.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Operation 04 (Draft create issue) or 28 (Draft docs).

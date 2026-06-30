@@ -24,3 +24,7 @@ OUTPUT:
 
 LIMITS:
   Read-only audit; no mutation of the target. Fixing drift is the upgrade operation, not this one.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Operation 05 (Review project state), 06 (Draft next issue), or 14 (Audit adapters).
