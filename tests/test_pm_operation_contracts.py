@@ -399,6 +399,7 @@ def test_operation_flow_doc_uses_valid_kernel_ids_and_template_references() -> N
 
 def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
     flow_doc = _operation_text(FLOW_DOC_PATH)
+    catalog_doc = _operation_text("docs/PM_OPERATIONS.md")
     rows = _markdown_table(flow_doc, "## Phase Flow Map")
     phases = {row["Phase"] for row in rows}
     required_phases = {
@@ -413,21 +414,70 @@ def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
         "Release and handoff",
     }
     required_gap_fragments = [
+        "manual PM-facing de flujo por fase",
+        "`docs/PM_OPERATIONS.md`: indice canonico, matriz de variables",
+        "`docs/OPERATION_FLOWS.md`: manual PM-facing",
+        "que template existe y que contrato\ntiene",
+        "cuando lo uso y que sigue",
         "Manual implementation planning",
-        "Probable nuevo workflow y posiblemente nuevo output contract",
+        "KOPS.2 only. Remains unimplemented in this PR.",
+        "Likely a new manual implementation workflow",
+        "KOPS.3 follow-up",
         "Process terminal-agent execution report outside PR review",
         "Process manual implementation result",
         "Process `status.needs_pm_decision`",
         "Determine next lifecycle operation",
         "Phase readiness review",
         "No se implementan aqui",
+        "authorization granted for\nthis exact scope and mode",
+        "pending/draft/read-only planning first",
+        "The prompt artifact itself never grants\npermission",
         "Browser chat: siempre draft-only",
         "GitHub/git: source of truth para estado vivo",
+    ]
+    catalog_fragments = [
+        "Arquitectura final de docs de operaciones",
+        "`docs/PM_OPERATIONS.md` es el índice canónico",
+        "`docs/OPERATION_FLOWS.md` es el manual PM-facing",
+        "Ambos docs apuntan a las mismas operaciones `00`–`32`",
+        "aprobación exacta otorgada vs pendiente/draft/read-only planning",
     ]
 
     assert required_phases.issubset(phases)
     for fragment in required_gap_fragments:
         assert fragment in flow_doc, f"missing flow/gap decision fragment: {fragment}"
+    for fragment in catalog_fragments:
+        assert fragment in catalog_doc, f"missing catalog docs-architecture fragment: {fragment}"
+
+
+def test_operation_flow_gap_table_is_pm_actionable_and_follow_up_only() -> None:
+    flow_doc = _operation_text(FLOW_DOC_PATH)
+    rows = _markdown_table(flow_doc, "## Missing Lifecycle Follow-up Candidates")
+    expected_owners = {
+        "Manual implementation planning": "KOPS.2 only. Remains unimplemented in this PR.",
+        "Process terminal-agent execution report outside PR review": "KOPS.3 follow-up.",
+        "Process manual implementation result": "KOPS.3 or later, after KOPS.2 exists.",
+        "Process `status.needs_pm_decision`": "KOPS.3 follow-up.",
+        "Determine next lifecycle operation": "KOPS.3 follow-up.",
+        "Phase readiness review": "KOPS.3 follow-up or later dogfood issue.",
+    }
+
+    assert {row["Missing operation"] for row in rows} == set(expected_owners)
+    for row in rows:
+        assert row["Roadmap owner"] == expected_owners[row["Missing operation"]]
+        assert row["Why it matters"]
+        assert row["Likely kernel/output impact"]
+        assert row["PM-actionable follow-up"]
+        assert "Create a KOPS.3 issue" in row["PM-actionable follow-up"] or row[
+            "Missing operation"
+        ] in {
+            "Manual implementation planning",
+            "Process manual implementation result",
+            "Phase readiness review",
+        }
+
+    future_manual_workflow = "workflow." + "issue_implementation_manual"
+    assert future_manual_workflow not in flow_doc
 
 
 def test_operation_templates_do_not_duplicate_input_variables() -> None:

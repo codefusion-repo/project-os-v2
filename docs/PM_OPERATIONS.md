@@ -13,10 +13,17 @@ en mayúscula (`OPERATION`, `INPUT`, `KERNEL`, `LIVE_STATE`, `DO`, `IF`, `OUTPUT
 porta autorización ni estado vivo. La autoridad de escritura proviene de
 aprobación PM exacta más los gates del kernel (`boundary.output_not_permission`).
 
-El flujo PM-facing por fase vive en `docs/OPERATION_FLOWS.md`. Ese mapa organiza
-estas mismas operaciones por fase SDLC, trigger, evidencia, variables, output,
-siguiente operación segura, fail-closed y comportamiento de aprobación PM, sin
-renumerar ni duplicar el catálogo.
+Arquitectura final de docs de operaciones:
+
+- `docs/PM_OPERATIONS.md` es el índice canónico, matriz de variables y referencia
+  técnica de templates.
+- `docs/OPERATION_FLOWS.md` es el manual PM-facing de fase SDLC: cuándo usar cada
+  operación, qué evidencia requiere, qué output emite, cómo falla cerrado, qué
+  aprobación PM aplica y cuál es la siguiente operación segura.
+
+La división evita duplicar la tabla canónica de templates dentro de un manual de
+flujo más largo. Ambos docs apuntan a las mismas operaciones `00`–`32`; ninguno
+renumera, autoriza escritura ni guarda estado vivo.
 
 Las superficies (browser chat, terminal agent, Humano PM, destinatario externo)
 aparecen en la columna **Superficie**. Las variables son selectores de contexto,
@@ -153,10 +160,11 @@ operación PM-facing de configuración del agente.
 
 Project OS no es un runtime ni un motor de workflow enforcado por software. El flujo del ciclo de vida se basa en la lectura del estado vivo (GitHub/git) y se facilita a través del bloque `RECOMMENDED_NEXT_OPERATION` en cada template, permitiendo al Humano PM encadenar tareas lógicamente sin restricciones de máquina de estados.
 
-Para elegir por fase, usar `docs/OPERATION_FLOWS.md` como mapa operativo. Este
-catálogo conserva la matriz canónica de templates/variables; el mapa de flujos
-describe trigger, evidencia, output, aprobación PM, fail-closed y gaps de ciclo
-de vida.
+Para elegir por fase, usar `docs/OPERATION_FLOWS.md` como manual operativo. Este
+catálogo conserva la matriz canónica de templates/variables; el manual de flujos
+describe trigger, evidencia, output, aprobación PM, fail-closed, gaps de ciclo
+de vida y la decisión docs-only de que los route-prompts deben distinguir
+aprobación exacta otorgada vs pendiente/draft/read-only planning.
 
 El ciclo abarca todas las fases del ciclo de vida del desarrollo de software (SDLC) de forma flexible, permitiendo encadenarlas mediante `RECOMMENDED_NEXT_OPERATION`:
 1. **Idea Intake y Requirements**: Se evalúan ideas (16) y se transforman en issues (04, 06) o documentación (28, 26, 27).
