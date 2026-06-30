@@ -74,7 +74,7 @@ Esta matriz detalla estrictamente las variables requeridas, opcionales (incluyen
 | 04 | DESCRIPTION | (none) | (none) | 07 |
 | 05 | (none) | PM_QUESTION | PM_QUESTION | 06, 29, or 21 |
 | 06 | (none) | ROADMAP_ISSUE | (none) | 07 |
-| 07 | ISSUE_NUMBER | ROADMAP_ISSUE | (none) | 09 or 08 |
+| 07 | (none) | ISSUE_NUMBER, ROADMAP_ISSUE | (none) | 09 or 08 |
 | 08 | ISSUE_NUMBER, PM_FEEDBACK_HUMANO | (none) | PM_FEEDBACK_HUMANO | 09 |
 | 09 | PR_NUMBER | (none) | (none) | 10 or 08 |
 | 10 | PR_NUMBER, ISSUE_NUMBER | (none) | (none) | 11 |

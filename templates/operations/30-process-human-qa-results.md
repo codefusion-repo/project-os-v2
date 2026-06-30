@@ -16,7 +16,16 @@ KERNEL:
   Fail closed if the original requirements and acceptance basis cannot be read.
 
 LIVE_STATE:
-  Read live: the QA_RESULT, original requirements, and PM acceptance for ISSUE_NUMBER if provided.
+  Read live: the QA_RESULT, original requirements, and PM acceptance.
+  If ISSUE_NUMBER is provided, use that issue as the target evidence basis.
+  If ISSUE_NUMBER is omitted, derive exactly one target issue from QA_RESULT,
+  live traceability, PM decisions, and current session context.
+
+IF ISSUE_NUMBER omitted and no target issue can be derived:
+  Return status.needs_context naming the missing issue or traceability evidence.
+
+IF ISSUE_NUMBER omitted and multiple plausible target issues exist:
+  Return status.needs_pm_decision asking the PM to choose exactly one ISSUE_NUMBER.
 
 DO:
   Analyze QA_RESULT against the original requirements and PM acceptance.

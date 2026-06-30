@@ -16,7 +16,17 @@ KERNEL:
   Fail closed if the context cannot be read without exposing secrets.
 
 LIVE_STATE:
-  Read live: the SECURITY_REVIEW_RESULT and the PR_NUMBER diff if provided.
+  Read live: the SECURITY_REVIEW_RESULT.
+  If PR_NUMBER is provided, read that PR diff and linked issue.
+  If PR_NUMBER is omitted, derive exactly one target PR and linked issue from
+  SECURITY_REVIEW_RESULT, live PR/issue traceability, PM decisions, and current
+  session context without exposing secrets.
+
+IF PR_NUMBER omitted and no target PR can be derived:
+  Return status.needs_context naming the missing PR, issue, or traceability evidence.
+
+IF PR_NUMBER omitted and multiple plausible target PRs or linked issues exist:
+  Return status.needs_pm_decision asking the PM to choose exactly one PR_NUMBER.
 
 DO:
   Analyze SECURITY_REVIEW_RESULT.

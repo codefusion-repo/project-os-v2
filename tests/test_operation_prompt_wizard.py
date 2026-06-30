@@ -64,7 +64,7 @@ def test_parse_required_and_optional_variables_from_representative_operations() 
 
     issue_vars = parse_input_variables(issue_route)
     assert [(variable.name, variable.required) for variable in issue_vars] == [
-        ("ISSUE_NUMBER", True),
+        ("ISSUE_NUMBER", False),
         ("ROADMAP_ISSUE", False),
     ]
 

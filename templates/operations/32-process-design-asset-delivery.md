@@ -15,7 +15,18 @@ KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
 
 LIVE_STATE:
-  Read live: the provided DESIGN_DELIVERY context and the relevant ISSUE_NUMBER if provided.
+  Read live: the provided DESIGN_DELIVERY context.
+  If ISSUE_NUMBER is provided, use that issue as the target evidence basis.
+  If ISSUE_NUMBER is omitted, derive exactly one target issue from DESIGN_DELIVERY,
+  live traceability, PM decisions, and current session context.
+
+IF ISSUE_NUMBER omitted and no target issue can be derived:
+  Return status.needs_context naming the missing issue or traceability evidence.
+
+IF ISSUE_NUMBER omitted and multiple plausible target issues or product routes exist:
+  Return status.needs_pm_decision asking the PM to choose exactly one ISSUE_NUMBER
+  or decide whether the delivery should become implementation, correction,
+  documentation, or follow-up work.
 
 DO:
   Analyze the DESIGN_DELIVERY (feedback, links, specs, or decisions).

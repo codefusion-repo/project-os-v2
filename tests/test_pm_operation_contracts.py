@@ -396,6 +396,64 @@ def test_issue_336_lifecycle_coverage_or_follow_up_decision_is_documented() -> N
         assert fragment in docs, f"missing lifecycle coverage fragment: {fragment}"
 
 
+def test_issue_336_operation_07_issue_number_is_optional_with_live_traceability_fallback() -> None:
+    text = _operation_text("templates/operations/07-draft-issue-implementation-route-prompt.md")
+    variables = _input_variables(text)
+
+    assert ("ISSUE_NUMBER", False) in variables
+    assert ("ROADMAP_ISSUE", False) in variables
+    assert "PM_QUESTION=<PM_QUESTION>" not in text
+    assert "PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>" not in text
+
+    required_fragments = [
+        "If ISSUE_NUMBER is provided, read that issue scope and source basis live",
+        "If ISSUE_NUMBER is omitted, derive exactly one next issue from live traceability",
+        "ROADMAP_ISSUE when provided",
+        "IF ISSUE_NUMBER omitted and zero candidate issues can be derived:",
+        "Return status.needs_context naming the missing live evidence.",
+        "IF ISSUE_NUMBER omitted and multiple plausible candidate issues exist:",
+        "Return status.needs_pm_decision asking the PM to choose exactly one ISSUE_NUMBER.",
+        "Never invent the target issue.",
+        "A route prompt never grants write authority",
+    ]
+    for fragment in required_fragments:
+        assert fragment in text, f"operation 07 missing fallback contract: {fragment}"
+
+
+def test_issue_336_post_gate_optional_identifiers_have_fail_closed_rules() -> None:
+    specs = {
+        "templates/operations/30-process-human-qa-results.md": [
+            "If ISSUE_NUMBER is provided, use that issue as the target evidence basis.",
+            "If ISSUE_NUMBER is omitted, derive exactly one target issue from QA_RESULT",
+            "IF ISSUE_NUMBER omitted and no target issue can be derived:",
+            "Return status.needs_context naming the missing issue or traceability evidence.",
+            "IF ISSUE_NUMBER omitted and multiple plausible target issues exist:",
+            "Return status.needs_pm_decision asking the PM to choose exactly one ISSUE_NUMBER.",
+        ],
+        "templates/operations/31-process-security-review-results.md": [
+            "If PR_NUMBER is provided, read that PR diff and linked issue.",
+            "If PR_NUMBER is omitted, derive exactly one target PR and linked issue from",
+            "IF PR_NUMBER omitted and no target PR can be derived:",
+            "Return status.needs_context naming the missing PR, issue, or traceability evidence.",
+            "IF PR_NUMBER omitted and multiple plausible target PRs or linked issues exist:",
+            "Return status.needs_pm_decision asking the PM to choose exactly one PR_NUMBER.",
+        ],
+        "templates/operations/32-process-design-asset-delivery.md": [
+            "If ISSUE_NUMBER is provided, use that issue as the target evidence basis.",
+            "If ISSUE_NUMBER is omitted, derive exactly one target issue from DESIGN_DELIVERY",
+            "IF ISSUE_NUMBER omitted and no target issue can be derived:",
+            "Return status.needs_context naming the missing issue or traceability evidence.",
+            "IF ISSUE_NUMBER omitted and multiple plausible target issues or product routes exist:",
+            "Return status.needs_pm_decision asking the PM to choose exactly one ISSUE_NUMBER",
+        ],
+    }
+
+    for path, fragments in specs.items():
+        text = _operation_text(path)
+        for fragment in fragments:
+            assert fragment in text, f"{path} missing fail-closed rule: {fragment}"
+
+
 def test_issue_336_post_gate_operations_exist_and_conform() -> None:
     ops = [
         "templates/operations/30-process-human-qa-results.md",
