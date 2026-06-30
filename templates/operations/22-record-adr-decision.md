@@ -25,3 +25,7 @@ OUTPUT:
 LIMITS:
   Browser chat writes no files. Use only for perennial design decisions, never to store live state.
   The ADR file write requires route-prompt + mode.delegated_commit_pr + exact PM approval.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Terminal agent records ADR, then Operation 06 (Draft next issue) or 07 (Draft implementation).

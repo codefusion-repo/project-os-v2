@@ -30,3 +30,7 @@ OUTPUT:
 LIMITS:
   Adapter-only diff; no product code, CI/deploy/runtime config, secrets, settings, merge, close, label, tag, or release.
   Preserve target-owned notes, security/domain constraints, and validation commands.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Operation 03 (Verify target adoption).

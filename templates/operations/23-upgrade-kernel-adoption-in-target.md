@@ -26,3 +26,7 @@ OUTPUT:
 LIMITS:
   No product code, no migrating live state into durable files, no visibility/settings changes, no merge/tag/release.
   Preserve target-owned notes, security/domain constraints, and validation commands.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Terminal agent applies adoption, then Operation 03 (Verify target adoption).

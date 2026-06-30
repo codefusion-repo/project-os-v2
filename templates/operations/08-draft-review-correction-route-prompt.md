@@ -27,3 +27,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only. Do not re-implement the whole issue or expand the task scope.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Terminal Agent executes correction; then Operation 09 (Review PR before close).

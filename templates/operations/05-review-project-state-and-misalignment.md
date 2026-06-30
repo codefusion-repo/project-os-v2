@@ -28,3 +28,7 @@ OUTPUT:
 
 LIMITS:
   Report only; do not create issues or assume resolutions. No file, git, or GitHub mutation.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Operation 06 (Draft next issue), 29 (Bounded roadmap), or 21 (Draft follow-up).

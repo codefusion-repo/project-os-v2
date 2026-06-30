@@ -43,3 +43,7 @@ OUTPUT:
 LIMITS:
   Browser chat drafts only. Human PM executes merge, close, tag, release, comments, and cleanup commands.
   Do not mutate GitHub or repo from browser_chat.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  If resolved, Operation 10 (Draft PR closeout). If gaps remain, Operation 08 (Draft correction).

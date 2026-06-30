@@ -24,3 +24,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only; the PM executes the bundle. One outcome per issue; body under ~5KB.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Human PM executes the bundle, then Operation 07 (Draft issue implementation).

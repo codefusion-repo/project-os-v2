@@ -23,3 +23,7 @@ OUTPUT:
 
 LIMITS:
   Never store the packet as a durable file; memory lives in GitHub. No file, git, or GitHub mutation.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Start a new session with Operation 00 (Browser chat activation) using the packet.

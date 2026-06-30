@@ -31,3 +31,7 @@ OUTPUT:
 LIMITS:
   Browser chat drafts only; no file, git, or GitHub mutation.
   A PM-approved scoped route prompt or bundle is approval evidence for that exact scope only.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Operation 01, 02, 05, or any relevant intake/audit operation.

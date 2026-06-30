@@ -188,7 +188,7 @@ def test_implementation_discipline_audit_workflow_and_operation_are_read_only() 
     assert "mode.review_only" in template
     assert "TARGET_REPOSITORY=<TARGET_REPOSITORY>" in template
     for optional_var in ("PATH_SCOPE", "FOCUS", "ISSUE_NUMBER", "PR_NUMBER"):
-        assert f"{optional_var}=<{optional_var}> optional" in template
+        assert f"{optional_var}=<{optional_var}>   # optional" in template
     assert "Use boundary.implementation_discipline as the canonical audit rule." in template
     assert "Return status.needs_context" in template
     assert "Draft output.draft_issue content for PM review only. Do not create issues." in template
@@ -226,8 +226,8 @@ def test_issue_324_single_next_issue_operation_remains_available() -> None:
 
 def test_issue_324_bounded_roadmap_to_issues_requires_explicit_bound() -> None:
     text = _operation_text("templates/operations/29-draft-bounded-roadmap-issues-command.md")
-    assert "ISSUE_COUNT_LIMIT=<ISSUE_COUNT_LIMIT> optional" in text
-    assert "SCOPE_LIMIT=<SCOPE_LIMIT> optional" in text
+    assert "ISSUE_COUNT_LIMIT=<ISSUE_COUNT_LIMIT>   # optional" in text
+    assert "SCOPE_LIMIT=<SCOPE_LIMIT>   # optional" in text
     assert "Require at least one explicit bound: ISSUE_COUNT_LIMIT or SCOPE_LIMIT." in text
     assert "IF neither ISSUE_COUNT_LIMIT nor SCOPE_LIMIT is provided:" in text
     assert "Return status.needs_pm_decision requesting one explicit bound" in text

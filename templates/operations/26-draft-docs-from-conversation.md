@@ -7,7 +7,7 @@ OPERATION:
 
 INPUT:
   CONVERSATION_CONTEXT=<CONVERSATION_CONTEXT>
-  DOC_TARGET=<DOC_TARGET> optional
+  DOC_TARGET=<DOC_TARGET>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -38,3 +38,7 @@ OUTPUT:
 LIMITS:
   Browser chat drafts only. This operation grants no file-write authority and stores no transcript as durable state.
   Redact secrets or secret-looking values as [REDACTED].
+
+
+RECOMMENDED_NEXT_OPERATION:
+  If file creation approved, Terminal Agent executes. Else, Operation 28 (Docs from description).

@@ -24,3 +24,7 @@ OUTPUT:
 
 LIMITS:
   Read-only audit; never rewrites past comments or edits history.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  If gaps found, Operation 08 (Draft correction) or 21 (Draft follow-up).

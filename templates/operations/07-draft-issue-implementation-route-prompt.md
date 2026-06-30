@@ -7,7 +7,7 @@ OPERATION:
 
 INPUT:
   ISSUE_NUMBER=<ISSUE_NUMBER>
-  ROADMAP_ISSUE=<ROADMAP_ISSUE>   # optional: anchor when deriving the next issue from live traceability
+  ROADMAP_ISSUE=<ROADMAP_ISSUE>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -32,3 +32,7 @@ OUTPUT:
 LIMITS:
   Browser chat drafts only; it never executes code. Authorization travels separately as exact scoped PM approval;
   this prompt grants no permission.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Terminal Agent executes implementation; then Operation 09 (Review PR) or 08 (Draft correction).

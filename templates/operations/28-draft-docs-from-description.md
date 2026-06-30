@@ -6,7 +6,7 @@ OPERATION:
 
 INPUT:
   DESCRIPTION=<DESCRIPTION>
-  DOC_TARGET=<DOC_TARGET> optional
+  DOC_TARGET=<DOC_TARGET>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -33,3 +33,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only and never writes files. Do not include live issue/PR/branch/status state or secrets in durable docs.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  If file creation approved, Terminal Agent executes. Then Operation 09 (Review PR).

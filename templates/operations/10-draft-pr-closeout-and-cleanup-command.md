@@ -31,3 +31,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only; it never executes merge/close/cleanup. The Human PM executes the bundle.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Human PM executes the bundle, then Operation 11 (Verify post-merge state).

@@ -6,8 +6,8 @@ OPERATION:
 
 INPUT:
   ROADMAP_ISSUE=<ROADMAP_ISSUE>
-  ISSUE_COUNT_LIMIT=<ISSUE_COUNT_LIMIT> optional
-  SCOPE_LIMIT=<SCOPE_LIMIT> optional
+  ISSUE_COUNT_LIMIT=<ISSUE_COUNT_LIMIT>   # optional
+  SCOPE_LIMIT=<SCOPE_LIMIT>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -38,3 +38,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only. One issue per outcome; never invent backlog beyond ROADMAP_ISSUE and live traceability.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Human PM executes the bundle, then Operation 07 (Draft issue implementation).

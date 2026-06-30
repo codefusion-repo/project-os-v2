@@ -6,8 +6,8 @@ OPERATION:
 
 INPUT:
   SOURCE_DOCS=<SOURCE_DOCS>
-  TARGET_REPOSITORY=<TARGET_REPOSITORY> optional
-  ROADMAP_ACTION=<create|update> optional
+  TARGET_REPOSITORY=<TARGET_REPOSITORY>   # optional
+  ROADMAP_ACTION=<create|update>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -35,3 +35,7 @@ OUTPUT:
 
 LIMITS:
   Browser chat drafts only; the PM executes GitHub writes. Do not store live progress state in the roadmap body.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  Human PM executes the bundle, then Operation 06 or 29.

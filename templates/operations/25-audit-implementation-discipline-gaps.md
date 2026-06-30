@@ -6,10 +6,10 @@ OPERATION:
 
 INPUT:
   TARGET_REPOSITORY=<TARGET_REPOSITORY>
-  PATH_SCOPE=<PATH_SCOPE> optional
-  FOCUS=<FOCUS> optional
-  ISSUE_NUMBER=<ISSUE_NUMBER> optional
-  PR_NUMBER=<PR_NUMBER> optional
+  PATH_SCOPE=<PATH_SCOPE>   # optional
+  FOCUS=<FOCUS>   # optional
+  ISSUE_NUMBER=<ISSUE_NUMBER>   # optional
+  PR_NUMBER=<PR_NUMBER>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -42,3 +42,7 @@ LIMITS:
   Read-only audit; never refactor, edit files, commit, push, merge, close, label, or mutate GitHub from browser_chat.
   Do not duplicate a Clean Code manifesto; keep boundary.implementation_discipline as the source rule.
   Do not expose secrets, credentials, .env values, private keys, cookies, database URLs, CI secrets, or secret-looking values.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  If gaps found, Operation 08 (Draft correction) or 21 (Draft follow-up).

@@ -99,3 +99,18 @@ es drafteo PM-facing, no ejecución del agente. El Humano PM ejecuta el bundle.
 terminal agent fue removida y su guía vive en `docs/GETTING_STARTED.md`. Los terminal
 agents se ejecutan a través de route-prompts post-adopción; no existe una
 operación PM-facing de configuración del agente.
+
+## Orientación de Flujo de Ciclo de Vida (Lifecycle Flow Guidance)
+
+Project OS no es un runtime ni un motor de workflow enforcado por software. El flujo del ciclo de vida se basa en la lectura del estado vivo (GitHub/git) y se facilita a través del bloque `RECOMMENDED_NEXT_OPERATION` en cada template, permitiendo al Humano PM encadenar tareas lógicamente sin restricciones de máquina de estados.
+
+El ciclo típico sigue este patrón:
+1. **Intake y Planificación**: Las operaciones (04, 06, 29, 27) generan bundles de comandos para crear issues acotados en GitHub.
+2. **Delegación**: A partir de un issue vivo, las operaciones (07, 22, 26, 28) emiten `route_prompt` para delegar el trabajo a un Terminal Agent.
+3. **Revisión y Corrección**: El PR resultante es evaluado (09). Si hay faltantes, se emite una corrección (08); si se detectan problemas mayores, se audita (25) o se solicitan revisiones externas (20).
+4. **Cierre**: Un PR validado produce un bundle de cierre (10) ejecutado por el PM, seguido de una verificación post-merge (11).
+5. **Auditoría y Releases**: Finalmente, se evalúa la preparación (12) y se draftea el release o tag (13, 24).
+
+### Justificación de Variables Discursivas
+- `PM_QUESTION` (en 00, 05): Es estrictamente opcional. Su uso está justificado únicamente para contextualizar el draft-only analysis con base en el `repo_state` vivo y la evidencia. Nunca se utiliza para proveer directivas de implementación o saltar boundaries.
+- `FEEDBACK_PM_HUMANO` (en 08): Es requerida para esta operación. Sirve exclusivamente para encapsular y documentar las correcciones solicitadas sobre un PR abierto sin expandir el scope original del issue. Garantiza trazabilidad entre el humano que revisa y el agente de terminal que aplica el fix.

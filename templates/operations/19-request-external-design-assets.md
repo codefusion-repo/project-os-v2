@@ -25,3 +25,7 @@ OUTPUT:
 LIMITS:
   Browser chat drafts only; generates no images and creates no asset files.
   Target product/design truth stays in the target repository or PM-provided evidence; the recipient is not an actor.
+
+
+RECOMMENDED_NEXT_OPERATION:
+  External design delivers assets, then Operation 07 (Draft issue implementation).
