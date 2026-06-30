@@ -6,7 +6,14 @@ OPERATION:
 
 INPUT:
   DESIGN_DELIVERY=<DESIGN_DELIVERY>
+  ASSET_FEEDBACK=<ASSET_FEEDBACK>   # optional
+  DESIGN_FEEDBACK=<DESIGN_FEEDBACK>   # optional
   ISSUE_NUMBER=<ISSUE_NUMBER>   # optional
+  PM_QUESTION=<PM_QUESTION>   # optional
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
+  ASSET_FEEDBACK=<ASSET_FEEDBACK>   # optional
+  DESIGN_FEEDBACK=<DESIGN_FEEDBACK>   # optional
+
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.

@@ -64,8 +64,10 @@ def test_parse_required_and_optional_variables_from_representative_operations() 
 
     issue_vars = parse_input_variables(issue_route)
     assert [(variable.name, variable.required) for variable in issue_vars] == [
-        ("ISSUE_NUMBER", True),
+        ("ISSUE_NUMBER", False),
         ("ROADMAP_ISSUE", False),
+        ("PM_QUESTION", False),
+        ("PM_FEEDBACK_HUMANO", False),
     ]
 
     roadmap_vars = parse_input_variables(bounded_roadmap)
@@ -73,6 +75,8 @@ def test_parse_required_and_optional_variables_from_representative_operations() 
         ("ROADMAP_ISSUE", True),
         ("ISSUE_COUNT_LIMIT", False),
         ("SCOPE_LIMIT", False),
+        ("PM_QUESTION", False),
+        ("PM_FEEDBACK_HUMANO", False),
     ]
 
     audit_vars = parse_input_variables(audit)
@@ -82,8 +86,14 @@ def test_parse_required_and_optional_variables_from_representative_operations() 
         ("FOCUS", False),
         ("ISSUE_NUMBER", False),
         ("PR_NUMBER", False),
+        ("PM_QUESTION", False),
+        ("PM_FEEDBACK_HUMANO", False),
     ]
-    assert parse_input_variables(handoff) == ()
+    handoff_vars = parse_input_variables(handoff)
+    assert [(variable.name, variable.required) for variable in handoff_vars] == [
+        ("PM_QUESTION", False),
+        ("PM_FEEDBACK_HUMANO", False),
+    ]
 
 
 def test_search_filter_matches_number_filename_and_title(tmp_path: Path) -> None:

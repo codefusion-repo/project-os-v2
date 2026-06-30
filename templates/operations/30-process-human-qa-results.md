@@ -6,7 +6,11 @@ OPERATION:
 
 INPUT:
   QA_RESULTS=<QA_RESULTS>
+  QA_RESULT=<QA_RESULT>   # optional
   ISSUE_NUMBER=<ISSUE_NUMBER>   # optional
+  PM_QUESTION=<PM_QUESTION>   # optional
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
+
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.

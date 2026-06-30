@@ -4,7 +4,9 @@ OPERATION:
   Resolve codefusion-repo/project-os-v2 for actor.browser_chat, workflow.handoff, mode.review_only.
 
 INPUT:
-  (none)
+  PM_QUESTION=<PM_QUESTION>   # optional
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
+
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.

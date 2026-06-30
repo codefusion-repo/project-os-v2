@@ -6,7 +6,12 @@ OPERATION:
 
 INPUT:
   SECURITY_RESULTS=<SECURITY_RESULTS>
+  SECURITY_REVIEW_RESULT=<SECURITY_REVIEW_RESULT>   # optional
   PR_NUMBER=<PR_NUMBER>   # optional
+  PM_QUESTION=<PM_QUESTION>   # optional
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
+  SECURITY_REVIEW_RESULT=<SECURITY_REVIEW_RESULT>   # optional
+
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.

@@ -8,6 +8,8 @@ OPERATION:
 INPUT:
   ISSUE_NUMBER=<ISSUE_NUMBER>
   PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>
+  PM_QUESTION=<PM_QUESTION>   # optional
+
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.

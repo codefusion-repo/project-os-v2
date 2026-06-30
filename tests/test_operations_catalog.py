@@ -71,11 +71,11 @@ def test_pm_operations_catalog_alignment():
         assert set(req_vars) == set(expected["req"]), f"Req vars mismatch in {template}: {req_vars} vs {expected['req']}"
         assert set(opt_vars) == set(expected["opt"]), f"Opt vars mismatch in {template}: {opt_vars} vs {expected['opt']}"
 
-        # Justified discursive variable usage
-        if "PM_QUESTION" in req_vars or "PM_QUESTION" in opt_vars:
-            assert idx in ("00", "05"), f"PM_QUESTION not justified in {template}"
-        if "PM_FEEDBACK_HUMANO" in req_vars or "PM_FEEDBACK_HUMANO" in opt_vars:
-            assert idx == "08", f"PM_FEEDBACK_HUMANO not justified in {template}"
+        # Enforce that PM_QUESTION and PM_FEEDBACK_HUMANO are optional where present
+        if "PM_QUESTION" in req_vars:
+            assert False, f"PM_QUESTION must be optional, but is required in {template}"
+        if "PM_FEEDBACK_HUMANO" in req_vars:
+            assert idx == "08", f"PM_FEEDBACK_HUMANO must be optional in {template} (unless it is operation 08)"
 
         # Check RECOMMENDED_NEXT_OPERATION
         next_op_match = re.search(r'RECOMMENDED_NEXT_OPERATION:\n(.*?)(?:\n\n|\Z)', content, re.DOTALL)

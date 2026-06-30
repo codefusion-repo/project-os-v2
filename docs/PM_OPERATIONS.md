@@ -67,39 +67,39 @@ Esta matriz detalla estrictamente las variables requeridas, opcionales (incluyen
 
 | Template | Req Variables | Opt Variables | Discursive | Recommended Next Operation |
 |----------|---------------|---------------|------------|----------------------------|
-| 00 | (none) | PM_QUESTION | PM_QUESTION | 01, 02, 05, or intake/audit |
-| 01 | TARGET_REPOSITORY | (none) | (none) | 03 |
-| 02 | TARGET_REPOSITORY | DESCRIPTION | (none) | 03 |
-| 03 | TARGET_REPOSITORY | (none) | (none) | 05, 06, or 14 |
-| 04 | DESCRIPTION | (none) | (none) | 07 |
-| 05 | (none) | PM_QUESTION | PM_QUESTION | 06, 29, or 21 |
-| 06 | (none) | ROADMAP_ISSUE | (none) | 07 |
-| 07 | ISSUE_NUMBER | ROADMAP_ISSUE | (none) | 09 or 08 |
-| 08 | ISSUE_NUMBER, PM_FEEDBACK_HUMANO | (none) | PM_FEEDBACK_HUMANO | 09 |
-| 09 | PR_NUMBER | (none) | (none) | 10 or 08 |
-| 10 | PR_NUMBER, ISSUE_NUMBER | (none) | (none) | 11 |
-| 11 | PR_NUMBER | (none) | (none) | 06 or 12 |
-| 12 | (none) | TAG_NAME | (none) | 13 or 24 |
-| 13 | (none) | TAG_NAME | (none) | Human PM executes |
-| 14 | TARGET_REPOSITORY | (none) | (none) | 23 or manual correction |
-| 15 | ISSUE_NUMBER | (none) | (none) | 08 or 21 |
-| 16 | IDEA | (none) | (none) | 04 or 28 |
-| 17 | (none) | (none) | (none) | 00 |
-| 18 | ISSUE_NUMBER | (none) | (none) | 09 or 08 |
-| 19 | DESCRIPTION | (none) | (none) | 07 |
-| 20 | PR_NUMBER | (none) | (none) | 08 |
-| 21 | PR_NUMBER | (none) | (none) | 07 |
-| 22 | DECISION | (none) | (none) | 06 or 07 |
-| 23 | TARGET_REPOSITORY | (none) | (none) | 03 |
-| 24 | (none) | TAG_NAME | (none) | Human PM executes |
-| 25 | TARGET_REPOSITORY | PATH_SCOPE, FOCUS, ISSUE_NUMBER, PR_NUMBER | (none) | 08 or 21 |
-| 26 | CONVERSATION_CONTEXT | DOC_TARGET | (none) | Terminal Agent executes or 28 |
-| 27 | SOURCE_DOCS | TARGET_REPOSITORY, ROADMAP_ACTION | (none) | 06 or 29 |
-| 28 | DESCRIPTION | DOC_TARGET | (none) | Terminal Agent executes, then 09 |
-| 29 | ROADMAP_ISSUE | ISSUE_COUNT_LIMIT, SCOPE_LIMIT | (none) | 07 |
-| 30 | QA_RESULTS | ISSUE_NUMBER | (none) | 08, 21, or 09 |
-| 31 | SECURITY_RESULTS | PR_NUMBER | (none) | 08, 21, or 09 |
-| 32 | DESIGN_DELIVERY | ISSUE_NUMBER | (none) | 07, 08, 04, or 21 |
+| 00 | (none) | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 01, 02, 05, or intake/audit |
+| 01 | TARGET_REPOSITORY | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 03 |
+| 02 | TARGET_REPOSITORY | DESCRIPTION, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 03 |
+| 03 | TARGET_REPOSITORY | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 05, 06, or 14 |
+| 04 | DESCRIPTION | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
+| 05 | (none) | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 06, 29, or 21 |
+| 06 | (none) | ROADMAP_ISSUE, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
+| 07 | (none) | ISSUE_NUMBER, ROADMAP_ISSUE, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 09 or 08 |
+| 08 | ISSUE_NUMBER, PM_FEEDBACK_HUMANO | PM_QUESTION | PM_QUESTION, PM_FEEDBACK_HUMANO | 09 |
+| 09 | PR_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 10 or 08 |
+| 10 | PR_NUMBER, ISSUE_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 11 |
+| 11 | PR_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 06 or 12 |
+| 12 | (none) | TAG_NAME, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 13 or 24 |
+| 13 | (none) | TAG_NAME, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | Human PM executes |
+| 14 | TARGET_REPOSITORY | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 23 or manual correction |
+| 15 | ISSUE_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08 or 21 |
+| 16 | IDEA | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 04 or 28 |
+| 17 | (none) | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 00 |
+| 18 | ISSUE_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 09 or 08 |
+| 19 | DESCRIPTION | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
+| 20 | PR_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08 |
+| 21 | PR_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
+| 22 | DECISION | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 06 or 07 |
+| 23 | TARGET_REPOSITORY | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 03 |
+| 24 | (none) | TAG_NAME, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | Human PM executes |
+| 25 | TARGET_REPOSITORY | PATH_SCOPE, FOCUS, ISSUE_NUMBER, PR_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08 or 21 |
+| 26 | CONVERSATION_CONTEXT | DOC_TARGET, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | Terminal Agent executes or 28 |
+| 27 | SOURCE_DOCS | TARGET_REPOSITORY, ROADMAP_ACTION, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 06 or 29 |
+| 28 | DESCRIPTION | DOC_TARGET, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | Terminal Agent executes, then 09 |
+| 29 | ROADMAP_ISSUE | ISSUE_COUNT_LIMIT, SCOPE_LIMIT, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
+| 30 | QA_RESULTS | QA_RESULT, ISSUE_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08, 21, or 09 |
+| 31 | SECURITY_RESULTS | SECURITY_REVIEW_RESULT, PR_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08, 21, or 09 |
+| 32 | DESIGN_DELIVERY | DESIGN_FEEDBACK, ASSET_FEEDBACK, ISSUE_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07, 08, 04, or 21 |
 ## Cobertura de operaciones
 
 Este catálogo contiene **33 templates** (`00`–`32`). Cada uno es un prompt de
@@ -156,5 +156,4 @@ El ciclo abarca todas las fases del ciclo de vida del desarrollo de software (SD
 6. **Release, Follow-up y Handoff**: El PR se cierra (10) y verifica (11), los hallazgos no bloqueantes se difieren (21), se generan tags y releases (12, 13, 24), y el contexto se transfiere a una nueva sesión (17).
 
 ### Justificación de Variables Discursivas
-- `PM_QUESTION` (en 00, 05): Es estrictamente opcional. Su uso está justificado únicamente para contextualizar el draft-only analysis con base en el `repo_state` vivo y la evidencia. Nunca se utiliza para proveer directivas de implementación o saltar boundaries.
-- `PM_FEEDBACK_HUMANO` (en 08): Es requerida para esta operación. Sirve exclusivamente para encapsular y documentar las correcciones solicitadas sobre un PR abierto sin expandir el scope original del issue. Garantiza trazabilidad entre el humano que revisa y el agente de terminal que aplica el fix.
+- `PM_QUESTION` y `PM_FEEDBACK_HUMANO`: Son opcionales en la mayoría de las operaciones para proveer contexto PM, decisiones, o aclaraciones sin expandir el scope original, asegurando que el agente pueda rutear o draftear con base en trazabilidad viva y feedback humano.

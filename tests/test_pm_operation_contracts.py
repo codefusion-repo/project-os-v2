@@ -303,12 +303,18 @@ def test_issue_336_post_gate_operations_exist_and_conform() -> None:
         assert "RECOMMENDED_NEXT_OPERATION:" in text, f"{op_path} must have recommended next operation"
 
         # Specific variable checks
+        assert "PM_QUESTION=<PM_QUESTION>   # optional" in text
+        assert "PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional" in text
         if "30" in op_path:
             assert "QA_RESULTS=<QA_RESULTS>" in text
+            assert "QA_RESULT=<QA_RESULT>   # optional" in text
             assert "ISSUE_NUMBER=<ISSUE_NUMBER>   # optional" in text
         elif "31" in op_path:
             assert "SECURITY_RESULTS=<SECURITY_RESULTS>" in text
+            assert "SECURITY_REVIEW_RESULT=<SECURITY_REVIEW_RESULT>   # optional" in text
             assert "PR_NUMBER=<PR_NUMBER>   # optional" in text
         elif "32" in op_path:
             assert "DESIGN_DELIVERY=<DESIGN_DELIVERY>" in text
+            assert "ASSET_FEEDBACK=<ASSET_FEEDBACK>   # optional" in text
+            assert "DESIGN_FEEDBACK=<DESIGN_FEEDBACK>   # optional" in text
             assert "ISSUE_NUMBER=<ISSUE_NUMBER>   # optional" in text
