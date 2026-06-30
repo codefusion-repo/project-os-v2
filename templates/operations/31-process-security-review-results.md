@@ -7,9 +7,8 @@ OPERATION:
 INPUT:
   SECURITY_REVIEW_RESULT=<SECURITY_REVIEW_RESULT>
   PR_NUMBER=<PR_NUMBER>   # optional
-  PM_QUESTION=<PM_QUESTION>   # optional
   PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
-
+  PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -30,7 +29,7 @@ IF PR_NUMBER omitted and multiple plausible target PRs or linked issues exist:
 
 DO:
   Analyze SECURITY_REVIEW_RESULT.
-  Use PM_QUESTION, if present, to clarify the requested routing or answer the PM question before recommending a next operation.
+  Use PM_QUESTION_HUMANO, if present, to clarify the requested routing or answer the PM question before recommending a next operation.
   Use PM_FEEDBACK_HUMANO, if present, as PM interpretation of the security result without treating it as implementation permission.
   Identify if there are blocking security vulnerabilities or non-blocking recommendations.
   If there are blocking vulnerabilities, draft a route-prompt for the terminal agent to correct them.

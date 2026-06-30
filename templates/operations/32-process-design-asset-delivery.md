@@ -7,9 +7,8 @@ OPERATION:
 INPUT:
   DESIGN_DELIVERY=<DESIGN_DELIVERY>
   ISSUE_NUMBER=<ISSUE_NUMBER>   # optional
-  PM_QUESTION=<PM_QUESTION>   # optional
   PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
-
+  PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
@@ -30,7 +29,7 @@ IF ISSUE_NUMBER omitted and multiple plausible target issues or product routes e
 
 DO:
   Analyze the DESIGN_DELIVERY (feedback, links, specs, or decisions).
-  Use PM_QUESTION, if present, to clarify whether the delivery should become implementation, documentation, correction, or follow-up work.
+  Use PM_QUESTION_HUMANO, if present, to clarify whether the delivery should become implementation, documentation, correction, or follow-up work.
   Use PM_FEEDBACK_HUMANO, if present, as PM interpretation of the delivery without treating it as implementation permission.
   Map the delivered design into concrete technical tasks, documentation updates, or new issues.
   Draft a route-prompt to apply the design changes, or a pm_command_bundle to track the new work.

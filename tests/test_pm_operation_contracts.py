@@ -17,6 +17,8 @@ SECRET_LOOKING_PATTERN = re.compile(
     r"\b(?:gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|"
     r"AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{12,})\b"
 )
+LEGACY_PM_QUESTION_PATTERN = re.compile(r"\bPM_QUESTION\b")
+HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
 CANONICAL_KERNEL_ENTRY_IDS = {
     "actors.json": {
         "actor.human_pm",
@@ -321,25 +323,70 @@ def test_operation_templates_do_not_duplicate_input_variables() -> None:
     assert offenders == []
 
 
-def test_pm_question_and_feedback_variables_are_scoped_to_justified_operations() -> None:
-    allowed_pm_question = {"00", "05", "30", "31", "32"}
-    allowed_optional_feedback = {"30", "31", "32"}
-    allowed_required_feedback = {"08"}
-
+def test_human_context_variables_are_optional_and_universal_in_operations() -> None:
     for path in _operation_paths():
-        idx = path.name[:2]
-        variables = _input_variables(path.read_text(encoding="utf-8"))
+        text = path.read_text(encoding="utf-8")
+        variables = _input_variables(text)
+        variable_names = {name for name, _required in variables}
+
+        assert not LEGACY_PM_QUESTION_PATTERN.search(text), f"{path.name}: legacy PM_QUESTION token remains"
+        assert HUMAN_CONTEXT_VARIABLES.issubset(variable_names), f"{path.name}: missing human context vars"
         for name, required in variables:
-            if name == "PM_QUESTION":
-                assert not required, f"{path.name}: PM_QUESTION must be optional"
-                assert idx in allowed_pm_question, f"{path.name}: PM_QUESTION is not justified"
-            if name == "PM_FEEDBACK_HUMANO":
-                if required:
-                    assert idx in allowed_required_feedback, (
-                        f"{path.name}: PM_FEEDBACK_HUMANO may be required only for correction routing"
-                    )
-                else:
-                    assert idx in allowed_optional_feedback, f"{path.name}: optional PM feedback is not justified"
+            if name in HUMAN_CONTEXT_VARIABLES:
+                assert not required, f"{path.name}: {name} must be optional context"
+
+
+def test_human_context_variables_do_not_replace_authority_or_live_evidence() -> None:
+    docs = _operation_text("docs/PM_OPERATIONS.md")
+    variables = _operation_text("docs/PM_VARIABLES.md")
+
+    required_fragments = [
+        "Nunca reemplaza evidencia viva requerida ni otorga\n  permiso de escritura.",
+        "no reemplaza issue/PR/docs/evidencia viva requerida y no\n  autoriza mutaciones.",
+        "`PM_FEEDBACK_HUMANO`: contexto, criterio o interpretación adicional del PM. Es opcional y nunca reemplaza evidencia viva requerida.",
+        "`PM_QUESTION_HUMANO`: pregunta del PM",
+        "Es opcional y nunca otorga autorización.",
+    ]
+    combined = docs + "\n" + variables
+    for fragment in required_fragments:
+        assert fragment in combined, f"missing human context boundary fragment: {fragment}"
+
+
+def test_legacy_pm_question_token_is_not_an_accepted_variable_anywhere() -> None:
+    allowed_fragments = {
+        "docs/PM_OPERATIONS.md": [
+            "`PM_QUESTION` no es alias ni variable legacy aceptada.",
+        ],
+        "docs/PM_VARIABLES.md": [
+            "`PM_QUESTION` es inválida y fue removida.",
+        ],
+        "tests/test_operations_catalog.py": [
+            "LEGACY_PM_QUESTION_PATTERN",
+            "legacy PM_QUESTION token remains",
+        ],
+        "tests/test_pm_operation_contracts.py": [
+            "LEGACY_PM_QUESTION_PATTERN",
+            "`PM_QUESTION` no es alias ni variable legacy aceptada.",
+            "`PM_QUESTION` es inválida y fue removida.",
+            "legacy PM_QUESTION token remains",
+        ],
+    }
+    offenders: list[str] = []
+    for root in ("templates", "docs", "tests", "tools"):
+        for path in sorted((REPO_ROOT / root).rglob("*")):
+            if not path.is_file():
+                continue
+            if path.suffix not in {".md", ".py", ".json"}:
+                continue
+            text = path.read_text(encoding="utf-8")
+            rel = str(path.relative_to(REPO_ROOT))
+            for line_number, line in enumerate(text.splitlines(), start=1):
+                if not LEGACY_PM_QUESTION_PATTERN.search(line):
+                    continue
+                allowed = any(fragment in line for fragment in allowed_fragments.get(rel, []))
+                if not allowed:
+                    offenders.append(f"{rel}:{line_number}: {line.strip()}")
+    assert offenders == []
 
 
 def test_operation_templates_keep_external_recipients_distinct_from_kernel_actors() -> None:
@@ -402,8 +449,9 @@ def test_issue_336_operation_07_issue_number_is_optional_with_live_traceability_
 
     assert ("ISSUE_NUMBER", False) in variables
     assert ("ROADMAP_ISSUE", False) in variables
-    assert "PM_QUESTION=<PM_QUESTION>" not in text
-    assert "PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>" not in text
+    assert "PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional" in text
+    assert "PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional" in text
+    assert not LEGACY_PM_QUESTION_PATTERN.search(text)
 
     required_fragments = [
         "If ISSUE_NUMBER is provided, read that issue scope and source basis live",
@@ -482,8 +530,9 @@ def test_issue_336_post_gate_operations_exist_and_conform() -> None:
         assert "RECOMMENDED_NEXT_OPERATION:" in text, f"{op_path} must have recommended next operation"
 
         # Specific variable checks
-        assert "PM_QUESTION=<PM_QUESTION>   # optional" in text
         assert "PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional" in text
+        assert "PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional" in text
+        assert not LEGACY_PM_QUESTION_PATTERN.search(text)
         if "30" in op_path:
             assert "QA_RESULT=<QA_RESULT>" in text
             assert "ISSUE_NUMBER=<ISSUE_NUMBER>   # optional" in text

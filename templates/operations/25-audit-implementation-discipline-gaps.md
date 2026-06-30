@@ -10,6 +10,8 @@ INPUT:
   FOCUS=<FOCUS>   # optional
   ISSUE_NUMBER=<ISSUE_NUMBER>   # optional
   PR_NUMBER=<PR_NUMBER>   # optional
+  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
+  PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
