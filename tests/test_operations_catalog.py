@@ -1,6 +1,11 @@
 import os
 import re
 
+PM_QUESTION_ALLOWED = {"00", "05", "30", "31", "32"}
+PM_FEEDBACK_OPTIONAL_ALLOWED = {"30", "31", "32"}
+PM_FEEDBACK_REQUIRED_ALLOWED = {"08"}
+
+
 def parse_markdown_table(content: str, header: str):
     lines = content.split('\n')
     table_lines = []
@@ -14,6 +19,14 @@ def parse_markdown_table(content: str, header: str):
             if table_lines:
                 break
     return table_lines
+
+
+def split_vars(cell: str) -> list[str]:
+    return [v.strip() for v in cell.split(',')] if cell != "(none)" else []
+
+
+def assert_unique(values: list[str], context: str) -> None:
+    assert len(values) == len(set(values)), f"Duplicated variables in {context}: {values}"
 
 def test_pm_operations_catalog_alignment():
     with open("docs/PM_OPERATIONS.md") as f:
@@ -29,11 +42,16 @@ def test_pm_operations_catalog_alignment():
         parts = [p.strip() for p in line.split('|')[1:-1]]
         if len(parts) == 5:
             template_idx = parts[0]
-            req_vars = [v.strip() for v in parts[1].split(',')] if parts[1] != "(none)" else []
-            opt_vars = [v.strip() for v in parts[2].split(',')] if parts[2] != "(none)" else []
+            req_vars = split_vars(parts[1])
+            opt_vars = split_vars(parts[2])
+            discursive_vars = split_vars(parts[3])
+            assert_unique(req_vars, f"docs required row {template_idx}")
+            assert_unique(opt_vars, f"docs optional row {template_idx}")
+            assert_unique(discursive_vars, f"docs discursive row {template_idx}")
             matrix[template_idx] = {
                 "req": req_vars,
                 "opt": opt_vars,
+                "discursive": discursive_vars,
                 "next": parts[4]
             }
 
@@ -67,15 +85,25 @@ def test_pm_operations_catalog_alignment():
                     else:
                         req_vars.append(var_name)
 
-        expected = matrix.get(idx, {"req": [], "opt": [], "next": ""})
-        assert set(req_vars) == set(expected["req"]), f"Req vars mismatch in {template}: {req_vars} vs {expected['req']}"
-        assert set(opt_vars) == set(expected["opt"]), f"Opt vars mismatch in {template}: {opt_vars} vs {expected['opt']}"
+        assert_unique(req_vars, template)
+        assert_unique(opt_vars, template)
+        expected = matrix.get(idx, {"req": [], "opt": [], "discursive": [], "next": ""})
+        assert req_vars == expected["req"], f"Req vars mismatch in {template}: {req_vars} vs {expected['req']}"
+        assert opt_vars == expected["opt"], f"Opt vars mismatch in {template}: {opt_vars} vs {expected['opt']}"
 
-        # Enforce that PM_QUESTION and PM_FEEDBACK_HUMANO are optional where present
-        if "PM_QUESTION" in req_vars:
-            assert False, f"PM_QUESTION must be optional, but is required in {template}"
+        assert "PM_QUESTION" not in req_vars, f"PM_QUESTION must never be required in {template}"
+        if "PM_QUESTION" in opt_vars:
+            assert idx in PM_QUESTION_ALLOWED, f"PM_QUESTION not justified in {template}"
         if "PM_FEEDBACK_HUMANO" in req_vars:
-            assert idx == "08", f"PM_FEEDBACK_HUMANO must be optional in {template} (unless it is operation 08)"
+            assert idx in PM_FEEDBACK_REQUIRED_ALLOWED, f"PM_FEEDBACK_HUMANO required only for correction routing: {template}"
+        if "PM_FEEDBACK_HUMANO" in opt_vars:
+            assert idx in PM_FEEDBACK_OPTIONAL_ALLOWED, f"PM_FEEDBACK_HUMANO not justified in {template}"
+        expected_discursive = [
+            var for var in [*req_vars, *opt_vars] if var in {"PM_QUESTION", "PM_FEEDBACK_HUMANO"}
+        ]
+        assert expected["discursive"] == expected_discursive, (
+            f"Discursive vars mismatch in docs row {idx}: {expected['discursive']} vs {expected_discursive}"
+        )
 
         # Check RECOMMENDED_NEXT_OPERATION
         next_op_match = re.search(r'RECOMMENDED_NEXT_OPERATION:\n(.*?)(?:\n\n|\Z)', content, re.DOTALL)

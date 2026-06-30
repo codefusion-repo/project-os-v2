@@ -8,9 +8,6 @@ INPUT:
   SOURCE_DOCS=<SOURCE_DOCS>
   TARGET_REPOSITORY=<TARGET_REPOSITORY>   # optional
   ROADMAP_ACTION=<create|update>   # optional
-  PM_QUESTION=<PM_QUESTION>   # optional
-  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
-
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.

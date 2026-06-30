@@ -5,8 +5,7 @@ OPERATION:
   Recipient is a Human PM.
 
 INPUT:
-  QA_RESULTS=<QA_RESULTS>
-  QA_RESULT=<QA_RESULT>   # optional
+  QA_RESULT=<QA_RESULT>
   ISSUE_NUMBER=<ISSUE_NUMBER>   # optional
   PM_QUESTION=<PM_QUESTION>   # optional
   PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
@@ -17,10 +16,12 @@ KERNEL:
   Fail closed if the original requirements and acceptance basis cannot be read.
 
 LIVE_STATE:
-  Read live: the QA_RESULTS, original requirements, and PM acceptance for ISSUE_NUMBER if provided.
+  Read live: the QA_RESULT, original requirements, and PM acceptance for ISSUE_NUMBER if provided.
 
 DO:
-  Analyze the QA_RESULTS against the original requirements and PM acceptance.
+  Analyze QA_RESULT against the original requirements and PM acceptance.
+  Use PM_QUESTION, if present, to clarify the requested routing or answer the PM question before recommending a next operation.
+  Use PM_FEEDBACK_HUMANO, if present, as PM interpretation of the QA result without treating it as implementation permission.
   Identify if there are blocking failures, non-blocking defects, or if the QA passed.
   If there are blocking failures, draft a route-prompt for the terminal agent to correct them.
   If there are non-blocking defects, draft a pm_command_bundle to create follow-up issues.

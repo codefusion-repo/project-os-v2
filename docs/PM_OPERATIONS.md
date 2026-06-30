@@ -51,9 +51,9 @@ uno resuelve a un id real del kernel.
 | `templates/operations/27-draft-roadmap-from-docs.md` | Leer docs estables y draftear un roadmap issue body o bundle de creación/actualización. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `draft_issue` (+`pm_command_bundle`) | `source_basis`, `repo_state` | `SOURCE_DOCS` / `TARGET_REPOSITORY`, `ROADMAP_ACTION` | Sí (solo GitHub write) |
 | `templates/operations/28-draft-docs-from-description.md` | Draftear documentación desde una descripción PM y routear creación de archivo solo con aprobación exacta. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` (+`draft_issue`) | `source_basis` | `DESCRIPTION` / `DOC_TARGET` | Sí (solo escritura del archivo) |
 | `templates/operations/29-draft-bounded-roadmap-issues-command.md` | Draftear issues acotados desde roadmap con `ISSUE_COUNT_LIMIT` o `SCOPE_LIMIT`, uno por outcome. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `pm_command_bundle` | `source_basis`, `repo_state` | `ROADMAP_ISSUE` + (`ISSUE_COUNT_LIMIT` o `SCOPE_LIMIT`) / — | No |
-| `templates/operations/30-process-human-qa-results.md` | Procesar resultados de ejecución de QA humano y draftear route-prompt de corrección o follow-up. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `QA_RESULTS` / `ISSUE_NUMBER` | No |
-| `templates/operations/31-process-security-review-results.md` | Procesar resultados de revisión de seguridad y draftear route-prompt de corrección o follow-up. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `SECURITY_RESULTS` / `PR_NUMBER` | No |
-| `templates/operations/32-process-design-asset-delivery.md` | Procesar entrega de assets o feedback de diseño y mapearlo a tareas técnicas o drafts. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `DESIGN_DELIVERY` / `ISSUE_NUMBER` | No |
+| `templates/operations/30-process-human-qa-results.md` | Procesar resultados de ejecución de QA humano y draftear route-prompt de corrección o follow-up. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `QA_RESULT` / `ISSUE_NUMBER`, `PM_QUESTION`, `PM_FEEDBACK_HUMANO` | No |
+| `templates/operations/31-process-security-review-results.md` | Procesar resultados de revisión de seguridad y draftear route-prompt de corrección o follow-up. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `SECURITY_REVIEW_RESULT` / `PR_NUMBER`, `PM_QUESTION`, `PM_FEEDBACK_HUMANO` | No |
+| `templates/operations/32-process-design-asset-delivery.md` | Procesar entrega de assets o feedback de diseño y mapearlo a tareas técnicas o drafts. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `DESIGN_DELIVERY` / `ISSUE_NUMBER`, `PM_QUESTION`, `PM_FEEDBACK_HUMANO` | No |
 
 Cuando una operación emite `route_prompt` o `pm_command_bundle`, la forma del
 artefacto vive una sola vez en su template canónico (`templates/route-prompt.md`,
@@ -67,39 +67,40 @@ Esta matriz detalla estrictamente las variables requeridas, opcionales (incluyen
 
 | Template | Req Variables | Opt Variables | Discursive | Recommended Next Operation |
 |----------|---------------|---------------|------------|----------------------------|
-| 00 | (none) | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 01, 02, 05, or intake/audit |
-| 01 | TARGET_REPOSITORY | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 03 |
-| 02 | TARGET_REPOSITORY | DESCRIPTION, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 03 |
-| 03 | TARGET_REPOSITORY | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 05, 06, or 14 |
-| 04 | DESCRIPTION | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
-| 05 | (none) | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 06, 29, or 21 |
-| 06 | (none) | ROADMAP_ISSUE, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
-| 07 | (none) | ISSUE_NUMBER, ROADMAP_ISSUE, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 09 or 08 |
-| 08 | ISSUE_NUMBER, PM_FEEDBACK_HUMANO | PM_QUESTION | PM_QUESTION, PM_FEEDBACK_HUMANO | 09 |
-| 09 | PR_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 10 or 08 |
-| 10 | PR_NUMBER, ISSUE_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 11 |
-| 11 | PR_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 06 or 12 |
-| 12 | (none) | TAG_NAME, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 13 or 24 |
-| 13 | (none) | TAG_NAME, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | Human PM executes |
-| 14 | TARGET_REPOSITORY | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 23 or manual correction |
-| 15 | ISSUE_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08 or 21 |
-| 16 | IDEA | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 04 or 28 |
-| 17 | (none) | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 00 |
-| 18 | ISSUE_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 09 or 08 |
-| 19 | DESCRIPTION | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
-| 20 | PR_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08 |
-| 21 | PR_NUMBER | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
-| 22 | DECISION | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 06 or 07 |
-| 23 | TARGET_REPOSITORY | PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 03 |
-| 24 | (none) | TAG_NAME, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | Human PM executes |
-| 25 | TARGET_REPOSITORY | PATH_SCOPE, FOCUS, ISSUE_NUMBER, PR_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08 or 21 |
-| 26 | CONVERSATION_CONTEXT | DOC_TARGET, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | Terminal Agent executes or 28 |
-| 27 | SOURCE_DOCS | TARGET_REPOSITORY, ROADMAP_ACTION, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 06 or 29 |
-| 28 | DESCRIPTION | DOC_TARGET, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | Terminal Agent executes, then 09 |
-| 29 | ROADMAP_ISSUE | ISSUE_COUNT_LIMIT, SCOPE_LIMIT, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07 |
-| 30 | QA_RESULTS | QA_RESULT, ISSUE_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08, 21, or 09 |
-| 31 | SECURITY_RESULTS | SECURITY_REVIEW_RESULT, PR_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08, 21, or 09 |
-| 32 | DESIGN_DELIVERY | DESIGN_FEEDBACK, ASSET_FEEDBACK, ISSUE_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07, 08, 04, or 21 |
+| 00 | (none) | PM_QUESTION | PM_QUESTION | 01, 02, 05, or intake/audit |
+| 01 | TARGET_REPOSITORY | (none) | (none) | 03 |
+| 02 | TARGET_REPOSITORY | DESCRIPTION | (none) | 03 |
+| 03 | TARGET_REPOSITORY | (none) | (none) | 05, 06, or 14 |
+| 04 | DESCRIPTION | (none) | (none) | 07 |
+| 05 | (none) | PM_QUESTION | PM_QUESTION | 06, 29, or 21 |
+| 06 | (none) | ROADMAP_ISSUE | (none) | 07 |
+| 07 | ISSUE_NUMBER | ROADMAP_ISSUE | (none) | 09 or 08 |
+| 08 | ISSUE_NUMBER, PM_FEEDBACK_HUMANO | (none) | PM_FEEDBACK_HUMANO | 09 |
+| 09 | PR_NUMBER | (none) | (none) | 10 or 08 |
+| 10 | PR_NUMBER, ISSUE_NUMBER | (none) | (none) | 11 |
+| 11 | PR_NUMBER | (none) | (none) | 06 or 12 |
+| 12 | (none) | TAG_NAME | (none) | 13 or 24 |
+| 13 | (none) | TAG_NAME | (none) | Human PM executes |
+| 14 | TARGET_REPOSITORY | (none) | (none) | 23 or manual correction |
+| 15 | ISSUE_NUMBER | (none) | (none) | 08 or 21 |
+| 16 | IDEA | (none) | (none) | 04 or 28 |
+| 17 | (none) | (none) | (none) | 00 |
+| 18 | ISSUE_NUMBER | (none) | (none) | 09 or 08 |
+| 19 | DESCRIPTION | (none) | (none) | 07 |
+| 20 | PR_NUMBER | (none) | (none) | 08 |
+| 21 | PR_NUMBER | (none) | (none) | 07 |
+| 22 | DECISION | (none) | (none) | 06 or 07 |
+| 23 | TARGET_REPOSITORY | (none) | (none) | 03 |
+| 24 | (none) | TAG_NAME | (none) | Human PM executes |
+| 25 | TARGET_REPOSITORY | PATH_SCOPE, FOCUS, ISSUE_NUMBER, PR_NUMBER | (none) | 08 or 21 |
+| 26 | CONVERSATION_CONTEXT | DOC_TARGET | (none) | Terminal Agent executes or 28 |
+| 27 | SOURCE_DOCS | TARGET_REPOSITORY, ROADMAP_ACTION | (none) | 06 or 29 |
+| 28 | DESCRIPTION | DOC_TARGET | (none) | Terminal Agent executes, then 09 |
+| 29 | ROADMAP_ISSUE | ISSUE_COUNT_LIMIT, SCOPE_LIMIT | (none) | 07 |
+| 30 | QA_RESULT | ISSUE_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08, 21, or 09 |
+| 31 | SECURITY_REVIEW_RESULT | PR_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 08, 21, or 09 |
+| 32 | DESIGN_DELIVERY | ISSUE_NUMBER, PM_QUESTION, PM_FEEDBACK_HUMANO | PM_QUESTION, PM_FEEDBACK_HUMANO | 07, 08, 04, or 21 |
+
 ## Cobertura de operaciones
 
 Este catálogo contiene **33 templates** (`00`–`32`). Cada uno es un prompt de
@@ -151,9 +152,38 @@ El ciclo abarca todas las fases del ciclo de vida del desarrollo de software (SD
 1. **Idea Intake y Requirements**: Se evalúan ideas (16) y se transforman en issues (04, 06) o documentación (28, 26, 27).
 2. **Docs y Design**: Decisiones de arquitectura (22), assets de diseño externo (19) o documentación estable se draftean sin mutar inmediatamente la rama principal.
 3. **Implementation**: El PM delega trabajo al Terminal Agent (07) para ejecutar commits y PRs acotados.
-4. **QA y Security**: Revisión de PR (09), checklists manuales de QA (18) y análisis OWASP (20) proveen gates de calidad.
-5. **Assets y Mantenimiento**: Correcciones menores (08) o hallazgos sistémicos (25, 14, 15, 23) mantienen la integridad del kernel y del repositorio.
+4. **QA y Security**: Revisión de PR (09), checklists manuales de QA (18), análisis OWASP (20), y procesamiento de resultados QA/seguridad (30, 31) proveen gates de calidad.
+5. **Assets y Mantenimiento**: Solicitudes y entregas de assets de diseño (19, 32), correcciones menores (08), y hallazgos sistémicos (25, 14, 15, 23) mantienen la integridad del kernel y del repositorio.
 6. **Release, Follow-up y Handoff**: El PR se cierra (10) y verifica (11), los hallazgos no bloqueantes se difieren (21), se generan tags y releases (12, 13, 24), y el contexto se transfiere a una nueva sesión (17).
 
+### Cobertura Post-Gate
+
+Las operaciones nuevas cubren los tres gates externos que ya existían como
+operaciones de solicitud: QA humano (`18` → `30`), revisión de seguridad
+(`20` → `31`) y assets/diseño (`19` → `32`). No se agregan más templates en
+este corte porque los demás puntos del ciclo ya tienen rutas mínimas:
+implementación y reportes se revisan en `09`; findings de review se convierten
+en corrección con `08` o follow-up con `21`; fallas de validación bloqueantes
+vuelven por `08`; readiness de cierre vive en `09`/`10`; post-merge y release
+viven en `11`/`12`/`13`/`24`; handoff vive en `17`.
+
+Si el PM quiere una operación genérica para procesar cualquier
+`status.needs_pm_decision` o cualquier execution report fuera de PR review,
+debe decidirse como follow-up PM: ese template cruzaría varias familias de
+workflow y necesita reglas de selección propias para no convertirse en un motor
+de workflow encubierto.
+
 ### Justificación de Variables Discursivas
-- `PM_QUESTION` y `PM_FEEDBACK_HUMANO`: Son opcionales en la mayoría de las operaciones para proveer contexto PM, decisiones, o aclaraciones sin expandir el scope original, asegurando que el agente pueda rutear o draftear con base en trazabilidad viva y feedback humano.
+- `PM_QUESTION`: Es opcional solo en `00`, `05`, `30`, `31` y `32`. En `00` y
+  `05` permite responder una pregunta PM desde estado vivo; en `30`-`32`
+  permite aclarar cómo rutear un resultado post-gate. Nunca otorga permiso de
+  escritura.
+- `PM_FEEDBACK_HUMANO`: Es requerido solo en `08`, porque esa operación existe
+  para encapsular feedback humano en una corrección. Es opcional en `30`-`32`
+  porque el criterio PM puede cambiar la interpretación o ruta del resultado
+  post-gate. No aparece en operaciones donde el input principal ya define la
+  intención.
+- Variables de resultado post-gate: `QA_RESULT`,
+  `SECURITY_REVIEW_RESULT` y `DESIGN_DELIVERY` son los nombres canónicos. No se
+  mantienen alias plurales ni pares `ASSET_FEEDBACK`/`DESIGN_FEEDBACK`; si un
+  resultado contiene feedback, va dentro de la variable canónica correspondiente.

@@ -64,10 +64,8 @@ def test_parse_required_and_optional_variables_from_representative_operations() 
 
     issue_vars = parse_input_variables(issue_route)
     assert [(variable.name, variable.required) for variable in issue_vars] == [
-        ("ISSUE_NUMBER", False),
+        ("ISSUE_NUMBER", True),
         ("ROADMAP_ISSUE", False),
-        ("PM_QUESTION", False),
-        ("PM_FEEDBACK_HUMANO", False),
     ]
 
     roadmap_vars = parse_input_variables(bounded_roadmap)
@@ -75,8 +73,6 @@ def test_parse_required_and_optional_variables_from_representative_operations() 
         ("ROADMAP_ISSUE", True),
         ("ISSUE_COUNT_LIMIT", False),
         ("SCOPE_LIMIT", False),
-        ("PM_QUESTION", False),
-        ("PM_FEEDBACK_HUMANO", False),
     ]
 
     audit_vars = parse_input_variables(audit)
@@ -86,11 +82,30 @@ def test_parse_required_and_optional_variables_from_representative_operations() 
         ("FOCUS", False),
         ("ISSUE_NUMBER", False),
         ("PR_NUMBER", False),
+    ]
+    assert parse_input_variables(handoff) == ()
+
+
+def test_parse_post_gate_operation_variables_without_aliases() -> None:
+    qa = (OPERATIONS_DIR / "30-process-human-qa-results.md").read_text(encoding="utf-8")
+    security = (OPERATIONS_DIR / "31-process-security-review-results.md").read_text(encoding="utf-8")
+    design = (OPERATIONS_DIR / "32-process-design-asset-delivery.md").read_text(encoding="utf-8")
+
+    assert [(variable.name, variable.required) for variable in parse_input_variables(qa)] == [
+        ("QA_RESULT", True),
+        ("ISSUE_NUMBER", False),
         ("PM_QUESTION", False),
         ("PM_FEEDBACK_HUMANO", False),
     ]
-    handoff_vars = parse_input_variables(handoff)
-    assert [(variable.name, variable.required) for variable in handoff_vars] == [
+    assert [(variable.name, variable.required) for variable in parse_input_variables(security)] == [
+        ("SECURITY_REVIEW_RESULT", True),
+        ("PR_NUMBER", False),
+        ("PM_QUESTION", False),
+        ("PM_FEEDBACK_HUMANO", False),
+    ]
+    assert [(variable.name, variable.required) for variable in parse_input_variables(design)] == [
+        ("DESIGN_DELIVERY", True),
+        ("ISSUE_NUMBER", False),
         ("PM_QUESTION", False),
         ("PM_FEEDBACK_HUMANO", False),
     ]

@@ -6,9 +6,6 @@ OPERATION:
 
 INPUT:
   PR_NUMBER=<PR_NUMBER>
-  PM_QUESTION=<PM_QUESTION>   # optional
-  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
-
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.

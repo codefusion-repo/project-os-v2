@@ -6,11 +6,8 @@ OPERATION:
   workflow.issue_implementation, mode.delegated_commit_pr.
 
 INPUT:
-  ISSUE_NUMBER=<ISSUE_NUMBER>   # optional
+  ISSUE_NUMBER=<ISSUE_NUMBER>
   ROADMAP_ISSUE=<ROADMAP_ISSUE>   # optional
-  PM_QUESTION=<PM_QUESTION>   # optional
-  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
-
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.

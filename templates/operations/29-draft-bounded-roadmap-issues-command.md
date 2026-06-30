@@ -8,9 +8,6 @@ INPUT:
   ROADMAP_ISSUE=<ROADMAP_ISSUE>
   ISSUE_COUNT_LIMIT=<ISSUE_COUNT_LIMIT>   # optional
   SCOPE_LIMIT=<SCOPE_LIMIT>   # optional
-  PM_QUESTION=<PM_QUESTION>   # optional
-  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
-
 
 KERNEL:
   Resolve kernel/manifest.json. Follow resolution_sequence exactly.
