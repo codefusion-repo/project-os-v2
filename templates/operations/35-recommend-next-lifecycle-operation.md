@@ -53,6 +53,8 @@ OUTPUT:
 LIMITS:
   Read-only and draft-only. No mutation.
   Do not execute the recommended operation.
+  Do not replace Operation 36 when the task is processing status.needs_pm_decision.
+  Do not replace Operation 37 when the task is phase readiness review.
   Do not emit output.route_prompt, output.pm_command_bundle, output.execution_report, or output.closure_comment.
   Do not create issues, branches, commits, PRs, comments, labels, tags, releases, settings changes, workflow automation, APIs, bridges, runtimes, public packages, or target-repo mutations.
   Do not implement #344/TOOLS.6 wizard lifecycle or output hygiene.

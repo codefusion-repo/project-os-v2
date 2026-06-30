@@ -49,6 +49,8 @@ DO:
   - Operation 08 when scoped corrections are needed before or after PR review.
   - Operation 21 when non-blocking findings should become follow-up issues.
   - Operation 18, 20, 30, 31, or 32 when QA, security, or design gates/results are the next evidence path.
+  - Operation 36 when classification depends on an explicit PM decision.
+  - Operation 37 when the next question is readiness to enter a later lifecycle phase.
   - status.needs_context when issue scope, manual plan/result, repo evidence, PR evidence, or validation evidence is insufficient.
   Explain what evidence was read, what remains only a claim, and why the recommended route is safe.
   Use PM_QUESTION_HUMANO, if present, to answer or narrow the routing question.
@@ -69,4 +71,4 @@ LIMITS:
   Does not expose, request, quote, summarize, or invent secret values.
 
 RECOMMENDED_NEXT_OPERATION:
-  Operation 09 when a PR exists; Operation 08 for scoped corrections; Operation 21 for deferred follow-up; QA/security/design operations when those gates are the next evidence path; otherwise stop with status.needs_context.
+  Operation 09 when a PR exists; Operation 08 for scoped corrections; Operation 21 for deferred follow-up; Operation 36 for explicit PM decisions; Operation 37 for phase readiness; QA/security/design operations when those gates are the next evidence path; otherwise stop with status.needs_context.

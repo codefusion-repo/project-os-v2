@@ -120,11 +120,30 @@ def test_parse_post_gate_operation_variables_without_aliases() -> None:
     ]
 
 
+def test_parse_operation_09_execution_report_input() -> None:
+    review_pr = (OPERATIONS_DIR / "09-review-pr-before-close-and-draft-package.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert [(variable.name, variable.required) for variable in parse_input_variables(review_pr)] == [
+        ("PR_NUMBER", True),
+        ("EXECUTION_REPORT", False),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    ]
+
+
 def test_parse_kops3_lifecycle_processing_operation_variables() -> None:
     manual_result = (OPERATIONS_DIR / "34-process-manual-implementation-result.md").read_text(
         encoding="utf-8"
     )
     next_operation = (OPERATIONS_DIR / "35-recommend-next-lifecycle-operation.md").read_text(
+        encoding="utf-8"
+    )
+    pm_decision = (OPERATIONS_DIR / "36-process-needs-pm-decision.md").read_text(
+        encoding="utf-8"
+    )
+    phase_readiness = (OPERATIONS_DIR / "37-review-phase-readiness.md").read_text(
         encoding="utf-8"
     )
 
@@ -143,6 +162,27 @@ def test_parse_kops3_lifecycle_processing_operation_variables() -> None:
         ("PR_NUMBER", False),
         ("ROADMAP_ISSUE", False),
         ("CURRENT_STATUS", False),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    ]
+    assert [(variable.name, variable.required) for variable in parse_input_variables(pm_decision)] == [
+        ("ORIGINATING_OPERATION", True),
+        ("STATUS_CONTEXT", True),
+        ("OPTIONS_TRADEOFFS", True),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
+        ("TARGET_REPOSITORY", False),
+        ("ROADMAP_ISSUE", False),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    ]
+    assert [(variable.name, variable.required) for variable in parse_input_variables(phase_readiness)] == [
+        ("CURRENT_PHASE", False),
+        ("TARGET_PHASE", False),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
+        ("TARGET_REPOSITORY", False),
+        ("ROADMAP_ISSUE", False),
         ("PM_FEEDBACK_HUMANO", False),
         ("PM_QUESTION_HUMANO", False),
     ]

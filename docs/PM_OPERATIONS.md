@@ -22,7 +22,7 @@ Arquitectura final de docs de operaciones:
   aprobación PM aplica y cuál es la siguiente operación segura.
 
 La división evita duplicar la tabla canónica de templates dentro de un manual de
-flujo más largo. Ambos docs apuntan a las mismas operaciones `00`–`35`; ninguno
+flujo más largo. Ambos docs apuntan a las mismas operaciones `00`–`37`; ninguno
 renumera, autoriza escritura ni guarda estado vivo.
 
 Las superficies (browser chat, terminal agent, Humano PM, destinatario externo)
@@ -42,7 +42,7 @@ uno resuelve a un id real del kernel.
 | `templates/operations/06-draft-create-next-issue-command-from-traceability.md` | Inferir el próximo outcome real desde la trazabilidad viva y draftear su `gh issue create`. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `pm_command_bundle` | `source_basis`, `repo_state` | — / `ROADMAP_ISSUE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/07-draft-issue-implementation-route-prompt.md` | Draftear un route-prompt para delegar la implementación de un issue a un terminal agent. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` | `source_basis`, `repo_state` | — / `ISSUE_NUMBER`, `ROADMAP_ISSUE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/08-draft-review-correction-route-prompt.md` | Encapsular feedback humano en un route-prompt de corrección sin expandir el scope. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` | `source_basis`, `repo_state` | `ISSUE_NUMBER` / `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
-| `templates/operations/09-review-pr-before-close-and-draft-package.md` | Comparar la implementación del PR contra el issue vinculado y, solo si resuelve, draftear el cierre. | `browser_chat` | `review_before_close` | `review_only` | `review_result` (+`pm_command_bundle`) | `issue_scope`, `pr_diff`, `validation_output` | `PR_NUMBER` / `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
+| `templates/operations/09-review-pr-before-close-and-draft-package.md` | Comparar la implementación del PR contra el issue vinculado, consumir execution reports como evidence leads y, solo si resuelve, draftear el cierre. | `browser_chat` | `review_before_close` | `review_only` | `review_result` (+`pm_command_bundle`) | `issue_scope`, `pr_diff`, `validation_output` | `PR_NUMBER` / `EXECUTION_REPORT`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/10-draft-pr-closeout-and-cleanup-command.md` | Draftear el paquete común de cierre de PR/issue según el estado vivo. | `browser_chat` → Humano PM | `review_before_close` | `review_only` | `pm_command_bundle` | `issue_scope`, `pr_diff`, `validation_output` | `PR_NUMBER`, `ISSUE_NUMBER` / `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/11-verify-post-merge-state.md` | Comprobar read-only que la rama principal quedó saludable y el issue se resolvió tras el merge. | `browser_chat` / `terminal_agent` | `review_only` | `review_only` | `status_result` | `repo_state` | `PR_NUMBER` / `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/12-analyze-release-or-tag-readiness.md` | Evaluar si el estado, los outcomes merged y la validación justifican un tag/release. | `browser_chat` | `release_readiness` | `review_only` | `status_result` | `repo_state`, `validation_output` | — / `TAG_NAME`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
@@ -69,6 +69,8 @@ uno resuelve a un id real del kernel.
 | `templates/operations/33-draft-manual-implementation-plan.md` | Draftear un plan de implementación humano-ejecutable para un issue scoped sin afirmar ejecución ni mutar repositorios. | `browser_chat` → Humano PM | `issue_implementation_manual` | `review_only` | `manual_implementation_plan` | `issue_scope`, `source_basis`, `repo_state` | `ISSUE_NUMBER` / `TARGET_REPOSITORY`, `PATH_SCOPE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/34-process-manual-implementation-result.md` | Clasificar el resultado de una implementación manual aplicada por humano y recomendar la ruta segura sin duplicar review de PR. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `status_result` (+`route_prompt`, `pm_command_bundle`) | `issue_scope`, `source_basis`, `repo_state` | `ISSUE_NUMBER`, `MANUAL_IMPLEMENTATION_RESULT` / `MANUAL_IMPLEMENTATION_PLAN`, `PR_NUMBER`, `TARGET_REPOSITORY`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 | `templates/operations/35-recommend-next-lifecycle-operation.md` | Recomendar la siguiente operación Project OS desde trazabilidad viva sin ejecutar ni draftear el siguiente paso. | `browser_chat` | `review_only` | `review_only` | `status_result` | `repo_state` | — / `TARGET_REPOSITORY`, `ISSUE_NUMBER`, `PR_NUMBER`, `ROADMAP_ISSUE`, `CURRENT_STATUS`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
+| `templates/operations/36-process-needs-pm-decision.md` | Procesar un `status.needs_pm_decision` desde la operación originaria y clasificar decisión PM, contexto faltante, corrección, follow-up, no-op o route prompt. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `status_result` (+`route_prompt`, `pm_command_bundle`, `draft_issue`) | `source_basis`, `repo_state` | `ORIGINATING_OPERATION`, `STATUS_CONTEXT`, `OPTIONS_TRADEOFFS` / `ISSUE_NUMBER`, `PR_NUMBER`, `TARGET_REPOSITORY`, `ROADMAP_ISSUE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
+| `templates/operations/37-review-phase-readiness.md` | Revisar readiness advisory antes de pasar a implementación, QA/security/design, closeout, release, dogfood o handoff. | `browser_chat` | `review_only` | `review_only` | `status_result` | `repo_state` | — / `CURRENT_PHASE`, `TARGET_PHASE`, `ISSUE_NUMBER`, `PR_NUMBER`, `TARGET_REPOSITORY`, `ROADMAP_ISSUE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | No |
 
 Cuando una operación emite `route_prompt` o `pm_command_bundle`, la forma del
 artefacto vive una sola vez en su template canónico (`templates/route-prompt.md`,
@@ -91,7 +93,7 @@ Esta matriz detalla estrictamente las variables requeridas, opcionales (incluyen
 | 06 | (none) | ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 07 |
 | 07 | (none) | ISSUE_NUMBER, ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 09 or 08 |
 | 08 | ISSUE_NUMBER | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 09 |
-| 09 | PR_NUMBER | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 10 or 08 |
+| 09 | PR_NUMBER | EXECUTION_REPORT, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 10 or 08 |
 | 10 | PR_NUMBER, ISSUE_NUMBER | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 11 |
 | 11 | PR_NUMBER | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 06 or 12 |
 | 12 | (none) | TAG_NAME, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 13 or 24 |
@@ -116,12 +118,14 @@ Esta matriz detalla estrictamente las variables requeridas, opcionales (incluyen
 | 31 | SECURITY_REVIEW_RESULT | PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 08, 21, or 09 |
 | 32 | DESIGN_DELIVERY | ISSUE_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 07, 08, 04, or 21 |
 | 33 | ISSUE_NUMBER | TARGET_REPOSITORY, PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 34, 09, 08, or 21 |
-| 34 | ISSUE_NUMBER, MANUAL_IMPLEMENTATION_RESULT | MANUAL_IMPLEMENTATION_PLAN, PR_NUMBER, TARGET_REPOSITORY, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 09, 08, 21, or QA/security/design gates |
+| 34 | ISSUE_NUMBER, MANUAL_IMPLEMENTATION_RESULT | MANUAL_IMPLEMENTATION_PLAN, PR_NUMBER, TARGET_REPOSITORY, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 09, 08, 21, 36, 37, or QA/security/design gates |
 | 35 | (none) | TARGET_REPOSITORY, ISSUE_NUMBER, PR_NUMBER, ROADMAP_ISSUE, CURRENT_STATUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | Human PM invokes recommended operation |
+| 36 | ORIGINATING_OPERATION, STATUS_CONTEXT, OPTIONS_TRADEOFFS | ISSUE_NUMBER, PR_NUMBER, TARGET_REPOSITORY, ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | Originating operation, 08, 21, 35, or stop |
+| 37 | (none) | CURRENT_PHASE, TARGET_PHASE, ISSUE_NUMBER, PR_NUMBER, TARGET_REPOSITORY, ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO | 36, 35, or target-phase operation |
 
 ## Cobertura de operaciones
 
-Este catálogo contiene **36 templates** (`00`–`35`). Cada uno es un prompt de
+Este catálogo contiene **38 templates** (`00`–`37`). Cada uno es un prompt de
 operación ejecutable; ninguno permanece en el formato de ficha descriptiva
 (*Objetivo / Detalle / Superficie / Configuración / Variables*).
 
@@ -145,6 +149,13 @@ operación ejecutable; ninguno permanece en el formato de ficha descriptiva
 - *Next lifecycle operation recommendation* → `templates/operations/35-recommend-next-lifecycle-operation.md`.
   Recomienda la proxima operacion desde trazabilidad viva y se detiene; nunca
   ejecuta, autoriza ni draftea el siguiente paso.
+- *PM-decision status processing* → `templates/operations/36-process-needs-pm-decision.md`.
+  Procesa `status.needs_pm_decision` desde la operacion originaria y devuelve
+  decision PM, contexto faltante, correccion, follow-up, no-op o route prompt
+  sin auto-aprobar ni ejecutar nada.
+- *Phase readiness review* → `templates/operations/37-review-phase-readiness.md`.
+  Revisa readiness advisory antes de cambiar de fase, identifica evidencia o
+  decisiones faltantes y recomienda la siguiente operacion segura sin ejecutarla.
 
 **Familias restauradas** (no fueron autorizadas para eliminarse):
 
@@ -181,34 +192,36 @@ aprobación exacta otorgada vs pendiente/draft/read-only planning.
 El ciclo abarca todas las fases del ciclo de vida del desarrollo de software (SDLC) de forma flexible, permitiendo encadenarlas mediante `RECOMMENDED_NEXT_OPERATION`:
 1. **Idea Intake y Requirements**: Se evalúan ideas (16) y se transforman en issues (04, 06) o documentación (28, 26, 27).
 2. **Docs y Design**: Decisiones de arquitectura (22), assets de diseño externo (19) o documentación estable se draftean sin mutar inmediatamente la rama principal.
-3. **Implementation**: El PM delega trabajo al Terminal Agent (07) para ejecutar commits y PRs acotados, usa el plan manual (33) cuando browser chat debe producir instrucciones humano-ejecutables sin escribir archivos, y clasifica resultados manuales aplicados con 34 cuando no corresponde saltar directo a review de PR.
+3. **Implementation**: El PM delega trabajo al Terminal Agent (07) para ejecutar commits y PRs acotados, usa el plan manual (33) cuando browser chat debe producir instrucciones humano-ejecutables sin escribir archivos, clasifica resultados manuales aplicados con 34 cuando no corresponde saltar directo a review de PR, y usa 37 para revisar readiness antes de pasar de fase.
 4. **QA y Security**: Revisión de PR (09), checklists manuales de QA (18), análisis OWASP (20), y procesamiento de resultados QA/seguridad (30, 31) proveen gates de calidad.
 5. **Assets y Mantenimiento**: Solicitudes y entregas de assets de diseño (19, 32), correcciones menores (08), y hallazgos sistémicos (25, 14, 15, 23) mantienen la integridad del kernel y del repositorio.
-6. **Release, Follow-up y Handoff**: El PR se cierra (10) y verifica (11), los hallazgos no bloqueantes se difieren (21), se generan tags y releases (12, 13, 24), el contexto se transfiere a una nueva sesión (17), y la siguiente operación se recomienda sin ejecutarla (35).
+6. **Release, Follow-up y Handoff**: El PR se cierra (10) y verifica (11), los hallazgos no bloqueantes se difieren (21), decisiones `status.needs_pm_decision` se procesan con 36, se generan tags y releases (12, 13, 24), el contexto se transfiere a una nueva sesión (17), y la siguiente operación se recomienda sin ejecutarla (35).
 
 ### Cobertura KOPS.3
 
 El fit check KOPS.3 comparo Project OS contra un SDLC practico antes de agregar
 templates. El resultado no requiere nuevos ids de kernel: el procesamiento de
-resultado manual usa `workflow.pm_intake` y la recomendacion de proxima operacion
-usa `workflow.review_only`.
+resultado manual y `status.needs_pm_decision` usan `workflow.pm_intake`; la
+recomendacion de proxima operacion y readiness de fase usan
+`workflow.review_only`.
 
 Las operaciones post-gate cubren los tres gates externos que ya existian como
 operaciones de solicitud: QA humano (`18` → `30`), revision de seguridad
 (`20` → `31`) y assets/diseno (`19` → `32`). KOPS.3 agrega solo lo que no
 duplicaba rutas existentes: la implementacion manual se planifica con `33` y su
 resultado aplicado por humano se clasifica con `34`; la proxima operacion se
-recomienda con `35` sin ejecutar nada; reportes de terminal agent y PRs se
-revisan en `09`; findings de review se convierten en correccion con `08` o
-follow-up con `21`; fallas de validacion bloqueantes vuelven por `08`; readiness
-de cierre vive en `09`/`10`; post-merge y release viven en `11`/`12`/`13`/`24`;
-handoff vive en `17`.
+recomienda con `35` sin ejecutar nada; `status.needs_pm_decision` se procesa con
+`36` sin auto-aprobar ni ejecutar; readiness de fase se revisa con `37` como
+advisory/read-only; reportes de terminal agent y PRs se revisan en `09` con
+`EXECUTION_REPORT` como evidence lead opcional; findings de review se convierten
+en correccion con `08` o follow-up con `21`; fallas de validacion bloqueantes
+vuelven por `08`; readiness de cierre vive en `09`/`10`; post-merge y release
+viven en `11`/`12`/`13`/`24`; handoff vive en `17`.
 
-`status.needs_pm_decision` no recibe una operacion propia en este corte: la
-decision pertenece a la operacion que produjo el status, con `PM_QUESTION_HUMANO`
-y `PM_FEEDBACK_HUMANO` como contexto opcional. Phase readiness review queda
-diferido hasta que dogfood muestre friccion repetida; las operaciones existentes
-ya tienen fail-closed y gates read-only suficientes para este scope.
+El unico candidato KOPS.3 no agregado como operacion nueva es un procesador
+normal de execution report para PRs, porque duplicaria `09`. Un procesador de
+execution report fuera de PR requiere una decision PM exacta y un caso no
+duplicativo antes de agregarse.
 
 ### Justificación de Variables Discursivas
 - `PM_QUESTION_HUMANO`: Es la única variable canónica para preguntas del PM. Es

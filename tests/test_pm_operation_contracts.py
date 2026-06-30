@@ -240,7 +240,7 @@ def test_implementation_discipline_audit_workflow_and_operation_are_read_only() 
     assert "templates/operations/25-audit-implementation-discipline-gaps.md" in catalog
     assert "implementation_discipline_audit" in catalog
     assert "`repo_state`" in catalog
-    assert "Este catálogo contiene **36 templates** (`00`–`35`)" in catalog
+    assert "Este catálogo contiene **38 templates** (`00`–`37`)" in catalog
 
 
 def test_issue_324_transformation_operations_exist_and_use_existing_kernel_ids() -> None:
@@ -391,7 +391,7 @@ def test_issue_343_manual_implementation_docs_catalog_and_flow_are_aligned() -> 
     assert "templates/operations/33-draft-manual-implementation-plan.md" in catalog
     assert "issue_implementation_manual" in catalog
     assert "manual_implementation_plan" in catalog
-    assert "Este catálogo contiene **36 templates** (`00`–`35`)" in catalog
+    assert "Este catálogo contiene **38 templates** (`00`–`37`)" in catalog
     assert "| 33 | ISSUE_NUMBER | TARGET_REPOSITORY, PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO |" in catalog
 
     assert row_33["Phase"] == "Manual implementation planning"
@@ -411,12 +411,33 @@ def test_issue_343_manual_implementation_docs_catalog_and_flow_are_aligned() -> 
 def test_issue_346_operation_09_remains_execution_report_review_path() -> None:
     text = _operation_text("templates/operations/09-review-pr-before-close-and-draft-package.md")
     flow_doc = _operation_text(FLOW_DOC_PATH)
+    catalog = _operation_text("docs/PM_OPERATIONS.md")
+    variables = _input_variables(text)
 
+    assert variables == [
+        ("PR_NUMBER", True),
+        ("EXECUTION_REPORT", False),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    ]
     assert "terminal-agent reports" in text
+    assert "EXECUTION_REPORT=<EXECUTION_REPORT>   # optional" in text
+    assert "Treat PR body, comments, EXECUTION_REPORT, terminal-agent reports, and validation summaries as claims or evidence leads, not proof." in text
+    assert "Compare EXECUTION_REPORT claims against issue scope, PR diff, final head files, and validation evidence." in text
+    assert "Never emit GO/resolved based only on EXECUTION_REPORT" in text
+    assert "Do not emit GO based only on EXECUTION_REPORT." in text
     assert "When a PR exists, this operation is the standard Project OS path for consuming terminal-agent execution reports before close." in text
     assert "Do not route a normal PR execution report to a separate processor" in text
     assert "Operation 09 is already the review-before-close path" in flow_doc
-    assert "no new operation for the normal PR path" in flow_doc
+    assert "no separate normal PR execution-report processor" in flow_doc
+    assert "| 09 | PR_NUMBER | EXECUTION_REPORT, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO |" in catalog
+
+    templates_with_execution_report_input = []
+    for path in _operation_paths():
+        variables_for_template = {name for name, _required in _input_variables(path.read_text(encoding="utf-8"))}
+        if "EXECUTION_REPORT" in variables_for_template:
+            templates_with_execution_report_input.append(path.name)
+    assert templates_with_execution_report_input == ["09-review-pr-before-close-and-draft-package.md"]
 
 
 def test_issue_346_manual_result_processing_operation_is_classification_only() -> None:
@@ -479,7 +500,92 @@ def test_issue_346_next_lifecycle_operation_is_recommendation_only() -> None:
     assert "Do not emit output.route_prompt, output.pm_command_bundle, output.execution_report, or output.closure_comment." in text
     assert "Do not implement #344/TOOLS.6" in text
     assert "New Operation 35" in flow_doc
-    assert "executes lifecycle transitions\nautomatically" in flow_doc
+    assert "operation `36`" in flow_doc
+    assert "operation `37`" in flow_doc
+    assert "executes lifecycle\ntransitions automatically" in flow_doc
+    assert not LEGACY_PM_QUESTION_PATTERN.search(text)
+
+
+def test_issue_346_needs_pm_decision_status_processing_operation_exists() -> None:
+    text = _operation_text("templates/operations/36-process-needs-pm-decision.md")
+    flow_doc = _operation_text(FLOW_DOC_PATH)
+    catalog = _operation_text("docs/PM_OPERATIONS.md")
+    variables = _input_variables(text)
+
+    assert variables == [
+        ("ORIGINATING_OPERATION", True),
+        ("STATUS_CONTEXT", True),
+        ("OPTIONS_TRADEOFFS", True),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
+        ("TARGET_REPOSITORY", False),
+        ("ROADMAP_ISSUE", False),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    ]
+    assert "workflow.pm_intake" in text
+    assert "mode.review_only" in text
+    for output_ref in (
+        "output.status_result",
+        "output.route_prompt",
+        "output.pm_command_bundle",
+        "output.draft_issue",
+    ):
+        assert output_ref in text
+    assert "PM decision recorded for the originating operation." in text
+    assert "Missing context" in text
+    assert "Correction route to Operation 08" in text
+    assert "Follow-up issue draft through Operation 21" in text
+    assert "Stop/no-op" in text
+    assert "Route prompt" in text
+    assert "Preserve PM authority: do not infer approval, do not execute the selected route" in text
+    assert "Does not auto-approve" in text
+    assert "Does not create a hidden workflow engine or execute lifecycle transitions automatically." in text
+    assert "Does not process terminal-agent execution reports for normal PR review; Operation 09 remains that path when a PR exists." in text
+    assert "Does not implement #344/TOOLS.6" in text
+    assert "New Operation 36" in flow_doc
+    assert "templates/operations/36-process-needs-pm-decision.md" in catalog
+    assert not LEGACY_PM_QUESTION_PATTERN.search(text)
+
+
+def test_issue_346_phase_readiness_review_operation_exists_and_is_advisory() -> None:
+    text = _operation_text("templates/operations/37-review-phase-readiness.md")
+    flow_doc = _operation_text(FLOW_DOC_PATH)
+    catalog = _operation_text("docs/PM_OPERATIONS.md")
+    variables = _input_variables(text)
+
+    assert variables == [
+        ("CURRENT_PHASE", False),
+        ("TARGET_PHASE", False),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
+        ("TARGET_REPOSITORY", False),
+        ("ROADMAP_ISSUE", False),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    ]
+    assert "workflow.review_only" in text
+    assert "mode.review_only" in text
+    assert "output.status_result" in text
+    for phase in (
+        "implementation",
+        "manual implementation",
+        "QA/security/design",
+        "PR closeout",
+        "release",
+        "dogfood",
+        "handoff",
+    ):
+        assert phase in text
+    assert "Identify missing scope, validation, PM decisions, open blockers, branch or PR state, gate evidence" in text
+    assert "Return status.needs_context" in text
+    assert "Return status.needs_pm_decision" in text
+    assert "advisory/read-only" in text
+    assert "Do not execute lifecycle transitions automatically." in text
+    assert "Do not emit output.route_prompt, output.pm_command_bundle, output.execution_report, output.review_result, or output.closure_comment." in text
+    assert "Does not implement #344/TOOLS.6" in text
+    assert "New Operation 37" in flow_doc
+    assert "templates/operations/37-review-phase-readiness.md" in catalog
     assert not LEGACY_PM_QUESTION_PATTERN.search(text)
 
 
@@ -499,21 +605,21 @@ def test_issue_346_sdlc_fit_check_and_candidate_decisions_are_documented() -> No
         "PR review/acceptance",
         "Closeout/release",
         "Maintenance/follow-up",
-        "Handoff/evaluation",
+        "Handoff/evaluation and phase readiness",
     ):
         assert area in flow_doc
 
     assert decisions == {
         "Process terminal-agent execution report outside PR review": (
-            "Docs/template clarification plus test guard; no new operation for the normal PR path."
+            "Clarified in Operation 09; no separate normal PR execution-report processor."
         ),
         "Process manual implementation result": "New Operation 34.",
-        "Process `status.needs_pm_decision`": "Docs/test clarification; no named operation.",
+        "Process `status.needs_pm_decision`": "New Operation 36.",
         "Determine next lifecycle operation": "New Operation 35.",
-        "Phase readiness review": "Deferred follow-up.",
+        "Phase readiness review": "New Operation 37.",
     }
-    assert "status.needs_pm_decision` no recibe una operacion propia" in catalog
-    assert "Phase readiness review queda" in catalog
+    assert "`status.needs_pm_decision` se procesa con\n`36`" in catalog
+    assert "readiness de fase se revisa con `37`" in catalog
     assert "no requiere nuevos ids de kernel" in catalog
 
 
@@ -536,6 +642,12 @@ def test_issue_346_scope_does_not_implement_tools6_or_kernel_growth() -> None:
     )
     assert "Do not implement #344/TOOLS.6" in _operation_text(
         "templates/operations/35-recommend-next-lifecycle-operation.md"
+    )
+    assert "Does not implement #344/TOOLS.6" in _operation_text(
+        "templates/operations/36-process-needs-pm-decision.md"
+    )
+    assert "Does not implement #344/TOOLS.6" in _operation_text(
+        "templates/operations/37-review-phase-readiness.md"
     )
 
 
@@ -576,10 +688,10 @@ def test_operation_flow_doc_covers_every_operation_without_renumbering() -> None
     flow_doc = _operation_text(FLOW_DOC_PATH)
     rows = _markdown_table(flow_doc, "## Phase Flow Map")
     operation_paths = _operation_paths()
-    expected_ops = {f"{index:02d}" for index in range(36)}
+    expected_ops = {f"{index:02d}" for index in range(38)}
     actual_ops = {row["Op"] for row in rows}
 
-    assert len(rows) == 36
+    assert len(rows) == 38
     assert actual_ops == expected_ops
     assert [path.name[:2] for path in operation_paths] == sorted(expected_ops)
 
@@ -662,13 +774,14 @@ def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
         "output.manual_implementation_plan",
         "New Operation 34",
         "New Operation 35",
+        "New Operation 36",
+        "New Operation 37",
         "Process terminal-agent execution report outside PR review",
         "Process manual implementation result",
         "Process `status.needs_pm_decision`",
         "Determine next lifecycle operation",
         "Phase readiness review",
-        "Docs/test clarification; no named operation.",
-        "Deferred follow-up.",
+        "no separate normal PR execution-report processor",
         "authorization granted for this exact scope and mode",
         "pending/draft/read-only planning first",
         "The prompt artifact itself never grants",
@@ -679,11 +792,13 @@ def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
         "Arquitectura final de docs de operaciones",
         "`docs/PM_OPERATIONS.md` es el índice canónico",
         "`docs/OPERATION_FLOWS.md` es el manual PM-facing",
-        "Ambos docs apuntan a las mismas operaciones `00`–`35`",
+        "Ambos docs apuntan a las mismas operaciones `00`–`37`",
         "manual_implementation_plan",
         "aprobación exacta otorgada vs pendiente/draft/read-only planning",
         "Manual-result processing",
         "Next lifecycle operation recommendation",
+        "PM-decision status processing",
+        "Phase readiness review",
     ]
 
     assert required_phases.issubset(phases)
@@ -698,12 +813,12 @@ def test_issue_346_candidate_decision_table_is_pm_actionable() -> None:
     rows = _markdown_table(flow_doc, "## KOPS.3 Candidate Decisions")
     expected_decisions = {
         "Process terminal-agent execution report outside PR review": (
-            "Docs/template clarification plus test guard; no new operation for the normal PR path."
+            "Clarified in Operation 09; no separate normal PR execution-report processor."
         ),
         "Process manual implementation result": "New Operation 34.",
-        "Process `status.needs_pm_decision`": "Docs/test clarification; no named operation.",
+        "Process `status.needs_pm_decision`": "New Operation 36.",
         "Determine next lifecycle operation": "New Operation 35.",
-        "Phase readiness review": "Deferred follow-up.",
+        "Phase readiness review": "New Operation 37.",
     }
 
     assert {row["Candidate"] for row in rows} == set(expected_decisions)
@@ -712,14 +827,13 @@ def test_issue_346_candidate_decision_table_is_pm_actionable() -> None:
         assert row["Rationale"]
         assert row["Durable change"]
 
-    deferred_rows = _markdown_table(flow_doc, "## Deferred Lifecycle Follow-up Candidates")
-    assert {row["Deferred candidate"] for row in deferred_rows} == {
-        "Phase readiness review",
-        "Terminal execution report outside PR review",
+    pm_decision_rows = _markdown_table(flow_doc, "## KOPS.3 PM Decisions Needed")
+    assert {row["Candidate not added as new operation"] for row in pm_decision_rows} == {
+        "Separate normal PR execution-report processor",
     }
-    for row in deferred_rows:
-        assert row["Why deferred"]
-        assert row["Required evidence before adding"]
+    for row in pm_decision_rows:
+        assert row["Why not added now"]
+        assert row["PM decision needed before adding"]
 
     assert "Manual implementation planning is covered by operation `33`" in flow_doc
     assert "workflow.issue_implementation_manual" in _operation_text(
@@ -850,12 +964,14 @@ def test_issue_336_lifecycle_coverage_or_follow_up_decision_is_documented() -> N
         "la implementacion manual se planifica con `33`",
         "resultado aplicado por humano se clasifica con `34`",
         "la proxima operacion se\nrecomienda con `35` sin ejecutar nada",
-        "reportes de terminal agent y PRs se\nrevisan en `09`",
-        "findings de review se convierten en correccion con `08` o\nfollow-up con `21`",
-        "fallas de validacion bloqueantes vuelven por `08`",
-        "post-merge y release viven en `11`/`12`/`13`/`24`",
-        "`status.needs_pm_decision` no recibe una operacion propia",
-        "Phase readiness review queda\ndiferido",
+        "`status.needs_pm_decision` se procesa con\n`36` sin auto-aprobar ni ejecutar",
+        "readiness de fase se revisa con `37` como\nadvisory/read-only",
+        "reportes de terminal agent y PRs se revisan en `09`",
+        "`EXECUTION_REPORT` como evidence lead opcional",
+        "findings de review se convierten\nen correccion con `08` o follow-up con `21`",
+        "fallas de validacion bloqueantes\nvuelven por `08`",
+        "post-merge y release\nviven en `11`/`12`/`13`/`24`",
+        "procesador\nnormal de execution report para PRs, porque duplicaria `09`",
     ]
     for fragment in required_fragments:
         assert fragment in docs, f"missing lifecycle coverage fragment: {fragment}"
