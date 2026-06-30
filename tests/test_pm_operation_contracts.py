@@ -165,6 +165,24 @@ def _operation_text(relative_path: str) -> str:
     return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
 
 
+def _operation_paths() -> list[Path]:
+    return sorted((REPO_ROOT / "templates" / "operations").glob("*.md"), key=lambda path: path.name)
+
+
+def _input_variables(text: str) -> list[tuple[str, bool]]:
+    match = re.search(r"INPUT:\n(.*?)(?:\n\n[A-Z_]+:|\Z)", text, re.DOTALL)
+    assert match, "operation template has no INPUT block"
+    variables: list[tuple[str, bool]] = []
+    for raw_line in match.group(1).splitlines():
+        line = raw_line.strip()
+        if not line or line == "(none)":
+            continue
+        variable_match = re.search(r"([A-Z][A-Z0-9_]*)=", line)
+        if variable_match:
+            variables.append((variable_match.group(1), "# optional" not in line))
+    return variables
+
+
 def test_implementation_discipline_audit_workflow_and_operation_are_read_only() -> None:
     workflow = _kernel_entry("workflows.json", "workflow.implementation_discipline_audit")
     template = (REPO_ROOT / "templates" / "operations" / "25-audit-implementation-discipline-gaps.md").read_text(
@@ -199,7 +217,7 @@ def test_implementation_discipline_audit_workflow_and_operation_are_read_only() 
     assert "templates/operations/25-audit-implementation-discipline-gaps.md" in catalog
     assert "implementation_discipline_audit" in catalog
     assert "`repo_state`" in catalog
-    assert "Este catálogo contiene **30 templates** (`00`–`29`)" in catalog
+    assert "Este catálogo contiene **33 templates** (`00`–`32`)" in catalog
 
 
 def test_issue_324_transformation_operations_exist_and_use_existing_kernel_ids() -> None:
@@ -276,3 +294,202 @@ def test_issue_324_transformation_docs_do_not_embed_live_state_or_secret_example
         if SECRET_LOOKING_PATTERN.search(text):
             offenders.append(f"{rel}: secret-looking value")
     assert offenders == [], f"durable live state or secret-looking examples found: {offenders}"
+
+
+def test_operation_templates_reference_only_valid_kernel_ids_and_no_live_state() -> None:
+    kernel_ids = _kernel_ids()
+    checked_paths = [*list(_operation_paths()), REPO_ROOT / "docs" / "PM_OPERATIONS.md"]
+    offenders: list[str] = []
+    for path in checked_paths:
+        text = path.read_text(encoding="utf-8")
+        for ref in sorted(set(KERNEL_ID_PATTERN.findall(text))):
+            if ref not in kernel_ids:
+                offenders.append(f"{path.relative_to(REPO_ROOT)}: invalid kernel id {ref}")
+        if LIVE_GITHUB_OBJECT_PATTERN.search(text):
+            offenders.append(f"{path.relative_to(REPO_ROOT)}: durable live GitHub object URL")
+        if SECRET_LOOKING_PATTERN.search(text):
+            offenders.append(f"{path.relative_to(REPO_ROOT)}: secret-looking value")
+    assert offenders == []
+
+
+def test_operation_templates_do_not_duplicate_input_variables() -> None:
+    offenders: list[str] = []
+    for path in _operation_paths():
+        variables = [name for name, _required in _input_variables(path.read_text(encoding="utf-8"))]
+        if len(variables) != len(set(variables)):
+            offenders.append(f"{path.name}: {variables}")
+    assert offenders == []
+
+
+def test_pm_question_and_feedback_variables_are_scoped_to_justified_operations() -> None:
+    allowed_pm_question = {"00", "05", "30", "31", "32"}
+    allowed_optional_feedback = {"30", "31", "32"}
+    allowed_required_feedback = {"08"}
+
+    for path in _operation_paths():
+        idx = path.name[:2]
+        variables = _input_variables(path.read_text(encoding="utf-8"))
+        for name, required in variables:
+            if name == "PM_QUESTION":
+                assert not required, f"{path.name}: PM_QUESTION must be optional"
+                assert idx in allowed_pm_question, f"{path.name}: PM_QUESTION is not justified"
+            if name == "PM_FEEDBACK_HUMANO":
+                if required:
+                    assert idx in allowed_required_feedback, (
+                        f"{path.name}: PM_FEEDBACK_HUMANO may be required only for correction routing"
+                    )
+                else:
+                    assert idx in allowed_optional_feedback, f"{path.name}: optional PM feedback is not justified"
+
+
+def test_operation_templates_keep_external_recipients_distinct_from_kernel_actors() -> None:
+    forbidden_actor_ids = {
+        "actor." + suffix
+        for suffix in (
+            "qa",
+            "human_qa",
+            "security_reviewer",
+            "designer",
+            "asset_creator",
+            "reviewer",
+        )
+    }
+    for path in _operation_paths():
+        text = path.read_text(encoding="utf-8")
+        for forbidden in forbidden_actor_ids:
+            assert forbidden not in text, f"{path.name}: external recipient drifted into kernel actor {forbidden}"
+
+
+def test_issue_336_post_gate_result_variables_have_no_unjustified_aliases() -> None:
+    template_paths = [
+        REPO_ROOT / "templates" / "operations" / "30-process-human-qa-results.md",
+        REPO_ROOT / "templates" / "operations" / "31-process-security-review-results.md",
+        REPO_ROOT / "templates" / "operations" / "32-process-design-asset-delivery.md",
+    ]
+    forbidden_aliases = {"QA_RESULTS", "SECURITY_RESULTS", "ASSET_FEEDBACK", "DESIGN_FEEDBACK"}
+    for path in template_paths:
+        variables = {name for name, _required in _input_variables(path.read_text(encoding="utf-8"))}
+        assert variables.isdisjoint(forbidden_aliases), (
+            f"{path.relative_to(REPO_ROOT)} keeps unjustified alias variables: {variables & forbidden_aliases}"
+        )
+
+    docs = _operation_text("docs/PM_OPERATIONS.md")
+    matrix = docs.split("| 30 |", 1)[1].split("## Cobertura de operaciones", 1)[0]
+    for alias in forbidden_aliases:
+        assert alias not in matrix, f"docs matrix keeps unjustified alias {alias}"
+
+
+def test_issue_336_lifecycle_coverage_or_follow_up_decision_is_documented() -> None:
+    docs = _operation_text("docs/PM_OPERATIONS.md")
+    required_fragments = [
+        "### Cobertura Post-Gate",
+        "QA humano (`18` → `30`)",
+        "revisión de seguridad\n(`20` → `31`)",
+        "assets/diseño (`19` → `32`)",
+        "implementación y reportes se revisan en `09`",
+        "findings de review se convierten\nen corrección con `08` o follow-up con `21`",
+        "fallas de validación bloqueantes\nvuelven por `08`",
+        "post-merge y release\nviven en `11`/`12`/`13`/`24`",
+        "debe decidirse como follow-up PM",
+    ]
+    for fragment in required_fragments:
+        assert fragment in docs, f"missing lifecycle coverage fragment: {fragment}"
+
+
+def test_issue_336_operation_07_issue_number_is_optional_with_live_traceability_fallback() -> None:
+    text = _operation_text("templates/operations/07-draft-issue-implementation-route-prompt.md")
+    variables = _input_variables(text)
+
+    assert ("ISSUE_NUMBER", False) in variables
+    assert ("ROADMAP_ISSUE", False) in variables
+    assert "PM_QUESTION=<PM_QUESTION>" not in text
+    assert "PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>" not in text
+
+    required_fragments = [
+        "If ISSUE_NUMBER is provided, read that issue scope and source basis live",
+        "If ISSUE_NUMBER is omitted, derive exactly one next issue from live traceability",
+        "ROADMAP_ISSUE when provided",
+        "IF ISSUE_NUMBER omitted and zero candidate issues can be derived:",
+        "Return status.needs_context naming the missing live evidence.",
+        "IF ISSUE_NUMBER omitted and multiple plausible candidate issues exist:",
+        "Return status.needs_pm_decision asking the PM to choose exactly one ISSUE_NUMBER.",
+        "Never invent the target issue.",
+        "A route prompt never grants write authority",
+    ]
+    for fragment in required_fragments:
+        assert fragment in text, f"operation 07 missing fallback contract: {fragment}"
+
+
+def test_issue_336_post_gate_optional_identifiers_have_fail_closed_rules() -> None:
+    specs = {
+        "templates/operations/30-process-human-qa-results.md": [
+            "If ISSUE_NUMBER is provided, use that issue as the target evidence basis.",
+            "If ISSUE_NUMBER is omitted, derive exactly one target issue from QA_RESULT",
+            "IF ISSUE_NUMBER omitted and no target issue can be derived:",
+            "Return status.needs_context naming the missing issue or traceability evidence.",
+            "IF ISSUE_NUMBER omitted and multiple plausible target issues exist:",
+            "Return status.needs_pm_decision asking the PM to choose exactly one ISSUE_NUMBER.",
+        ],
+        "templates/operations/31-process-security-review-results.md": [
+            "If PR_NUMBER is provided, read that PR diff and linked issue.",
+            "If PR_NUMBER is omitted, derive exactly one target PR and linked issue from",
+            "IF PR_NUMBER omitted and no target PR can be derived:",
+            "Return status.needs_context naming the missing PR, issue, or traceability evidence.",
+            "IF PR_NUMBER omitted and multiple plausible target PRs or linked issues exist:",
+            "Return status.needs_pm_decision asking the PM to choose exactly one PR_NUMBER.",
+        ],
+        "templates/operations/32-process-design-asset-delivery.md": [
+            "If ISSUE_NUMBER is provided, use that issue as the target evidence basis.",
+            "If ISSUE_NUMBER is omitted, derive exactly one target issue from DESIGN_DELIVERY",
+            "IF ISSUE_NUMBER omitted and no target issue can be derived:",
+            "Return status.needs_context naming the missing issue or traceability evidence.",
+            "IF ISSUE_NUMBER omitted and multiple plausible target issues or product routes exist:",
+            "Return status.needs_pm_decision asking the PM to choose exactly one ISSUE_NUMBER",
+        ],
+    }
+
+    for path, fragments in specs.items():
+        text = _operation_text(path)
+        for fragment in fragments:
+            assert fragment in text, f"{path} missing fail-closed rule: {fragment}"
+
+
+def test_issue_336_post_gate_operations_exist_and_conform() -> None:
+    ops = [
+        "templates/operations/30-process-human-qa-results.md",
+        "templates/operations/31-process-security-review-results.md",
+        "templates/operations/32-process-design-asset-delivery.md",
+    ]
+    kernel_ids = _kernel_ids()
+    for op_path in ops:
+        text = _operation_text(op_path)
+
+        # Valid kernel ids
+        for ref in sorted(set(KERNEL_ID_PATTERN.findall(text))):
+            assert ref in kernel_ids, f"{op_path} references unresolved kernel id {ref}"
+
+        # No role-actor drift and no write authority
+        assert "actor.browser_chat" in text, f"{op_path} must be executed by actor.browser_chat"
+        assert "mode.review_only" in text, f"{op_path} must run in mode.review_only (no write authority)"
+        delegated_mode_prefix = "mode." + "delegated_commit"
+        assert delegated_mode_prefix not in text, f"{op_path} must not imply delegated write mode"
+        assert "Draft only. No mutation." in text, f"{op_path} must explicitly declare no mutation"
+
+        # No durable live state
+        assert LIVE_GITHUB_OBJECT_PATTERN.search(text) is None, f"{op_path} must not embed durable live state (URLs)"
+
+        # Recommended next operation guidance
+        assert "RECOMMENDED_NEXT_OPERATION:" in text, f"{op_path} must have recommended next operation"
+
+        # Specific variable checks
+        assert "PM_QUESTION=<PM_QUESTION>   # optional" in text
+        assert "PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional" in text
+        if "30" in op_path:
+            assert "QA_RESULT=<QA_RESULT>" in text
+            assert "ISSUE_NUMBER=<ISSUE_NUMBER>   # optional" in text
+        elif "31" in op_path:
+            assert "SECURITY_REVIEW_RESULT=<SECURITY_REVIEW_RESULT>" in text
+            assert "PR_NUMBER=<PR_NUMBER>   # optional" in text
+        elif "32" in op_path:
+            assert "DESIGN_DELIVERY=<DESIGN_DELIVERY>" in text
+            assert "ISSUE_NUMBER=<ISSUE_NUMBER>   # optional" in text
