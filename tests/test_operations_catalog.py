@@ -40,7 +40,7 @@ def test_pm_operations_catalog_alignment():
     ops_dir = "templates/operations"
     templates = [f for f in sorted(os.listdir(ops_dir)) if f.endswith(".md")]
 
-    assert len(templates) == 30
+    assert len(templates) == 33
 
     for template in templates:
         idx = template[:2]

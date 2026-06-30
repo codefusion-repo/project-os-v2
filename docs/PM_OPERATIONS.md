@@ -51,6 +51,9 @@ uno resuelve a un id real del kernel.
 | `templates/operations/27-draft-roadmap-from-docs.md` | Leer docs estables y draftear un roadmap issue body o bundle de creación/actualización. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `draft_issue` (+`pm_command_bundle`) | `source_basis`, `repo_state` | `SOURCE_DOCS` / `TARGET_REPOSITORY`, `ROADMAP_ACTION` | Sí (solo GitHub write) |
 | `templates/operations/28-draft-docs-from-description.md` | Draftear documentación desde una descripción PM y routear creación de archivo solo con aprobación exacta. | `browser_chat` → `terminal_agent` | `pm_intake` | `review_only` | `route_prompt` (+`draft_issue`) | `source_basis` | `DESCRIPTION` / `DOC_TARGET` | Sí (solo escritura del archivo) |
 | `templates/operations/29-draft-bounded-roadmap-issues-command.md` | Draftear issues acotados desde roadmap con `ISSUE_COUNT_LIMIT` o `SCOPE_LIMIT`, uno por outcome. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `pm_command_bundle` | `source_basis`, `repo_state` | `ROADMAP_ISSUE` + (`ISSUE_COUNT_LIMIT` o `SCOPE_LIMIT`) / — | No |
+| `templates/operations/30-process-human-qa-results.md` | Procesar resultados de ejecución de QA humano y draftear route-prompt de corrección o follow-up. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `QA_RESULTS` / `ISSUE_NUMBER` | No |
+| `templates/operations/31-process-security-review-results.md` | Procesar resultados de revisión de seguridad y draftear route-prompt de corrección o follow-up. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `SECURITY_RESULTS` / `PR_NUMBER` | No |
+| `templates/operations/32-process-design-asset-delivery.md` | Procesar entrega de assets o feedback de diseño y mapearlo a tareas técnicas o drafts. | `browser_chat` → Humano PM | `pm_intake` | `review_only` | `route_prompt` (+`pm_command_bundle`, `status_result`) | `repo_state`, `source_basis` | `DESIGN_DELIVERY` / `ISSUE_NUMBER` | No |
 
 Cuando una operación emite `route_prompt` o `pm_command_bundle`, la forma del
 artefacto vive una sola vez en su template canónico (`templates/route-prompt.md`,
@@ -94,10 +97,12 @@ Esta matriz detalla estrictamente las variables requeridas, opcionales (incluyen
 | 27 | SOURCE_DOCS | TARGET_REPOSITORY, ROADMAP_ACTION | (none) | 06 or 29 |
 | 28 | DESCRIPTION | DOC_TARGET | (none) | Terminal Agent executes, then 09 |
 | 29 | ROADMAP_ISSUE | ISSUE_COUNT_LIMIT, SCOPE_LIMIT | (none) | 07 |
-
+| 30 | QA_RESULTS | ISSUE_NUMBER | (none) | 08, 21, or 09 |
+| 31 | SECURITY_RESULTS | PR_NUMBER | (none) | 08, 21, or 09 |
+| 32 | DESIGN_DELIVERY | ISSUE_NUMBER | (none) | 07, 08, 04, or 21 |
 ## Cobertura de operaciones
 
-Este catálogo contiene **30 templates** (`00`–`29`). Cada uno es un prompt de
+Este catálogo contiene **33 templates** (`00`–`32`). Cada uno es un prompt de
 operación ejecutable; ninguno permanece en el formato de ficha descriptiva
 (*Objetivo / Detalle / Superficie / Configuración / Variables*).
 

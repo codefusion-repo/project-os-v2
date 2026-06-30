@@ -199,7 +199,7 @@ def test_implementation_discipline_audit_workflow_and_operation_are_read_only() 
     assert "templates/operations/25-audit-implementation-discipline-gaps.md" in catalog
     assert "implementation_discipline_audit" in catalog
     assert "`repo_state`" in catalog
-    assert "Este catálogo contiene **30 templates** (`00`–`29`)" in catalog
+    assert "Este catálogo contiene **33 templates** (`00`–`32`)" in catalog
 
 
 def test_issue_324_transformation_operations_exist_and_use_existing_kernel_ids() -> None:
@@ -276,3 +276,39 @@ def test_issue_324_transformation_docs_do_not_embed_live_state_or_secret_example
         if SECRET_LOOKING_PATTERN.search(text):
             offenders.append(f"{rel}: secret-looking value")
     assert offenders == [], f"durable live state or secret-looking examples found: {offenders}"
+
+def test_issue_336_post_gate_operations_exist_and_conform() -> None:
+    ops = [
+        "templates/operations/30-process-human-qa-results.md",
+        "templates/operations/31-process-security-review-results.md",
+        "templates/operations/32-process-design-asset-delivery.md",
+    ]
+    kernel_ids = _kernel_ids()
+    for op_path in ops:
+        text = _operation_text(op_path)
+
+        # Valid kernel ids
+        for ref in sorted(set(KERNEL_ID_PATTERN.findall(text))):
+            assert ref in kernel_ids, f"{op_path} references unresolved kernel id {ref}"
+
+        # No role-actor drift and no write authority
+        assert "actor.browser_chat" in text, f"{op_path} must be executed by actor.browser_chat"
+        assert "mode.review_only" in text, f"{op_path} must run in mode.review_only (no write authority)"
+        assert "Draft only. No mutation." in text, f"{op_path} must explicitly declare no mutation"
+
+        # No durable live state
+        assert LIVE_GITHUB_OBJECT_PATTERN.search(text) is None, f"{op_path} must not embed durable live state (URLs)"
+
+        # Recommended next operation guidance
+        assert "RECOMMENDED_NEXT_OPERATION:" in text, f"{op_path} must have recommended next operation"
+
+        # Specific variable checks
+        if "30" in op_path:
+            assert "QA_RESULTS=<QA_RESULTS>" in text
+            assert "ISSUE_NUMBER=<ISSUE_NUMBER>   # optional" in text
+        elif "31" in op_path:
+            assert "SECURITY_RESULTS=<SECURITY_RESULTS>" in text
+            assert "PR_NUMBER=<PR_NUMBER>   # optional" in text
+        elif "32" in op_path:
+            assert "DESIGN_DELIVERY=<DESIGN_DELIVERY>" in text
+            assert "ISSUE_NUMBER=<ISSUE_NUMBER>   # optional" in text
