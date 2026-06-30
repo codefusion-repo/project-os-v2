@@ -19,6 +19,7 @@ SECRET_LOOKING_PATTERN = re.compile(
 )
 LEGACY_PM_QUESTION_PATTERN = re.compile(r"\bPM_QUESTION\b")
 HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
+FLOW_DOC_PATH = "docs/OPERATION_FLOWS.md"
 CANONICAL_KERNEL_ENTRY_IDS = {
     "actors.json": {
         "actor.human_pm",
@@ -171,6 +172,24 @@ def _operation_paths() -> list[Path]:
     return sorted((REPO_ROOT / "templates" / "operations").glob("*.md"), key=lambda path: path.name)
 
 
+def _markdown_table(text: str, heading: str) -> list[dict[str, str]]:
+    after_heading = text.split(heading, 1)[1]
+    table_lines: list[str] = []
+    for line in after_heading.splitlines():
+        if line.startswith("|"):
+            table_lines.append(line)
+        elif table_lines and not line.strip():
+            break
+    assert len(table_lines) >= 3, f"missing markdown table after {heading}"
+    headers = [cell.strip() for cell in table_lines[0].strip("|").split("|")]
+    rows: list[dict[str, str]] = []
+    for line in table_lines[2:]:
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        assert len(cells) == len(headers), f"malformed table row: {line}"
+        rows.append(dict(zip(headers, cells, strict=True)))
+    return rows
+
+
 def _input_variables(text: str) -> list[tuple[str, bool]]:
     match = re.search(r"INPUT:\n(.*?)(?:\n\n[A-Z_]+:|\Z)", text, re.DOTALL)
     assert match, "operation template has no INPUT block"
@@ -300,7 +319,11 @@ def test_issue_324_transformation_docs_do_not_embed_live_state_or_secret_example
 
 def test_operation_templates_reference_only_valid_kernel_ids_and_no_live_state() -> None:
     kernel_ids = _kernel_ids()
-    checked_paths = [*list(_operation_paths()), REPO_ROOT / "docs" / "PM_OPERATIONS.md"]
+    checked_paths = [
+        *list(_operation_paths()),
+        REPO_ROOT / "docs" / "PM_OPERATIONS.md",
+        REPO_ROOT / FLOW_DOC_PATH,
+    ]
     offenders: list[str] = []
     for path in checked_paths:
         text = path.read_text(encoding="utf-8")
@@ -312,6 +335,149 @@ def test_operation_templates_reference_only_valid_kernel_ids_and_no_live_state()
         if SECRET_LOOKING_PATTERN.search(text):
             offenders.append(f"{path.relative_to(REPO_ROOT)}: secret-looking value")
     assert offenders == []
+
+
+def test_operation_flow_doc_covers_every_operation_without_renumbering() -> None:
+    flow_doc = _operation_text(FLOW_DOC_PATH)
+    rows = _markdown_table(flow_doc, "## Phase Flow Map")
+    operation_paths = _operation_paths()
+    expected_ops = {f"{index:02d}" for index in range(33)}
+    actual_ops = {row["Op"] for row in rows}
+
+    assert len(rows) == 33
+    assert actual_ops == expected_ops
+    assert [path.name[:2] for path in operation_paths] == sorted(expected_ops)
+
+    expected_templates = {path.name[:2]: f"`{path.relative_to(REPO_ROOT)}`" for path in operation_paths}
+    for row in rows:
+        assert row["Template"] == expected_templates[row["Op"]]
+        assert row["Phase"]
+        assert row["Trigger"]
+        assert row["Safe next operation"]
+        assert row["Fail-closed behavior"]
+        assert row["PM approval behavior"]
+
+
+def test_operation_flow_doc_variables_match_templates() -> None:
+    flow_doc = _operation_text(FLOW_DOC_PATH)
+    rows = _markdown_table(flow_doc, "## Phase Flow Map")
+    rows_by_op = {row["Op"]: row for row in rows}
+
+    for path in _operation_paths():
+        op = path.name[:2]
+        row = rows_by_op[op]
+        variables = _input_variables(path.read_text(encoding="utf-8"))
+        required = [name for name, is_required in variables if is_required]
+        optional = [name for name, is_required in variables if not is_required]
+        expected_req = "none" if not required else ", ".join(f"`{name}`" for name in required)
+        expected_opt = "none" if not optional else ", ".join(f"`{name}`" for name in optional)
+
+        assert row["Variables"] == f"Req: {expected_req}; Opt: {expected_opt}"
+
+
+def test_operation_flow_doc_uses_valid_kernel_ids_and_template_references() -> None:
+    flow_doc = _operation_text(FLOW_DOC_PATH)
+    kernel_ids = _kernel_ids()
+    valid_templates = {str(path.relative_to(REPO_ROOT)) for path in _operation_paths()}
+    rows = _markdown_table(flow_doc, "## Phase Flow Map")
+    offenders: list[str] = []
+
+    for ref in sorted(set(KERNEL_ID_PATTERN.findall(flow_doc))):
+        if ref not in kernel_ids:
+            offenders.append(f"invalid kernel id {ref}")
+    for row in rows:
+        template = row["Template"].strip("`")
+        if template not in valid_templates:
+            offenders.append(f"invalid template reference {template}")
+    if LIVE_GITHUB_OBJECT_PATTERN.search(flow_doc):
+        offenders.append("durable live GitHub object URL")
+    if SECRET_LOOKING_PATTERN.search(flow_doc):
+        offenders.append("secret-looking value")
+
+    assert offenders == []
+
+
+def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
+    flow_doc = _operation_text(FLOW_DOC_PATH)
+    catalog_doc = _operation_text("docs/PM_OPERATIONS.md")
+    rows = _markdown_table(flow_doc, "## Phase Flow Map")
+    phases = {row["Phase"] for row in rows}
+    required_phases = {
+        "Activation and state review",
+        "Idea intake and requirements",
+        "Roadmap and issue planning",
+        "Implementation routing",
+        "PR review and correction",
+        "QA, security and design gates",
+        "Follow-up and maintenance",
+        "Closeout and verification",
+        "Release and handoff",
+    }
+    required_gap_fragments = [
+        "manual PM-facing de flujo por fase",
+        "`docs/PM_OPERATIONS.md`: indice canonico, matriz de variables",
+        "`docs/OPERATION_FLOWS.md`: manual PM-facing",
+        "que template existe y que contrato\ntiene",
+        "cuando lo uso y que sigue",
+        "Manual implementation planning",
+        "KOPS.2 only. Remains unimplemented in this PR.",
+        "Likely a new manual implementation workflow",
+        "KOPS.3 follow-up",
+        "Process terminal-agent execution report outside PR review",
+        "Process manual implementation result",
+        "Process `status.needs_pm_decision`",
+        "Determine next lifecycle operation",
+        "Phase readiness review",
+        "No se implementan aqui",
+        "authorization granted for\nthis exact scope and mode",
+        "pending/draft/read-only planning first",
+        "The prompt artifact itself never grants\npermission",
+        "Browser chat: siempre draft-only",
+        "GitHub/git: source of truth para estado vivo",
+    ]
+    catalog_fragments = [
+        "Arquitectura final de docs de operaciones",
+        "`docs/PM_OPERATIONS.md` es el índice canónico",
+        "`docs/OPERATION_FLOWS.md` es el manual PM-facing",
+        "Ambos docs apuntan a las mismas operaciones `00`–`32`",
+        "aprobación exacta otorgada vs pendiente/draft/read-only planning",
+    ]
+
+    assert required_phases.issubset(phases)
+    for fragment in required_gap_fragments:
+        assert fragment in flow_doc, f"missing flow/gap decision fragment: {fragment}"
+    for fragment in catalog_fragments:
+        assert fragment in catalog_doc, f"missing catalog docs-architecture fragment: {fragment}"
+
+
+def test_operation_flow_gap_table_is_pm_actionable_and_follow_up_only() -> None:
+    flow_doc = _operation_text(FLOW_DOC_PATH)
+    rows = _markdown_table(flow_doc, "## Missing Lifecycle Follow-up Candidates")
+    expected_owners = {
+        "Manual implementation planning": "KOPS.2 only. Remains unimplemented in this PR.",
+        "Process terminal-agent execution report outside PR review": "KOPS.3 follow-up.",
+        "Process manual implementation result": "KOPS.3 or later, after KOPS.2 exists.",
+        "Process `status.needs_pm_decision`": "KOPS.3 follow-up.",
+        "Determine next lifecycle operation": "KOPS.3 follow-up.",
+        "Phase readiness review": "KOPS.3 follow-up or later dogfood issue.",
+    }
+
+    assert {row["Missing operation"] for row in rows} == set(expected_owners)
+    for row in rows:
+        assert row["Roadmap owner"] == expected_owners[row["Missing operation"]]
+        assert row["Why it matters"]
+        assert row["Likely kernel/output impact"]
+        assert row["PM-actionable follow-up"]
+        assert "Create a KOPS.3 issue" in row["PM-actionable follow-up"] or row[
+            "Missing operation"
+        ] in {
+            "Manual implementation planning",
+            "Process manual implementation result",
+            "Phase readiness review",
+        }
+
+    future_manual_workflow = "workflow." + "issue_implementation_manual"
+    assert future_manual_workflow not in flow_doc
 
 
 def test_operation_templates_do_not_duplicate_input_variables() -> None:
