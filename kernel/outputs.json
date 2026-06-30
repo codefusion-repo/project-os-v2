@@ -10,6 +10,12 @@
       "rule": "Never claim done unless scope is complete, out-of-scope was respected, validation is reported, and review can verify the result."
     },
     {
+      "id": "output.manual_implementation_plan",
+      "use_for": "Drafting detailed implementation instructions for a human to apply manually.",
+      "required_sections": ["objective", "files to inspect", "files to modify", "change plan by file/anchor/line where possible", "exact additions/removals in prose or patch-like snippets when safe", "reasoning for each change", "validation commands", "manual QA checklist", "risks and rollback", "recommended next Project OS operation", "no-write statement"],
+      "rule": "This is a human-executable plan, not an execution report. It must never claim code was edited or validated by browser chat; it must fail closed when live issue or code context is insufficient, and it never grants write permission."
+    },
+    {
       "id": "output.review_result",
       "use_for": "Reporting review or analysis findings.",
       "required_sections": ["scope reviewed", "evidence reviewed", "implementation comparison mapping issue objective/scope/out-of-scope/acceptance criteria to code evidence", "implementation-discipline findings when relevant", "findings with file/line or issue/PR references", "verdict or recommendation", "risks", "what was not reviewed"],
