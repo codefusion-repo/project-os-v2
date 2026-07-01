@@ -10,6 +10,9 @@ from tools.operation_prompt_wizard import (
     InputVariable,
     OperationTemplate,
     OUTPUT_DIR_ENV,
+    PM_AUTHORIZATION_GRANTED,
+    PM_AUTHORIZATION_PENDING,
+    PM_AUTHORIZATION_STATUS_NAME,
     WIZARD_PROMPT_MARKER,
     carryover_values,
     cleanup_previous_generated_prompts,
@@ -22,6 +25,8 @@ from tools.operation_prompt_wizard import (
     is_carryover_variable,
     is_wizard_generated_artifact,
     load_phase_map,
+    operation_needs_pm_authorization_assistance,
+    operation_produces_route_prompt,
     parse_input_variables,
     print_phase_groups,
     render_prompt,
@@ -309,6 +314,38 @@ def test_validate_common_variable_shapes() -> None:
     )
 
 
+def test_route_prompt_detection_uses_positive_output_block() -> None:
+    route_text = "# Route\n\nINPUT:\n  (none)\n\nOUTPUT:\n  output.route_prompt for terminal work.\n"
+    advisory_text = (
+        "# Advisory\n\nINPUT:\n  (none)\n\nOUTPUT:\n  output.status_result.\n\n"
+        "LIMITS:\n  Do not emit output.route_prompt.\n"
+    )
+    route_operation = OperationTemplate(1, Path("07-route.md"), "Route", route_text, ())
+    advisory_operation = OperationTemplate(2, Path("35-advisory.md"), "Advisory", advisory_text, ())
+
+    assert operation_produces_route_prompt(route_operation) is True
+    assert operation_needs_pm_authorization_assistance(route_operation) is True
+    assert operation_produces_route_prompt(advisory_operation) is False
+    assert operation_needs_pm_authorization_assistance(advisory_operation) is False
+
+
+def test_validate_pm_authorization_status_requires_explicit_choice() -> None:
+    variable = InputVariable(PM_AUTHORIZATION_STATUS_NAME, "<pending | granted>", True, "")
+
+    assert validate_variable_value(variable, "") == (
+        "PM_AUTHORIZATION_STATUS is required. "
+        "Choose 1 for pending or 2 for granted for this exact scope and mode."
+    )
+    assert validate_variable_value(variable, "1") is None
+    assert validate_variable_value(variable, "2") is None
+    assert validate_variable_value(variable, PM_AUTHORIZATION_PENDING) is None
+    assert validate_variable_value(variable, PM_AUTHORIZATION_GRANTED) is None
+    assert validate_variable_value(variable, "granted") == (
+        "PM_AUTHORIZATION_STATUS must be 1, 2, pending, or "
+        "granted for this exact scope and mode."
+    )
+
+
 def test_collect_values_reprompts_required_and_allows_optional_skip() -> None:
     operation = OperationTemplate(
         index=1,
@@ -433,6 +470,100 @@ def test_run_wizard_writes_only_after_preview_confirmation(tmp_path: Path) -> No
     assert "Actions: write, edit, operation, cancel, ? help." in output
     assert "Output mode: single latest prompt" in output
     assert "Exiting wizard session." in output
+
+
+def test_run_wizard_route_prompt_auth_status_pending(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(
+        operations_dir / "07-route.md",
+        "Route",
+        "  ISSUE_NUMBER=<ISSUE_NUMBER>",
+    )
+    operation_path = operations_dir / "07-route.md"
+    operation_path.write_text(
+        operation_path.read_text(encoding="utf-8")
+        + "\nOUTPUT:\n  output.route_prompt per templates/route-prompt.md.\n",
+        encoding="utf-8",
+    )
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "123", "1", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "ISSUE_NUMBER=123" in text
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in text
+    transcript = stream.getvalue()
+    assert "PM_AUTHORIZATION_STATUS assistance:" in transcript
+    assert "does not bypass kernel evidence, branch preflight, validation" in transcript
+    assert "the generated artifact is not permission" in transcript
+
+
+def test_run_wizard_route_prompt_auth_status_granted_exact_scope(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    (operations_dir / "08-route.md").write_text(
+        "# Route\n\n"
+        "INPUT:\n"
+        "  ISSUE_NUMBER=<ISSUE_NUMBER>\n\n"
+        "DO:\n  Set PM_AUTHORIZATION_STATUS per PM scope.\n\n"
+        "OUTPUT:\n  output.route_prompt for scoped correction.\n",
+        encoding="utf-8",
+    )
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "123", "2", "write", "exit"),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in text
+
+
+def test_run_wizard_does_not_infer_granted_authorization(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    (operations_dir / "07-route.md").write_text(
+        "# Route\n\n"
+        "INPUT:\n"
+        "  ISSUE_NUMBER=<ISSUE_NUMBER>\n"
+        "  BRANCH_NAME=<BRANCH_NAME>   # optional\n"
+        "  PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional\n\n"
+        "OUTPUT:\n  output.route_prompt per templates/route-prompt.md.\n",
+        encoding="utf-8",
+    )
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers(
+            "", "1",
+            "349",
+            "work/349-wizard-route-prompt-authorization-status",
+            "PM previously discussed authorization",
+            "1",
+            "write",
+            "exit",
+        ),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in text
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" not in text
 
 
 def test_run_wizard_can_search_again_before_write(tmp_path: Path) -> None:
@@ -727,6 +858,7 @@ def test_carryover_values_keeps_only_stable_context() -> None:
     values = {
         "ISSUE_NUMBER": "123",
         "PR_NUMBER": "456",
+        "PM_AUTHORIZATION_STATUS": PM_AUTHORIZATION_GRANTED,
         "ROADMAP_ISSUE": "274",
         "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
         "QA_RESULT": "pass",
@@ -740,6 +872,7 @@ def test_carryover_values_keeps_only_stable_context() -> None:
     assert is_carryover_variable("TARGET_REPOSITORY") is True
     assert is_carryover_variable("ISSUE_NUMBER") is False
     assert is_carryover_variable("PR_NUMBER") is False
+    assert is_carryover_variable("PM_AUTHORIZATION_STATUS") is False
     assert is_carryover_variable("QA_RESULT") is False
 
 

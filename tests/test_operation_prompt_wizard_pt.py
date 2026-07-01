@@ -1,7 +1,13 @@
+import io
+
 import pytest
 from pathlib import Path
 
-from tools.operation_prompt_wizard import HAVE_PROMPT_TOOLKIT
+from tools.operation_prompt_wizard import (
+    HAVE_PROMPT_TOOLKIT,
+    PM_AUTHORIZATION_GRANTED,
+    PM_AUTHORIZATION_STATUS_NAME,
+)
 
 if not HAVE_PROMPT_TOOLKIT:
     pytest.skip("prompt_toolkit not installed, skipping enhanced interaction tests", allow_module_level=True)
@@ -170,3 +176,35 @@ def test_run_wizard_pt_same_action_resets_issue_number_but_keeps_roadmap_issue(t
 
     md_files = list(out_dir.glob("*.md"))
     assert len(md_files) == 1
+
+
+def test_run_wizard_pt_route_prompt_auth_status_granted(tmp_path: Path, monkeypatch):
+    ops_dir = tmp_path / "operations"
+    ops_dir.mkdir()
+    (ops_dir / "07-route.md").write_text(
+        "# Route\n\n"
+        "INPUT:\n"
+        "  ISSUE_NUMBER=<ISSUE_NUMBER>\n\n"
+        "OUTPUT:\n"
+        "  output.route_prompt per templates/route-prompt.md.\n",
+        encoding="utf-8",
+    )
+    out_dir = tmp_path / "out"
+    stream = io.StringIO()
+
+    inputs = [
+        "07",
+        "349",
+        "2",
+        "write",
+        "exit",
+    ]
+
+    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
+
+    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir, output_stream=stream)
+
+    assert result is not None
+    text = result.read_text(encoding="utf-8")
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in text
+    assert "PM_AUTHORIZATION_STATUS assistance:" in stream.getvalue()
