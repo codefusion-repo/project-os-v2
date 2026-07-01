@@ -17,6 +17,7 @@ from tools.operation_prompt_wizard import (
     confirm_write,
     discover_operations,
     filter_operations,
+    find_replaceable_prompts,
     generated_filename,
     is_carryover_variable,
     is_wizard_generated_artifact,
@@ -234,6 +235,46 @@ def test_filter_operations_matches_by_phase(tmp_path: Path) -> None:
     assert [operation.filename for operation in filter_operations(operations, "alpha", phase_by_operation)] == [
         "01-alpha.md"
     ]
+
+
+def test_plain_text_phase_query_filters_instead_of_grouping(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-review-phase-readiness.md", "Review Phase Readiness")
+    write_operation(operations_dir / "02-other.md", "Other")
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("phase", "1", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    assert "# Review Phase Readiness" in path.read_text(encoding="utf-8")
+    assert "Operations grouped by SDLC phase:" not in stream.getvalue()
+
+
+def test_slash_phases_command_groups_operations(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-review-phase-readiness.md", "Review Phase Readiness")
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        # "/phases" groups and re-prompts for a query; "" keeps the list
+        # before the selection prompt is reached.
+        input_func=answers("/phases", "", "1", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    assert "Operations grouped by SDLC phase:" in stream.getvalue()
 
 
 def test_validate_common_variable_shapes() -> None:
@@ -635,6 +676,28 @@ def test_run_wizard_post_write_path_action_shows_current_prompt(tmp_path: Path) 
     assert transcript.count(f"Current prompt: {path}") >= 2
 
 
+def test_run_wizard_post_write_blank_enter_does_not_exit_session(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-test.md", "Test")
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "write", "", "path", "exit"),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    # If blank Enter silently exited (the bug), "path" would never be
+    # consumed and this line would only appear once, from the initial
+    # session-state banner.
+    transcript = stream.getvalue()
+    assert transcript.count(f"Current prompt: {path}") >= 2
+
+
 def test_run_wizard_cancel_during_second_attempt_returns_to_post_write_menu(tmp_path: Path) -> None:
     operations_dir = tmp_path / "operations"
     output_dir = tmp_path / "out"
@@ -717,6 +780,29 @@ def test_cleanup_only_removes_identifiable_wizard_artifacts(tmp_path: Path) -> N
     assert not stale.exists()
     assert fake_pattern_no_marker.exists()
     assert arbitrary_notes.exists()
+
+
+def test_find_replaceable_prompts_reports_every_stale_file_cleanup_will_remove(tmp_path: Path) -> None:
+    output_dir = tmp_path / "out"
+    output_dir.mkdir()
+
+    keep = output_dir / "07-route-111111111111.md"
+    write_prompt(keep, "keep me")
+
+    stale_one = output_dir / "07-route-222222222222.md"
+    write_prompt(stale_one, "stale one")
+
+    stale_two = output_dir / "07-route-333333333333.md"
+    write_prompt(stale_two, "stale two")
+
+    replacing = find_replaceable_prompts(output_dir, keep)
+    assert sorted(replacing) == sorted([stale_one, stale_two])
+
+    removed = cleanup_previous_generated_prompts(output_dir, keep_path=keep)
+    assert sorted(removed) == sorted(replacing)
+    assert keep.exists()
+    assert not stale_one.exists()
+    assert not stale_two.exists()
 
 
 def test_cleanup_never_touches_files_outside_output_dir(tmp_path: Path) -> None:
