@@ -634,8 +634,9 @@ def test_issue_346_scope_does_not_implement_tools6_or_kernel_growth() -> None:
     )
     changed_files = {line for line in result.stdout.splitlines() if line}
 
-    assert "tools/operation_prompt_wizard.py" not in changed_files
-    assert "tools/operation_prompt_wizard_pt.py" not in changed_files
+    # #344/TOOLS.6 is the follow-up issue authorized to change the wizard
+    # itself; this guard only continues to protect kernel/ from unrelated
+    # growth in this lifecycle-processing scope.
     assert not any(path.startswith("kernel/") for path in changed_files)
     assert "Does not implement #344/TOOLS.6" in _operation_text(
         "templates/operations/34-process-manual-implementation-result.md"

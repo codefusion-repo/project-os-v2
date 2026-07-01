@@ -5,6 +5,10 @@ If unavailable, it falls back to a standard line-based flow.
 The wizard reads templates from ``templates/operations`` and only writes local
 Markdown prompt artifacts. It does not execute operations, run commands, or
 call GitHub, git, or network services.
+
+The wizard stays open across multiple generated prompts in one session until
+the PM explicitly exits, and keeps only the single latest wizard-generated
+prompt in its resolved output folder.
 """
 
 from __future__ import annotations
@@ -31,6 +35,7 @@ except ImportError:
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / ".local" / "operation-prompts"
+DEFAULT_OPERATION_FLOWS_PATH = REPO_ROOT / "docs" / "OPERATION_FLOWS.md"
 OUTPUT_DIR_ENV = "PROJECT_OS_OPERATION_PROMPT_OUTPUT_DIR"
 
 BLOCK_HEADER_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*:\s*$")
@@ -45,6 +50,15 @@ SECRET_LOOKING_PATTERN = re.compile(
     r"sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{12,})\b"
 )
 
+# Wizard-generated prompt artifacts are named "<stem>-<12 hex chars>.md" by
+# generated_filename() and carry WIZARD_PROMPT_MARKER inside the file. Both
+# signals must match before cleanup will ever remove a file, so arbitrary or
+# hand-authored .md files are never touched.
+WIZARD_PROMPT_MARKER = "<!-- project-os-operation-prompt-wizard: generated prompt artifact -->"
+GENERATED_FILENAME_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?-[0-9a-f]{12}\.md$")
+
+PHASE_TABLE_HEADER_PREFIX = "| Op | Phase"
+
 CANCEL_COMMANDS = {"c", "cancel", "q", "quit", "exit"}
 HELP_COMMANDS = {"?", "h", "help"}
 BACK_COMMANDS = {"b", "back"}
@@ -53,6 +67,11 @@ WRITE_COMMANDS = {"w", "write", "y", "yes"}
 EDIT_COMMANDS = {"e", "edit", "variables"}
 OPERATION_COMMANDS = {"o", "operation", "operations", "choose"}
 CLEAR_COMMANDS = {"/clear"}
+PHASE_LIST_COMMANDS = {"phase", "phases"}
+
+POST_WRITE_NEW_COMMANDS = {"n", "new"}
+POST_WRITE_SAME_COMMANDS = {"r", "reuse", "same"}
+POST_WRITE_PATH_COMMANDS = {"p", "path", "current"}
 
 
 class WizardError(RuntimeError):
@@ -183,8 +202,12 @@ def input_block_lines(text: str) -> list[str]:
     return block
 
 
-def filter_operations(operations: list[OperationTemplate], query: str) -> list[OperationTemplate]:
-    """Filter operations by displayed number, filename number, filename, or title."""
+def filter_operations(
+    operations: list[OperationTemplate],
+    query: str,
+    phase_by_operation: dict[int, str] | None = None,
+) -> list[OperationTemplate]:
+    """Filter operations by displayed number, filename number, filename, title, or phase."""
 
     normalized = query.strip().lower()
     if not normalized:
@@ -206,6 +229,11 @@ def filter_operations(operations: list[OperationTemplate], query: str) -> list[O
                 continue
         if normalized in operation.filename.lower() or normalized in operation.title.lower():
             matches.append(operation)
+            continue
+        if phase_by_operation:
+            phase = phase_by_operation.get(operation.file_number, "")
+            if phase and normalized in phase.lower():
+                matches.append(operation)
     return matches
 
 
@@ -315,6 +343,23 @@ def is_positive_limit_variable(name: str) -> bool:
     return name.endswith("_COUNT_LIMIT") or name.endswith("_NUMBER_LIMIT")
 
 
+def is_carryover_variable(name: str) -> bool:
+    """Identify stable context variables safe to offer for carry-over between prompts.
+
+    ISSUE_NUMBER, PR_NUMBER, and other operation-specific result variables are
+    deliberately excluded: they usually change per prompt and silently reusing
+    them could route the PM to the wrong issue or PR.
+    """
+
+    return name == "ROADMAP_ISSUE" or is_repository_variable(name)
+
+
+def carryover_values(values: dict[str, str]) -> dict[str, str]:
+    """Return only the stable subset of values safe to carry over to the next prompt."""
+
+    return {name: value for name, value in values.items() if value and is_carryover_variable(name)}
+
+
 def render_prompt(operation: OperationTemplate, values: dict[str, str]) -> str:
     """Render the filled local prompt artifact inline."""
 
@@ -364,6 +409,94 @@ def resolve_output_dir(output_dir: Path | None) -> Path:
     return DEFAULT_OUTPUT_DIR
 
 
+def load_phase_map(flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH) -> dict[int, str]:
+    """Parse Op -> Phase from the Phase Flow Map table in docs/OPERATION_FLOWS.md.
+
+    Returns an empty mapping if the doc is missing or unparsable so phase
+    grouping/filtering degrades gracefully instead of failing the wizard.
+    """
+
+    flows_path = flows_path.expanduser()
+    if not flows_path.is_file():
+        return {}
+
+    phase_by_operation: dict[int, str] = {}
+    in_table = False
+    for line in flows_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not in_table:
+            if stripped.startswith(PHASE_TABLE_HEADER_PREFIX):
+                in_table = True
+            continue
+        if not stripped.startswith("|"):
+            break
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+        op_number_text, phase = cells[0], cells[1]
+        if not op_number_text or not op_number_text.isdigit() or not phase:
+            continue
+        phase_by_operation[int(op_number_text)] = phase
+    return phase_by_operation
+
+
+def is_wizard_generated_artifact(path: Path) -> bool:
+    """Identify a file as a wizard-generated prompt using filename shape and marker.
+
+    Both signals must agree before a file is considered wizard-generated, so
+    arbitrary or hand-authored ``.md`` files are never mistaken for cleanup
+    candidates.
+    """
+
+    if not GENERATED_FILENAME_PATTERN.fullmatch(path.name):
+        return False
+    try:
+        content = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False
+    return WIZARD_PROMPT_MARKER in content
+
+
+def find_existing_generated_prompts(output_dir: Path) -> list[Path]:
+    """Return existing wizard-generated prompt artifacts already in the output folder."""
+
+    if not output_dir.is_dir():
+        return []
+    return sorted(
+        path
+        for path in output_dir.iterdir()
+        if path.is_file() and path.suffix == ".md" and is_wizard_generated_artifact(path)
+    )
+
+
+def find_replaceable_prompt(output_dir: Path, output_path: Path) -> Path | None:
+    """Return the previous wizard-generated prompt a new write would replace, if any."""
+
+    output_resolved = output_path.resolve()
+    for existing in find_existing_generated_prompts(output_dir):
+        if existing.resolve() != output_resolved:
+            return existing
+    return None
+
+
+def cleanup_previous_generated_prompts(output_dir: Path, keep_path: Path) -> list[Path]:
+    """Remove wizard-generated prompt artifacts other than keep_path from output_dir only.
+
+    Cleanup is limited to direct children of output_dir and only removes files
+    identified by is_wizard_generated_artifact; nothing outside output_dir and
+    no non-wizard file is ever touched.
+    """
+
+    keep_resolved = keep_path.resolve()
+    removed: list[Path] = []
+    for existing in find_existing_generated_prompts(output_dir):
+        if existing.resolve() == keep_resolved:
+            continue
+        existing.unlink()
+        removed.append(existing)
+    return removed
+
+
 def display_operations(operations: list[OperationTemplate], output_stream: TextIO) -> None:
     """Print an ordered numbered operation list."""
 
@@ -376,11 +509,54 @@ def display_operations(operations: list[OperationTemplate], output_stream: TextI
         )
 
 
+def print_phase_groups(
+    operations: list[OperationTemplate],
+    phase_by_operation: dict[int, str],
+    output_stream: TextIO,
+) -> None:
+    """Print operations grouped by SDLC phase from docs/OPERATION_FLOWS.md."""
+
+    print("", file=output_stream)
+    if not phase_by_operation:
+        print("Phase information is unavailable; showing the ungrouped operation list.", file=output_stream)
+        display_operations(operations, output_stream)
+        return
+
+    print("Operations grouped by SDLC phase:", file=output_stream)
+    grouped: dict[str, list[OperationTemplate]] = {}
+    ordered_phases: list[str] = []
+    for operation in operations:
+        phase = phase_by_operation.get(operation.file_number, "Unmapped")
+        if phase not in grouped:
+            grouped[phase] = []
+            ordered_phases.append(phase)
+        grouped[phase].append(operation)
+
+    for phase in ordered_phases:
+        print(f"  {phase}:", file=output_stream)
+        for operation in grouped[phase]:
+            print(
+                f"    {operation.index:>2}. {operation.filename} - {operation.title}",
+                file=output_stream,
+            )
+
+
 def print_stage(label: str, title: str, output_stream: TextIO) -> None:
     """Print a compact stage marker for the line-based flow."""
 
     print("", file=output_stream)
     print(f"[{label}] {title}", file=output_stream)
+
+
+def print_session_state(output_stream: TextIO, current_prompt_path: Path | None) -> None:
+    """Print visible output-mode and current-prompt session state."""
+
+    print("", file=output_stream)
+    print("Output mode: single latest prompt", file=output_stream)
+    if current_prompt_path is not None:
+        print(f"Current prompt: {current_prompt_path}", file=output_stream)
+    else:
+        print("Current prompt: none yet.", file=output_stream)
 
 
 def is_cancel_command(value: str) -> bool:
@@ -408,9 +584,13 @@ def print_selection_help(output_stream: TextIO) -> None:
 
     print("", file=output_stream)
     print("Selection help:", file=output_stream)
-    print("  Type text to filter by title or filename.", file=output_stream)
+    print("  Type text to filter by title, filename, or SDLC phase.", file=output_stream)
     print("  Type a displayed number, filename number, filename, or stem to select.", file=output_stream)
-    print("  Use / to reset the filtered list, s to search again, or cancel to exit.", file=output_stream)
+    print(
+        "  Use / to reset the filtered list, s to search again, phases to group by "
+        "SDLC phase, or cancel to exit.",
+        file=output_stream,
+    )
 
 
 def variable_summary_lines(operation: OperationTemplate) -> list[str]:
@@ -454,22 +634,30 @@ def select_operation(
     operations: list[OperationTemplate],
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
+    phase_by_operation: dict[int, str] | None = None,
 ) -> OperationTemplate | None:
-    """Interactively search/filter and select one operation."""
+    """Interactively search/filter/group and select one operation."""
 
+    phase_by_operation = phase_by_operation or {}
     filtered = list(operations)
     print_stage("Step 1/3", "Search and select an operation", output_stream)
-    print("Commands: / reset, s search again, ? help, cancel exit.", file=output_stream)
+    print(
+        "Commands: / reset, s search again, phases group by SDLC phase, ? help, cancel exit.",
+        file=output_stream,
+    )
     while True:
         display_operations(filtered, output_stream)
         query = input_func(
-            "\nSearch by number, filename, or title "
-            "(Enter to keep list, / reset, ? help, cancel): "
+            "\nSearch by number, filename, title, or phase "
+            "(Enter to keep list, / reset, phases, ? help, cancel): "
         ).strip()
         if is_cancel_command(query):
             return None
         if is_help_command(query):
             print_selection_help(output_stream)
+            continue
+        if query.lower() in PHASE_LIST_COMMANDS:
+            print_phase_groups(operations, phase_by_operation, output_stream)
             continue
         if query == "/":
             filtered = list(operations)
@@ -479,10 +667,10 @@ def select_operation(
             filtered = list(operations)
             continue
         if query:
-            matches = filter_operations(operations, query)
+            matches = filter_operations(operations, query, phase_by_operation)
             if not matches:
                 print(
-                    "No matching operations. Try a different title word, filename, or number.",
+                    "No matching operations. Try a different title word, filename, phase, or number.",
                     file=output_stream,
                 )
                 continue
@@ -584,26 +772,64 @@ def print_preview_help(output_stream: TextIO) -> None:
 
     print("", file=output_stream)
     print("Preview help:", file=output_stream)
-    print("  write: create the local .md prompt artifact.", file=output_stream)
+    print(
+        "  write: create the local .md prompt artifact and replace the previous "
+        "wizard-generated prompt in this output folder.",
+        file=output_stream,
+    )
     print("  edit: return to variable entry and keep current values.", file=output_stream)
     print("  operation: choose another operation from the list.", file=output_stream)
     print("  cancel: exit without creating an output file.", file=output_stream)
 
 
+def print_pre_write_summary(
+    operation: OperationTemplate,
+    values: dict[str, str],
+    output_path: Path,
+    replacing: Path | None,
+    output_stream: TextIO,
+) -> None:
+    """Print the selected operation, filled variables, output path, and replacement state."""
+
+    print("", file=output_stream)
+    print("Ready to write:", file=output_stream)
+    print(f"  Operation: {operation.filename} - {operation.title}", file=output_stream)
+    if operation.variables:
+        print("  Variables:", file=output_stream)
+        for variable in operation.variables:
+            value = values.get(variable.name, "")
+            shown = single_line(value) if value else "(empty)"
+            print(f"    {variable.name}={shown}", file=output_stream)
+    else:
+        print("  Variables: none", file=output_stream)
+    print(f"  Output path: {output_path}", file=output_stream)
+    if replacing is not None:
+        print(
+            "The previous prompt generated by this wizard in the output folder will be replaced.",
+            file=output_stream,
+        )
+        print(f"  Replacing: {replacing}", file=output_stream)
+    else:
+        print("  No previous wizard-generated prompt exists to replace yet.", file=output_stream)
+
+
 def choose_preview_action(
+    operation: OperationTemplate,
+    values: dict[str, str],
     rendered_prompt: str,
     output_path: Path,
+    replacing: Path | None,
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
 ) -> str:
-    """Show a preview and return the selected next action."""
+    """Show a pre-write summary and preview, then return the selected next action."""
 
     print_stage("Step 3/3", "Preview and choose next action", output_stream)
+    print_pre_write_summary(operation, values, output_path, replacing, output_stream)
     print("Preview:", file=output_stream)
     print("=" * 72, file=output_stream)
     print(rendered_prompt.rstrip(), file=output_stream)
     print("=" * 72, file=output_stream)
-    print(f"Output path if written: {output_path}", file=output_stream)
     print("Actions: write, edit, operation, cancel, ? help.", file=output_stream)
 
     while True:
@@ -639,17 +865,23 @@ def confirm_overwrite(
 
 
 def confirm_write(
+    operation: OperationTemplate,
+    values: dict[str, str],
     rendered_prompt: str,
     output_path: Path,
+    replacing: Path | None = None,
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
 ) -> bool:
-    """Show a preview and ask before writing the generated prompt."""
+    """Show a pre-write summary and preview, then ask before writing the generated prompt."""
 
     return (
         choose_preview_action(
+            operation,
+            values,
             rendered_prompt,
             output_path,
+            replacing,
             input_func=input_func,
             output_stream=output_stream,
         )
@@ -658,11 +890,58 @@ def confirm_write(
 
 
 def write_prompt(output_path: Path, rendered_prompt: str) -> Path:
-    """Write the prompt artifact after confirmation."""
+    """Write the prompt artifact, tagged with the wizard-generated marker, after confirmation."""
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(rendered_prompt, encoding="utf-8")
+    content = rendered_prompt if rendered_prompt.endswith("\n") else rendered_prompt + "\n"
+    content += WIZARD_PROMPT_MARKER + "\n"
+    output_path.write_text(content, encoding="utf-8")
     return output_path
+
+
+def print_post_write_help(output_stream: TextIO) -> None:
+    """Print post-write menu help without leaving the current session."""
+
+    print("", file=output_stream)
+    print("Post-write help:", file=output_stream)
+    print("  new: pick another operation and start a fresh prompt.", file=output_stream)
+    print(
+        "  same: reuse the same operation with a fresh required-value slate "
+        "(stable context such as ROADMAP_ISSUE/TARGET_REPOSITORY may carry over).",
+        file=output_stream,
+    )
+    print("  edit: return to the current operation's values to adjust them.", file=output_stream)
+    print("  path: show the current generated prompt path.", file=output_stream)
+    print("  exit: end the wizard session.", file=output_stream)
+
+
+def choose_post_write_action(
+    current_prompt_path: Path,
+    input_func: Callable[[str], str] = input,
+    output_stream: TextIO = sys.stdout,
+) -> str:
+    """Show session state and the post-write menu, then return the chosen action."""
+
+    print_session_state(output_stream, current_prompt_path)
+    print("Post-write actions: new, same, edit, path, exit, ? help.", file=output_stream)
+
+    while True:
+        answer = input_func("Choose action [new/same/edit/path/exit]: ").strip().lower()
+        if not answer or is_cancel_command(answer):
+            return "exit"
+        if is_help_command(answer):
+            print_post_write_help(output_stream)
+            continue
+        if answer in POST_WRITE_PATH_COMMANDS:
+            print(f"Current prompt: {current_prompt_path}", file=output_stream)
+            continue
+        if answer in POST_WRITE_NEW_COMMANDS:
+            return "new"
+        if answer in POST_WRITE_SAME_COMMANDS:
+            return "same"
+        if answer in EDIT_COMMANDS:
+            return "edit"
+        print("Invalid action. Choose new, same, edit, path, exit, or ? help.", file=output_stream)
 
 
 def run_wizard(
@@ -670,65 +949,141 @@ def run_wizard(
     output_dir: Path | None = None,
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
+    operation_flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH,
 ) -> Path | None:
-    """Run the interactive operation prompt wizard."""
+    """Run the interactive operation prompt wizard for one or more prompts in one session."""
 
     operations = discover_operations(operations_dir)
     output_directory = resolve_output_dir(output_dir)
+    phase_by_operation = load_phase_map(operation_flows_path)
+
+    written_operation: OperationTemplate | None = None
+    written_values: dict[str, str] = {}
+    current_prompt_path: Path | None = None
+
+    operation: OperationTemplate | None = None
+    values: dict[str, str] = {}
+    stage = "select_operation"
 
     while True:
-        operation = select_operation(operations, input_func=input_func, output_stream=output_stream)
-        if operation is None:
-            print("Cancelled before operation selection. No file was created.", file=output_stream)
-            return None
+        if stage == "select_operation":
+            print_session_state(output_stream, current_prompt_path)
+            picked = select_operation(
+                operations,
+                input_func=input_func,
+                output_stream=output_stream,
+                phase_by_operation=phase_by_operation,
+            )
+            if picked is None:
+                if current_prompt_path is not None:
+                    stage = "post_write"
+                    continue
+                print("Cancelled before operation selection. No file was created.", file=output_stream)
+                return None
+            operation = picked
+            values = carryover_values(values)
+            stage = "collect_values"
+            continue
 
-        values: dict[str, str] = {}
-        while True:
-            value_result = collect_values_with_controls(
+        if stage == "collect_values":
+            result = collect_values_with_controls(
                 operation,
                 input_func=input_func,
                 output_stream=output_stream,
                 initial_values=values,
             )
-            if value_result.action == "cancel":
+            if result.action == "cancel":
+                if current_prompt_path is not None:
+                    stage = "post_write"
+                    continue
                 print("Cancelled before write. No file was created.", file=output_stream)
                 return None
-            if value_result.action == "operation":
+            if result.action == "operation":
                 print("Returning to operation selection.", file=output_stream)
-                break
+                values = result.values
+                stage = "select_operation"
+                continue
+            values = result.values
+            stage = "preview"
+            continue
 
-            values = value_result.values
+        if stage == "preview":
             rendered = render_prompt(operation, values)
             output_path = output_directory / generated_filename(operation, rendered)
+            replacing = find_replaceable_prompt(output_directory, output_path)
             action = choose_preview_action(
+                operation,
+                values,
                 rendered,
                 output_path,
+                replacing,
                 input_func=input_func,
                 output_stream=output_stream,
             )
             if action == "write":
                 path = write_prompt(output_path, rendered)
+                removed = cleanup_previous_generated_prompts(output_directory, keep_path=path)
+                current_prompt_path = path
+                written_operation = operation
+                written_values = dict(values)
                 print(f"Wrote generated prompt: {path}", file=output_stream)
-                return path
+                for removed_path in removed:
+                    print(f"Removed previous generated prompt: {removed_path}", file=output_stream)
+                stage = "post_write"
+                continue
             if action == "edit":
                 print("Returning to variable entry.", file=output_stream)
+                stage = "collect_values"
                 continue
             if action == "operation":
                 print("Returning to operation selection.", file=output_stream)
-                break
+                stage = "select_operation"
+                continue
+            if current_prompt_path is not None:
+                stage = "post_write"
+                continue
             print("Cancelled before write. No file was created.", file=output_stream)
             return None
+
+        if stage == "post_write":
+            post_action = choose_post_write_action(
+                current_prompt_path, input_func=input_func, output_stream=output_stream
+            )
+            if post_action == "exit":
+                print("Exiting wizard session.", file=output_stream)
+                return current_prompt_path
+            if post_action == "new":
+                values = carryover_values(written_values)
+                stage = "select_operation"
+                continue
+            if post_action == "same":
+                operation = written_operation
+                values = carryover_values(written_values)
+                stage = "collect_values"
+                continue
+            if post_action == "edit":
+                operation = written_operation
+                values = dict(written_values)
+                stage = "collect_values"
+                continue
 
 
 if HAVE_PROMPT_TOOLKIT:
     class OperationCompleter(Completer):
-        def __init__(self, operations):
+        def __init__(self, operations, phase_by_operation=None):
             self.operations = operations
+            self.phase_by_operation = phase_by_operation or {}
 
         def get_completions(self, document, complete_event):
             text = document.text.lower()
             for op in self.operations:
-                if text in op.filename.lower() or text in op.title.lower() or text == str(op.index):
+                phase = self.phase_by_operation.get(op.file_number, "")
+                if (
+                    text in op.filename.lower()
+                    or text in op.title.lower()
+                    or text == str(op.index)
+                    or (phase and text in phase.lower())
+                ):
                     display_text = f"{op.index:>2}. {op.filename} - {op.title}"
                     yield Completion(op.filename, start_position=-len(document.text), display=display_text)
 
@@ -740,7 +1095,13 @@ if HAVE_PROMPT_TOOLKIT:
             text = document.text.strip().lower()
             if not text:
                 return
-            if is_cancel_command(text) or is_search_command(text) or is_help_command(text) or text == "/":
+            if (
+                is_cancel_command(text)
+                or is_search_command(text)
+                or is_help_command(text)
+                or text == "/"
+                or text in PHASE_LIST_COMMANDS
+            ):
                 return
             if resolve_operation_selection(self.operations, text) is None:
                 raise ValidationError(
@@ -748,16 +1109,24 @@ if HAVE_PROMPT_TOOLKIT:
                     cursor_position=len(document.text)
                 )
 
-    def select_operation_pt(operations: list[OperationTemplate], output_stream: TextIO) -> OperationTemplate | None:
+    def select_operation_pt(
+        operations: list[OperationTemplate],
+        output_stream: TextIO,
+        phase_by_operation: dict[int, str] | None = None,
+    ) -> OperationTemplate | None:
+        phase_by_operation = phase_by_operation or {}
         print_stage("Step 1/3", "Search and select an operation", output_stream)
         display_operations(operations, output_stream)
         style = Style.from_dict({
             'bottom-toolbar': 'bg:#333333 #ffffff',
         })
         def bottom_toolbar():
-            return HTML(' <b>Commands</b>: type to search/select, enter to confirm, cancel to exit, ? for help.')
+            return HTML(
+                ' <b>Commands</b>: type to search/select, phases to group, '
+                'enter to confirm, cancel to exit, ? for help.'
+            )
 
-        completer = OperationCompleter(operations)
+        completer = OperationCompleter(operations, phase_by_operation)
         validator = OperationValidator(operations)
 
         while True:
@@ -776,6 +1145,9 @@ if HAVE_PROMPT_TOOLKIT:
                 return None
             if is_help_command(selection):
                 print_selection_help(output_stream)
+                continue
+            if selection.lower() in PHASE_LIST_COMMANDS:
+                print_phase_groups(operations, phase_by_operation, output_stream)
                 continue
             if selection == "/" or is_search_command(selection):
                 display_operations(operations, output_stream)
@@ -860,13 +1232,20 @@ if HAVE_PROMPT_TOOLKIT:
 
         return ValueCollectionResult("values", values)
 
-    def choose_preview_action_pt(rendered_prompt: str, output_path: Path, output_stream: TextIO) -> str:
+    def choose_preview_action_pt(
+        operation: OperationTemplate,
+        values: dict[str, str],
+        rendered_prompt: str,
+        output_path: Path,
+        replacing: Path | None,
+        output_stream: TextIO,
+    ) -> str:
         print_stage("Step 3/3", "Preview and choose next action", output_stream)
+        print_pre_write_summary(operation, values, output_path, replacing, output_stream)
         print("Preview:", file=output_stream)
         print("=" * 72, file=output_stream)
         print(rendered_prompt.rstrip(), file=output_stream)
         print("=" * 72, file=output_stream)
-        print(f"Output path if written: {output_path}", file=output_stream)
 
         style = Style.from_dict({
             'bottom-toolbar': 'bg:#333333 #ffffff',
@@ -920,54 +1299,176 @@ if HAVE_PROMPT_TOOLKIT:
                 print_preview_help(output_stream)
                 continue
 
+    def choose_post_write_action_pt(current_prompt_path: Path, output_stream: TextIO) -> str:
+        print_session_state(output_stream, current_prompt_path)
+        print("Post-write actions: new, same, edit, path, exit, ? help.", file=output_stream)
+
+        style = Style.from_dict({
+            'bottom-toolbar': 'bg:#333333 #ffffff',
+        })
+        def bottom_toolbar():
+            return HTML(' <b>Post-write</b>: new, same, edit, path, exit, ? help')
+
+        completer = WordCompleter(["new", "same", "edit", "path", "exit", "help", "?"], ignore_case=True)
+        allowed = (
+            POST_WRITE_NEW_COMMANDS
+            | POST_WRITE_SAME_COMMANDS
+            | POST_WRITE_PATH_COMMANDS
+            | EDIT_COMMANDS
+            | CANCEL_COMMANDS
+            | HELP_COMMANDS
+        )
+
+        class PostWriteValidator(Validator):
+            def validate(self, document):
+                val = document.text.strip().lower()
+                if not val:
+                    return
+                if val not in allowed:
+                    raise ValidationError(
+                        message="Choose new, same, edit, path, exit, or ? help.",
+                        cursor_position=len(document.text),
+                    )
+
+        while True:
+            try:
+                answer = prompt(
+                    "Choose action [new/same/edit/path/exit]: ",
+                    completer=completer,
+                    validator=PostWriteValidator(),
+                    style=style,
+                    bottom_toolbar=bottom_toolbar,
+                ).strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                return "exit"
+
+            if not answer or is_cancel_command(answer):
+                return "exit"
+            if is_help_command(answer):
+                print_post_write_help(output_stream)
+                continue
+            if answer in POST_WRITE_PATH_COMMANDS:
+                print(f"Current prompt: {current_prompt_path}", file=output_stream)
+                continue
+            if answer in POST_WRITE_NEW_COMMANDS:
+                return "new"
+            if answer in POST_WRITE_SAME_COMMANDS:
+                return "same"
+            if answer in EDIT_COMMANDS:
+                return "edit"
+
     def run_wizard_pt(
         operations_dir: Path = DEFAULT_OPERATIONS_DIR,
         output_dir: Path | None = None,
         output_stream: TextIO = sys.stdout,
+        operation_flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH,
     ) -> Path | None:
         operations = discover_operations(operations_dir)
         output_directory = resolve_output_dir(output_dir)
+        phase_by_operation = load_phase_map(operation_flows_path)
+
+        written_operation: OperationTemplate | None = None
+        written_values: dict[str, str] = {}
+        current_prompt_path: Path | None = None
+
+        operation: OperationTemplate | None = None
+        values: dict[str, str] = {}
+        stage = "select_operation"
 
         while True:
-            operation = select_operation_pt(operations, output_stream=output_stream)
-            if operation is None:
-                print("Cancelled before operation selection. No file was created.", file=output_stream)
-                return None
+            if stage == "select_operation":
+                print_session_state(output_stream, current_prompt_path)
+                picked = select_operation_pt(
+                    operations, output_stream=output_stream, phase_by_operation=phase_by_operation
+                )
+                if picked is None:
+                    if current_prompt_path is not None:
+                        stage = "post_write"
+                        continue
+                    print("Cancelled before operation selection. No file was created.", file=output_stream)
+                    return None
+                operation = picked
+                values = carryover_values(values)
+                stage = "collect_values"
+                continue
 
-            values: dict[str, str] = {}
-            while True:
-                value_result = collect_values_with_controls_pt(
+            if stage == "collect_values":
+                result = collect_values_with_controls_pt(
                     operation,
                     output_stream=output_stream,
                     initial_values=values,
                 )
-                if value_result.action == "cancel":
+                if result.action == "cancel":
+                    if current_prompt_path is not None:
+                        stage = "post_write"
+                        continue
                     print("Cancelled before write. No file was created.", file=output_stream)
                     return None
-                if value_result.action == "operation":
+                if result.action == "operation":
                     print("Returning to operation selection.", file=output_stream)
-                    break
+                    values = result.values
+                    stage = "select_operation"
+                    continue
+                values = result.values
+                stage = "preview"
+                continue
 
-                values = value_result.values
+            if stage == "preview":
                 rendered = render_prompt(operation, values)
                 output_path = output_directory / generated_filename(operation, rendered)
+                replacing = find_replaceable_prompt(output_directory, output_path)
                 action = choose_preview_action_pt(
+                    operation,
+                    values,
                     rendered,
                     output_path,
+                    replacing,
                     output_stream=output_stream,
                 )
                 if action == "write":
                     path = write_prompt(output_path, rendered)
+                    removed = cleanup_previous_generated_prompts(output_directory, keep_path=path)
+                    current_prompt_path = path
+                    written_operation = operation
+                    written_values = dict(values)
                     print(f"Wrote generated prompt: {path}", file=output_stream)
-                    return path
+                    for removed_path in removed:
+                        print(f"Removed previous generated prompt: {removed_path}", file=output_stream)
+                    stage = "post_write"
+                    continue
                 if action == "edit":
                     print("Returning to variable entry.", file=output_stream)
+                    stage = "collect_values"
                     continue
                 if action == "operation":
                     print("Returning to operation selection.", file=output_stream)
-                    break
+                    stage = "select_operation"
+                    continue
+                if current_prompt_path is not None:
+                    stage = "post_write"
+                    continue
                 print("Cancelled before write. No file was created.", file=output_stream)
                 return None
+
+            if stage == "post_write":
+                post_action = choose_post_write_action_pt(current_prompt_path, output_stream=output_stream)
+                if post_action == "exit":
+                    print("Exiting wizard session.", file=output_stream)
+                    return current_prompt_path
+                if post_action == "new":
+                    values = carryover_values(written_values)
+                    stage = "select_operation"
+                    continue
+                if post_action == "same":
+                    operation = written_operation
+                    values = carryover_values(written_values)
+                    stage = "collect_values"
+                    continue
+                if post_action == "edit":
+                    operation = written_operation
+                    values = dict(written_values)
+                    stage = "collect_values"
+                    continue
 
 
 def build_parser() -> argparse.ArgumentParser:
