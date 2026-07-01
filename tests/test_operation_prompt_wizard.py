@@ -10,17 +10,26 @@ from tools.operation_prompt_wizard import (
     InputVariable,
     OperationTemplate,
     OUTPUT_DIR_ENV,
+    WIZARD_PROMPT_MARKER,
+    carryover_values,
+    cleanup_previous_generated_prompts,
     collect_values,
     confirm_write,
     discover_operations,
     filter_operations,
+    find_replaceable_prompts,
     generated_filename,
+    is_carryover_variable,
+    is_wizard_generated_artifact,
+    load_phase_map,
     parse_input_variables,
+    print_phase_groups,
     render_prompt,
     resolve_operation_selection,
     resolve_output_dir,
     run_wizard,
     validate_variable_value,
+    write_prompt,
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -210,6 +219,64 @@ def test_zero_padded_number_prefers_template_number_over_display_index(tmp_path:
     assert resolve_operation_selection(operations, "01").filename == "01-adoption.md"
 
 
+def test_filter_operations_matches_by_phase(tmp_path: Path) -> None:
+    write_operation(tmp_path / "01-alpha.md", "Alpha Setup")
+    write_operation(tmp_path / "02-beta.md", "Beta Review")
+    operations = discover_operations(tmp_path)
+    phase_by_operation = {1: "Roadmap and issue planning", 2: "PR review and correction"}
+
+    planning_matches = filter_operations(operations, "roadmap", phase_by_operation)
+    assert [operation.filename for operation in planning_matches] == ["01-alpha.md"]
+
+    review_matches = filter_operations(operations, "review and correction", phase_by_operation)
+    assert [operation.filename for operation in review_matches] == ["02-beta.md"]
+
+    # Existing filename/title search still works unaffected by the phase map.
+    assert [operation.filename for operation in filter_operations(operations, "alpha", phase_by_operation)] == [
+        "01-alpha.md"
+    ]
+
+
+def test_plain_text_phase_query_filters_instead_of_grouping(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-review-phase-readiness.md", "Review Phase Readiness")
+    write_operation(operations_dir / "02-other.md", "Other")
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("phase", "1", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    assert "# Review Phase Readiness" in path.read_text(encoding="utf-8")
+    assert "Operations grouped by SDLC phase:" not in stream.getvalue()
+
+
+def test_slash_phases_command_groups_operations(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-review-phase-readiness.md", "Review Phase Readiness")
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        # "/phases" groups and re-prompts for a query; "" keeps the list
+        # before the selection prompt is reached.
+        input_func=answers("/phases", "", "1", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    assert "Operations grouped by SDLC phase:" in stream.getvalue()
+
+
 def test_validate_common_variable_shapes() -> None:
     required_issue = InputVariable("ISSUE_NUMBER", "<ISSUE_NUMBER>", True, "")
     optional_roadmap = InputVariable("ROADMAP_ISSUE", "<ROADMAP_ISSUE>", False, "")
@@ -315,8 +382,13 @@ def test_output_dir_resolves_explicit_configured_and_default(tmp_path: Path, mon
 
 def test_preview_confirmation_blocks_write_when_declined(tmp_path: Path) -> None:
     output_path = tmp_path / "prompt.md"
+    operation = OperationTemplate(
+        index=1, path=Path("01-test.md"), title="Test", text="", variables=()
+    )
 
     confirmed = confirm_write(
+        operation,
+        {},
         "preview body",
         output_path,
         input_func=answers("n"),
@@ -341,7 +413,7 @@ def test_run_wizard_writes_only_after_preview_confirmation(tmp_path: Path) -> No
     path = run_wizard(
         operations_dir=operations_dir,
         output_dir=output_dir,
-        input_func=answers("", "1", "123", "", "y"),
+        input_func=answers("", "1", "123", "", "y", "exit"),
         output_stream=stream,
     )
 
@@ -359,6 +431,8 @@ def test_run_wizard_writes_only_after_preview_confirmation(tmp_path: Path) -> No
     assert "Required (1): ISSUE_NUMBER <ISSUE_NUMBER>" in output
     assert "Optional (1): ROADMAP_ISSUE <ROADMAP_ISSUE>" in output
     assert "Actions: write, edit, operation, cancel, ? help." in output
+    assert "Output mode: single latest prompt" in output
+    assert "Exiting wizard session." in output
 
 
 def test_run_wizard_can_search_again_before_write(tmp_path: Path) -> None:
@@ -371,7 +445,7 @@ def test_run_wizard_can_search_again_before_write(tmp_path: Path) -> None:
     path = run_wizard(
         operations_dir=operations_dir,
         output_dir=output_dir,
-        input_func=answers("alpha", "s", "beta", "2", "write"),
+        input_func=answers("alpha", "s", "beta", "2", "write", "exit"),
         output_stream=io.StringIO(),
     )
 
@@ -388,7 +462,7 @@ def test_run_wizard_preview_can_return_to_edit_variables(tmp_path: Path) -> None
     path = run_wizard(
         operations_dir=operations_dir,
         output_dir=output_dir,
-        input_func=answers("", "1", "123", "edit", "456", "write"),
+        input_func=answers("", "1", "123", "edit", "456", "write", "exit"),
         output_stream=io.StringIO(),
     )
 
@@ -411,7 +485,7 @@ def test_run_wizard_edit_can_clear_optional_variable(tmp_path: Path) -> None:
     path = run_wizard(
         operations_dir=operations_dir,
         output_dir=output_dir,
-        input_func=answers("", "1", "123", "274", "edit", "", "/clear", "write"),
+        input_func=answers("", "1", "123", "274", "edit", "", "/clear", "write", "exit"),
         output_stream=io.StringIO(),
     )
 
@@ -436,7 +510,7 @@ def test_run_wizard_preview_can_return_to_operation_selection(tmp_path: Path) ->
     path = run_wizard(
         operations_dir=operations_dir,
         output_dir=output_dir,
-        input_func=answers("", "1", "123", "operation", "", "2", "owner/repo", "write"),
+        input_func=answers("", "1", "123", "operation", "", "2", "owner/repo", "write", "exit"),
         output_stream=io.StringIO(),
     )
 
@@ -481,6 +555,328 @@ def test_run_wizard_cancel_during_variable_entry_writes_no_file(tmp_path: Path) 
     assert not output_dir.exists()
 
 
+def test_run_wizard_session_continues_after_write_until_explicit_exit(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-alpha.md", "Alpha", "  ISSUE_NUMBER=<ISSUE_NUMBER>")
+    write_operation(
+        operations_dir / "02-beta.md",
+        "Beta",
+        "  TARGET_REPOSITORY=<TARGET_REPOSITORY>",
+    )
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers(
+            "", "1", "123", "write",  # write Alpha prompt
+            "new",  # post-write: start another prompt
+            "", "2", "owner/repo", "write",  # write Beta prompt
+            "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "# Beta" in text
+
+    md_files = list(output_dir.glob("*.md"))
+    assert len(md_files) == 1
+    assert md_files[0] == path
+    assert "Removed previous generated prompt:" in stream.getvalue()
+
+
+def test_run_wizard_same_action_resets_issue_number_but_keeps_stable_context(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(
+        operations_dir / "07-route.md",
+        "Route",
+        "  ISSUE_NUMBER=<ISSUE_NUMBER>\n"
+        "  ROADMAP_ISSUE=<ROADMAP_ISSUE> optional\n"
+        "  TARGET_REPOSITORY=<TARGET_REPOSITORY> optional",
+    )
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers(
+            "", "1",
+            "100", "274", "codefusion-repo/project-os-v2", "write",  # first prompt
+            "same",
+            "200", "", "", "write",  # second prompt: ISSUE_NUMBER must be retyped
+            "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "ISSUE_NUMBER=200" in text
+    assert "ROADMAP_ISSUE=274" in text
+    assert "TARGET_REPOSITORY=codefusion-repo/project-os-v2" in text
+
+    md_files = list(output_dir.glob("*.md"))
+    assert len(md_files) == 1
+
+
+def test_run_wizard_edit_action_prefills_previous_values_including_reset_fields(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(
+        operations_dir / "07-route.md",
+        "Route",
+        "  ISSUE_NUMBER=<ISSUE_NUMBER>\n  ROADMAP_ISSUE=<ROADMAP_ISSUE> optional",
+    )
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers(
+            "", "1",
+            "100", "274", "write",  # first prompt
+            "edit",
+            "", "", "write", "y",  # keep both values via Enter; same path exists, so confirm overwrite
+            "exit",
+        ),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "ISSUE_NUMBER=100" in text
+    assert "ROADMAP_ISSUE=274" in text
+
+    md_files = list(output_dir.glob("*.md"))
+    assert len(md_files) == 1
+
+
+def test_run_wizard_post_write_path_action_shows_current_prompt(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-test.md", "Test")
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "write", "path", "exit"),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    transcript = stream.getvalue()
+    assert transcript.count(f"Current prompt: {path}") >= 2
+
+
+def test_run_wizard_post_write_blank_enter_does_not_exit_session(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-test.md", "Test")
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers("", "1", "write", "", "path", "exit"),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    # If blank Enter silently exited (the bug), "path" would never be
+    # consumed and this line would only appear once, from the initial
+    # session-state banner.
+    transcript = stream.getvalue()
+    assert transcript.count(f"Current prompt: {path}") >= 2
+
+
+def test_run_wizard_cancel_during_second_attempt_returns_to_post_write_menu(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-test.md", "Test", "  ISSUE_NUMBER=<ISSUE_NUMBER>")
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers(
+            "", "1", "123", "write",  # first successful write
+            "new",
+            "", "1", "cancel",  # cancel the second attempt mid variable entry
+            "exit",
+        ),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    assert path.exists()
+    md_files = list(output_dir.glob("*.md"))
+    assert len(md_files) == 1
+    assert md_files[0] == path
+
+
+def test_carryover_values_keeps_only_stable_context() -> None:
+    values = {
+        "ISSUE_NUMBER": "123",
+        "PR_NUMBER": "456",
+        "ROADMAP_ISSUE": "274",
+        "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
+        "QA_RESULT": "pass",
+    }
+
+    assert carryover_values(values) == {
+        "ROADMAP_ISSUE": "274",
+        "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
+    }
+    assert is_carryover_variable("ROADMAP_ISSUE") is True
+    assert is_carryover_variable("TARGET_REPOSITORY") is True
+    assert is_carryover_variable("ISSUE_NUMBER") is False
+    assert is_carryover_variable("PR_NUMBER") is False
+    assert is_carryover_variable("QA_RESULT") is False
+
+
+def test_is_wizard_generated_artifact_requires_filename_and_marker(tmp_path: Path) -> None:
+    genuine = tmp_path / "07-route-abcdef012345.md"
+    genuine.write_text(f"content\n{WIZARD_PROMPT_MARKER}\n", encoding="utf-8")
+    assert is_wizard_generated_artifact(genuine) is True
+
+    looks_right_no_marker = tmp_path / "07-fake-abcdef012345.md"
+    looks_right_no_marker.write_text("content without the marker\n", encoding="utf-8")
+    assert is_wizard_generated_artifact(looks_right_no_marker) is False
+
+    arbitrary = tmp_path / "notes.md"
+    arbitrary.write_text(f"some notes\n{WIZARD_PROMPT_MARKER}\n", encoding="utf-8")
+    assert is_wizard_generated_artifact(arbitrary) is False
+
+
+def test_cleanup_only_removes_identifiable_wizard_artifacts(tmp_path: Path) -> None:
+    output_dir = tmp_path / "out"
+    output_dir.mkdir()
+
+    keep = output_dir / "07-route-111111111111.md"
+    write_prompt(keep, "keep me")
+
+    stale = output_dir / "07-route-222222222222.md"
+    write_prompt(stale, "stale prompt")
+
+    fake_pattern_no_marker = output_dir / "07-route-333333333333.md"
+    fake_pattern_no_marker.write_text("looks generated but has no marker", encoding="utf-8")
+
+    arbitrary_notes = output_dir / "notes.md"
+    arbitrary_notes.write_text("arbitrary PM notes, do not delete", encoding="utf-8")
+
+    removed = cleanup_previous_generated_prompts(output_dir, keep_path=keep)
+
+    assert removed == [stale]
+    assert keep.exists()
+    assert not stale.exists()
+    assert fake_pattern_no_marker.exists()
+    assert arbitrary_notes.exists()
+
+
+def test_find_replaceable_prompts_reports_every_stale_file_cleanup_will_remove(tmp_path: Path) -> None:
+    output_dir = tmp_path / "out"
+    output_dir.mkdir()
+
+    keep = output_dir / "07-route-111111111111.md"
+    write_prompt(keep, "keep me")
+
+    stale_one = output_dir / "07-route-222222222222.md"
+    write_prompt(stale_one, "stale one")
+
+    stale_two = output_dir / "07-route-333333333333.md"
+    write_prompt(stale_two, "stale two")
+
+    replacing = find_replaceable_prompts(output_dir, keep)
+    assert sorted(replacing) == sorted([stale_one, stale_two])
+
+    removed = cleanup_previous_generated_prompts(output_dir, keep_path=keep)
+    assert sorted(removed) == sorted(replacing)
+    assert keep.exists()
+    assert not stale_one.exists()
+    assert not stale_two.exists()
+
+
+def test_cleanup_never_touches_files_outside_output_dir(tmp_path: Path) -> None:
+    output_dir = tmp_path / "out"
+    output_dir.mkdir()
+    sibling_dir = tmp_path / "sibling"
+    sibling_dir.mkdir()
+
+    keep = output_dir / "07-route-111111111111.md"
+    write_prompt(keep, "keep me")
+
+    outside = sibling_dir / "07-route-999999999999.md"
+    write_prompt(outside, "outside prompt")
+
+    removed = cleanup_previous_generated_prompts(output_dir, keep_path=keep)
+
+    assert removed == []
+    assert outside.exists()
+
+
+def test_find_replaceable_prompt_reports_soft_notice_state(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    write_operation(operations_dir / "01-alpha.md", "Alpha", "  ISSUE_NUMBER=<ISSUE_NUMBER>")
+    write_operation(
+        operations_dir / "02-beta.md",
+        "Beta",
+        "  TARGET_REPOSITORY=<TARGET_REPOSITORY>",
+    )
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers(
+            "", "1", "123", "write",
+            "new",
+            "", "2", "owner/repo", "write",
+            "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    output = stream.getvalue()
+    assert "No previous wizard-generated prompt exists to replace yet." in output
+    assert "The previous prompt generated by this wizard in the output folder will be replaced." in output
+
+
+def test_load_phase_map_parses_real_operation_flows_doc() -> None:
+    phase_by_operation = load_phase_map()
+
+    assert phase_by_operation[0] == "Activation and state review"
+    assert phase_by_operation[7] == "Implementation routing"
+    assert phase_by_operation[34] == "Manual implementation planning"
+
+
+def test_print_phase_groups_groups_operations(tmp_path: Path) -> None:
+    write_operation(tmp_path / "01-alpha.md", "Alpha")
+    write_operation(tmp_path / "02-beta.md", "Beta")
+    operations = discover_operations(tmp_path)
+    phase_by_operation = {1: "Planning", 2: "Review"}
+    stream = io.StringIO()
+
+    print_phase_groups(operations, phase_by_operation, stream)
+
+    output = stream.getvalue()
+    assert "Planning:" in output
+    assert "Review:" in output
+    assert "01-alpha.md" in output
+    assert "02-beta.md" in output
+
+
 def test_wizard_source_has_no_command_or_network_execution_imports() -> None:
     source = (REPO_ROOT / "tools" / "operation_prompt_wizard.py").read_text(encoding="utf-8")
 
@@ -490,3 +886,12 @@ def test_wizard_source_has_no_command_or_network_execution_imports() -> None:
     assert "http.client" not in source
     assert "import socket" not in source
     assert "import requests" not in source
+
+
+def test_build_parser_adds_no_cleanup_or_session_flags() -> None:
+    from tools.operation_prompt_wizard import build_parser
+
+    parser = build_parser()
+    dests = {action.dest for action in parser._actions}
+
+    assert dests == {"help", "operations_dir", "output_dir"}
