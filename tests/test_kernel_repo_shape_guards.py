@@ -35,8 +35,8 @@ KERNEL_ID_PATTERN = re.compile(
     r"(?!json\b|get\b|append\b)[A-Za-z0-9_*]+"
 )
 ROLE_ACTOR_ID_PATTERN = re.compile(
-    r"\bactor\.(?:reviewer|qa|security|security_reviewer|owasp_security_reviewer|security_expert|asset|asset_creator|"
-    r"design_asset_creator|graphic_artist)\b"
+    r"\bactor\.(?:reviewer|qa|security|security_reviewer|owasp_security_reviewer|security_expert|asset|"
+    r"asset_creator|design_asset_creator|graphic_artist|gpt|llm|api|api_bridge|github_connector)\b"
 )
 MARKDOWN_PATH_PATTERN = re.compile(r"`([^`\n]+)`")
 SKIP_DIRS = {".git", ".pytest_cache", "__pycache__", "node_modules", ".venv"}
