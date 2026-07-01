@@ -187,7 +187,9 @@ Para elegir por fase, usar `docs/OPERATION_FLOWS.md` como manual operativo. Este
 catálogo conserva la matriz canónica de templates/variables; el manual de flujos
 describe trigger, evidencia, output, aprobación PM, fail-closed, gaps de ciclo
 de vida y la decisión docs-only de que los route-prompts deben distinguir
-aprobación exacta otorgada vs pendiente/draft/read-only planning.
+`PM_AUTHORIZATION_STATUS=pending` de `PM_AUTHORIZATION_STATUS=granted for this
+exact scope and mode`; draft/read-only/planning son modo o postura, no valores
+de autorización.
 
 El ciclo abarca todas las fases del ciclo de vida del desarrollo de software (SDLC) de forma flexible, permitiendo encadenarlas mediante `RECOMMENDED_NEXT_OPERATION`:
 1. **Idea Intake y Requirements**: Se evalúan ideas (16) y se transforman en issues (04, 06) o documentación (28, 26, 27).

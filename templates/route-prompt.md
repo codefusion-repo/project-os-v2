@@ -33,7 +33,7 @@ OUT_OF_SCOPE = {{1-3 lines, only plausible mistakes}}
 EVIDENCE_REQUIRED = {{canonical evidence ids from kernel/evidence.json}}
 VALIDATION_REQUIRED = {{exact commands}}
 BRANCH_NAME = work/{{issue}}-{{slug}}
-PM_AUTHORIZATION_STATUS = {{granted for this exact scope and mode | pending}}
+PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium | high | xhigh}} — {{1-2 line rationale}}
 ~~~
 
@@ -41,6 +41,8 @@ When `PM_AUTHORIZATION_STATUS` is granted for this exact scope and mode, proceed
 without re-requesting approval unless the `approval_note` rule applies. Agent
 disagreement with a PM decision is reported as risk or accepted exception, not as
 `status.needs_pm_decision` or `status.blocked` by itself.
+That status does not bypass required evidence, branch preflight, validation, or
+fail-closed behavior.
 
 ## Variants
 
