@@ -207,4 +207,4 @@ def test_run_wizard_pt_route_prompt_auth_status_granted(tmp_path: Path, monkeypa
     assert result is not None
     text = result.read_text(encoding="utf-8")
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in text
-    assert "PM_AUTHORIZATION_STATUS assistance:" in stream.getvalue()
+    assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode." in stream.getvalue()
