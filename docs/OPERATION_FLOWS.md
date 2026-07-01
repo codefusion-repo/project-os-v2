@@ -122,8 +122,9 @@ boundaries.
 | Determine next lifecycle operation | New Operation 35. | The PM needs low-friction lifecycle routing, but it must remain read-only and recommendation-only. | `templates/operations/35-recommend-next-lifecycle-operation.md`, catalog/flow rows, and tests. |
 | Phase readiness review | New Operation 37. | PM requested a named advisory readiness gate before implementation, QA/security/design, closeout, release, dogfood, or handoff. | `templates/operations/37-review-phase-readiness.md`, catalog/flow rows, and tests. |
 
-Route-prompt authorization remains docs-only: `PM_AUTHORIZATION_STATUS` has
-exactly two authorization-status values, `pending` and
+Route-prompt authorization remains a two-option route-prompt/wizard-guided
+status, not a kernel permission grant: `PM_AUTHORIZATION_STATUS` has exactly two
+authorization-status values, `pending` and
 `granted for this exact scope and mode`. Draft, read-only, and planning describe
 execution mode or planning posture, not authorization-status values. The prompt
 artifact itself never grants permission; permission comes only from exact scoped

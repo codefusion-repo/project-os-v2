@@ -783,7 +783,9 @@ def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
         "Determine next lifecycle operation",
         "Phase readiness review",
         "no separate normal PR execution-report processor",
-        "`PM_AUTHORIZATION_STATUS` has\nexactly two authorization-status values",
+        "Route-prompt authorization remains a two-option route-prompt/wizard-guided\nstatus",
+        "not a kernel permission grant",
+        "`PM_AUTHORIZATION_STATUS` has exactly two\nauthorization-status values",
         "`pending` and\n`granted for this exact scope and mode`",
         "Draft, read-only, and planning describe\nexecution mode or planning posture",
         "The prompt\nartifact itself never grants",
@@ -796,6 +798,7 @@ def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
         "`docs/OPERATION_FLOWS.md` es el manual PM-facing",
         "Ambos docs apuntan a las mismas operaciones `00`–`37`",
         "manual_implementation_plan",
+        "la guía de route-prompt y wizard debe distinguir",
         "`PM_AUTHORIZATION_STATUS=pending` de `PM_AUTHORIZATION_STATUS=granted for this\nexact scope and mode`",
         "draft/read-only/planning son modo o postura, no valores\nde autorización",
         "Manual-result processing",
@@ -809,6 +812,8 @@ def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
         assert fragment in flow_doc, f"missing flow/gap decision fragment: {fragment}"
     for fragment in catalog_fragments:
         assert fragment in catalog_doc, f"missing catalog docs-architecture fragment: {fragment}"
+    assert "Route-prompt authorization remains docs-only" not in flow_doc
+    assert "decisión docs-only de que los route-prompts" not in catalog_doc
 
 
 def test_issue_346_candidate_decision_table_is_pm_actionable() -> None:

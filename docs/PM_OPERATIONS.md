@@ -186,7 +186,7 @@ Project OS no es un runtime ni un motor de workflow enforcado por software. El f
 Para elegir por fase, usar `docs/OPERATION_FLOWS.md` como manual operativo. Este
 catálogo conserva la matriz canónica de templates/variables; el manual de flujos
 describe trigger, evidencia, output, aprobación PM, fail-closed, gaps de ciclo
-de vida y la decisión docs-only de que los route-prompts deben distinguir
+de vida y la guía de route-prompt y wizard debe distinguir
 `PM_AUTHORIZATION_STATUS=pending` de `PM_AUTHORIZATION_STATUS=granted for this
 exact scope and mode`; draft/read-only/planning son modo o postura, no valores
 de autorización.
