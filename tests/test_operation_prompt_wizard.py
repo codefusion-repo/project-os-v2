@@ -16,6 +16,7 @@ from tools.operation_prompt_wizard import (
     WIZARD_PROMPT_MARKER,
     carryover_values,
     cleanup_previous_generated_prompts,
+    collect_values_with_controls,
     collect_values,
     confirm_write,
     discover_operations,
@@ -26,8 +27,11 @@ from tools.operation_prompt_wizard import (
     is_wizard_generated_artifact,
     load_phase_map,
     operation_needs_pm_authorization_assistance,
+    operation_output_refs,
     operation_produces_route_prompt,
+    operation_requires_route_prompt_path_selection,
     parse_input_variables,
+    print_pm_authorization_assistance,
     print_phase_groups,
     render_prompt,
     resolve_operation_selection,
@@ -35,6 +39,7 @@ from tools.operation_prompt_wizard import (
     run_wizard,
     normalize_pm_authorization_status,
     validate_variable_value,
+    wizard_variables,
     write_prompt,
 )
 
@@ -330,6 +335,88 @@ def test_route_prompt_detection_uses_positive_output_block() -> None:
     assert operation_needs_pm_authorization_assistance(advisory_operation) is False
 
 
+def test_operation_30_defers_pm_authorization_status_at_initial_variable_entry() -> None:
+    qa_text = (OPERATIONS_DIR / "30-process-human-qa-results.md").read_text(encoding="utf-8")
+    operation = OperationTemplate(
+        1,
+        Path("30-process-human-qa-results.md"),
+        "Procesar Resultados de QA Humano",
+        qa_text,
+        parse_input_variables(qa_text),
+    )
+    stream = io.StringIO()
+
+    result = collect_values_with_controls(
+        operation,
+        input_func=answers("QA passed", "", "", ""),
+        output_stream=stream,
+    )
+
+    assert result.action == "values"
+    assert operation_output_refs(operation) == (
+        "output.route_prompt",
+        "output.pm_command_bundle",
+        "output.status_result",
+    )
+    assert operation_requires_route_prompt_path_selection(operation) is True
+    assert operation_needs_pm_authorization_assistance(operation) is False
+    assert PM_AUTHORIZATION_STATUS_NAME not in [variable.name for variable in wizard_variables(operation)]
+    assert PM_AUTHORIZATION_STATUS_NAME not in result.values
+    assert "Required (1): QA_RESULT <QA_RESULT>" in stream.getvalue()
+    assert "PM_AUTHORIZATION_STATUS" not in stream.getvalue()
+
+
+def test_multi_output_route_prompt_path_can_include_pm_authorization_status() -> None:
+    qa_text = (OPERATIONS_DIR / "30-process-human-qa-results.md").read_text(encoding="utf-8")
+    operation = OperationTemplate(
+        1,
+        Path("30-process-human-qa-results.md"),
+        "Procesar Resultados de QA Humano",
+        qa_text,
+        parse_input_variables(qa_text),
+    )
+
+    rendered = render_prompt(
+        operation,
+        {"QA_RESULT": "blocking failure", PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED},
+        include_route_prompt_authorization=True,
+    )
+
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in rendered
+
+
+def test_multi_output_non_route_path_does_not_include_synthetic_pm_authorization_status() -> None:
+    qa_text = (OPERATIONS_DIR / "30-process-human-qa-results.md").read_text(encoding="utf-8")
+    operation = OperationTemplate(
+        1,
+        Path("30-process-human-qa-results.md"),
+        "Procesar Resultados de QA Humano",
+        qa_text,
+        parse_input_variables(qa_text),
+    )
+
+    rendered = render_prompt(
+        operation,
+        {"QA_RESULT": "QA passed", PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED},
+    )
+
+    assert PM_AUTHORIZATION_STATUS_NAME not in rendered
+
+
+def test_pm_authorization_status_ui_text_is_compact_and_preserves_boundary_points() -> None:
+    stream = io.StringIO()
+
+    print_pm_authorization_assistance(stream)
+
+    transcript = stream.getvalue()
+    non_blank_lines = [line for line in transcript.splitlines() if line.strip()]
+    assert non_blank_lines == [
+        "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode.",
+        "Use 2 only for exact PM-approved scope/mode; generated prompt artifacts do not grant permission.",
+        "Kernel evidence, branch preflight, validation, and fail-closed behavior still apply.",
+    ]
+
+
 def test_validate_pm_authorization_status_accepts_only_two_explicit_choices() -> None:
     variable = InputVariable(
         PM_AUTHORIZATION_STATUS_NAME,
@@ -518,9 +605,9 @@ def test_run_wizard_route_prompt_auth_status_pending(tmp_path: Path) -> None:
     assert "ISSUE_NUMBER=123" in text
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in text
     transcript = stream.getvalue()
-    assert "PM_AUTHORIZATION_STATUS assistance:" in transcript
-    assert "does not bypass kernel evidence, branch preflight, validation" in transcript
-    assert "the generated artifact is not permission" in transcript
+    assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode." in transcript
+    assert "Kernel evidence, branch preflight, validation, and fail-closed behavior still apply." in transcript
+    assert "generated prompt artifacts do not grant permission" in transcript
 
 
 def test_run_wizard_route_prompt_auth_status_granted_exact_scope(tmp_path: Path) -> None:
@@ -546,6 +633,73 @@ def test_run_wizard_route_prompt_auth_status_granted_exact_scope(tmp_path: Path)
     assert path is not None
     text = path.read_text(encoding="utf-8")
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in text
+
+
+def test_run_wizard_operation_30_route_path_requests_pm_authorization_status(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    (operations_dir / "30-process-human-qa-results.md").write_text(
+        (OPERATIONS_DIR / "30-process-human-qa-results.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    stream = io.StringIO()
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers(
+            "", "1",
+            "Blocking QA failure",
+            "",
+            "",
+            "",
+            "1",
+            "2",
+            "write",
+            "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "QA_RESULT=Blocking QA failure" in text
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in text
+    transcript = stream.getvalue()
+    assert "[Step 2b/3] Select output path" in transcript
+    assert "This operation has multiple possible outputs" in transcript
+
+
+def test_run_wizard_operation_30_non_route_path_omits_pm_authorization_status(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    output_dir = tmp_path / "out"
+    operations_dir.mkdir()
+    (operations_dir / "30-process-human-qa-results.md").write_text(
+        (OPERATIONS_DIR / "30-process-human-qa-results.md").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    path = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=output_dir,
+        input_func=answers(
+            "", "1",
+            "QA passed",
+            "",
+            "",
+            "",
+            "2",
+            "write",
+            "exit",
+        ),
+        output_stream=io.StringIO(),
+    )
+
+    assert path is not None
+    text = path.read_text(encoding="utf-8")
+    assert "QA_RESULT=QA passed" in text
+    assert PM_AUTHORIZATION_STATUS_NAME not in text
 
 
 def test_run_wizard_does_not_infer_granted_authorization(tmp_path: Path) -> None:

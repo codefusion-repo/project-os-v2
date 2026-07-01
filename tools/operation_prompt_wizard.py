@@ -125,6 +125,15 @@ class ValueCollectionResult:
     values: dict[str, str]
 
 
+@dataclass(frozen=True)
+class RoutePromptPathResult:
+    """Result of multi-output route-prompt path selection."""
+
+    action: str
+    values: dict[str, str]
+    include_pm_authorization_status: bool
+
+
 def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[OperationTemplate]:
     """Discover Markdown operation templates in deterministic filename order."""
 
@@ -415,15 +424,32 @@ def normalize_variable_value(variable: InputVariable, value: str) -> str:
 def operation_produces_route_prompt(operation: OperationTemplate) -> bool:
     """Return whether the operation's OUTPUT block can produce output.route_prompt."""
 
+    return "output.route_prompt" in operation_output_refs(operation)
+
+
+def operation_output_refs(operation: OperationTemplate) -> tuple[str, ...]:
+    """Return distinct output contract refs from the operation's OUTPUT block."""
+
+    refs: list[str] = []
     for line in named_block_lines(operation.text, "OUTPUT"):
-        if "output.route_prompt" in line:
-            return True
-    return False
+        for ref in re.findall(r"\boutput\.[A-Za-z0-9_.-]+\b", line):
+            if ref not in refs:
+                refs.append(ref)
+    return tuple(refs)
+
+
+def operation_requires_route_prompt_path_selection(operation: OperationTemplate) -> bool:
+    """Return whether output.route_prompt is one of multiple possible output paths."""
+
+    refs = operation_output_refs(operation)
+    return "output.route_prompt" in refs and len(refs) > 1
 
 
 def operation_needs_pm_authorization_assistance(operation: OperationTemplate) -> bool:
-    """Return whether the wizard should ask for route-prompt authorization status."""
+    """Return whether initial variable entry should ask for authorization status."""
 
+    if operation_requires_route_prompt_path_selection(operation):
+        return False
     return operation_produces_route_prompt(operation) or PM_AUTHORIZATION_STATUS_NAME in operation.text
 
 
@@ -445,19 +471,33 @@ def synthetic_pm_authorization_variable() -> InputVariable:
     )
 
 
-def wizard_variables(operation: OperationTemplate) -> tuple[InputVariable, ...]:
+def wizard_variables(
+    operation: OperationTemplate,
+    include_route_prompt_authorization: bool = False,
+) -> tuple[InputVariable, ...]:
     """Return operation INPUT variables plus any local wizard assistance variables."""
 
-    if operation_needs_pm_authorization_assistance(operation) and not operation_declares_pm_authorization_status(operation):
+    needs_synthetic = (
+        operation_needs_pm_authorization_assistance(operation)
+        or include_route_prompt_authorization
+    )
+    if needs_synthetic and not operation_declares_pm_authorization_status(operation):
         return operation.variables + (synthetic_pm_authorization_variable(),)
     return operation.variables
 
 
-def render_prompt(operation: OperationTemplate, values: dict[str, str]) -> str:
+def render_prompt(
+    operation: OperationTemplate,
+    values: dict[str, str],
+    include_route_prompt_authorization: bool = False,
+) -> str:
     """Render the filled local prompt artifact inline."""
 
     lines = operation.text.splitlines()
-    variables = wizard_variables(operation)
+    variables = wizard_variables(
+        operation,
+        include_route_prompt_authorization=include_route_prompt_authorization,
+    )
     for i, line in enumerate(lines):
         for variable in variables:
             if line.rstrip() == variable.raw_line:
@@ -467,7 +507,11 @@ def render_prompt(operation: OperationTemplate, values: dict[str, str]) -> str:
                 else:
                     lines[i] = f"  {variable.name}="
                 break
-    if operation_needs_pm_authorization_assistance(operation) and not operation_declares_pm_authorization_status(operation):
+    needs_synthetic = (
+        operation_needs_pm_authorization_assistance(operation)
+        or include_route_prompt_authorization
+    )
+    if needs_synthetic and not operation_declares_pm_authorization_status(operation):
         lines = insert_input_variable_line(
             lines,
             PM_AUTHORIZATION_STATUS_NAME,
@@ -754,23 +798,28 @@ def print_pm_authorization_assistance(output_stream: TextIO) -> None:
     """Explain route-prompt authorization-status assistance before asking."""
 
     print("", file=output_stream)
-    print("PM_AUTHORIZATION_STATUS assistance:", file=output_stream)
-    print("  1. pending", file=output_stream)
-    print("  2. granted for this exact scope and mode", file=output_stream)
     print(
-        "Use granted for this exact scope and mode only when the PM has already approved "
-        "that exact issue/scope/mode.",
+        "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode.",
         file=output_stream,
     )
     print(
-        "That status does not bypass kernel evidence, branch preflight, validation, "
-        "or fail-closed behavior.",
+        "Use 2 only for exact PM-approved scope/mode; generated prompt artifacts do not grant permission.",
         file=output_stream,
     )
     print(
-        "The wizard writes a local prompt artifact only; the generated artifact is not permission.",
+        "Kernel evidence, branch preflight, validation, and fail-closed behavior still apply.",
         file=output_stream,
     )
+
+
+def print_output_path_help(output_stream: TextIO) -> None:
+    """Print multi-output route-prompt path help."""
+
+    print("", file=output_stream)
+    print("Output path help:", file=output_stream)
+    print("  Choose route-prompt only when this prompt should emit output.route_prompt.", file=output_stream)
+    print("  Choose non-route for status_result, pm_command_bundle, draft_issue, or other outputs.", file=output_stream)
+    print("  A route-prompt path requires explicit PM_AUTHORIZATION_STATUS entry.", file=output_stream)
 
 
 def print_value_help(output_stream: TextIO) -> None:
@@ -924,6 +973,83 @@ def collect_values_with_controls(
     return ValueCollectionResult("values", values)
 
 
+def collect_route_prompt_path_with_controls(
+    operation: OperationTemplate,
+    input_func: Callable[[str], str] = input,
+    output_stream: TextIO = sys.stdout,
+    initial_values: dict[str, str] | None = None,
+) -> RoutePromptPathResult:
+    """Ask whether a multi-output operation is taking the route-prompt path."""
+
+    values = dict(initial_values or {})
+    print_stage("Step 2b/3", "Select output path", output_stream)
+    refs = operation_output_refs(operation)
+    non_route_refs = [ref for ref in refs if ref != "output.route_prompt"]
+    print(
+        "This operation has multiple possible outputs, including output.route_prompt.",
+        file=output_stream,
+    )
+    if non_route_refs:
+        print(f"Non-route outputs: {', '.join(non_route_refs)}.", file=output_stream)
+    print("Commands: back, cancel, ? help.", file=output_stream)
+
+    while True:
+        answer = input_func(
+            "Selected output path [1 route-prompt / 2 non-route]: "
+        ).strip().lower()
+        if is_help_command(answer):
+            print_output_path_help(output_stream)
+            continue
+        if is_cancel_command(answer):
+            return RoutePromptPathResult("cancel", values, False)
+        if is_back_command(answer):
+            return RoutePromptPathResult("values", values, False)
+        if answer in {"2", "non-route", "nonroute", "status", "status_result", "pm_command_bundle"}:
+            values.pop(PM_AUTHORIZATION_STATUS_NAME, None)
+            return RoutePromptPathResult("preview", values, False)
+        if answer in {"1", "route", "route-prompt", "route_prompt", "output.route_prompt"}:
+            return collect_route_prompt_authorization_status(
+                values,
+                input_func=input_func,
+                output_stream=output_stream,
+            )
+        print("Invalid output path. Choose 1 route-prompt, 2 non-route, back, or cancel.", file=output_stream)
+
+
+def collect_route_prompt_authorization_status(
+    values: dict[str, str],
+    input_func: Callable[[str], str] = input,
+    output_stream: TextIO = sys.stdout,
+) -> RoutePromptPathResult:
+    """Collect the authorization-status value for a confirmed route-prompt path."""
+
+    variable = synthetic_pm_authorization_variable()
+    print_pm_authorization_assistance(output_stream)
+    while True:
+        current = values.get(variable.name, "")
+        current_hint = f", current: {single_line(current)}" if current else ""
+        raw_value = input_func(
+            f"{variable.name} (required, {variable.placeholder}{current_hint}): "
+        )
+        if is_help_command(raw_value):
+            print_output_path_help(output_stream)
+            print_pm_authorization_assistance(output_stream)
+            continue
+        if is_cancel_command(raw_value):
+            return RoutePromptPathResult("cancel", values, True)
+        if is_back_command(raw_value):
+            values.pop(PM_AUTHORIZATION_STATUS_NAME, None)
+            return RoutePromptPathResult("values", values, False)
+        value = raw_value.strip()
+        if not value and current:
+            value = current
+        error = validate_variable_value(variable, value)
+        if error is None:
+            values[variable.name] = normalize_variable_value(variable, value)
+            return RoutePromptPathResult("preview", values, True)
+        print(f"Invalid value: {error}", file=output_stream)
+
+
 def print_preview_help(output_stream: TextIO) -> None:
     """Print preview-action help without leaving the current flow."""
 
@@ -945,13 +1071,17 @@ def print_pre_write_summary(
     output_path: Path,
     replacing: list[Path],
     output_stream: TextIO,
+    include_route_prompt_authorization: bool = False,
 ) -> None:
     """Print the selected operation, filled variables, output path, and replacement state."""
 
     print("", file=output_stream)
     print("Ready to write:", file=output_stream)
     print(f"  Operation: {operation.filename} - {operation.title}", file=output_stream)
-    variables = wizard_variables(operation)
+    variables = wizard_variables(
+        operation,
+        include_route_prompt_authorization=include_route_prompt_authorization,
+    )
     if variables:
         print("  Variables:", file=output_stream)
         for variable in variables:
@@ -980,11 +1110,19 @@ def choose_preview_action(
     replacing: list[Path],
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
+    include_route_prompt_authorization: bool = False,
 ) -> str:
     """Show a pre-write summary and preview, then return the selected next action."""
 
     print_stage("Step 3/3", "Preview and choose next action", output_stream)
-    print_pre_write_summary(operation, values, output_path, replacing, output_stream)
+    print_pre_write_summary(
+        operation,
+        values,
+        output_path,
+        replacing,
+        output_stream,
+        include_route_prompt_authorization=include_route_prompt_authorization,
+    )
     print("Preview:", file=output_stream)
     print("=" * 72, file=output_stream)
     print(rendered_prompt.rstrip(), file=output_stream)
@@ -1031,6 +1169,7 @@ def confirm_write(
     replacing: list[Path] | None = None,
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
+    include_route_prompt_authorization: bool = False,
 ) -> bool:
     """Show a pre-write summary and preview, then ask before writing the generated prompt."""
 
@@ -1043,6 +1182,7 @@ def confirm_write(
             replacing if replacing is not None else [],
             input_func=input_func,
             output_stream=output_stream,
+            include_route_prompt_authorization=include_route_prompt_authorization,
         )
         == "write"
     )
@@ -1125,6 +1265,7 @@ def run_wizard(
 
     operation: OperationTemplate | None = None
     values: dict[str, str] = {}
+    include_route_prompt_authorization = False
     stage = "select_operation"
 
     while True:
@@ -1144,6 +1285,7 @@ def run_wizard(
                 return None
             operation = picked
             values = carryover_values(values)
+            include_route_prompt_authorization = False
             stage = "collect_values"
             continue
 
@@ -1163,14 +1305,47 @@ def run_wizard(
             if result.action == "operation":
                 print("Returning to operation selection.", file=output_stream)
                 values = result.values
+                include_route_prompt_authorization = False
                 stage = "select_operation"
                 continue
             values = result.values
+            include_route_prompt_authorization = False
+            if operation_requires_route_prompt_path_selection(operation):
+                stage = "route_prompt_path"
+                continue
+            stage = "preview"
+            continue
+
+        elif stage == "route_prompt_path":
+            result = collect_route_prompt_path_with_controls(
+                operation,
+                input_func=input_func,
+                output_stream=output_stream,
+                initial_values=values,
+            )
+            if result.action == "cancel":
+                if current_prompt_path is not None:
+                    stage = "post_write"
+                    continue
+                print("Cancelled before write. No file was created.", file=output_stream)
+                return None
+            if result.action == "values":
+                print("Returning to variable entry.", file=output_stream)
+                values = result.values
+                include_route_prompt_authorization = False
+                stage = "collect_values"
+                continue
+            values = result.values
+            include_route_prompt_authorization = result.include_pm_authorization_status
             stage = "preview"
             continue
 
         elif stage == "preview":
-            rendered = render_prompt(operation, values)
+            rendered = render_prompt(
+                operation,
+                values,
+                include_route_prompt_authorization=include_route_prompt_authorization,
+            )
             output_path = output_directory / generated_filename(operation, rendered)
             replacing = find_replaceable_prompts(output_directory, output_path)
             action = choose_preview_action(
@@ -1181,6 +1356,7 @@ def run_wizard(
                 replacing,
                 input_func=input_func,
                 output_stream=output_stream,
+                include_route_prompt_authorization=include_route_prompt_authorization,
             )
             if action == "write":
                 path = write_prompt(output_path, rendered)
@@ -1199,6 +1375,7 @@ def run_wizard(
                 continue
             if action == "operation":
                 print("Returning to operation selection.", file=output_stream)
+                include_route_prompt_authorization = False
                 stage = "select_operation"
                 continue
             if current_prompt_path is not None:
@@ -1216,16 +1393,19 @@ def run_wizard(
                 return current_prompt_path
             if post_action == "new":
                 values = carryover_values(written_values)
+                include_route_prompt_authorization = False
                 stage = "select_operation"
                 continue
             if post_action == "same":
                 operation = written_operation
                 values = carryover_values(written_values)
+                include_route_prompt_authorization = False
                 stage = "collect_values"
                 continue
             if post_action == "edit":
                 operation = written_operation
                 values = dict(written_values)
+                include_route_prompt_authorization = False
                 stage = "collect_values"
                 continue
 
@@ -1403,6 +1583,128 @@ if HAVE_PROMPT_TOOLKIT:
 
         return ValueCollectionResult("values", values)
 
+    def collect_route_prompt_path_with_controls_pt(
+        operation: OperationTemplate,
+        output_stream: TextIO,
+        initial_values: dict[str, str] | None = None,
+    ) -> RoutePromptPathResult:
+        values = dict(initial_values or {})
+        print_stage("Step 2b/3", "Select output path", output_stream)
+        refs = operation_output_refs(operation)
+        non_route_refs = [ref for ref in refs if ref != "output.route_prompt"]
+        print(
+            "This operation has multiple possible outputs, including output.route_prompt.",
+            file=output_stream,
+        )
+        if non_route_refs:
+            print(f"Non-route outputs: {', '.join(non_route_refs)}.", file=output_stream)
+
+        style = Style.from_dict({
+            'bottom-toolbar': 'bg:#333333 #ffffff',
+        })
+
+        def bottom_toolbar():
+            return HTML(' <b>Output path</b>: 1 route-prompt, 2 non-route, back, cancel, ? help')
+
+        path_choices = {
+            "1",
+            "2",
+            "route",
+            "route-prompt",
+            "route_prompt",
+            "output.route_prompt",
+            "non-route",
+            "nonroute",
+            "status",
+            "status_result",
+            "pm_command_bundle",
+        }
+        completer = WordCompleter(sorted(path_choices | BACK_COMMANDS | CANCEL_COMMANDS | HELP_COMMANDS), ignore_case=True)
+
+        class OutputPathValidator(Validator):
+            def validate(self, document):
+                text = document.text.strip().lower()
+                if text in path_choices or is_help_command(text) or is_back_command(text) or is_cancel_command(text):
+                    return
+                raise ValidationError(
+                    message="Choose 1 route-prompt, 2 non-route, back, or cancel.",
+                    cursor_position=len(document.text),
+                )
+
+        while True:
+            try:
+                answer = prompt(
+                    "Selected output path [1 route-prompt / 2 non-route]: ",
+                    completer=completer,
+                    validator=OutputPathValidator(),
+                    style=style,
+                    bottom_toolbar=bottom_toolbar,
+                ).strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                return RoutePromptPathResult("cancel", values, False)
+
+            if is_help_command(answer):
+                print_output_path_help(output_stream)
+                continue
+            if is_cancel_command(answer):
+                return RoutePromptPathResult("cancel", values, False)
+            if is_back_command(answer):
+                return RoutePromptPathResult("values", values, False)
+            if answer in {"2", "non-route", "nonroute", "status", "status_result", "pm_command_bundle"}:
+                values.pop(PM_AUTHORIZATION_STATUS_NAME, None)
+                return RoutePromptPathResult("preview", values, False)
+            return collect_route_prompt_authorization_status_pt(values, output_stream)
+
+    def collect_route_prompt_authorization_status_pt(
+        values: dict[str, str],
+        output_stream: TextIO,
+    ) -> RoutePromptPathResult:
+        variable = synthetic_pm_authorization_variable()
+        print_pm_authorization_assistance(output_stream)
+
+        style = Style.from_dict({
+            'bottom-toolbar': 'bg:#333333 #ffffff',
+        })
+
+        def bottom_toolbar():
+            return HTML(' <b>PM_AUTHORIZATION_STATUS</b> | Commands: back, cancel, ? help')
+
+        class RouteAuthorizationValidator(Validator):
+            def validate(self, document):
+                text = document.text.strip()
+                if is_cancel_command(text) or is_back_command(text) or is_help_command(text):
+                    return
+                error = validate_variable_value(variable, text)
+                if error is not None:
+                    raise ValidationError(message=error, cursor_position=len(document.text))
+
+        completer = WordCompleter(["1", "2", *PM_AUTHORIZATION_CHOICES], ignore_case=True)
+        while True:
+            current = values.get(variable.name, "")
+            try:
+                raw_value = prompt(
+                    f"{variable.name} (required, {variable.placeholder}): ",
+                    default=current,
+                    validator=RouteAuthorizationValidator(),
+                    completer=completer,
+                    style=style,
+                    bottom_toolbar=bottom_toolbar,
+                )
+            except (EOFError, KeyboardInterrupt):
+                return RoutePromptPathResult("cancel", values, True)
+
+            if is_help_command(raw_value):
+                print_output_path_help(output_stream)
+                print_pm_authorization_assistance(output_stream)
+                continue
+            if is_cancel_command(raw_value):
+                return RoutePromptPathResult("cancel", values, True)
+            if is_back_command(raw_value):
+                values.pop(PM_AUTHORIZATION_STATUS_NAME, None)
+                return RoutePromptPathResult("values", values, False)
+            values[variable.name] = normalize_variable_value(variable, raw_value.strip())
+            return RoutePromptPathResult("preview", values, True)
+
     def choose_preview_action_pt(
         operation: OperationTemplate,
         values: dict[str, str],
@@ -1410,9 +1712,17 @@ if HAVE_PROMPT_TOOLKIT:
         output_path: Path,
         replacing: list[Path],
         output_stream: TextIO,
+        include_route_prompt_authorization: bool = False,
     ) -> str:
         print_stage("Step 3/3", "Preview and choose next action", output_stream)
-        print_pre_write_summary(operation, values, output_path, replacing, output_stream)
+        print_pre_write_summary(
+            operation,
+            values,
+            output_path,
+            replacing,
+            output_stream,
+            include_route_prompt_authorization=include_route_prompt_authorization,
+        )
         print("Preview:", file=output_stream)
         print("=" * 72, file=output_stream)
         print(rendered_prompt.rstrip(), file=output_stream)
@@ -1547,6 +1857,7 @@ if HAVE_PROMPT_TOOLKIT:
 
         operation: OperationTemplate | None = None
         values: dict[str, str] = {}
+        include_route_prompt_authorization = False
         stage = "select_operation"
 
         while True:
@@ -1563,6 +1874,7 @@ if HAVE_PROMPT_TOOLKIT:
                     return None
                 operation = picked
                 values = carryover_values(values)
+                include_route_prompt_authorization = False
                 stage = "collect_values"
                 continue
 
@@ -1581,14 +1893,46 @@ if HAVE_PROMPT_TOOLKIT:
                 if result.action == "operation":
                     print("Returning to operation selection.", file=output_stream)
                     values = result.values
+                    include_route_prompt_authorization = False
                     stage = "select_operation"
                     continue
                 values = result.values
+                include_route_prompt_authorization = False
+                if operation_requires_route_prompt_path_selection(operation):
+                    stage = "route_prompt_path"
+                    continue
+                stage = "preview"
+                continue
+
+            elif stage == "route_prompt_path":
+                result = collect_route_prompt_path_with_controls_pt(
+                    operation,
+                    output_stream=output_stream,
+                    initial_values=values,
+                )
+                if result.action == "cancel":
+                    if current_prompt_path is not None:
+                        stage = "post_write"
+                        continue
+                    print("Cancelled before write. No file was created.", file=output_stream)
+                    return None
+                if result.action == "values":
+                    print("Returning to variable entry.", file=output_stream)
+                    values = result.values
+                    include_route_prompt_authorization = False
+                    stage = "collect_values"
+                    continue
+                values = result.values
+                include_route_prompt_authorization = result.include_pm_authorization_status
                 stage = "preview"
                 continue
 
             elif stage == "preview":
-                rendered = render_prompt(operation, values)
+                rendered = render_prompt(
+                    operation,
+                    values,
+                    include_route_prompt_authorization=include_route_prompt_authorization,
+                )
                 output_path = output_directory / generated_filename(operation, rendered)
                 replacing = find_replaceable_prompts(output_directory, output_path)
                 action = choose_preview_action_pt(
@@ -1598,6 +1942,7 @@ if HAVE_PROMPT_TOOLKIT:
                     output_path,
                     replacing,
                     output_stream=output_stream,
+                    include_route_prompt_authorization=include_route_prompt_authorization,
                 )
                 if action == "write":
                     path = write_prompt(output_path, rendered)
@@ -1616,6 +1961,7 @@ if HAVE_PROMPT_TOOLKIT:
                     continue
                 if action == "operation":
                     print("Returning to operation selection.", file=output_stream)
+                    include_route_prompt_authorization = False
                     stage = "select_operation"
                     continue
                 if current_prompt_path is not None:
@@ -1631,16 +1977,19 @@ if HAVE_PROMPT_TOOLKIT:
                     return current_prompt_path
                 if post_action == "new":
                     values = carryover_values(written_values)
+                    include_route_prompt_authorization = False
                     stage = "select_operation"
                     continue
                 if post_action == "same":
                     operation = written_operation
                     values = carryover_values(written_values)
+                    include_route_prompt_authorization = False
                     stage = "collect_values"
                     continue
                 if post_action == "edit":
                     operation = written_operation
                     values = dict(written_values)
+                    include_route_prompt_authorization = False
                     stage = "collect_values"
                     continue
 
