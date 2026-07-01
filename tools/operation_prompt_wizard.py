@@ -76,6 +76,11 @@ POST_WRITE_NEW_COMMANDS = {"n", "new"}
 POST_WRITE_SAME_COMMANDS = {"r", "reuse", "same"}
 POST_WRITE_PATH_COMMANDS = {"p", "path", "current"}
 
+PM_AUTHORIZATION_STATUS_NAME = "PM_AUTHORIZATION_STATUS"
+PM_AUTHORIZATION_PENDING = "pending"
+PM_AUTHORIZATION_GRANTED = "granted for this exact scope and mode"
+PM_AUTHORIZATION_CHOICES = (PM_AUTHORIZATION_PENDING, PM_AUTHORIZATION_GRANTED)
+
 
 class WizardError(RuntimeError):
     """Raised when the local wizard cannot proceed safely."""
@@ -190,14 +195,21 @@ def parse_input_variables(text: str) -> tuple[InputVariable, ...]:
 def input_block_lines(text: str) -> list[str]:
     """Return the raw lines inside the first ``INPUT:`` block."""
 
+    return named_block_lines(text, "INPUT")
+
+
+def named_block_lines(text: str, block_name: str) -> list[str]:
+    """Return raw lines inside the first named all-caps operation block."""
+
     lines = text.splitlines()
-    in_input = False
+    in_block = False
     block: list[str] = []
+    header = f"{block_name}:"
     for line in lines:
         stripped = line.strip()
-        if not in_input:
-            if stripped == "INPUT:":
-                in_input = True
+        if not in_block:
+            if stripped == header:
+                in_block = True
             continue
         if BLOCK_HEADER_PATTERN.match(stripped):
             break
@@ -277,6 +289,14 @@ def validate_variable_value(variable: InputVariable, value: str) -> str | None:
     if SECRET_LOOKING_PATTERN.search(stripped):
         return f"{variable.name} looks like a secret and cannot be written to a prompt artifact."
 
+    if is_pm_authorization_status_variable(variable.name):
+        if normalize_pm_authorization_status(stripped) is None:
+            return (
+                f"{variable.name} must be 1, 2, pending, or "
+                "granted for this exact scope and mode."
+            )
+        return None
+
     choices = placeholder_choices(variable.placeholder)
     if choices is not None and stripped not in choices:
         return (
@@ -299,6 +319,8 @@ def validate_variable_value(variable: InputVariable, value: str) -> str | None:
 def validation_example(variable: InputVariable) -> str:
     """Return a concise example for the common validated variable shapes."""
 
+    if is_pm_authorization_status_variable(variable.name):
+        return "Choose 1 for pending or 2 for granted for this exact scope and mode."
     choices = placeholder_choices(variable.placeholder)
     if choices is not None:
         return f"Use one of: {', '.join(choices)}."
@@ -346,6 +368,12 @@ def is_positive_limit_variable(name: str) -> bool:
     return name.endswith("_COUNT_LIMIT") or name.endswith("_NUMBER_LIMIT")
 
 
+def is_pm_authorization_status_variable(name: str) -> bool:
+    """Identify the route-prompt authorization-status assistance variable."""
+
+    return name == PM_AUTHORIZATION_STATUS_NAME
+
+
 def is_carryover_variable(name: str) -> bool:
     """Identify stable context variables safe to offer for carry-over between prompts.
 
@@ -363,12 +391,75 @@ def carryover_values(values: dict[str, str]) -> dict[str, str]:
     return {name: value for name, value in values.items() if value and is_carryover_variable(name)}
 
 
+def normalize_pm_authorization_status(value: str) -> str | None:
+    """Normalize explicit PM authorization-status choices without inferring approval."""
+
+    normalized = value.strip().lower()
+    if normalized in {"1", PM_AUTHORIZATION_PENDING}:
+        return PM_AUTHORIZATION_PENDING
+    if normalized in {"2", PM_AUTHORIZATION_GRANTED}:
+        return PM_AUTHORIZATION_GRANTED
+    return None
+
+
+def normalize_variable_value(variable: InputVariable, value: str) -> str:
+    """Normalize supported variable values after validation."""
+
+    if is_pm_authorization_status_variable(variable.name):
+        normalized = normalize_pm_authorization_status(value)
+        if normalized is not None:
+            return normalized
+    return value
+
+
+def operation_produces_route_prompt(operation: OperationTemplate) -> bool:
+    """Return whether the operation's OUTPUT block can produce output.route_prompt."""
+
+    for line in named_block_lines(operation.text, "OUTPUT"):
+        if "output.route_prompt" in line:
+            return True
+    return False
+
+
+def operation_needs_pm_authorization_assistance(operation: OperationTemplate) -> bool:
+    """Return whether the wizard should ask for route-prompt authorization status."""
+
+    return operation_produces_route_prompt(operation) or PM_AUTHORIZATION_STATUS_NAME in operation.text
+
+
+def operation_declares_pm_authorization_status(operation: OperationTemplate) -> bool:
+    """Return whether the operation already declares PM_AUTHORIZATION_STATUS in INPUT."""
+
+    return any(is_pm_authorization_status_variable(variable.name) for variable in operation.variables)
+
+
+def synthetic_pm_authorization_variable() -> InputVariable:
+    """Build the local-only authorization-status variable offered by the wizard."""
+
+    return InputVariable(
+        PM_AUTHORIZATION_STATUS_NAME,
+        "<pending | granted for this exact scope and mode>",
+        True,
+        "",
+        "wizard route-prompt assistance",
+    )
+
+
+def wizard_variables(operation: OperationTemplate) -> tuple[InputVariable, ...]:
+    """Return operation INPUT variables plus any local wizard assistance variables."""
+
+    if operation_needs_pm_authorization_assistance(operation) and not operation_declares_pm_authorization_status(operation):
+        return operation.variables + (synthetic_pm_authorization_variable(),)
+    return operation.variables
+
+
 def render_prompt(operation: OperationTemplate, values: dict[str, str]) -> str:
     """Render the filled local prompt artifact inline."""
 
     lines = operation.text.splitlines()
+    variables = wizard_variables(operation)
     for i, line in enumerate(lines):
-        for variable in operation.variables:
+        for variable in variables:
             if line.rstrip() == variable.raw_line:
                 value = values.get(variable.name, "").strip()
                 if value:
@@ -376,7 +467,36 @@ def render_prompt(operation: OperationTemplate, values: dict[str, str]) -> str:
                 else:
                     lines[i] = f"  {variable.name}="
                 break
+    if operation_needs_pm_authorization_assistance(operation) and not operation_declares_pm_authorization_status(operation):
+        lines = insert_input_variable_line(
+            lines,
+            PM_AUTHORIZATION_STATUS_NAME,
+            values.get(PM_AUTHORIZATION_STATUS_NAME, "").strip(),
+        )
     return "\n".join(lines) + "\n"
+
+
+def insert_input_variable_line(lines: list[str], name: str, value: str) -> list[str]:
+    """Insert a synthetic INPUT line into the first INPUT block."""
+
+    rendered_line = f"  {name}={single_line(value)}" if value else f"  {name}="
+    rendered_lines = list(lines)
+    for index, line in enumerate(rendered_lines):
+        if line.strip() != "INPUT:":
+            continue
+        insert_at = len(rendered_lines)
+        for candidate in range(index + 1, len(rendered_lines)):
+            if BLOCK_HEADER_PATTERN.match(rendered_lines[candidate].strip()):
+                insert_at = candidate
+                break
+        while insert_at > index + 1 and not rendered_lines[insert_at - 1].strip():
+            insert_at -= 1
+        rendered_lines.insert(insert_at, rendered_line)
+        return rendered_lines
+    if rendered_lines and rendered_lines[-1].strip():
+        rendered_lines.append("")
+    rendered_lines.extend(["INPUT:", rendered_line])
+    return rendered_lines
 
 
 def single_line(value: str) -> str:
@@ -607,8 +727,9 @@ def variable_summary_lines(operation: OperationTemplate) -> list[str]:
     """Return a compact selected-operation summary for variable entry."""
 
     lines = [f"Selected: {operation.filename} - {operation.title}"]
-    required = [variable for variable in operation.variables if variable.required]
-    optional = [variable for variable in operation.variables if not variable.required]
+    variables = wizard_variables(operation)
+    required = [variable for variable in variables if variable.required]
+    optional = [variable for variable in variables if not variable.required]
     lines.append(f"Required ({len(required)}): {format_variable_list(required)}")
     lines.append(f"Optional ({len(optional)}): {format_variable_list(optional)}")
     return lines
@@ -627,6 +748,29 @@ def display_operation_summary(operation: OperationTemplate, output_stream: TextI
 
     for line in variable_summary_lines(operation):
         print(line, file=output_stream)
+
+
+def print_pm_authorization_assistance(output_stream: TextIO) -> None:
+    """Explain route-prompt authorization-status assistance before asking."""
+
+    print("", file=output_stream)
+    print("PM_AUTHORIZATION_STATUS assistance:", file=output_stream)
+    print("  1. pending", file=output_stream)
+    print("  2. granted for this exact scope and mode", file=output_stream)
+    print(
+        "Use granted for this exact scope and mode only when the PM has already approved "
+        "that exact issue/scope/mode.",
+        file=output_stream,
+    )
+    print(
+        "That status does not bypass kernel evidence, branch preflight, validation, "
+        "or fail-closed behavior.",
+        file=output_stream,
+    )
+    print(
+        "The wizard writes a local prompt artifact only; the generated artifact is not permission.",
+        file=output_stream,
+    )
 
 
 def print_value_help(output_stream: TextIO) -> None:
@@ -732,7 +876,8 @@ def collect_values_with_controls(
     values = dict(initial_values or {})
     print_stage("Step 2/3", "Fill INPUT variables", output_stream)
     display_operation_summary(operation, output_stream)
-    if not operation.variables:
+    variables = wizard_variables(operation)
+    if not variables:
         print("This operation declares no INPUT variables.", file=output_stream)
         return ValueCollectionResult("values", values)
 
@@ -741,7 +886,9 @@ def collect_values_with_controls(
         "Optional values may be left blank. Commands: back, cancel, /clear optional, ? help.",
         file=output_stream,
     )
-    for variable in operation.variables:
+    for variable in variables:
+        if is_pm_authorization_status_variable(variable.name):
+            print_pm_authorization_assistance(output_stream)
         label = "required" if variable.required else "optional"
         while True:
             current = values.get(variable.name, "")
@@ -771,7 +918,7 @@ def collect_values_with_controls(
                 value = current
             error = validate_variable_value(variable, value)
             if error is None:
-                values[variable.name] = value
+                values[variable.name] = normalize_variable_value(variable, value)
                 break
             print(f"Invalid value: {error}", file=output_stream)
     return ValueCollectionResult("values", values)
@@ -804,9 +951,10 @@ def print_pre_write_summary(
     print("", file=output_stream)
     print("Ready to write:", file=output_stream)
     print(f"  Operation: {operation.filename} - {operation.title}", file=output_stream)
-    if operation.variables:
+    variables = wizard_variables(operation)
+    if variables:
         print("  Variables:", file=output_stream)
-        for variable in operation.variables:
+        for variable in variables:
             value = values.get(variable.name, "")
             shown = single_line(value) if value else "(empty)"
             print(f"    {variable.name}={shown}", file=output_stream)
@@ -1178,7 +1326,8 @@ if HAVE_PROMPT_TOOLKIT:
         values = dict(initial_values or {})
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
         display_operation_summary(operation, output_stream)
-        if not operation.variables:
+        variables = wizard_variables(operation)
+        if not variables:
             print("This operation declares no INPUT variables.", file=output_stream)
             return ValueCollectionResult("values", values)
 
@@ -1188,7 +1337,9 @@ if HAVE_PROMPT_TOOLKIT:
             'bottom-toolbar': 'bg:#333333 #ffffff',
         })
 
-        for variable in operation.variables:
+        for variable in variables:
+            if is_pm_authorization_status_variable(variable.name):
+                print_pm_authorization_assistance(output_stream)
             label = "required" if variable.required else "optional"
 
             def bottom_toolbar():
@@ -1208,9 +1359,12 @@ if HAVE_PROMPT_TOOLKIT:
                         raise ValidationError(message=error, cursor_position=len(document.text))
 
             completer = None
-            choices = placeholder_choices(variable.placeholder)
-            if choices:
-                completer = WordCompleter(list(choices), ignore_case=True)
+            if is_pm_authorization_status_variable(variable.name):
+                completer = WordCompleter(["1", "2", *PM_AUTHORIZATION_CHOICES], ignore_case=True)
+            else:
+                choices = placeholder_choices(variable.placeholder)
+                if choices:
+                    completer = WordCompleter(list(choices), ignore_case=True)
 
             while True:
                 current = values.get(variable.name, "")
@@ -1244,7 +1398,7 @@ if HAVE_PROMPT_TOOLKIT:
                     break
 
                 value = raw_value.strip()
-                values[variable.name] = value
+                values[variable.name] = normalize_variable_value(variable, value)
                 break
 
         return ValueCollectionResult("values", values)
