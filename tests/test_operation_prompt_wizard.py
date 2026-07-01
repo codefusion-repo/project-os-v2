@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import io
 from pathlib import Path
 
@@ -1195,6 +1196,46 @@ def test_wizard_source_has_no_command_or_network_execution_imports() -> None:
     assert "http.client" not in source
     assert "import socket" not in source
     assert "import requests" not in source
+
+
+def test_wizard_imports_and_calls_remain_local_non_mutating() -> None:
+    source = (REPO_ROOT / "tools" / "operation_prompt_wizard.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    forbidden_import_roots = {
+        "git",
+        "github",
+        "http",
+        "requests",
+        "shlex",
+        "socket",
+        "subprocess",
+        "urllib",
+    }
+    forbidden_calls = {
+        "os.popen",
+        "os.remove",
+        "os.system",
+        "subprocess.call",
+        "subprocess.check_call",
+        "subprocess.check_output",
+        "subprocess.Popen",
+        "subprocess.run",
+    }
+    imported_roots: set[str] = set()
+    calls: set[str] = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported_roots.update(alias.name.split(".", 1)[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported_roots.add(node.module.split(".", 1)[0])
+        elif isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+                calls.add(f"{func.value.id}.{func.attr}")
+
+    assert imported_roots.isdisjoint(forbidden_import_roots)
+    assert calls.isdisjoint(forbidden_calls)
 
 
 def test_build_parser_adds_no_cleanup_or_session_flags() -> None:

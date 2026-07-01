@@ -479,6 +479,61 @@ def test_route_prompt_pm_authorization_status_choices_are_two_option_authority_v
         assert invalid_value not in status_line
 
 
+def test_browser_chat_and_terminal_agent_write_gates_are_canonical_kernel_contracts() -> None:
+    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    browser_chat = next(entry for entry in actors["entries"] if entry["id"] == "actor.browser_chat")
+    terminal_agent = next(entry for entry in actors["entries"] if entry["id"] == "actor.terminal_agent")
+    delegated_pr = _kernel_entry("execution_modes.json", "mode.delegated_commit_pr")
+    issue_workflow = _kernel_entry("workflows.json", "workflow.issue_implementation")
+    draft_boundary = _kernel_entry("boundaries.json", "boundary.draft_only_browser")
+    branch_boundary = _kernel_entry("boundaries.json", "boundary.branch_preflight")
+    main_boundary = _kernel_entry("boundaries.json", "boundary.no_main_edits")
+    review_boundary = _kernel_entry("boundaries.json", "boundary.review_before_close")
+
+    assert browser_chat["allowed_mode_refs"] == ["mode.review_only"]
+    for denied_action in (
+        "edit_files",
+        "commit",
+        "push",
+        "open_pr",
+        "merge",
+        "close_issue",
+        "any_github_mutation",
+        "any_repo_mutation",
+    ):
+        assert denied_action in browser_chat["denied_actions"]
+    assert "routes write-capable work to a terminal surface" in browser_chat["denied_note"]
+    assert "never edit files or mutate git/GitHub" in draft_boundary["rule"]
+    assert "never expands browser capability" in draft_boundary["rule"]
+
+    for boundary_ref in (
+        "boundary.branch_preflight",
+        "boundary.no_main_edits",
+        "boundary.separate_pm_approval",
+        "boundary.validation_discipline",
+    ):
+        assert boundary_ref in terminal_agent["boundary_refs"]
+    assert "edit_main_directly" in terminal_agent["denied_actions"]
+    assert "Before any local edit, commit, push, or PR creation" in branch_boundary["rule"]
+    assert "main is only a clean pre-branch baseline" in main_boundary["rule"]
+    assert delegated_pr["required_evidence_refs"] == [
+        "evidence.issue_scope",
+        "evidence.branch_preflight",
+        "evidence.pm_approval",
+        "evidence.validation_output",
+    ]
+    assert "open_draft_pr" in delegated_pr["allowed_actions"]
+    for prohibited in ("merge", "close_issue", "apply_labels"):
+        assert prohibited in delegated_pr["prohibited_actions"]
+
+    issue_steps = " ".join(issue_workflow["steps"])
+    assert "branch preflight" in issue_steps
+    assert "commit and push only if the mode allows" in issue_steps
+    assert "open a draft PR only if the mode allows" in issue_steps
+    assert "Issues close only after review compares" in review_boundary["rule"]
+    assert "claims/evidence leads, not proof" in review_boundary["rule"]
+
+
 def test_artifact_templates_mark_review_claims_and_closure_precondition() -> None:
     text = (REPO_ROOT / "templates" / "artifacts.md").read_text(encoding="utf-8")
     pull_request = text.split("## Pull request", 1)[1].split("## Closure comment", 1)[0]

@@ -17,9 +17,31 @@ SECRET_LOOKING_PATTERN = re.compile(
     r"\b(?:gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|"
     r"AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{12,})\b"
 )
+SECRET_ASSIGNMENT_PATTERN = re.compile(
+    r"\b(?:api[_-]?key|access[_-]?token|auth[_-]?token|secret[_-]?key|"
+    r"client[_-]?secret|private[_-]?key|password|passwd)\b\s*[:=]\s*['\"]?"
+    r"(?!(?:<|\{\{|\[REDACTED\]|REDACTED|redacted|your_|example|dummy|placeholder|x{4}))"
+    r"[A-Za-z0-9_./+=-]{8,}",
+    re.IGNORECASE,
+)
+COMMIT_SHA_PATTERN = re.compile(
+    r"\b(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b",
+    re.IGNORECASE,
+)
 LEGACY_PM_QUESTION_PATTERN = re.compile(r"\bPM_QUESTION\b")
 HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
 FLOW_DOC_PATH = "docs/OPERATION_FLOWS.md"
+DURABLE_LIVE_STATE_PATTERNS = {
+    "live GitHub issue/PR URL": LIVE_GITHUB_OBJECT_PATTERN,
+    "concrete work branch": re.compile(r"\bwork/[0-9][A-Za-z0-9._/-]*\b"),
+    "commit SHA": COMMIT_SHA_PATTERN,
+    "validation result state": re.compile(
+        r"\b(?:result|resultado):\s*(?:pass|passed|fail|failed)\b",
+        re.IGNORECASE,
+    ),
+}
+TEXT_SCAN_SUFFIXES = {".json", ".md", ".py", ".yaml", ".yml"}
+SKIP_DIR_PARTS = {".git", ".pytest_cache", "__pycache__", ".venv", "node_modules"}
 CANONICAL_KERNEL_ENTRY_IDS = {
     "actors.json": {
         "actor.human_pm",
@@ -192,6 +214,27 @@ def _markdown_table(text: str, heading: str) -> list[dict[str, str]]:
     return rows
 
 
+def _markdown_table_from_header(text: str, header_prefix: str) -> list[dict[str, str]]:
+    lines = text.splitlines()
+    start_index = next(
+        index for index, line in enumerate(lines) if line.startswith(header_prefix)
+    )
+    table_lines: list[str] = []
+    for line in lines[start_index:]:
+        if line.startswith("|"):
+            table_lines.append(line)
+        elif table_lines:
+            break
+    assert len(table_lines) >= 3, f"missing markdown table starting {header_prefix}"
+    headers = [cell.strip() for cell in table_lines[0].strip("|").split("|")]
+    rows: list[dict[str, str]] = []
+    for line in table_lines[2:]:
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        assert len(cells) == len(headers), f"malformed table row: {line}"
+        rows.append(dict(zip(headers, cells, strict=True)))
+    return rows
+
+
 def _input_variables(text: str) -> list[tuple[str, bool]]:
     match = re.search(r"INPUT:\n(.*?)(?:\n\n[A-Z_]+:|\Z)", text, re.DOTALL)
     assert match, "operation template has no INPUT block"
@@ -204,6 +247,30 @@ def _input_variables(text: str) -> list[tuple[str, bool]]:
         if variable_match:
             variables.append((variable_match.group(1), "# optional" not in line))
     return variables
+
+
+def _text_paths_under(*roots: str) -> list[Path]:
+    paths: list[Path] = []
+    for root in roots:
+        for path in sorted((REPO_ROOT / root).rglob("*")):
+            if not path.is_file() or path.suffix not in TEXT_SCAN_SUFFIXES:
+                continue
+            if set(path.relative_to(REPO_ROOT).parts) & SKIP_DIR_PARTS:
+                continue
+            paths.append(path)
+    return paths
+
+
+def _catalog_variable_lists(cell: str) -> tuple[list[str], list[str]]:
+    assert " / " in cell, f"catalog variable cell missing Req/Opc split: {cell}"
+    required_cell, optional_cell = cell.split(" / ", 1)
+    return _variable_names_from_catalog_cell(required_cell), _variable_names_from_catalog_cell(optional_cell)
+
+
+def _variable_names_from_catalog_cell(cell: str) -> list[str]:
+    if "—" in cell or cell.strip() == "-":
+        return []
+    return re.findall(r"\b[A-Z][A-Z0-9_]*\b", cell)
 
 
 def test_implementation_discipline_audit_workflow_and_operation_are_read_only() -> None:
@@ -745,6 +812,69 @@ def test_operation_flow_doc_uses_valid_kernel_ids_and_template_references() -> N
     assert offenders == []
 
 
+def test_pm_operations_catalog_table_covers_templates_variables_and_kernel_refs() -> None:
+    catalog = _operation_text("docs/PM_OPERATIONS.md")
+    kernel_ids = _kernel_ids()
+    operation_paths = _operation_paths()
+    rows = _markdown_table_from_header(catalog, "| Template (`templates/operations/`) |")
+    rows_by_template = {
+        row["Template (`templates/operations/`)"].strip("`"): row
+        for row in rows
+    }
+
+    assert len(rows) == len(operation_paths)
+    assert set(rows_by_template) == {
+        str(path.relative_to(REPO_ROOT)) for path in operation_paths
+    }
+
+    for path in operation_paths:
+        row = rows_by_template[str(path.relative_to(REPO_ROOT))]
+        variables = _input_variables(path.read_text(encoding="utf-8"))
+        expected_required = [name for name, required in variables if required]
+        expected_optional = [name for name, required in variables if not required]
+        actual_required, actual_optional = _catalog_variable_lists(row["Variables (Req / Opc)"])
+
+        assert actual_required == expected_required, f"{path.name}: catalog required vars drifted"
+        assert actual_optional == expected_optional, f"{path.name}: catalog optional vars drifted"
+
+        for family, column in (
+            ("workflow", "Workflow"),
+            ("mode", "Mode"),
+            ("output", "Output"),
+            ("evidence", "Evidence"),
+        ):
+            tokens = re.findall(r"\b[A-Za-z][A-Za-z0-9_]+\b", row[column])
+            assert tokens, f"{path.name}: catalog {column} is empty"
+            for token in tokens:
+                ref = f"{family}.{token}"
+                assert ref in kernel_ids, f"{path.name}: catalog references invalid {ref}"
+
+
+def test_docs_and_templates_do_not_store_concrete_live_state_tokens() -> None:
+    offenders: list[str] = []
+    for path in _text_paths_under("docs", "templates"):
+        rel = path.relative_to(REPO_ROOT)
+        text = path.read_text(encoding="utf-8")
+        for label, pattern in DURABLE_LIVE_STATE_PATTERNS.items():
+            for match in pattern.finditer(text):
+                offenders.append(f"{rel}: {label}: {match.group(0)!r}")
+
+    assert offenders == []
+
+
+def test_docs_templates_and_tests_have_no_secret_looking_examples() -> None:
+    offenders: list[str] = []
+    for path in _text_paths_under("docs", "templates", "tests"):
+        rel = path.relative_to(REPO_ROOT)
+        text = path.read_text(encoding="utf-8")
+        if SECRET_LOOKING_PATTERN.search(text):
+            offenders.append(f"{rel}: token-shaped secret")
+        if SECRET_ASSIGNMENT_PATTERN.search(text):
+            offenders.append(f"{rel}: secret-like assignment")
+
+    assert offenders == []
+
+
 def test_operation_flow_doc_preserves_phase_and_gap_decisions() -> None:
     flow_doc = _operation_text(FLOW_DOC_PATH)
     catalog_doc = _operation_text("docs/PM_OPERATIONS.md")
@@ -928,6 +1058,11 @@ def test_operation_templates_keep_external_recipients_distinct_from_kernel_actor
     forbidden_actor_ids = {
         "actor." + suffix
         for suffix in (
+            "api",
+            "api_bridge",
+            "github_connector",
+            "gpt",
+            "llm",
             "qa",
             "human_qa",
             "security_reviewer",
