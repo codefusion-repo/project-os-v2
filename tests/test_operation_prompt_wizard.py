@@ -33,6 +33,7 @@ from tools.operation_prompt_wizard import (
     resolve_operation_selection,
     resolve_output_dir,
     run_wizard,
+    normalize_pm_authorization_status,
     validate_variable_value,
     write_prompt,
 )
@@ -329,8 +330,13 @@ def test_route_prompt_detection_uses_positive_output_block() -> None:
     assert operation_needs_pm_authorization_assistance(advisory_operation) is False
 
 
-def test_validate_pm_authorization_status_requires_explicit_choice() -> None:
-    variable = InputVariable(PM_AUTHORIZATION_STATUS_NAME, "<pending | granted>", True, "")
+def test_validate_pm_authorization_status_accepts_only_two_explicit_choices() -> None:
+    variable = InputVariable(
+        PM_AUTHORIZATION_STATUS_NAME,
+        "<pending | granted for this exact scope and mode>",
+        True,
+        "",
+    )
 
     assert validate_variable_value(variable, "") == (
         "PM_AUTHORIZATION_STATUS is required. "
@@ -340,10 +346,21 @@ def test_validate_pm_authorization_status_requires_explicit_choice() -> None:
     assert validate_variable_value(variable, "2") is None
     assert validate_variable_value(variable, PM_AUTHORIZATION_PENDING) is None
     assert validate_variable_value(variable, PM_AUTHORIZATION_GRANTED) is None
-    assert validate_variable_value(variable, "granted") == (
-        "PM_AUTHORIZATION_STATUS must be 1, 2, pending, or "
-        "granted for this exact scope and mode."
-    )
+
+    invalid_values = [
+        "draft",
+        "read-only planning",
+        "read_only",
+        "planning",
+        "approved",
+        "granted",
+    ]
+    for value in invalid_values:
+        assert normalize_pm_authorization_status(value) is None
+        assert validate_variable_value(variable, value) == (
+            "PM_AUTHORIZATION_STATUS must be 1, 2, pending, or "
+            "granted for this exact scope and mode."
+        )
 
 
 def test_collect_values_reprompts_required_and_allows_optional_skip() -> None:
@@ -1014,7 +1031,12 @@ def test_wizard_source_has_no_command_or_network_execution_imports() -> None:
     source = (REPO_ROOT / "tools" / "operation_prompt_wizard.py").read_text(encoding="utf-8")
 
     assert "import subprocess" not in source
+    assert "subprocess." not in source
     assert "os.system" not in source
+    assert "os.popen" not in source
+    assert "import git" not in source
+    assert "from git" not in source
+    assert "import shlex" not in source
     assert "urllib.request" not in source
     assert "http.client" not in source
     assert "import socket" not in source

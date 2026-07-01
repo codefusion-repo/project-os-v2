@@ -453,6 +453,32 @@ def test_target_adoption_route_template_is_draft_or_adapter_only() -> None:
     assert "touch secrets" in variant
 
 
+def test_route_prompt_pm_authorization_status_choices_are_two_option_authority_values() -> None:
+    text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    variable_block = text.split("~~~text", 1)[1].split("~~~", 1)[0]
+
+    assert (
+        "PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}"
+        in variable_block
+    )
+    assert "That status does not bypass required evidence" in text
+    assert "branch preflight, validation, or\nfail-closed behavior" in text
+
+    status_line = next(
+        line for line in variable_block.splitlines() if line.startswith("PM_AUTHORIZATION_STATUS")
+    )
+    for invalid_value in (
+        "draft",
+        "read-only planning",
+        "read_only",
+        "planning",
+        "approved",
+        "{{granted |",
+        "| granted}}",
+    ):
+        assert invalid_value not in status_line
+
+
 def test_artifact_templates_mark_review_claims_and_closure_precondition() -> None:
     text = (REPO_ROOT / "templates" / "artifacts.md").read_text(encoding="utf-8")
     pull_request = text.split("## Pull request", 1)[1].split("## Closure comment", 1)[0]

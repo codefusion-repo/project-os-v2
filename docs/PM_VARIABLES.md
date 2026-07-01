@@ -24,7 +24,7 @@ Las variables **NUNCA** deben portar o exponer contraseñas, secretos, tokens, c
 Toda información confidencial hallada debe redactarse como `[REDACTED]` reportando el tipo de riesgo.
 
 ## Autorización
-`PM_AUTHORIZATION_STATUS` es especial. No se asume por defecto; debe pasarse explícitamente cuando un route-prompt asegura contar con la autorización del humano PM para trabajos de escritura.
+`PM_AUTHORIZATION_STATUS` es especial. No se asume por defecto; debe pasarse explícitamente cuando un route-prompt asegura contar con la autorización del humano PM para trabajos de escritura. Sus únicos valores de autorización son `pending` y `granted for this exact scope and mode`; draft/read-only/planning describen modo o postura, no autorización.
 
 ## Ejemplos de Uso
 - Invocando un análisis de PR: `templates/operations/09-review-pr-before-close-and-draft-package.md PR_NUMBER=<PR_NUMBER>`
