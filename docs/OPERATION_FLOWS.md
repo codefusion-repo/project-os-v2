@@ -11,7 +11,7 @@ de docs de operaciones queda dividida en dos artefactos estables:
 La division evita duplicar la tabla canonica de templates dentro de un manual de
 flujo mas largo: `PM_OPERATIONS.md` responde "que template existe y que contrato
 tiene"; `OPERATION_FLOWS.md` responde "cuando lo uso y que sigue". Ambos apuntan
-a los mismos templates y este archivo no cambia la numeracion `00`-`33`.
+a los mismos templates y este archivo no cambia la numeracion `00`-`37`.
 
 Project OS no es un motor de workflow. Cada operacion lee evidencia viva desde
 GitHub/git cuando corresponde, resuelve `kernel/manifest.json`, aplica los
@@ -39,6 +39,31 @@ Cada fila del mapa usa esta forma estandar:
 - PM approval behavior: si la operacion solo draftea, si requiere aprobacion PM
   exacta para escritura, o si deja la ejecucion al Humano PM.
 
+## SDLC Comparison and KOPS.3 Fit Check
+
+KOPS.3 compara Project OS contra un SDLC practico antes de agregar operaciones.
+La decision es conservar el kernel compacto y expresar los gaps reales en
+templates/docs/tests usando workflows y outputs existentes.
+
+| SDLC area | Current coverage | KOPS.3 fit decision |
+|---|---|---|
+| Intake/requirements | 16, 04, 26, 28 convierten ideas, descripcion y conversacion en issues o docs. | Cubierto; solo docs de orientacion. |
+| Planning/design | 27, 06, 29, 22 y 19 cubren roadmap, issues acotados, ADRs y assets. | Cubierto; no kernel nuevo. |
+| Implementation | 07 routea terminal agent; 33 draftea plan manual no-write. | Cubierto para rutas de entrada; 34 se agrega solo para clasificar resultado manual posterior. |
+| Manual implementation result processing | 33 no procesa lo que el humano aplico; 09 solo aplica cuando hay PR. | Nuevo Operation 34 con workflow.pm_intake, recommendation/draft-only, y ruta a 09 si existe PR. |
+| PM decision processing | Los statuses `status.needs_pm_decision` volvian a chat sin una operacion uniforme. | Nuevo Operation 36 procesa la decision desde la operacion originaria sin auto-aprobar ni ejecutar. |
+| Testing/QA/security/design gates | 18, 20, 30, 31 y 32 cubren solicitud y procesamiento de gates externos. | Cubierto; 34 puede recomendar estos gates sin ejecutarlos. |
+| PR review/acceptance | 09 es review-before-close y consume execution reports como evidence leads cuando hay PR. | Docs/template/test guard; no operacion duplicada para execution report normal. |
+| Closeout/release | 10, 11, 12, 13 y 24 cubren cierre, verificacion, tags y releases. | Cubierto; sin cambios. |
+| Maintenance/follow-up | 21, 25, 14, 15 y 23 cubren follow-ups, audits y upgrades. | Cubierto; 34 puede derivar no bloqueantes a 21. |
+| Handoff/evaluation and phase readiness | 17 transfiere contexto; 05 revisa estado; readiness entre fases era ad hoc. | Nuevo Operation 35 recomienda la siguiente operacion y nuevo Operation 37 revisa readiness; ambos son read-only/advisory y nunca ejecutan transiciones. |
+
+El PM pidio agregar ahora las operaciones faltantes no duplicativas. El unico
+candidato que no se agrega como operacion nueva es el procesador normal de
+execution report para PRs, porque duplicaria Operation 09. Cualquier procesador
+de execution report fuera de PR requiere decision PM exacta y un caso no
+duplicativo antes de agregarse.
+
 ## Phase Flow Map
 
 | Op | Phase | Trigger | Template | Required evidence | Variables | Output contract | Safe next operation | Fail-closed behavior | PM approval behavior |
@@ -49,6 +74,9 @@ Cada fila del mapa usa esta forma estandar:
 | 03 | Activation and state review | PM quiere comprobar que un target esta adoptado correctamente. | `templates/operations/03-verify-target-adoption.md` | `evidence.target_adoption` | Req: `TARGET_REPOSITORY`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result` | 05, 06, 14, o 23 segun drift. | Si los adapters o evidencia target no pueden leerse, devolver `status.needs_context`. | No requiere aprobacion; read-only. |
 | 05 | Activation and state review | PM necesita revisar estado, roadmap o desalineacion. | `templates/operations/05-review-project-state-and-misalignment.md` | `evidence.repo_state` | Req: none; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result` | 06, 29, o 21 segun hallazgo. | Si no se puede leer estado vivo suficiente, devolver `status.needs_context`. | No requiere aprobacion; read-only. |
 | 14 | Activation and state review | PM sospecha drift en adapters target. | `templates/operations/14-audit-target-adapters.md` | `evidence.repo_state` | Req: `TARGET_REPOSITORY`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result` | 23 si hay upgrade/adopcion que aplicar; si no, 05 o 06. | Si adapters o modelo canonico no pueden leerse, devolver `status.needs_context`. | No requiere aprobacion; read-only. |
+| 35 | Activation and state review | PM necesita elegir la siguiente operacion desde trazabilidad viva. | `templates/operations/35-recommend-next-lifecycle-operation.md` | `evidence.repo_state` | Req: none; Opt: `TARGET_REPOSITORY`, `ISSUE_NUMBER`, `PR_NUMBER`, `ROADMAP_ISSUE`, `CURRENT_STATUS`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result` | Humano PM invoca la operacion recomendada si decide seguir. | Si no hay ancla de ciclo o hay multiples rutas plausibles, devolver `status.needs_context` o `status.needs_pm_decision`. | Read-only y recommendation-only; nunca ejecuta, autoriza ni draftea el siguiente paso. |
+| 36 | Activation and state review | Una operacion devolvio `status.needs_pm_decision` y el PM debe clasificar decision, contexto, correccion, follow-up, no-op o route prompt. | `templates/operations/36-process-needs-pm-decision.md` | `evidence.source_basis`, `evidence.repo_state` | Req: `ORIGINATING_OPERATION`, `STATUS_CONTEXT`, `OPTIONS_TRADEOFFS`; Opt: `ISSUE_NUMBER`, `PR_NUMBER`, `TARGET_REPOSITORY`, `ROADMAP_ISSUE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result`, `output.route_prompt`, `output.pm_command_bundle`, `output.draft_issue` | Volver a la operacion originaria, 08 para correccion, 21 para follow-up, 35 si falta routing, o stop. | Si origen/status/opciones o evidencia viva faltan, devolver `status.needs_context`; si la decision PM sigue abierta, devolver `status.needs_pm_decision`. | Draft-only; preserva autoridad PM y nunca auto-aprueba ni ejecuta. |
+| 37 | Activation and state review | PM quiere revisar readiness antes de pasar a implementacion, manual implementation, QA/security/design, closeout, release, dogfood o handoff. | `templates/operations/37-review-phase-readiness.md` | `evidence.repo_state` | Req: none; Opt: `CURRENT_PHASE`, `TARGET_PHASE`, `ISSUE_NUMBER`, `PR_NUMBER`, `TARGET_REPOSITORY`, `ROADMAP_ISSUE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result` | 36 si falta decision PM; 35 si falta elegir operacion; si no, la operacion segura de la fase target. | Si faltan scope, validacion, decision PM, blockers, branch/PR state o gate evidence, devolver `status.needs_context` o `status.needs_pm_decision`. | Advisory/read-only; recomienda pero no ejecuta, autoriza ni draftea la siguiente operacion. |
 | 16 | Idea intake and requirements | PM tiene una idea y necesita decidir si es feature del sistema. | `templates/operations/16-review-idea-as-system-feature.md` | `evidence.repo_state` | Req: `IDEA`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result` | 04 para issue, 28 para docs, o stop si no procede. | Si la idea o contexto base son insuficientes, devolver `status.needs_pm_decision` o `status.needs_context`. | No requiere aprobacion; analiza y recomienda. |
 | 04 | Idea intake and requirements | PM entrega descripcion para convertirla en issue. | `templates/operations/04-draft-create-issue-command-from-description.md` | `evidence.source_basis` | Req: `DESCRIPTION`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.pm_command_bundle` | 07 cuando el issue exista y tenga scope estable. | Si la descripcion no alcanza para un issue accionable, devolver `status.needs_pm_decision`. | Browser chat draftea; Humano PM ejecuta el comando si decide crear el issue. |
 | 26 | Idea intake and requirements | PM quiere convertir conversacion en docs, issue draft o ruta de escritura. | `templates/operations/26-draft-docs-from-conversation.md` | `evidence.source_basis` | Req: `CONVERSATION_CONTEXT`; Opt: `DOC_TARGET`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.route_prompt`, `output.draft_issue`, `output.status_result` | Terminal agent escribe solo si se aprueba; si no, 28 o 04. | Si no se distinguen decisiones estables de discusion abierta, devolver `status.needs_pm_decision`. | Draft-only; escritura de archivo requiere aprobacion PM exacta y ruta delegada. |
@@ -58,10 +86,11 @@ Cada fila del mapa usa esta forma estandar:
 | 29 | Roadmap and issue planning | Roadmap necesita issues acotados por limite explicito. | `templates/operations/29-draft-bounded-roadmap-issues-command.md` | `evidence.source_basis`, `evidence.repo_state` | Req: `ROADMAP_ISSUE`; Opt: `ISSUE_COUNT_LIMIT`, `SCOPE_LIMIT`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.pm_command_bundle`, `output.status_result` | 07 para cada issue aprobado. | Si falta limite explicito o trazabilidad suficiente, devolver `status.needs_pm_decision` o `status.needs_context`. | Browser chat draftea; Humano PM ejecuta los comandos si decide crear issues. |
 | 22 | Roadmap and issue planning | PM tomo una decision que debe quedar como ADR. | `templates/operations/22-record-adr-decision.md` | `evidence.source_basis` | Req: `DECISION`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.route_prompt` | 06 o 07 despues de registrar la decision. | Si decision o fuente son ambiguas, devolver `status.needs_context` o `status.needs_pm_decision`. | Draft-only; escritura del ADR requiere aprobacion PM exacta y ruta delegada. |
 | 07 | Implementation routing | Issue scoped necesita implementacion por terminal agent. | `templates/operations/07-draft-issue-implementation-route-prompt.md` | `evidence.source_basis`, `evidence.repo_state` | Req: none; Opt: `ISSUE_NUMBER`, `ROADMAP_ISSUE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.route_prompt` | 09 tras PR o 08 si hay correcciones. | Si no se puede derivar exactamente un issue, devolver `status.needs_context` o `status.needs_pm_decision`. | Route prompt no autoriza; debe marcar si la aprobacion PM exacta para scope/mode ya fue otorgada o si queda pendiente/draft/read-only planning. Terminal agent solo escribe con aprobacion exacta, branch preflight y validacion. |
-| 33 | Manual implementation planning | Terminal agent no esta disponible, no es apropiado, o se necesita un plan humano para un issue scoped. | `templates/operations/33-draft-manual-implementation-plan.md` | `evidence.issue_scope`, `evidence.source_basis`, `evidence.repo_state` | Req: `ISSUE_NUMBER`; Opt: `TARGET_REPOSITORY`, `PATH_SCOPE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.manual_implementation_plan` | Humano aplica el plan; luego 09 cuando exista PR, 08 para correcciones, o 21 para follow-up. | Si issue, repo/code anchors, source basis o expectativas de validacion no pueden inspeccionarse suficientemente, devolver `status.needs_context`; riesgo de secretos devuelve `status.blocked`. | Browser chat draftea solamente; el plan es humano-ejecutable y nunca afirma que browser chat edito codigo. |
+| 33 | Manual implementation planning | Terminal agent no esta disponible, no es apropiado, o se necesita un plan humano para un issue scoped. | `templates/operations/33-draft-manual-implementation-plan.md` | `evidence.issue_scope`, `evidence.source_basis`, `evidence.repo_state` | Req: `ISSUE_NUMBER`; Opt: `TARGET_REPOSITORY`, `PATH_SCOPE`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.manual_implementation_plan` | 34 si el resultado humano necesita clasificacion; 09 si ya existe PR; 08 o 21 segun hallazgos. | Si issue, repo/code anchors, source basis o expectativas de validacion no pueden inspeccionarse suficientemente, devolver `status.needs_context`; riesgo de secretos devuelve `status.blocked`. | Browser chat draftea solamente; el plan es humano-ejecutable y nunca afirma que browser chat edito codigo. |
+| 34 | Manual implementation planning | Humano PM entrega evidencia de implementacion manual aplicada despues de 33. | `templates/operations/34-process-manual-implementation-result.md` | `evidence.issue_scope`, `evidence.source_basis`, `evidence.repo_state` | Req: `ISSUE_NUMBER`, `MANUAL_IMPLEMENTATION_RESULT`; Opt: `MANUAL_IMPLEMENTATION_PLAN`, `PR_NUMBER`, `TARGET_REPOSITORY`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result`, `output.route_prompt`, `output.pm_command_bundle` | 09 si existe PR; 08 para correcciones; 21 para follow-up; 36 si falta decision PM; 37 para readiness; gates QA/security/design cuando falte esa evidencia. | Si issue, resultado manual, plan, repo, PR o validacion no pueden inspeccionarse suficientemente, devolver `status.needs_context`; riesgo de secretos devuelve `status.blocked`. | Draft-only; no afirma que browser chat aplico o valido cambios y no reemplaza 09 cuando existe PR. |
 | 23 | Implementation routing | Target adoptado necesita upgrade de kernel/adapters. | `templates/operations/23-upgrade-kernel-adoption-in-target.md` | `evidence.target_adoption`, `evidence.branch_preflight`, `evidence.pm_approval`, `evidence.validation_output` | Req: `TARGET_REPOSITORY`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.adoption_packet`, `output.route_prompt` | 03 para verificar upgrade. | Si target, adopcion o aprobacion de escritura faltan, devolver `status.needs_context` o `status.blocked`. | Browser chat draftea; terminal agent escribe solo con aprobacion PM exacta. |
 | 08 | PR review and correction | Review, QA, seguridad, diseno o PM feedback requiere correccion. | `templates/operations/08-draft-review-correction-route-prompt.md` | `evidence.source_basis`, `evidence.repo_state` | Req: `ISSUE_NUMBER`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.route_prompt` | 09 despues de aplicar correcciones. | Si falta issue/PR asociado o feedback accionable, devolver `status.needs_context`. | Draft-only; terminal agent corrige solo con aprobacion PM exacta. |
-| 09 | PR review and correction | PR listo para review-before-close. | `templates/operations/09-review-pr-before-close-and-draft-package.md` | `evidence.issue_scope`, `evidence.pr_diff`, `evidence.validation_output` | Req: `PR_NUMBER`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.review_result`, `output.pm_command_bundle` | 10 si resuelto; 08 si hay findings. | Si no se puede inspeccionar codigo/diff/final files, devolver `status.needs_context`; no emitir GO. | No mergea ni cierra; solo draftea closeout para Humano PM cuando esta resuelto. |
+| 09 | PR review and correction | PR listo para review-before-close. | `templates/operations/09-review-pr-before-close-and-draft-package.md` | `evidence.issue_scope`, `evidence.pr_diff`, `evidence.validation_output` | Req: `PR_NUMBER`; Opt: `EXECUTION_REPORT`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.review_result`, `output.pm_command_bundle` | 10 si resuelto; 08 si hay findings. | Si no se puede inspeccionar codigo/diff/final files, devolver `status.needs_context`; no emitir GO, especialmente no basado solo en `EXECUTION_REPORT`. | No mergea ni cierra; consume execution reports como evidence leads cuando hay PR y solo draftea closeout para Humano PM cuando esta resuelto. |
 | 15 | PR review and correction | PM necesita auditar trazabilidad issue/PR. | `templates/operations/15-audit-issue-pr-traceability.md` | `evidence.repo_state` | Req: `ISSUE_NUMBER`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result` | 08 si falta correccion o 21 si hay follow-up. | Si historial del issue no puede leerse, devolver `status.needs_context`. | No requiere aprobacion; read-only. |
 | 25 | PR review and correction | PM necesita auditar disciplina de implementacion. | `templates/operations/25-audit-implementation-discipline-gaps.md` | `evidence.repo_state` | Req: `TARGET_REPOSITORY`; Opt: `PATH_SCOPE`, `FOCUS`, `ISSUE_NUMBER`, `PR_NUMBER`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.review_result`, `output.draft_issue`, `output.status_result` | 08 para bloqueantes o 21 para follow-up. | Si evidencia de codigo no puede inspeccionarse, devolver `status.needs_context`. | No muta codigo ni GitHub; drafts de follow-up quedan para PM. |
 | 18 | QA, security and design gates | PM necesita checklist de QA humano para una entrega. | `templates/operations/18-draft-human-qa-checklist.md` | `evidence.repo_state` | Req: `ISSUE_NUMBER`; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.status_result` | 30 cuando existan resultados QA. | Si requisitos o criterios no pueden leerse, devolver `status.needs_context`. | Draft-only; QA externo no es actor kernel. |
@@ -78,33 +107,38 @@ Cada fila del mapa usa esta forma estandar:
 | 24 | Release and handoff | Readiness justifica objeto GitHub Release. | `templates/operations/24-draft-create-github-release-command.md` | `evidence.repo_state`, `evidence.validation_output` | Req: none; Opt: `TAG_NAME`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.pm_command_bundle` | Humano PM ejecuta o vuelve a 12 si faltan notas/version. | Si faltan tag/notas o hay colision, detener con `status.needs_pm_decision`. | Draftea bundle; Humano PM autoriza y ejecuta release. |
 | 17 | Release and handoff | PM necesita transferir contexto a nueva sesion. | `templates/operations/17-draft-handoff-package-for-new-session.md` | `evidence.repo_state` | Req: none; Opt: `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO` | `output.handoff_packet` | 00 en la nueva sesion. | Si no se puede reconstruir estado vivo suficiente, devolver `status.needs_context`. | Draft-only; no muta repo ni GitHub. |
 
-## Missing Lifecycle Follow-up Candidates
+## KOPS.3 Candidate Decisions
 
-Estos gaps se documentan para futuros issues. No se implementan aqui y no
-agregan templates, workflows, outputs, evidence ids, statuses ni boundaries.
-Cada fila nombra el owner de roadmap esperado para que el PM sepa donde abrir o
-priorizar el follow-up sin convertir este PR en KOPS.2/KOPS.3.
+Cada candidato se resolvio contra el SDLC y los boundaries existentes antes de
+agregar templates. Los cambios que sobreviven son no duplicativos, read-only o
+draft-only, y no agregan workflows, outputs, evidence ids, statuses ni
+boundaries.
 
-| Missing operation | Why it matters | Roadmap owner | Likely kernel/output impact | PM-actionable follow-up |
-|---|---|---|---|---|
-| Process terminal-agent execution report outside PR review | Hoy el execution report se consume principalmente dentro de `09` review-before-close; el PM puede necesitar clasificar resultado, validacion, riesgos y siguiente operacion antes del review completo. | KOPS.3 follow-up. | Probably template-only using existing `workflow.pm_intake` or `workflow.review_only` plus `output.status_result`/`output.route_prompt`; new kernel object only if existing ids cannot model the gap. | Create a KOPS.3 issue for a docs/template operation that routes report outcomes to 08, 09, 21, QA/security/design gates, or stop. |
-| Process manual implementation result | Despues de `33`, el PM puede necesitar comparar lo que un humano aplico contra el plan, issue scope y evidencia antes de PR review, QA o correccion. | KOPS.3 follow-up. | Probably template-only if the result can be treated as live repo/PR evidence; new kernel object only if repeated dogfood proves a strict gap. | Create a KOPS.3 issue that compares human-applied result against issue scope, the manual plan, and validation evidence. |
-| Process `status.needs_pm_decision` | Repeated PM decisions currently happen ad hoc in chat; a named operation would turn options/tradeoffs into a decision, issue, route prompt, or stop. | KOPS.3 follow-up. | Probably template-only using `workflow.pm_intake` and `output.status_result`; no new `status` id. | Create a KOPS.3 issue to standardize decision intake while preserving PM authority and avoiding hidden workflow-engine behavior. |
-| Determine next lifecycle operation | The PM needs a low-friction way to select the next operation from live traceability without manually scanning the full matrix. | KOPS.3 follow-up. | Probably template-only read-only operation using `workflow.review_only` and `output.status_result`; avoid automation that executes the next step. | Create a KOPS.3 issue for recommendation-only routing that names evidence read, candidate operations, and safe next operation. |
-| Phase readiness review | Before moving to implementation, QA, security, closeout or release, the PM may need a readiness gate that identifies missing evidence or unresolved decisions. | KOPS.3 follow-up or later dogfood issue. | Probably template-only with existing workflows; new kernel ids only if a repeated gate cannot be expressed through current evidence/output contracts. | Create focused follow-ups only where dogfood shows repeated friction; keep each gate advisory/read-only unless separately approved. |
+| Candidate | Decision | Rationale | Durable change |
+|---|---|---|---|
+| Process terminal-agent execution report outside PR review | Clarified in Operation 09; no separate normal PR execution-report processor. | When a PR exists, Operation 09 is already the review-before-close path and consumes EXECUTION_REPORT as an evidence lead. A non-PR processor would need exact PM decision and a proven non-duplicative case. | Operation 09 INPUT/LIVE_STATE/DO/OUTPUT/LIMITS plus docs/tests state the standard path and guard against duplicate normal PR processing. |
+| Process manual implementation result | New Operation 34. | After Operation 33, a human-applied result may need classification before PR review or when no PR exists. This is distinct from Operation 09 only until a PR exists. | `templates/operations/34-process-manual-implementation-result.md`, catalog/flow rows, and tests. |
+| Process `status.needs_pm_decision` | New Operation 36. | PM requested a named operation instead of ad hoc chat handling. It must return to the originating operation or draft a safe route without becoming a workflow engine. | `templates/operations/36-process-needs-pm-decision.md`, catalog/flow rows, and tests. |
+| Determine next lifecycle operation | New Operation 35. | The PM needs low-friction lifecycle routing, but it must remain read-only and recommendation-only. | `templates/operations/35-recommend-next-lifecycle-operation.md`, catalog/flow rows, and tests. |
+| Phase readiness review | New Operation 37. | PM requested a named advisory readiness gate before implementation, QA/security/design, closeout, release, dogfood, or handoff. | `templates/operations/37-review-phase-readiness.md`, catalog/flow rows, and tests. |
 
-Route-prompt authorization is also a documented follow-up decision area: future
-route-prompt operations should clearly distinguish `authorization granted for
-this exact scope and mode` from `pending/draft/read-only planning first`.
-That guidance remains docs-only here. The prompt artifact itself never grants
+Route-prompt authorization remains docs-only: route-prompt operations distinguish
+`authorization granted for this exact scope and mode` from
+`pending/draft/read-only planning first`. The prompt artifact itself never grants
 permission; permission comes only from exact scoped PM approval plus the resolved
 kernel gates for the terminal agent action.
 
-Manual implementation planning is now covered by operation `33`. It uses
-`workflow.issue_implementation_manual` and `output.manual_implementation_plan`.
-It is not a KOPS.3 processing operation: it drafts instructions for a human,
-does not process a later execution report or manual result, and does not choose
-the next lifecycle operation automatically.
+Manual implementation planning is covered by operation `33`, result
+classification by operation `34`, recommendation-only lifecycle selection by
+operation `35`, PM decision status processing by operation `36`, and advisory
+phase readiness by operation `37`. None of these operations executes lifecycle
+transitions automatically.
+
+## KOPS.3 PM Decisions Needed
+
+| Candidate not added as new operation | Why not added now | PM decision needed before adding |
+|---|---|---|
+| Separate normal PR execution-report processor | It would duplicate Operation 09, which is the standard review-before-close path when a PR exists. | A concrete non-PR or pre-review execution-report processing case that cannot be handled by 09, 08, 21, 35, 36, or 37. |
 
 ## Boundary Summary
 

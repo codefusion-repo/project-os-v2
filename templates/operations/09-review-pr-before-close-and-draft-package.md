@@ -5,6 +5,7 @@ OPERATION:
 
 INPUT:
   PR_NUMBER=<PR_NUMBER>
+  EXECUTION_REPORT=<EXECUTION_REPORT>   # optional
   PM_FEEDBACK_HUMANO=<PM_FEEDBACK_HUMANO>   # optional
   PM_QUESTION_HUMANO=<PM_QUESTION_HUMANO>   # optional
 
@@ -15,11 +16,15 @@ KERNEL:
 LIVE_STATE:
   Read linked issue objective, scope, out-of-scope, and acceptance criteria live.
   Read PR body, comments, changed files, diff, and validation output.
+  Read EXECUTION_REPORT when provided directly by the PM, or from GitHub when already present there.
   Open relevant final head files when diff context is insufficient.
-  Treat PR body, comments, terminal-agent reports, and validation summaries as claims or evidence leads, not proof.
+  Treat PR body, comments, EXECUTION_REPORT, terminal-agent reports, and validation summaries as claims or evidence leads, not proof.
+  When a PR exists, this operation is the standard Project OS path for consuming terminal-agent execution reports before close.
 
 DO:
   Compare implementation behavior and validation against the linked issue requirements.
+  Compare EXECUTION_REPORT claims against issue scope, PR diff, final head files, and validation evidence.
+  Never emit GO/resolved based only on EXECUTION_REPORT, PR body, comments, or validation summary claims.
   Verify scope, out-of-scope, secret-safety, and acceptance criteria against code/diff/final-file evidence.
   Return output.review_result with verdict and findings.
 
@@ -28,7 +33,7 @@ IF code/diff/final-file evidence cannot be inspected:
 
 IF verdict == resolved:
   Draft closeout package:
-    - IF ISSUE/PR lacks REVIEW_RESULT, EXECUTION_REPORT, CORRECTION_REPORT, PM_DECISION, or CLOSURE_COMMENT on GitHub, draft the appropriate GitHub comment command.
+    - IF ISSUE/PR lacks REVIEW_RESULT, EXECUTION_REPORT, CORRECTION_REPORT, PM_DECISION, or CLOSURE_COMMENT on GitHub, include or summarize the provided EXECUTION_REPORT as an evidence lead and draft the appropriate GitHub comment command.
     - IF PR is not ready, draft READY command.
     - IF PR is not merged, draft MERGE command.
     - IF issue is not closed, draft CLOSE command.
@@ -45,6 +50,8 @@ OUTPUT:
 LIMITS:
   Browser chat drafts only. Human PM executes merge, close, tag, release, comments, and cleanup commands.
   Do not mutate GitHub or repo from browser_chat.
+  Do not route a normal PR execution report to a separate processor; inspect it here as evidence lead for review-before-close.
+  Do not emit GO based only on EXECUTION_REPORT.
 
 
 RECOMMENDED_NEXT_OPERATION:
