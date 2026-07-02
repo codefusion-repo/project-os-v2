@@ -13,6 +13,12 @@ flujo mas largo: `PM_OPERATIONS.md` responde "que template existe y que contrato
 tiene"; `OPERATION_FLOWS.md` responde "cuando lo uso y que sigue". Ambos apuntan
 a los mismos templates y este archivo no cambia la numeracion `00`-`37`.
 
+El modelo objetivo de operaciones es MOSDLC y vive en
+`docs/MOSDLC_OPERATION_MAP.md` (MOSDLC.0): mapea cada operacion PM-written y
+recomendada aceptada contra este catalogo sin eliminar ni renumerar nada. Este
+manual y el catalogo `00`-`37` siguen siendo los vigentes hasta que la
+migracion MOSDLC se apruebe por issues separados.
+
 Project OS no es un motor de workflow. Cada operacion lee evidencia viva desde
 GitHub/git cuando corresponde, resuelve `kernel/manifest.json`, aplica los
 boundaries del kernel y emite el output declarado. Los docs y templates no

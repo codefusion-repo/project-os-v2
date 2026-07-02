@@ -20,6 +20,11 @@ Arquitectura final de docs de operaciones:
 - `docs/OPERATION_FLOWS.md` es el manual PM-facing de fase SDLC: cuándo usar cada
   operación, qué evidencia requiere, qué output emite, cómo falla cerrado, qué
   aprobación PM aplica y cuál es la siguiente operación segura.
+- `docs/MOSDLC_OPERATION_MAP.md` es el mapa objetivo MOSDLC (MOSDLC.0): clasifica
+  cada operación PM-written y recomendada aceptada respecto a este catálogo sin
+  renumerar ni eliminar templates. Este catálogo `00`–`37` sigue siendo el
+  canónico vigente hasta que cada lote de migración MOSDLC se apruebe por issue
+  separado.
 
 La división evita duplicar la tabla canónica de templates dentro de un manual de
 flujo más largo. Ambos docs apuntan a las mismas operaciones `00`–`37`; ninguno
