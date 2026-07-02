@@ -48,15 +48,22 @@ Before non-trivial work, resolve behavior from the kernel at
 `manifest.json` is the single resolution entrypoint and owns surface-aware routing
 through its `resolution_strategy`; this adapter only points to it and defines no
 competing resolution order. On this terminal surface, run the resolver fast path
-from the repository root:
+from the local Project OS checkout, not from the target repository. The
+`KERNEL_LOCAL_PATH` value is expected to point at that checkout's `kernel/`
+directory:
 
 ```sh
-cd "$REPOSITORY_LOCAL_PATH"
+PROJECT_OS_LOCAL_PATH="${KERNEL_LOCAL_PATH%/}"
+PROJECT_OS_LOCAL_PATH="${PROJECT_OS_LOCAL_PATH%/kernel}"
+cd "$PROJECT_OS_LOCAL_PATH"
 if [ -d .venv ]; then . .venv/bin/activate; fi
 python -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH"
+cd "$REPOSITORY_LOCAL_PATH"
 ```
 
-Manual `manifest.json` resolution remains the canonical fallback.
+After resolution, keep all live target work anchored to
+`REPOSITORY_LOCAL_PATH`. Manual `manifest.json` resolution remains the
+canonical fallback.
 
 Resolution shapes behavior only and grants no permission
 (`boundary.output_not_permission`). Fail closed per `boundary.fail_closed` if the

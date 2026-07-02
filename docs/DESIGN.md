@@ -64,16 +64,18 @@ adapters, templates, and docs point to them instead of owning a parallel or
 competing copy. The agent executes resolution by reading, not by running code.
 Resolution selects shape and gates; it never grants permission.
 
-On a terminal surface with repo-local Python, `tools.project_os_resolve` is the
-manifest's default deterministic accelerator for that same resolution: it runs
-from `REPOSITORY_LOCAL_PATH`, receives `--kernel-dir "$KERNEL_LOCAL_PATH"`, reads
-the current kernel JSON at runtime, and expands the resolved
+On a terminal surface with local Project OS Python, `tools.project_os_resolve`
+is the manifest's default deterministic accelerator for that same resolution:
+it runs from the local Project OS checkout derived from `KERNEL_LOCAL_PATH`,
+receives `--kernel-dir "$KERNEL_LOCAL_PATH"`, reads the current kernel JSON at
+runtime, and expands the resolved
 actor/workflow/mode/evidence/output/boundary data. It lives outside `kernel/`,
 consumes kernel semantics rather than replacing them, is not a second source of
-truth, and grants no permission (`boundary.output_not_permission`). Manual
-manifest resolution stays the canonical fallback for every surface; browser chat
-and other non-terminal surfaces resolve by reading the manifest and kernel JSON,
-never by executing repo-local Python.
+truth, and grants no permission (`boundary.output_not_permission`). In target
+projects, `REPOSITORY_LOCAL_PATH` remains the target repository path for live
+work after resolution. Manual manifest resolution stays the canonical fallback
+for every surface; browser chat and other non-terminal surfaces resolve by
+reading the manifest and kernel JSON, never by executing repo-local Python.
 
 ## Actor model
 
