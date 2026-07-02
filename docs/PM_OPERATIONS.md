@@ -39,9 +39,9 @@ como fuente de reemplazo y compatibilidad. La migracion de una fase agrega
 templates, docs y tests; no agrega ids de kernel ni cambia autorizacion por si
 misma.
 
-Fase 0 y Fase 1 son los lotes migrados. Sus templates son prompts ejecutables
-con la misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`, `KERNEL`,
-`COMPATIBILITY_SOURCE`, `LIVE_STATE`, `DO`, `OUTPUT`, `LIMITS`,
+Fase 0, Fase 1 y Fase 2 son los lotes migrados. Sus templates son prompts
+ejecutables con la misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`,
+`KERNEL`, `COMPATIBILITY_SOURCE`, `LIVE_STATE`, `DO`, `OUTPUT`, `LIMITS`,
 `RECOMMENDED_NEXT_OPERATION`) y todos incluyen `PM_FEEDBACK_HUMANO` y
 `PM_QUESTION_HUMANO` como contexto opcional. El wizard local sigue leyendo
 `templates/operations/` como catalogo interactivo vigente hasta que otro issue
@@ -67,6 +67,20 @@ apruebe cambios de wizard o catalogo interactivo.
 | MOS-1.10 | extract-requirements-from-existing | `templates/mosdlc/operations/fase-1/MOS-1.10-extract-requirements-from-existing.md` | — |
 | MOS-1.11 | update-requirements-docs-existing | `templates/mosdlc/operations/fase-1/MOS-1.11-update-requirements-docs-existing.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
 | MOS-1.12 | update-roadmap-existing | `templates/mosdlc/operations/fase-1/MOS-1.12-update-roadmap-existing.md` | `templates/operations/27-draft-roadmap-from-docs.md` |
+| MOS-2.1 | draft-architecture-diagrams | `templates/mosdlc/operations/fase-2/MOS-2.1-draft-architecture-diagrams.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.2 | draft-uiux-docs | `templates/mosdlc/operations/fase-2/MOS-2.2-draft-uiux-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.3 | draft-data-algorithms-docs | `templates/mosdlc/operations/fase-2/MOS-2.3-draft-data-algorithms-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.4 | draft-coding-standards-docs | `templates/mosdlc/operations/fase-2/MOS-2.4-draft-coding-standards-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.5 | draft-security-docs | `templates/mosdlc/operations/fase-2/MOS-2.5-draft-security-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.6 | validate-design-docs | `templates/mosdlc/operations/fase-2/MOS-2.6-validate-design-docs.md` | — |
+| MOS-2.7 | inventory-design-docs | `templates/mosdlc/operations/fase-2/MOS-2.7-inventory-design-docs.md` | — |
+| MOS-2.8 | audit-design-doc-gaps | `templates/mosdlc/operations/fase-2/MOS-2.8-audit-design-doc-gaps.md` | `templates/operations/05-review-project-state-and-misalignment.md` |
+| MOS-2.9 | update-architecture-diagrams | `templates/mosdlc/operations/fase-2/MOS-2.9-update-architecture-diagrams.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.10 | update-uiux-docs | `templates/mosdlc/operations/fase-2/MOS-2.10-update-uiux-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.11 | update-data-algorithms-docs | `templates/mosdlc/operations/fase-2/MOS-2.11-update-data-algorithms-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.12 | update-coding-standards-docs | `templates/mosdlc/operations/fase-2/MOS-2.12-update-coding-standards-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.13 | update-security-docs | `templates/mosdlc/operations/fase-2/MOS-2.13-update-security-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.14 | validate-updated-design-docs | `templates/mosdlc/operations/fase-2/MOS-2.14-validate-updated-design-docs.md` | — |
 
 Estos templates no guardan estado vivo durable y no autorizan escritura. Browser
 chat permanece draft-only; terminal agent escribe solo con aprobacion PM exacta,

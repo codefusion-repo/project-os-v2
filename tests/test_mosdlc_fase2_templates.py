@@ -1,4 +1,4 @@
-"""MOSDLC.2 Fase 1 template migration guards."""
+"""MOSDLC.3 Fase 2 template migration guards."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MAP_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_OPERATION_MAP.md"
 STANDARD_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_TEMPLATE_STANDARD.md"
-MOSDLC_FASE1_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations" / "fase-1"
+MOSDLC_FASE2_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations" / "fase-2"
 LEGACY_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
 
 HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
@@ -24,121 +24,217 @@ COMMIT_SHA_PATTERN = re.compile(
     re.IGNORECASE,
 )
 LEGACY_PM_QUESTION_PATTERN = re.compile(r"\bPM_QUESTION\b")
+KERNEL_GROWTH_CANDIDATES = {
+    ".".join(parts)
+    for parts in (
+        ("workflow", "deployment"),
+        ("mode", "delegated_deploy_execution"),
+        ("evidence", "deployment_readiness"),
+    )
+}
 
-FASE1_ROWS = {
-    "MOS-1.1": {
-        "operation": "interview-requirements",
-        "template": "MOS-1.1-interview-requirements.md",
-        "legacy": [],
-        "required": [],
-        "optional": ["TARGET_REPOSITORY", "PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-1.2": {
-        "operation": "summarize-requirements",
-        "template": "MOS-1.2-summarize-requirements.md",
-        "legacy": [],
-        "required": [],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-1.3": {
-        "operation": "verify-requirements-feasibility",
-        "template": "MOS-1.3-verify-requirements-feasibility.md",
-        "legacy": ["templates/operations/16-review-idea-as-system-feature.md"],
-        "required": [],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-1.4": {
-        "operation": "draft-requirements-docs",
-        "template": "MOS-1.4-draft-requirements-docs.md",
+FASE2_ROWS = {
+    "MOS-2.1": {
+        "operation": "draft-architecture-diagrams",
+        "template": "MOS-2.1-draft-architecture-diagrams.md",
         "legacy": [
             "templates/operations/26-draft-docs-from-conversation.md",
             "templates/operations/28-draft-docs-from-description.md",
         ],
         "required": [],
-        "optional": [
-            "DOC_TARGET",
-            "TARGET_REPOSITORY",
-            "PM_FEEDBACK_HUMANO",
-            "PM_QUESTION_HUMANO",
-        ],
-    },
-    "MOS-1.5": {
-        "operation": "validate-requirements-docs",
-        "template": "MOS-1.5-validate-requirements-docs.md",
-        "legacy": [],
-        "required": [],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-1.6": {
-        "operation": "plan-project-roadmap",
-        "template": "MOS-1.6-plan-project-roadmap.md",
-        "legacy": ["templates/operations/27-draft-roadmap-from-docs.md"],
-        "required": ["SOURCE_DOCS"],
-        "optional": [
-            "TARGET_REPOSITORY",
-            "ROADMAP_ACTION",
-            "PM_FEEDBACK_HUMANO",
-            "PM_QUESTION_HUMANO",
-        ],
-    },
-    "MOS-1.7": {
-        "operation": "review-idea-feasibility",
-        "template": "MOS-1.7-review-idea-feasibility.md",
-        "legacy": ["templates/operations/16-review-idea-as-system-feature.md"],
-        "required": ["IDEA"],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-1.8": {
-        "operation": "update-docs-roadmap-with-requirement",
-        "template": "MOS-1.8-update-docs-roadmap-with-requirement.md",
-        "legacy": [
-            "templates/operations/27-draft-roadmap-from-docs.md",
-            "templates/operations/28-draft-docs-from-description.md",
-        ],
-        "required": ["DESCRIPTION"],
-        "optional": [
-            "ROADMAP_ISSUE",
-            "DOC_TARGET",
-            "PM_FEEDBACK_HUMANO",
-            "PM_QUESTION_HUMANO",
-        ],
-    },
-    "MOS-1.9": {
-        "operation": "review-requirement-removal",
-        "template": "MOS-1.9-review-requirement-removal.md",
-        "legacy": [],
-        "required": ["DESCRIPTION"],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-1.10": {
-        "operation": "extract-requirements-from-existing",
-        "template": "MOS-1.10-extract-requirements-from-existing.md",
-        "legacy": [],
-        "required": ["TARGET_REPOSITORY"],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-1.11": {
-        "operation": "update-requirements-docs-existing",
-        "template": "MOS-1.11-update-requirements-docs-existing.md",
-        "legacy": [
-            "templates/operations/26-draft-docs-from-conversation.md",
-            "templates/operations/28-draft-docs-from-description.md",
-        ],
-        "required": ["TARGET_REPOSITORY"],
-        "optional": ["DOC_TARGET", "PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-1.12": {
-        "operation": "update-roadmap-existing",
-        "template": "MOS-1.12-update-roadmap-existing.md",
-        "legacy": ["templates/operations/27-draft-roadmap-from-docs.md"],
-        "required": ["TARGET_REPOSITORY"],
         "optional": [
             "SOURCE_DOCS",
-            "ROADMAP_ACTION",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
             "PM_FEEDBACK_HUMANO",
             "PM_QUESTION_HUMANO",
         ],
     },
+    "MOS-2.2": {
+        "operation": "draft-uiux-docs",
+        "template": "MOS-2.2-draft-uiux-docs.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.3": {
+        "operation": "draft-data-algorithms-docs",
+        "template": "MOS-2.3-draft-data-algorithms-docs.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.4": {
+        "operation": "draft-coding-standards-docs",
+        "template": "MOS-2.4-draft-coding-standards-docs.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.5": {
+        "operation": "draft-security-docs",
+        "template": "MOS-2.5-draft-security-docs.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.6": {
+        "operation": "validate-design-docs",
+        "template": "MOS-2.6-validate-design-docs.md",
+        "legacy": [],
+        "required": [],
+        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
+    },
+    "MOS-2.7": {
+        "operation": "inventory-design-docs",
+        "template": "MOS-2.7-inventory-design-docs.md",
+        "legacy": [],
+        "required": ["TARGET_REPOSITORY"],
+        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
+    },
+    "MOS-2.8": {
+        "operation": "audit-design-doc-gaps",
+        "template": "MOS-2.8-audit-design-doc-gaps.md",
+        "legacy": ["templates/operations/05-review-project-state-and-misalignment.md"],
+        "required": ["TARGET_REPOSITORY"],
+        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
+    },
+    "MOS-2.9": {
+        "operation": "update-architecture-diagrams",
+        "template": "MOS-2.9-update-architecture-diagrams.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.10": {
+        "operation": "update-uiux-docs",
+        "template": "MOS-2.10-update-uiux-docs.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.11": {
+        "operation": "update-data-algorithms-docs",
+        "template": "MOS-2.11-update-data-algorithms-docs.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.12": {
+        "operation": "update-coding-standards-docs",
+        "template": "MOS-2.12-update-coding-standards-docs.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.13": {
+        "operation": "update-security-docs",
+        "template": "MOS-2.13-update-security-docs.md",
+        "legacy": [
+            "templates/operations/26-draft-docs-from-conversation.md",
+            "templates/operations/28-draft-docs-from-description.md",
+        ],
+        "required": [],
+        "optional": [
+            "SOURCE_DOCS",
+            "DOC_TARGET",
+            "TARGET_REPOSITORY",
+            "PM_FEEDBACK_HUMANO",
+            "PM_QUESTION_HUMANO",
+        ],
+    },
+    "MOS-2.14": {
+        "operation": "validate-updated-design-docs",
+        "template": "MOS-2.14-validate-updated-design-docs.md",
+        "legacy": [],
+        "required": [],
+        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
+    },
+}
+
+DESIGN_WRITE_ROWS = {
+    "MOS-2.1",
+    "MOS-2.2",
+    "MOS-2.3",
+    "MOS-2.4",
+    "MOS-2.5",
+    "MOS-2.9",
+    "MOS-2.10",
+    "MOS-2.11",
+    "MOS-2.12",
+    "MOS-2.13",
 }
 
 REQUIRED_BLOCKS = [
@@ -171,13 +267,13 @@ def _parse_operation_rows() -> dict[str, dict[str, str]]:
     text = MAP_DOC_PATH.read_text(encoding="utf-8")
     headers: list[str] | None = None
     rows: dict[str, dict[str, str]] = {}
-    in_fase1 = False
+    in_fase2 = False
     for line in text.splitlines():
         if line.startswith("## "):
-            in_fase1 = line.strip() == "## Fase 1 — Requerimientos, planificación y viabilidad"
+            in_fase2 = line.strip() == "## Fase 2 — Diseño"
             headers = None
             continue
-        if not in_fase1:
+        if not in_fase2:
             continue
         if line.startswith("| ID |"):
             headers = [cell.strip() for cell in line.strip("|").split("|")]
@@ -224,40 +320,40 @@ def _mosdlc_metadata(text: str) -> dict[str, str]:
 
 
 def _mosdlc_template_paths() -> list[Path]:
-    return sorted(MOSDLC_FASE1_DIR.glob("*.md"))
+    return sorted(MOSDLC_FASE2_DIR.glob("*.md"))
 
 
-def test_mosdlc_fase1_templates_are_documented_and_discoverable() -> None:
+def test_mosdlc_fase2_templates_are_documented_and_discoverable() -> None:
     standard = STANDARD_DOC_PATH.read_text(encoding="utf-8")
     catalog = (REPO_ROOT / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
     flows = (REPO_ROOT / "docs" / "OPERATION_FLOWS.md").read_text(encoding="utf-8")
 
     for fragment in (
-        "## Fase 1 Migrada",
-        "templates/mosdlc/operations/fase-1/",
+        "## Fase 2 Migrada",
+        "templates/mosdlc/operations/fase-2/",
         "El wizard local sigue leyendo `templates/operations/`",
         "Template authority: none",
     ):
         assert fragment in standard
 
-    for rid, spec in FASE1_ROWS.items():
-        path = f"templates/mosdlc/operations/fase-1/{spec['template']}"
+    for rid, spec in FASE2_ROWS.items():
+        path = f"templates/mosdlc/operations/fase-2/{spec['template']}"
         assert rid in standard
         assert path in standard
         assert path in catalog
         assert path in flows
 
 
-def test_fase1_map_rows_have_matching_mosdlc_templates() -> None:
+def test_fase2_map_rows_have_matching_mosdlc_templates() -> None:
     rows = _parse_operation_rows()
-    assert set(rows) == set(FASE1_ROWS)
+    assert set(rows) == set(FASE2_ROWS)
     assert [path.name for path in _mosdlc_template_paths()] == [
-        FASE1_ROWS[rid]["template"] for rid in sorted(FASE1_ROWS)
+        FASE2_ROWS[rid]["template"] for rid in sorted(FASE2_ROWS)
     ]
 
-    for rid, spec in FASE1_ROWS.items():
+    for rid, spec in FASE2_ROWS.items():
         row = rows[rid]
-        path = MOSDLC_FASE1_DIR / spec["template"]
+        path = MOSDLC_FASE2_DIR / spec["template"]
         text = path.read_text(encoding="utf-8")
         assert row["Operación"] == spec["operation"]
         if spec["legacy"]:
@@ -273,11 +369,11 @@ def test_fase1_map_rows_have_matching_mosdlc_templates() -> None:
             assert block in text, f"{path.name} missing {block}"
 
 
-def test_fase1_template_metadata_matches_source_map_kernel_contract() -> None:
+def test_fase2_template_metadata_matches_source_map_kernel_contract() -> None:
     rows = _parse_operation_rows()
-    for rid, spec in FASE1_ROWS.items():
+    for rid, spec in FASE2_ROWS.items():
         row = rows[rid]
-        text = (MOSDLC_FASE1_DIR / spec["template"]).read_text(encoding="utf-8")
+        text = (MOSDLC_FASE2_DIR / spec["template"]).read_text(encoding="utf-8")
         metadata = _mosdlc_metadata(text)
 
         assert metadata["ID"] == rid
@@ -294,9 +390,9 @@ def test_fase1_template_metadata_matches_source_map_kernel_contract() -> None:
             assert legacy in metadata["Compatibility source"]
 
 
-def test_fase1_templates_use_required_fields_and_optional_human_context() -> None:
-    for rid, spec in FASE1_ROWS.items():
-        path = MOSDLC_FASE1_DIR / spec["template"]
+def test_fase2_templates_use_required_fields_and_optional_human_context() -> None:
+    for rid, spec in FASE2_ROWS.items():
+        path = MOSDLC_FASE2_DIR / spec["template"]
         text = path.read_text(encoding="utf-8")
         required, optional = _input_variables(text)
 
@@ -308,7 +404,7 @@ def test_fase1_templates_use_required_fields_and_optional_human_context() -> Non
         assert "PM_FEEDBACK_HUMANO and PM_QUESTION_HUMANO are optional context only." in text
 
 
-def test_fase1_templates_reference_only_valid_kernel_ids() -> None:
+def test_fase2_templates_reference_only_valid_kernel_ids() -> None:
     kernel_ids = _kernel_ids()
     offenders: list[str] = []
     for path in _mosdlc_template_paths() + [STANDARD_DOC_PATH]:
@@ -319,7 +415,17 @@ def test_fase1_templates_reference_only_valid_kernel_ids() -> None:
     assert offenders == []
 
 
-def test_fase1_templates_do_not_store_live_state_or_authority_grants() -> None:
+def test_fase2_design_write_flows_stay_route_prompt_gated() -> None:
+    for rid in DESIGN_WRITE_ROWS:
+        text = (MOSDLC_FASE2_DIR / FASE2_ROWS[rid]["template"]).read_text(encoding="utf-8")
+        metadata = _mosdlc_metadata(text)
+        assert metadata["Mode"] == "mode.review_only"
+        assert "output.route_prompt" in metadata["Output"]
+        assert "terminal writes require a separate route prompt and exact PM approval" in text
+        assert "draft output.route_prompt with exact repository, path, scope, validation expectations, and PM authorization status" in text
+
+
+def test_fase2_templates_do_not_store_live_state_or_authority_grants() -> None:
     offenders: list[str] = []
     for path in _mosdlc_template_paths():
         text = path.read_text(encoding="utf-8")
@@ -337,18 +443,26 @@ def test_fase1_templates_do_not_store_live_state_or_authority_grants() -> None:
     assert offenders == []
 
 
+def test_fase2_templates_do_not_imply_kernel_growth() -> None:
+    for path in _mosdlc_template_paths():
+        text = path.read_text(encoding="utf-8")
+        for candidate in KERNEL_GROWTH_CANDIDATES:
+            assert candidate not in text
+        assert "kernel:no-change" not in text
+
+
 def test_legacy_00_37_templates_remain_usable_and_not_renumbered() -> None:
     expected = [f"{index:02d}" for index in range(38)]
     legacy_paths = sorted(LEGACY_OPERATIONS_DIR.glob("*.md"))
     assert [path.name[:2] for path in legacy_paths] == expected
-    for rid, spec in FASE1_ROWS.items():
+    for rid, spec in FASE2_ROWS.items():
         for legacy_ref in spec["legacy"]:
             legacy = REPO_ROOT / legacy_ref
             assert legacy.exists(), f"{rid} compatibility source missing: {legacy_ref}"
             assert legacy.read_text(encoding="utf-8").startswith("#")
 
 
-def test_mosdlc_fase1_migration_does_not_expand_kernel_or_other_phases() -> None:
+def test_mosdlc_fase2_migration_does_not_expand_kernel_or_unsupported_phases() -> None:
     changed = subprocess.run(
         ["git", "diff", "--name-only", "origin/main...HEAD"],
         capture_output=True,
@@ -368,7 +482,6 @@ def test_mosdlc_fase1_migration_does_not_expand_kernel_or_other_phases() -> None
             (
                 "docs/",
                 "tests/",
-                "templates/mosdlc/operations/fase-1/",
                 "templates/mosdlc/operations/fase-2/",
             )
         )
