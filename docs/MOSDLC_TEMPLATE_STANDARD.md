@@ -11,10 +11,10 @@ compatibilidad:
 - Catalogo vigente de compatibilidad: templates numerados `00`-`37` bajo `templates/operations/`.
 - Templates MOSDLC migrados: `templates/mosdlc/operations/fase-<n>/`.
 
-La Fase 0 usa `templates/mosdlc/operations/fase-0/` y conserva los templates
-numerados `00`, `01`, `02`, `03`, `17` y `23` como fuentes de reemplazo o
-referencias de compatibilidad. Ningun template numerado `00`-`37` se elimina,
-renombra o renumera por una migracion MOSDLC.
+Las fases migradas usan `templates/mosdlc/operations/fase-<n>/` y conservan
+los templates numerados `00`-`37` como fuentes de reemplazo o referencias de
+compatibilidad. Ningun template numerado `00`-`37` se elimina, renombra o
+renumera por una migracion MOSDLC.
 
 ## Forma Obligatoria
 
@@ -38,8 +38,8 @@ Cada template MOSDLC es un prompt ejecutable para IA y usa esta forma:
 ## Reglas
 
 - Los ids de workflow, mode, output y evidence deben existir en el kernel
-  actual, salvo candidatos documentados en el mapa MOSDLC. La Fase 0 no
-  introduce candidatos de kernel.
+  actual, salvo candidatos documentados en el mapa MOSDLC. Las fases migradas
+  no introducen candidatos de kernel.
 - Un template MOSDLC no autoriza escrituras por si mismo. La escritura terminal
   requiere aprobacion PM exacta, evidence requerido, branch preflight,
   validacion y review-before-close cuando aplique.
@@ -80,6 +80,25 @@ Cada template MOSDLC es un prompt ejecutable para IA y usa esta forma:
 | MOS-1.10 | `templates/mosdlc/operations/fase-1/MOS-1.10-extract-requirements-from-existing.md` | — |
 | MOS-1.11 | `templates/mosdlc/operations/fase-1/MOS-1.11-update-requirements-docs-existing.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
 | MOS-1.12 | `templates/mosdlc/operations/fase-1/MOS-1.12-update-roadmap-existing.md` | `templates/operations/27-draft-roadmap-from-docs.md` |
+
+## Fase 2 Migrada
+
+| MOSDLC ID | Template MOSDLC | Fuente de compatibilidad |
+|---|---|---|
+| MOS-2.1 | `templates/mosdlc/operations/fase-2/MOS-2.1-draft-architecture-diagrams.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.2 | `templates/mosdlc/operations/fase-2/MOS-2.2-draft-uiux-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.3 | `templates/mosdlc/operations/fase-2/MOS-2.3-draft-data-algorithms-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.4 | `templates/mosdlc/operations/fase-2/MOS-2.4-draft-coding-standards-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.5 | `templates/mosdlc/operations/fase-2/MOS-2.5-draft-security-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.6 | `templates/mosdlc/operations/fase-2/MOS-2.6-validate-design-docs.md` | — |
+| MOS-2.7 | `templates/mosdlc/operations/fase-2/MOS-2.7-inventory-design-docs.md` | — |
+| MOS-2.8 | `templates/mosdlc/operations/fase-2/MOS-2.8-audit-design-doc-gaps.md` | `templates/operations/05-review-project-state-and-misalignment.md` |
+| MOS-2.9 | `templates/mosdlc/operations/fase-2/MOS-2.9-update-architecture-diagrams.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.10 | `templates/mosdlc/operations/fase-2/MOS-2.10-update-uiux-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.11 | `templates/mosdlc/operations/fase-2/MOS-2.11-update-data-algorithms-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.12 | `templates/mosdlc/operations/fase-2/MOS-2.12-update-coding-standards-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.13 | `templates/mosdlc/operations/fase-2/MOS-2.13-update-security-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-2.14 | `templates/mosdlc/operations/fase-2/MOS-2.14-validate-updated-design-docs.md` | — |
 
 El wizard local sigue leyendo `templates/operations/` como catalogo de
 compatibilidad vigente. La exposicion PM de los templates MOSDLC migrados vive

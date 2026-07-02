@@ -281,7 +281,6 @@ def test_mosdlc_fase0_migration_does_not_expand_kernel_or_unsupported_phases() -
     )
     changed_files = {line for line in changed.stdout.splitlines() if line}
     assert not any(path.startswith("kernel/") for path in changed_files)
-    assert not any(path.startswith("templates/mosdlc/operations/fase-2/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-3/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-4/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-5/") for path in changed_files)
