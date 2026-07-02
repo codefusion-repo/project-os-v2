@@ -100,6 +100,42 @@ Cada template MOSDLC es un prompt ejecutable para IA y usa esta forma:
 | MOS-2.13 | `templates/mosdlc/operations/fase-2/MOS-2.13-update-security-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
 | MOS-2.14 | `templates/mosdlc/operations/fase-2/MOS-2.14-validate-updated-design-docs.md` | — |
 
+## Fase 3 Migrada
+
+| MOSDLC ID | Template MOSDLC | Fuente de compatibilidad |
+|---|---|---|
+| MOS-3.1 | `templates/mosdlc/operations/fase-3/MOS-3.1-draft-next-issue-from-traceability.md` | `templates/operations/06-draft-create-next-issue-command-from-traceability.md` |
+| MOS-3.2 | `templates/mosdlc/operations/fase-3/MOS-3.2-draft-bounded-issue-set.md` | `templates/operations/29-draft-bounded-roadmap-issues-command.md` |
+| MOS-3.3 | `templates/mosdlc/operations/fase-3/MOS-3.3-draft-follow-up-issue.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` |
+| MOS-3.4 | `templates/mosdlc/operations/fase-3/MOS-3.4-draft-implementation-route-prompt.md` | `templates/operations/07-draft-issue-implementation-route-prompt.md` |
+| MOS-3.5 | `templates/mosdlc/operations/fase-3/MOS-3.5-draft-correction-route-prompt.md` | `templates/operations/08-draft-review-correction-route-prompt.md` |
+| MOS-3.6 | `templates/mosdlc/operations/fase-3/MOS-3.6-draft-closeout-commands.md` | `templates/operations/10-draft-pr-closeout-and-cleanup-command.md` |
+| MOS-3.7 | `templates/mosdlc/operations/fase-3/MOS-3.7-review-pr-before-close.md` | `templates/operations/09-review-pr-before-close-and-draft-package.md` |
+| MOS-3.8 | `templates/mosdlc/operations/fase-3/MOS-3.8-draft-issue-from-description.md` | `templates/operations/04-draft-create-issue-command-from-description.md` |
+| MOS-3.9 | `templates/mosdlc/operations/fase-3/MOS-3.9-verify-post-merge.md` | `templates/operations/11-verify-post-merge-state.md` |
+| MOS-3.10 | `templates/mosdlc/operations/fase-3/MOS-3.10-analyze-release-readiness.md` | `templates/operations/12-analyze-release-or-tag-readiness.md`, `templates/operations/13-draft-create-release-tag-command.md` |
+| MOS-3.11 | `templates/mosdlc/operations/fase-3/MOS-3.11-draft-tag-commands.md` | `templates/operations/13-draft-create-release-tag-command.md` |
+| MOS-3.12 | `templates/mosdlc/operations/fase-3/MOS-3.12-draft-release-commands.md` | `templates/operations/24-draft-create-github-release-command.md` |
+| MOS-3.13 | `templates/mosdlc/operations/fase-3/MOS-3.13-audit-traceability.md` | `templates/operations/15-audit-issue-pr-traceability.md` |
+| MOS-3.14 | `templates/mosdlc/operations/fase-3/MOS-3.14-process-traceability-audit.md` | — |
+| MOS-3.15 | `templates/mosdlc/operations/fase-3/MOS-3.15-request-2d-asset.md` | `templates/operations/19-request-external-design-assets.md` |
+| MOS-3.16 | `templates/mosdlc/operations/fase-3/MOS-3.16-request-3d-asset.md` | `templates/operations/19-request-external-design-assets.md` |
+| MOS-3.17 | `templates/mosdlc/operations/fase-3/MOS-3.17-request-audio-asset.md` | `templates/operations/19-request-external-design-assets.md` |
+| MOS-3.18 | `templates/mosdlc/operations/fase-3/MOS-3.18-request-video-asset.md` | `templates/operations/19-request-external-design-assets.md` |
+| MOS-3.19 | `templates/mosdlc/operations/fase-3/MOS-3.19-process-2d-asset-delivery.md` | `templates/operations/32-process-design-asset-delivery.md` |
+| MOS-3.20 | `templates/mosdlc/operations/fase-3/MOS-3.20-process-3d-asset-delivery.md` | `templates/operations/32-process-design-asset-delivery.md` |
+| MOS-3.21 | `templates/mosdlc/operations/fase-3/MOS-3.21-process-audio-asset-delivery.md` | `templates/operations/32-process-design-asset-delivery.md` |
+| MOS-3.22 | `templates/mosdlc/operations/fase-3/MOS-3.22-process-video-asset-delivery.md` | `templates/operations/32-process-design-asset-delivery.md` |
+| MOS-3.23 | `templates/mosdlc/operations/fase-3/MOS-3.23-request-security-review.md` | `templates/operations/20-request-owasp-security-review.md` |
+| MOS-3.24 | `templates/mosdlc/operations/fase-3/MOS-3.24-audit-implementation-discipline.md` | `templates/operations/25-audit-implementation-discipline-gaps.md` |
+| MOS-3.25 | `templates/mosdlc/operations/fase-3/MOS-3.25-process-security-review.md` | `templates/operations/31-process-security-review-results.md` |
+| MOS-3.26 | `templates/mosdlc/operations/fase-3/MOS-3.26-process-discipline-audit.md` | — |
+| MOS-3.27 | `templates/mosdlc/operations/fase-3/MOS-3.27-review-project-state.md` | `templates/operations/05-review-project-state-and-misalignment.md` |
+| MOS-3.28 | `templates/mosdlc/operations/fase-3/MOS-3.28-draft-follow-up-from-audit.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` |
+| MOS-3.29 | `templates/mosdlc/operations/fase-3/MOS-3.29-draft-follow-up-from-security.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` |
+| MOS-3.30 | `templates/mosdlc/operations/fase-3/MOS-3.30-draft-manual-implementation-plan.md` | `templates/operations/33-draft-manual-implementation-plan.md` |
+| MOS-3.31 | `templates/mosdlc/operations/fase-3/MOS-3.31-process-manual-implementation-result.md` | `templates/operations/34-process-manual-implementation-result.md` |
+
 El wizard local sigue leyendo `templates/operations/` como catalogo de
 compatibilidad vigente. La exposicion PM de los templates MOSDLC migrados vive
 en este documento, `docs/PM_OPERATIONS.md` y `docs/OPERATION_FLOWS.md` hasta
