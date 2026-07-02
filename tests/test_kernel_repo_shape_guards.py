@@ -44,6 +44,12 @@ SKIP_DIRS = {".git", ".pytest_cache", "__pycache__", "node_modules", ".venv"}
 # Narrow allowlists for intentional negative fixtures, target-owned optional
 # paths in copy-in adapters, and historical recovery references.
 KERNEL_ID_REFERENCE_ALLOWLIST = {
+    ("docs/MOSDLC_OPERATION_MAP.md", "workflow.deployment"): "MOSDLC kernel-change candidate, identified but not applied",
+    ("docs/MOSDLC_OPERATION_MAP.md", "mode.delegated_deploy_execution"): "MOSDLC kernel-change candidate, identified but not applied",
+    ("docs/MOSDLC_OPERATION_MAP.md", "evidence.deployment_readiness"): "MOSDLC kernel-change candidate, identified but not applied",
+    ("tests/test_mosdlc_operation_map.py", "workflow.deployment"): "MOSDLC kernel-change candidate guard",
+    ("tests/test_mosdlc_operation_map.py", "mode.delegated_deploy_execution"): "MOSDLC kernel-change candidate guard",
+    ("tests/test_mosdlc_operation_map.py", "evidence.deployment_readiness"): "MOSDLC kernel-change candidate guard",
     ("tests/test_validate_kernel.py", "evidence.does_not_exist"): "negative unresolved-reference fixture",
     ("tests/test_validate_kernel.py", "status.deferred"): "negative fifth-status fixture",
     ("tests/test_validate_kernel.py", "status.maybe"): "negative non-canonical-status fixture",
@@ -58,6 +64,9 @@ KERNEL_ID_REFERENCE_ALLOWLIST = {
     ("tests/test_resolver.py", "workflow.does_not_exist"): "negative unknown-selector fixture",
     ("tests/test_resolver.py", "workflow.nope"): "negative unknown-selector fixture",
     ("tests/test_resolver.py", "workflow.fake"): "negative unknown-selector fixture",
+    ("tests/test_kernel_repo_shape_guards.py", "workflow.deployment"): "allowlist declaration",
+    ("tests/test_kernel_repo_shape_guards.py", "mode.delegated_deploy_execution"): "allowlist declaration",
+    ("tests/test_kernel_repo_shape_guards.py", "evidence.deployment_readiness"): "allowlist declaration",
     ("tests/test_kernel_repo_shape_guards.py", "evidence.does_not_exist"): "allowlist declaration",
     ("tests/test_kernel_repo_shape_guards.py", "status.deferred"): "allowlist declaration",
     ("tests/test_kernel_repo_shape_guards.py", "status.maybe"): "allowlist declaration",
