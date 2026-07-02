@@ -39,8 +39,8 @@ como fuente de reemplazo y compatibilidad. La migracion de una fase agrega
 templates, docs y tests; no agrega ids de kernel ni cambia autorizacion por si
 misma.
 
-Fase 0 es el primer lote migrado. Sus templates son prompts ejecutables con la
-misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`, `KERNEL`,
+Fase 0 y Fase 1 son los lotes migrados. Sus templates son prompts ejecutables
+con la misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`, `KERNEL`,
 `COMPATIBILITY_SOURCE`, `LIVE_STATE`, `DO`, `OUTPUT`, `LIMITS`,
 `RECOMMENDED_NEXT_OPERATION`) y todos incluyen `PM_FEEDBACK_HUMANO` y
 `PM_QUESTION_HUMANO` como contexto opcional. El wizard local sigue leyendo
@@ -55,6 +55,18 @@ apruebe cambios de wizard o catalogo interactivo.
 | MOS-0.4 | update-project-adoption | `templates/mosdlc/operations/fase-0/MOS-0.4-update-project-adoption.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` |
 | MOS-0.5 | verify-target-adoption | `templates/mosdlc/operations/fase-0/MOS-0.5-verify-target-adoption.md` | `templates/operations/03-verify-target-adoption.md` |
 | MOS-0.6 | handoff-session-context | `templates/mosdlc/operations/fase-0/MOS-0.6-handoff-session-context.md` | `templates/operations/17-draft-handoff-package-for-new-session.md` |
+| MOS-1.1 | interview-requirements | `templates/mosdlc/operations/fase-1/MOS-1.1-interview-requirements.md` | — |
+| MOS-1.2 | summarize-requirements | `templates/mosdlc/operations/fase-1/MOS-1.2-summarize-requirements.md` | — |
+| MOS-1.3 | verify-requirements-feasibility | `templates/mosdlc/operations/fase-1/MOS-1.3-verify-requirements-feasibility.md` | `templates/operations/16-review-idea-as-system-feature.md` |
+| MOS-1.4 | draft-requirements-docs | `templates/mosdlc/operations/fase-1/MOS-1.4-draft-requirements-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-1.5 | validate-requirements-docs | `templates/mosdlc/operations/fase-1/MOS-1.5-validate-requirements-docs.md` | — |
+| MOS-1.6 | plan-project-roadmap | `templates/mosdlc/operations/fase-1/MOS-1.6-plan-project-roadmap.md` | `templates/operations/27-draft-roadmap-from-docs.md` |
+| MOS-1.7 | review-idea-feasibility | `templates/mosdlc/operations/fase-1/MOS-1.7-review-idea-feasibility.md` | `templates/operations/16-review-idea-as-system-feature.md` |
+| MOS-1.8 | update-docs-roadmap-with-requirement | `templates/mosdlc/operations/fase-1/MOS-1.8-update-docs-roadmap-with-requirement.md` | `templates/operations/27-draft-roadmap-from-docs.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-1.9 | review-requirement-removal | `templates/mosdlc/operations/fase-1/MOS-1.9-review-requirement-removal.md` | — |
+| MOS-1.10 | extract-requirements-from-existing | `templates/mosdlc/operations/fase-1/MOS-1.10-extract-requirements-from-existing.md` | — |
+| MOS-1.11 | update-requirements-docs-existing | `templates/mosdlc/operations/fase-1/MOS-1.11-update-requirements-docs-existing.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` |
+| MOS-1.12 | update-roadmap-existing | `templates/mosdlc/operations/fase-1/MOS-1.12-update-roadmap-existing.md` | `templates/operations/27-draft-roadmap-from-docs.md` |
 
 Estos templates no guardan estado vivo durable y no autorizan escritura. Browser
 chat permanece draft-only; terminal agent escribe solo con aprobacion PM exacta,
