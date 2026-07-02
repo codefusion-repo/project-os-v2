@@ -47,10 +47,10 @@ Cada fila del mapa usa esta forma estandar:
 
 ## MOSDLC Migration Flow
 
-La migracion MOSDLC empieza por Fase 0 y esta documentada en
+La migracion MOSDLC empieza por Fase 0 y continua por Fase 1, documentadas en
 `docs/MOSDLC_TEMPLATE_STANDARD.md`. Los templates migrados viven en
-`templates/mosdlc/operations/fase-0/`; los templates `00`-`37` siguen siendo el
-catalogo de compatibilidad vigente, no se eliminan, no se renombran y no se
+`templates/mosdlc/operations/fase-<n>/`; los templates `00`-`37` siguen siendo
+el catalogo de compatibilidad vigente, no se eliminan, no se renombran y no se
 renumeran.
 
 | MOSDLC ID | Fase | Template MOSDLC | Fuente de compatibilidad | Safe next operation |
@@ -61,6 +61,18 @@ renumeran.
 | MOS-0.4 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.4-update-project-adoption.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` | MOS-0.5. |
 | MOS-0.5 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.5-verify-target-adoption.md` | `templates/operations/03-verify-target-adoption.md` | MOS-0.4 si hay drift; si no, la siguiente operacion elegida por el PM. |
 | MOS-0.6 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.6-handoff-session-context.md` | `templates/operations/17-draft-handoff-package-for-new-session.md` | MOS-0.1 en la nueva sesion. |
+| MOS-1.1 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.1-interview-requirements.md` | — | MOS-1.2. |
+| MOS-1.2 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.2-summarize-requirements.md` | — | MOS-1.3. |
+| MOS-1.3 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.3-verify-requirements-feasibility.md` | `templates/operations/16-review-idea-as-system-feature.md` | MOS-1.4. |
+| MOS-1.4 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.4-draft-requirements-docs.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` | MOS-1.5. |
+| MOS-1.5 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.5-validate-requirements-docs.md` | — | MOS-1.6. |
+| MOS-1.6 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.6-plan-project-roadmap.md` | `templates/operations/27-draft-roadmap-from-docs.md` | MOS-3.1 o MOS-3.2. |
+| MOS-1.7 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.7-review-idea-feasibility.md` | `templates/operations/16-review-idea-as-system-feature.md` | MOS-1.8 si procede. |
+| MOS-1.8 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.8-update-docs-roadmap-with-requirement.md` | `templates/operations/27-draft-roadmap-from-docs.md`, `templates/operations/28-draft-docs-from-description.md` | MOS-3.1. |
+| MOS-1.9 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.9-review-requirement-removal.md` | — | MOS-1.8 si el PM confirma. |
+| MOS-1.10 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.10-extract-requirements-from-existing.md` | — | MOS-1.11. |
+| MOS-1.11 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.11-update-requirements-docs-existing.md` | `templates/operations/26-draft-docs-from-conversation.md`, `templates/operations/28-draft-docs-from-description.md` | MOS-1.12. |
+| MOS-1.12 | Requirements, planning, and feasibility | `templates/mosdlc/operations/fase-1/MOS-1.12-update-roadmap-existing.md` | `templates/operations/27-draft-roadmap-from-docs.md` | MOS-3.1. |
 
 Estas filas son superficie PM-facing de activacion, no un motor de workflow.
 Cada template debe resolver `kernel/manifest.json`, leer estado vivo solo al
