@@ -60,10 +60,12 @@ Return exactly one of four statuses — `status.resolved`,
 Resolution selects shape and gates; it never grants permission. Fail closed on
 anything missing or ambiguous.
 
-On a terminal surface with a kernel checkout and repo-local Python, a terminal
-agent may take the `python -m tools.project_os_resolve` fast path from
-`REPOSITORY_LOCAL_PATH`, activating `.venv` when present and passing
+On a terminal surface with a local Project OS checkout and Python, a terminal
+agent may take the `python -m tools.project_os_resolve` fast path from that
+Project OS checkout, activating its `.venv` when present and passing
 `--kernel-dir "$KERNEL_LOCAL_PATH"`, to expand that sequence deterministically.
+In adopted target projects, `REPOSITORY_LOCAL_PATH` stays the target repository
+path for live work after resolution.
 Manual resolution from `kernel/manifest.json` stays the canonical fallback and
 source. Browser/non-terminal surfaces never run repo-local Python — they always
 resolve manually from the manifest. Either way the resolved output only shapes

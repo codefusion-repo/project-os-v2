@@ -65,15 +65,22 @@ PUBLIC_DOCS_WITH_BROWSER = [
 # Either-language phrasings that tie resolver output to "grants no permission".
 NON_AUTHORIZING_PHRASES = ("grants no permission", "no otorga permiso")
 
-# Terminal-capable adapters that should prefer the resolver fast path.
+# Repository-local terminal adapters that should prefer the resolver fast path.
 TERMINAL_ADAPTERS = [
     REPO_ROOT / "AGENTS.md",
     REPO_ROOT / "CLAUDE.md",
     REPO_ROOT / "GEMINI.md",
+]
+
+# Target-project terminal adapters must run the resolver from the local Project
+# OS checkout, because adopted target repositories may not contain the module.
+TARGET_TERMINAL_ADAPTERS = [
     REPO_ROOT / "adapters" / "AGENTS.target.md",
     REPO_ROOT / "adapters" / "CLAUDE.target.md",
     REPO_ROOT / "adapters" / "GEMINI.target.md",
 ]
+
+ALL_TERMINAL_ADAPTERS = TERMINAL_ADAPTERS + TARGET_TERMINAL_ADAPTERS
 
 BROWSER_CHAT_ADAPTER = REPO_ROOT / "adapters" / "BROWSER_CHAT.target.md"
 
@@ -114,17 +121,38 @@ class TestTerminalFastPath:
     """Terminal adapters keep the resolver fast path as the manifest's default."""
 
     def test_terminal_adapters_mention_resolver(self) -> None:
-        for path in TERMINAL_ADAPTERS:
+        for path in ALL_TERMINAL_ADAPTERS:
             assert RESOLVER_REF in _read(path), f"{path.name} should reference {RESOLVER_REF}"
 
     def test_full_resolver_command_in_canonical_adapters(self) -> None:
         """The full CLI command lives in the canonical AGENTS adapters."""
         for path in (REPO_ROOT / "AGENTS.md", REPO_ROOT / "adapters" / "AGENTS.target.md"):
             text = _read(path)
-            assert "cd \"$REPOSITORY_LOCAL_PATH\"" in text
             assert ".venv/bin/activate" in text
             assert "python -m tools.project_os_resolve" in text
             assert "--kernel-dir \"$KERNEL_LOCAL_PATH\"" in text
+
+    def test_target_adapters_run_resolver_from_project_os_checkout(self) -> None:
+        for path in TARGET_TERMINAL_ADAPTERS:
+            text = _read(path)
+            collapsed = re.sub(r"\s+", " ", text)
+            assert "local Project OS checkout" in collapsed, (
+                f"{path.name} should name the resolver execution root"
+            )
+            assert "derived from `KERNEL_LOCAL_PATH`" in collapsed or (
+                "PROJECT_OS_LOCAL_PATH" in text
+                and "${KERNEL_LOCAL_PATH%/}" in text
+                and "${PROJECT_OS_LOCAL_PATH%/kernel}" in text
+            ), f"{path.name} should derive the resolver root from KERNEL_LOCAL_PATH"
+            assert "target work remains" in collapsed or "live target work anchored" in collapsed, (
+                f"{path.name} should keep target work anchored to REPOSITORY_LOCAL_PATH"
+            )
+
+    def test_target_agents_resolver_not_invoked_from_target_repo_root(self) -> None:
+        text = _read(REPO_ROOT / "adapters" / "AGENTS.target.md")
+        resolver_line = "python -m tools.project_os_resolve"
+        assert "cd \"$PROJECT_OS_LOCAL_PATH\"\nif [ -d .venv ]; then . .venv/bin/activate; fi\n" + resolver_line in text
+        assert "cd \"$REPOSITORY_LOCAL_PATH\"\nif [ -d .venv ]; then . .venv/bin/activate; fi\n" + resolver_line not in text
 
     def test_no_documented_py_module_invocation(self) -> None:
         """Docs must never tell agents to pass the .py filename to python -m."""
@@ -137,17 +165,17 @@ class TestTerminalFastPath:
 
     def test_terminal_guidance_names_repo_root_and_kernel_dir(self) -> None:
         """Terminal fast-path prose must keep cwd and kernel path unambiguous."""
-        for path in TERMINAL_ADAPTERS:
+        for path in ALL_TERMINAL_ADAPTERS:
             text = _read(path)
             assert "REPOSITORY_LOCAL_PATH" in text, (
-                f"{path.name} should tie the fast path to the repo root cwd"
+                f"{path.name} should explain the live target or repo path"
             )
             assert "--kernel-dir" in text and "KERNEL_LOCAL_PATH" in text, (
                 f"{path.name} should pass the configured kernel path explicitly"
             )
 
     def test_terminal_adapters_keep_manifest_fallback(self) -> None:
-        for path in TERMINAL_ADAPTERS:
+        for path in ALL_TERMINAL_ADAPTERS:
             text = _read(path)
             assert "manifest" in text.lower(), f"{path.name} should keep manifest resolution"
 
@@ -167,7 +195,23 @@ class TestBrowserChatNoPython:
 
     def test_browser_chat_does_not_instruct_running_resolver(self) -> None:
         """The resolver CLI command must not be given as a browser-chat step."""
-        assert "python3 -m tools.project_os_resolve" not in _read(BROWSER_CHAT_ADAPTER)
+        text = _read(BROWSER_CHAT_ADAPTER).lower()
+        assert "python -m tools.project_os_resolve" not in text
+        assert "python3 -m tools.project_os_resolve" not in text
+
+    def test_browser_chat_materials_do_not_require_python_execution(self) -> None:
+        text = re.sub(r"\s+", " ", _read(BROWSER_CHAT_ADAPTER).lower())
+        forbidden_phrases = (
+            "must execute repo-local python",
+            "should execute repo-local python",
+            "must run repo-local python",
+            "should run repo-local python",
+            "must use python to resolve",
+            "should use python to resolve",
+            "run python to resolve the kernel",
+        )
+        for phrase in forbidden_phrases:
+            assert phrase not in text, f"browser chat must not require: {phrase}"
 
 
 class TestRoutePrompt:
