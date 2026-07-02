@@ -30,6 +30,37 @@ La división evita duplicar la tabla canónica de templates dentro de un manual 
 flujo más largo. Ambos docs apuntan a las mismas operaciones `00`–`37`; ninguno
 renumera, autoriza escritura ni guarda estado vivo.
 
+## Migracion MOSDLC
+
+El estandar de migracion vive en `docs/MOSDLC_TEMPLATE_STANDARD.md`.
+Los templates MOSDLC migrados se agregan bajo
+`templates/mosdlc/operations/fase-<n>/`; el catalogo `00`-`37` permanece usable
+como fuente de reemplazo y compatibilidad. La migracion de una fase agrega
+templates, docs y tests; no agrega ids de kernel ni cambia autorizacion por si
+misma.
+
+Fase 0 es el primer lote migrado. Sus templates son prompts ejecutables con la
+misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`, `KERNEL`,
+`COMPATIBILITY_SOURCE`, `LIVE_STATE`, `DO`, `OUTPUT`, `LIMITS`,
+`RECOMMENDED_NEXT_OPERATION`) y todos incluyen `PM_FEEDBACK_HUMANO` y
+`PM_QUESTION_HUMANO` como contexto opcional. El wizard local sigue leyendo
+`templates/operations/` como catalogo interactivo vigente hasta que otro issue
+apruebe cambios de wizard o catalogo interactivo.
+
+| MOSDLC ID | Operacion | Template MOSDLC | Fuente 00-37 |
+|---|---|---|---|
+| MOS-0.1 | activate-browser-session | `templates/mosdlc/operations/fase-0/MOS-0.1-activate-browser-session.md` | `templates/operations/00-browser-chat-activation.md` |
+| MOS-0.2 | bootstrap-new-project | `templates/mosdlc/operations/fase-0/MOS-0.2-bootstrap-new-project.md` | `templates/operations/02-bootstrap-new-project.md` |
+| MOS-0.3 | adopt-existing-project | `templates/mosdlc/operations/fase-0/MOS-0.3-adopt-existing-project.md` | `templates/operations/01-adopt-project-os-in-existing-target.md` |
+| MOS-0.4 | update-project-adoption | `templates/mosdlc/operations/fase-0/MOS-0.4-update-project-adoption.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` |
+| MOS-0.5 | verify-target-adoption | `templates/mosdlc/operations/fase-0/MOS-0.5-verify-target-adoption.md` | `templates/operations/03-verify-target-adoption.md` |
+| MOS-0.6 | handoff-session-context | `templates/mosdlc/operations/fase-0/MOS-0.6-handoff-session-context.md` | `templates/operations/17-draft-handoff-package-for-new-session.md` |
+
+Estos templates no guardan estado vivo durable y no autorizan escritura. Browser
+chat permanece draft-only; terminal agent escribe solo con aprobacion PM exacta,
+evidence requerido, branch preflight, validacion y review-before-close cuando
+aplique.
+
 Las superficies (browser chat, terminal agent, Humano PM, destinatario externo)
 aparecen en la columna **Superficie**. Las variables son selectores de contexto,
 no autorización. En la tabla, los ids de workflow/mode/output/evidence se muestran

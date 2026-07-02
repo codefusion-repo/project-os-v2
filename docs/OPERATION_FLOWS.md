@@ -45,6 +45,29 @@ Cada fila del mapa usa esta forma estandar:
 - PM approval behavior: si la operacion solo draftea, si requiere aprobacion PM
   exacta para escritura, o si deja la ejecucion al Humano PM.
 
+## MOSDLC Migration Flow
+
+La migracion MOSDLC empieza por Fase 0 y esta documentada en
+`docs/MOSDLC_TEMPLATE_STANDARD.md`. Los templates migrados viven en
+`templates/mosdlc/operations/fase-0/`; los templates `00`-`37` siguen siendo el
+catalogo de compatibilidad vigente, no se eliminan, no se renombran y no se
+renumeran.
+
+| MOSDLC ID | Fase | Template MOSDLC | Fuente de compatibilidad | Safe next operation |
+|---|---|---|---|---|
+| MOS-0.1 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.1-activate-browser-session.md` | `templates/operations/00-browser-chat-activation.md` | MOS-0.2, MOS-0.3, MOS-0.5 o MOS-0.6 segun contexto. |
+| MOS-0.2 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.2-bootstrap-new-project.md` | `templates/operations/02-bootstrap-new-project.md` | MOS-0.5. |
+| MOS-0.3 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.3-adopt-existing-project.md` | `templates/operations/01-adopt-project-os-in-existing-target.md` | MOS-0.5. |
+| MOS-0.4 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.4-update-project-adoption.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` | MOS-0.5. |
+| MOS-0.5 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.5-verify-target-adoption.md` | `templates/operations/03-verify-target-adoption.md` | MOS-0.4 si hay drift; si no, la siguiente operacion elegida por el PM. |
+| MOS-0.6 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-0.6-handoff-session-context.md` | `templates/operations/17-draft-handoff-package-for-new-session.md` | MOS-0.1 en la nueva sesion. |
+
+Estas filas son superficie PM-facing de activacion, no un motor de workflow.
+Cada template debe resolver `kernel/manifest.json`, leer estado vivo solo al
+momento de ejecutar, fallar cerrado cuando falte evidencia, y declarar que el
+template no autoriza escrituras. Cualquier escritura terminal sigue requiriendo
+aprobacion PM exacta, evidence requerido, branch preflight, validacion y review.
+
 ## SDLC Comparison and KOPS.3 Fit Check
 
 KOPS.3 compara Project OS contra un SDLC practico antes de agregar operaciones.
