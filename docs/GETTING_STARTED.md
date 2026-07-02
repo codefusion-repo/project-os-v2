@@ -42,7 +42,16 @@ Browser Chat es tu **compañero de revisión y redacción (draft-only)**:
 Los Terminal Agents **ejecutan trabajo ruteado**:
 - **No hay una operación aislada de configuración del terminal agent para el PM**. La configuración real es el archivo `AGENTS.md` subido en tu repo.
 - El agente resuelve el kernel desde su sistema de archivos local y recibe un "route-prompt" (ej. redactado por `templates/operations/07-draft-issue-implementation-route-prompt.md`).
-- Con checkout del kernel y repo-local Python disponibles puede usar el fast path `tools.project_os_resolve`; la resolución manual desde `kernel/manifest.json` siempre es el fallback canónico. La salida del resolver solo da forma al comportamiento y no otorga permisos.
+- Con checkout del kernel y repo-local Python disponibles puede usar el fast
+  path desde la raíz del repo:
+  ```sh
+  cd "$REPOSITORY_LOCAL_PATH"
+  if [ -d .venv ]; then . .venv/bin/activate; fi
+  python -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH"
+  ```
+  La resolución manual desde `kernel/manifest.json` siempre es el fallback
+  canónico. La salida del resolver solo da forma al comportamiento y no otorga
+  permisos.
 - Ejecutará el código solo bajo autorización (ej. `PM_AUTHORIZATION_STATUS`).
 - Necesita un checkout local del target, el adapter del repo (`AGENTS.md`,
   `CLAUDE.md` o `GEMINI.md` según superficie), acceso al kernel configurado por

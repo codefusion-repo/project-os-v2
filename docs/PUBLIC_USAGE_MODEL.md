@@ -39,10 +39,11 @@ faltante, ambiguo o conflictivo.
 
 La resolución del kernel se distingue por superficie: un Terminal Agent con
 checkout del kernel y repo-local Python puede usar el fast path
-`tools.project_os_resolve` para expandir esa secuencia, mientras que Browser Chat
-y otras superficies sin repo-local Python resuelven manualmente `manifest.json`.
-La resolución manual es siempre el fallback canónico y la salida del resolver no
-otorga permisos.
+`python -m tools.project_os_resolve` desde `REPOSITORY_LOCAL_PATH`, activando
+`.venv` cuando exista y pasando `--kernel-dir "$KERNEL_LOCAL_PATH"` para expandir
+esa secuencia. Browser Chat y otras superficies sin repo-local Python resuelven
+manualmente `manifest.json`. La resolución manual es siempre el fallback
+canónico y la salida del resolver no otorga permisos.
 
 ## Aprobación
 Los `route-prompts` a terminal agents no deben asumir permisos. Deben contener un `PM_AUTHORIZATION_STATUS` explícito.

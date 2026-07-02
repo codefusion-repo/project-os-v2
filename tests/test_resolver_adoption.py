@@ -120,7 +120,31 @@ class TestTerminalFastPath:
     def test_full_resolver_command_in_canonical_adapters(self) -> None:
         """The full CLI command lives in the canonical AGENTS adapters."""
         for path in (REPO_ROOT / "AGENTS.md", REPO_ROOT / "adapters" / "AGENTS.target.md"):
-            assert "python3 -m tools.project_os_resolve" in _read(path)
+            text = _read(path)
+            assert "cd \"$REPOSITORY_LOCAL_PATH\"" in text
+            assert ".venv/bin/activate" in text
+            assert "python -m tools.project_os_resolve" in text
+            assert "--kernel-dir \"$KERNEL_LOCAL_PATH\"" in text
+
+    def test_no_documented_py_module_invocation(self) -> None:
+        """Docs must never tell agents to pass the .py filename to python -m."""
+        bad_invocation = f"python -m {RESOLVER_REF}.py"
+        bad_invocation_py3 = f"python3 -m {RESOLVER_REF}.py"
+        for path in DURABLE_FILES:
+            text = _read(path)
+            assert bad_invocation not in text
+            assert bad_invocation_py3 not in text
+
+    def test_terminal_guidance_names_repo_root_and_kernel_dir(self) -> None:
+        """Terminal fast-path prose must keep cwd and kernel path unambiguous."""
+        for path in TERMINAL_ADAPTERS:
+            text = _read(path)
+            assert "REPOSITORY_LOCAL_PATH" in text, (
+                f"{path.name} should tie the fast path to the repo root cwd"
+            )
+            assert "--kernel-dir" in text and "KERNEL_LOCAL_PATH" in text, (
+                f"{path.name} should pass the configured kernel path explicitly"
+            )
 
     def test_terminal_adapters_keep_manifest_fallback(self) -> None:
         for path in TERMINAL_ADAPTERS:

@@ -38,10 +38,16 @@ Before non-trivial work, resolve behavior from the kernel at
 `KERNEL_LOCAL_PATH` by following `manifest.json`'s `resolution_sequence` exactly.
 `manifest.json` is the single resolution entrypoint and owns surface-aware routing
 through its `resolution_strategy`; this adapter only points to it and defines no
-competing resolution order. On this terminal surface the manifest's default is
-the resolver fast path
-`python3 -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode>`,
-with manual `manifest.json` resolution as the canonical fallback.
+competing resolution order. On this terminal surface, run the resolver fast path
+from the repository root:
+
+```sh
+cd "$REPOSITORY_LOCAL_PATH"
+if [ -d .venv ]; then . .venv/bin/activate; fi
+python -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH"
+```
+
+Manual `manifest.json` resolution remains the canonical fallback.
 
 Resolution shapes behavior only and grants no permission
 (`boundary.output_not_permission`). Fail closed per `boundary.fail_closed` if the
