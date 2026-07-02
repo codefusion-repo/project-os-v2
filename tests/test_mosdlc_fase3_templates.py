@@ -1,4 +1,4 @@
-"""MOSDLC.1 Fase 0 template migration guards."""
+"""MOSDLC.4 Fase 3 template migration guards."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MAP_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_OPERATION_MAP.md"
 STANDARD_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_TEMPLATE_STANDARD.md"
-MOSDLC_FASE0_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations" / "fase-0"
+MOSDLC_FASE3_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations" / "fase-3"
 LEGACY_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
 
 HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
@@ -24,51 +24,22 @@ COMMIT_SHA_PATTERN = re.compile(
     re.IGNORECASE,
 )
 LEGACY_PM_QUESTION_PATTERN = re.compile(r"\bPM_QUESTION\b")
-
-FASE0_ROWS = {
-    "MOS-0.1": {
-        "operation": "activate-browser-session",
-        "template": "MOS-0.1-activate-browser-session.md",
-        "legacy": "templates/operations/00-browser-chat-activation.md",
-        "required": [],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-0.2": {
-        "operation": "bootstrap-new-project",
-        "template": "MOS-0.2-bootstrap-new-project.md",
-        "legacy": "templates/operations/02-bootstrap-new-project.md",
-        "required": ["TARGET_REPOSITORY"],
-        "optional": ["DESCRIPTION", "PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-0.3": {
-        "operation": "adopt-existing-project",
-        "template": "MOS-0.3-adopt-existing-project.md",
-        "legacy": "templates/operations/01-adopt-project-os-in-existing-target.md",
-        "required": ["TARGET_REPOSITORY"],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-0.4": {
-        "operation": "update-project-adoption",
-        "template": "MOS-0.4-update-project-adoption.md",
-        "legacy": "templates/operations/23-upgrade-kernel-adoption-in-target.md",
-        "required": ["TARGET_REPOSITORY"],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-0.5": {
-        "operation": "verify-target-adoption",
-        "template": "MOS-0.5-verify-target-adoption.md",
-        "legacy": "templates/operations/03-verify-target-adoption.md",
-        "required": ["TARGET_REPOSITORY"],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
-    "MOS-0.6": {
-        "operation": "handoff-session-context",
-        "template": "MOS-0.6-handoff-session-context.md",
-        "legacy": "templates/operations/17-draft-handoff-package-for-new-session.md",
-        "required": [],
-        "optional": ["PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"],
-    },
+KERNEL_GROWTH_CANDIDATES = {
+    ".".join(parts)
+    for parts in (
+        ("workflow", "deployment"),
+        ("mode", "delegated_deploy_execution"),
+        ("evidence", "deployment_readiness"),
+        ("actor", "external_recipient"),
+    )
 }
+EXTERNAL_RECIPIENT_ACTOR_REF = ".".join(("actor", "external_recipient"))
+FASE3_IDS = [f"MOS-3.{index}" for index in range(1, 32)]
+ROUTE_PROMPT_ROWS = {"MOS-3.4", "MOS-3.5"}
+REVIEW_BEFORE_CLOSE_ROWS = {"MOS-3.6", "MOS-3.7"}
+RELEASE_TAG_ROWS = {"MOS-3.10", "MOS-3.11", "MOS-3.12"}
+EXTERNAL_RECIPIENT_ROWS = {"MOS-3.15", "MOS-3.16", "MOS-3.17", "MOS-3.18", "MOS-3.23"}
+MANUAL_IMPLEMENTATION_ROWS = {"MOS-3.30", "MOS-3.31"}
 
 REQUIRED_BLOCKS = [
     "MOSDLC:",
@@ -100,13 +71,13 @@ def _parse_operation_rows() -> dict[str, dict[str, str]]:
     text = MAP_DOC_PATH.read_text(encoding="utf-8")
     headers: list[str] | None = None
     rows: dict[str, dict[str, str]] = {}
-    in_fase0 = False
+    in_fase3 = False
     for line in text.splitlines():
         if line.startswith("## "):
-            in_fase0 = line.strip() == "## Fase 0 — Adaptación"
+            in_fase3 = line.strip() == "## Fase 3 — Desarrollo / Implementación"
             headers = None
             continue
-        if not in_fase0:
+        if not in_fase3:
             continue
         if line.startswith("| ID |"):
             headers = [cell.strip() for cell in line.strip("|").split("|")]
@@ -139,6 +110,20 @@ def _input_variables(text: str) -> tuple[list[str], list[str]]:
     return required, optional
 
 
+def _variables_from_map(cell: str) -> tuple[list[str], list[str]]:
+    match = re.search(r"Req:\s*(.*?)\s*/\s*Opc:\s*(.*)", cell)
+    assert match, f"cannot parse variable cell: {cell}"
+
+    def split(raw: str) -> list[str]:
+        if raw.strip() == "—":
+            return []
+        return [part.strip() for part in raw.split(",") if part.strip()]
+
+    required = split(match.group(1))
+    optional = split(match.group(2)) + sorted(HUMAN_CONTEXT_VARIABLES)
+    return required, optional
+
+
 def _mosdlc_metadata(text: str) -> dict[str, str]:
     match = re.search(r"MOSDLC:\n(.*?)(?:\n\n[A-Z_]+:|\Z)", text, re.DOTALL)
     assert match, "template has no MOSDLC metadata block"
@@ -153,57 +138,77 @@ def _mosdlc_metadata(text: str) -> dict[str, str]:
 
 
 def _mosdlc_template_paths() -> list[Path]:
-    return sorted(MOSDLC_FASE0_DIR.glob("*.md"))
+    return sorted(MOSDLC_FASE3_DIR.glob("*.md"), key=lambda path: _mosdlc_sort_key(path.stem))
 
 
-def test_mosdlc_template_standard_is_documented_and_discoverable() -> None:
+def _mosdlc_sort_key(value: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in re.findall(r"\d+", value))
+
+
+def _template_path(row: dict[str, str]) -> Path:
+    return MOSDLC_FASE3_DIR / f"{row['ID']}-{row['Operación']}.md"
+
+
+def _legacy_refs(row: dict[str, str]) -> list[str]:
+    legacy_paths = {
+        path.name[:2]: f"templates/operations/{path.name}"
+        for path in sorted(LEGACY_OPERATIONS_DIR.glob("*.md"))
+    }
+    refs: list[str] = []
+    for number in re.findall(r"\b\d{2}\b", row["Mapa 00–37"]):
+        ref = legacy_paths[number]
+        if ref not in refs:
+            refs.append(ref)
+    return refs
+
+
+def test_mosdlc_fase3_templates_are_documented_and_discoverable() -> None:
+    rows = _parse_operation_rows()
     standard = STANDARD_DOC_PATH.read_text(encoding="utf-8")
     catalog = (REPO_ROOT / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
     flows = (REPO_ROOT / "docs" / "OPERATION_FLOWS.md").read_text(encoding="utf-8")
 
     for fragment in (
-        "templates/mosdlc/operations/fase-<n>/",
-        "templates/mosdlc/operations/fase-0/",
-        "COMPATIBILITY_SOURCE:",
-        "Template authority: none",
-        "Ningun template numerado `00`-`37` se elimina",
+        "## Fase 3 Migrada",
+        "templates/mosdlc/operations/fase-3/",
         "El wizard local sigue leyendo `templates/operations/`",
+        "Template authority: none",
     ):
         assert fragment in standard
 
-    for rid, spec in FASE0_ROWS.items():
-        path = f"templates/mosdlc/operations/fase-0/{spec['template']}"
+    for rid, row in rows.items():
+        path = f"templates/mosdlc/operations/fase-3/{rid}-{row['Operación']}.md"
         assert rid in standard
         assert path in standard
         assert path in catalog
         assert path in flows
 
 
-def test_fase0_map_rows_have_matching_mosdlc_templates() -> None:
+def test_fase3_map_rows_have_matching_mosdlc_templates() -> None:
     rows = _parse_operation_rows()
-    assert set(rows) == set(FASE0_ROWS)
+    assert list(rows) == FASE3_IDS
     assert [path.name for path in _mosdlc_template_paths()] == [
-        FASE0_ROWS[rid]["template"] for rid in sorted(FASE0_ROWS)
+        f"{rows[rid]['ID']}-{rows[rid]['Operación']}.md" for rid in FASE3_IDS
     ]
 
-    for rid, spec in FASE0_ROWS.items():
-        row = rows[rid]
-        path = MOSDLC_FASE0_DIR / spec["template"]
+    for rid, row in rows.items():
+        path = _template_path(row)
         text = path.read_text(encoding="utf-8")
-        assert row["Operación"] == spec["operation"]
-        assert Path(spec["legacy"]).name[:2] in row["Mapa 00–37"]
         assert f"ID: {rid}" in text
-        assert spec["operation"] in text
-        assert spec["legacy"] in text
+        assert row["Operación"] in text
+        for legacy in _legacy_refs(row):
+            assert Path(legacy).name[:2] in row["Mapa 00–37"]
+            assert legacy in text
+        if row["Mapa 00–37"] == "—":
+            assert "Compatibility source: none" in text
         for block in REQUIRED_BLOCKS:
             assert block in text, f"{path.name} missing {block}"
 
 
-def test_fase0_template_metadata_matches_source_map_kernel_contract() -> None:
+def test_fase3_template_metadata_matches_source_map_kernel_contract() -> None:
     rows = _parse_operation_rows()
-    for rid, spec in FASE0_ROWS.items():
-        row = rows[rid]
-        text = (MOSDLC_FASE0_DIR / spec["template"]).read_text(encoding="utf-8")
+    for rid, row in rows.items():
+        text = _template_path(row).read_text(encoding="utf-8")
         metadata = _mosdlc_metadata(text)
 
         assert metadata["ID"] == rid
@@ -216,24 +221,26 @@ def test_fase0_template_metadata_matches_source_map_kernel_contract() -> None:
         assert set(re.findall(r"evidence\.[A-Za-z0-9_]+", metadata["Evidence"])) == set(
             re.findall(r"evidence\.[A-Za-z0-9_]+", row["Evidence"])
         )
-        assert spec["legacy"] in metadata["Compatibility source"]
+        for legacy in _legacy_refs(row):
+            assert legacy in metadata["Compatibility source"]
 
 
-def test_fase0_templates_use_required_fields_and_optional_human_context() -> None:
-    for rid, spec in FASE0_ROWS.items():
-        path = MOSDLC_FASE0_DIR / spec["template"]
-        text = path.read_text(encoding="utf-8")
+def test_fase3_templates_use_required_fields_and_optional_human_context() -> None:
+    rows = _parse_operation_rows()
+    for rid, row in rows.items():
+        text = _template_path(row).read_text(encoding="utf-8")
         required, optional = _input_variables(text)
+        expected_required, expected_optional = _variables_from_map(row["Variables"])
 
-        assert required == spec["required"], f"{rid} required variables drifted"
-        assert optional == spec["optional"], f"{rid} optional variables drifted"
+        assert required == expected_required, f"{rid} required variables drifted"
+        assert optional == expected_optional, f"{rid} optional variables drifted"
         assert HUMAN_CONTEXT_VARIABLES.issubset(optional)
         assert HUMAN_CONTEXT_VARIABLES.isdisjoint(required)
         assert not LEGACY_PM_QUESTION_PATTERN.search(text)
         assert "PM_FEEDBACK_HUMANO and PM_QUESTION_HUMANO are optional context only." in text
 
 
-def test_fase0_templates_reference_only_valid_kernel_ids() -> None:
+def test_fase3_templates_reference_only_valid_kernel_ids() -> None:
     kernel_ids = _kernel_ids()
     offenders: list[str] = []
     for path in _mosdlc_template_paths() + [STANDARD_DOC_PATH]:
@@ -244,7 +251,7 @@ def test_fase0_templates_reference_only_valid_kernel_ids() -> None:
     assert offenders == []
 
 
-def test_fase0_templates_do_not_store_live_state_or_authority_grants() -> None:
+def test_fase3_templates_do_not_store_live_state_or_authority_grants() -> None:
     offenders: list[str] = []
     for path in _mosdlc_template_paths():
         text = path.read_text(encoding="utf-8")
@@ -262,32 +269,90 @@ def test_fase0_templates_do_not_store_live_state_or_authority_grants() -> None:
     assert offenders == []
 
 
+def test_fase3_authority_sensitive_behaviors_are_preserved() -> None:
+    rows = _parse_operation_rows()
+
+    for rid in ROUTE_PROMPT_ROWS:
+        text = _template_path(rows[rid]).read_text(encoding="utf-8")
+        assert "route prompts are non-authorizing outputs" in text
+        assert "PM_AUTHORIZATION_STATUS" in text
+
+    for rid in REVIEW_BEFORE_CLOSE_ROWS:
+        text = _template_path(rows[rid]).read_text(encoding="utf-8")
+        assert "does not merge or close" in text
+
+    for rid in RELEASE_TAG_ROWS:
+        text = _template_path(rows[rid]).read_text(encoding="utf-8")
+        assert "PM-executed copy-safe command bundles only" in text
+        assert "Human PM" in text
+
+    for rid in EXTERNAL_RECIPIENT_ROWS:
+        text = _template_path(rows[rid]).read_text(encoding="utf-8")
+        assert "recipient is not a kernel actor" in text
+        assert EXTERNAL_RECIPIENT_ACTOR_REF not in text
+
+    for rid in MANUAL_IMPLEMENTATION_ROWS:
+        text = _template_path(rows[rid]).read_text(encoding="utf-8")
+        assert "browser chat did not edit code" in text
+
+
+def test_fase3_templates_do_not_imply_kernel_growth() -> None:
+    for path in _mosdlc_template_paths():
+        text = path.read_text(encoding="utf-8")
+        for candidate in KERNEL_GROWTH_CANDIDATES:
+            assert candidate not in text
+        assert "kernel:no-change" not in text
+
+
 def test_legacy_00_37_templates_remain_usable_and_not_renumbered() -> None:
+    rows = _parse_operation_rows()
     expected = [f"{index:02d}" for index in range(38)]
     legacy_paths = sorted(LEGACY_OPERATIONS_DIR.glob("*.md"))
     assert [path.name[:2] for path in legacy_paths] == expected
-    for rid, spec in FASE0_ROWS.items():
-        legacy = REPO_ROOT / spec["legacy"]
-        assert legacy.exists(), f"{rid} compatibility source missing: {spec['legacy']}"
-        assert legacy.read_text(encoding="utf-8").startswith("#")
+    for rid, row in rows.items():
+        for legacy_ref in _legacy_refs(row):
+            legacy = REPO_ROOT / legacy_ref
+            assert legacy.exists(), f"{rid} compatibility source missing: {legacy_ref}"
+            assert legacy.read_text(encoding="utf-8").startswith("#")
 
 
-def test_mosdlc_fase0_migration_does_not_expand_kernel_or_unsupported_phases() -> None:
+def test_mosdlc_fase3_migration_does_not_expand_kernel_or_unsupported_phases() -> None:
     changed = subprocess.run(
         ["git", "diff", "--name-only", "origin/main...HEAD"],
         capture_output=True,
         text=True,
         check=True,
     )
-    changed_files = {line for line in changed.stdout.splitlines() if line}
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    changed_files = {
+        line
+        for text_output in (changed.stdout, untracked.stdout)
+        for line in text_output.splitlines()
+        if line
+    }
     migration_changed = any(
-        path.startswith("templates/mosdlc/operations/fase-0/") for path in changed_files
+        path.startswith("templates/mosdlc/operations/fase-3/") for path in changed_files
     )
     if not migration_changed:
         return
     assert not any(path.startswith("kernel/") for path in changed_files)
-    assert not any(path.startswith("templates/mosdlc/operations/fase-3/") for path in changed_files)
+    assert not any(path.startswith("templates/operations/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-4/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-5/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-6/") for path in changed_files)
     assert not any("/MOS-R." in path for path in changed_files)
+    assert all(
+        path.startswith(
+            (
+                "docs/",
+                "tests/",
+                "templates/mosdlc/operations/fase-3/",
+            )
+        )
+        for path in changed_files
+    )
