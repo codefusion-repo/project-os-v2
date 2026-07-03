@@ -81,6 +81,12 @@
       "rule": "PM-facing command bundles must stay copy-safe: exact repository/issue/PR/branch targets; scope, risk, and rollback kept outside executable blocks; body files with quoted heredoc delimiters for long GitHub bodies; no nested triple-backtick fences; supported GitHub CLI --json fields only (never unsupported pseudo-fields such as stateReason, merged or isLatest); and no shell pattern that stops, cuts, or corrupts the terminal session. This is the hard floor only.",
       "on_violation": "status.needs_pm_decision",
       "notes": "Bundle shape, style, disallowed patterns, when a defensive bundle is allowed, and examples live once in templates/pm-command-bundle.md; the kernel keeps no command-style detail."
+    },
+    {
+      "id": "boundary.context_economy",
+      "rule": "Use only the context and subagents the scoped task needs. Prefer live reads and resolver output over pasted repeated context; cite the issue/PR, path, or file:line plus the minimal excerpt instead of restating full issue bodies, full diffs, full logs, or full prior reports when targeted references are enough. Subagents are never the default: do simple, local, or single-surface work directly; use a subagent only with a scoped reason showing it materially reduces risk, complexity, or expert review burden, hand it a compact task-relevant evidence packet, and treat its output as claims or evidence leads until verified against live issue/PR/code/diff/validation evidence. Larger context is justified for high-risk work such as security review, authorization, deployment, data migration, billing/storage, complex architecture, or multi-file protocol changes. Economy never drops required evidence, live traceability reads, branch preflight, validation, secret safety, or exact PM approval gates.",
+      "on_violation": "status.needs_pm_decision",
+      "notes": "Context classes, subagent discipline, and handoff/report economy live once in docs/CONTEXT_ECONOMY.md; adapters, route prompts, operation templates, and reports point there and never restate them."
     }
   ]
 }

@@ -79,6 +79,8 @@ CANONICAL_KERNEL_ENTRY_IDS = {
         "boundary.validation_discipline",
         "boundary.code_clarity",
         "boundary.copy_safe_commands",
+        # Added by #382: context/token/subagent economy hard floor.
+        "boundary.context_economy",
     },
     "evidence.json": {
         "evidence.issue_scope",
@@ -712,10 +714,12 @@ def test_issue_346_scope_does_not_implement_tools6_or_kernel_growth() -> None:
     # growth in this lifecycle-processing scope. Kernel files authorized by
     # later PM-approved kernel-growth issues are excluded: #376 (MOSDLC.6a)
     # adds minimal, internal-only, gated deploy-execution support per
-    # docs/decisions/0001. Content-level growth remains pinned by
+    # docs/decisions/0001; #382 adds context-economy/subagent-discipline
+    # boundary guidance. Content-level growth remains pinned by
     # CANONICAL_KERNEL_ENTRY_IDS (test_issue_324_kernel_entry_ids_are_unchanged).
     authorized_kernel_files = {
         "kernel/actors.json",
+        "kernel/boundaries.json",
         "kernel/evidence.json",
         "kernel/execution_modes.json",
         "kernel/workflows.json",

@@ -4,19 +4,20 @@ One template for every route. Fill the variable block, delete unused lines, add
 the one-line instruction for the variant you need, and paste into the terminal
 agent. Everything not stated resolves from the kernel.
 
-Keep route prompts compact and issue-referential: never paste a full issue body;
-the terminal agent reads the issue live. Authorization travels separately as
-exact scoped PM approval (`kernel/execution_modes.json` `approval_note`); this
-prompt grants no permission. Copy-safe: plain text, at most one fenced block.
+Keep route prompts compact and issue-referential per `boundary.context_economy`
+(docs/CONTEXT_ECONOMY.md): never paste a full issue body, full diff, full log,
+or prior report — the executing agent reads live evidence at task time.
+Authorization travels separately as exact scoped PM approval
+(`kernel/execution_modes.json` `approval_note`); this prompt grants no
+permission. Copy-safe: plain text, at most one fenced block.
 
 How the executing agent resolves the kernel is owned by `kernel/manifest.json`
 (its `resolution_sequence` and surface-aware `resolution_strategy`); the route
-prompt routes work and never restates or overrides resolver strategy. It stays
-the same regardless of surface — keep it compact and never restate issue bodies
-or kernel rules. Resolver output is operative task guidance for the selected
-actor/workflow/mode/evidence/boundaries/output contract, not mere context and
-not authorization; the executing agent still must reconstruct live traceability,
-confirm exact PM approval where required, and fail closed on missing evidence.
+prompt routes work and never restates resolver strategy, issue bodies, or
+kernel rules, on any surface. Resolver output is operative task guidance, not
+mere context and not authorization; the executing agent still reconstructs live
+traceability, confirms exact PM approval where required, and fails closed on
+missing evidence.
 
 ## Variable block (omit lines that do not apply)
 

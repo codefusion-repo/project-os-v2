@@ -116,6 +116,10 @@ def test_issue_343_kernel_growth_is_limited_to_manual_implementation_contracts()
     allowed_files = {
         "kernel/workflows.json",
         "kernel/outputs.json",
+        # Authorized by #382: context-economy boundary for token/context/subagent
+        # discipline. Content-level growth stays pinned by
+        # CANONICAL_KERNEL_ENTRY_IDS.
+        "kernel/boundaries.json",
         # Authorized by #376 (MOSDLC.6a) per docs/decisions/0001: minimal,
         # internal-only, gated local/staging deploy-execution kernel support.
         # Content-level growth stays pinned by CANONICAL_KERNEL_ENTRY_IDS in
