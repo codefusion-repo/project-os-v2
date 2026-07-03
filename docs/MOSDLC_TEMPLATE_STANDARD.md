@@ -136,6 +136,19 @@ Cada template MOSDLC es un prompt ejecutable para IA y usa esta forma:
 | MOS-3.30 | `templates/mosdlc/operations/fase-3/MOS-3.30-draft-manual-implementation-plan.md` | `templates/operations/33-draft-manual-implementation-plan.md` |
 | MOS-3.31 | `templates/mosdlc/operations/fase-3/MOS-3.31-process-manual-implementation-result.md` | `templates/operations/34-process-manual-implementation-result.md` |
 
+## Fase 4 Migrada
+
+| MOSDLC ID | Template MOSDLC | Fuente de compatibilidad |
+|---|---|---|
+| MOS-4.1 | `templates/mosdlc/operations/fase-4/MOS-4.1-draft-qa-checklist-issue-pr.md` | `templates/operations/18-draft-human-qa-checklist.md` |
+| MOS-4.2 | `templates/mosdlc/operations/fase-4/MOS-4.2-draft-qa-checklist-description.md` | `templates/operations/18-draft-human-qa-checklist.md` |
+| MOS-4.3 | `templates/mosdlc/operations/fase-4/MOS-4.3-draft-production-readiness-checklist.md` | `templates/operations/18-draft-human-qa-checklist.md` |
+| MOS-4.4 | `templates/mosdlc/operations/fase-4/MOS-4.4-process-qa-checklist-issue-pr.md` | `templates/operations/30-process-human-qa-results.md` |
+| MOS-4.5 | `templates/mosdlc/operations/fase-4/MOS-4.5-process-qa-checklist-feature.md` | `templates/operations/30-process-human-qa-results.md` |
+| MOS-4.6 | `templates/mosdlc/operations/fase-4/MOS-4.6-process-production-readiness-checklist.md` | `templates/operations/30-process-human-qa-results.md` |
+| MOS-4.7 | `templates/mosdlc/operations/fase-4/MOS-4.7-draft-follow-up-from-qa.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` |
+| MOS-4.8 | `templates/mosdlc/operations/fase-4/MOS-4.8-draft-correction-from-qa.md` | `templates/operations/08-draft-review-correction-route-prompt.md` |
+
 El wizard local sigue leyendo `templates/operations/` como catalogo de
 compatibilidad vigente. La exposicion PM de los templates MOSDLC migrados vive
 en este documento, `docs/PM_OPERATIONS.md` y `docs/OPERATION_FLOWS.md` hasta

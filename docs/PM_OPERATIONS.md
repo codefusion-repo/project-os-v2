@@ -39,7 +39,7 @@ como fuente de reemplazo y compatibilidad. La migracion de una fase agrega
 templates, docs y tests; no agrega ids de kernel ni cambia autorizacion por si
 misma.
 
-Fase 0, Fase 1, Fase 2 y Fase 3 son los lotes migrados. Sus templates son prompts
+Fase 0, Fase 1, Fase 2, Fase 3 y Fase 4 son los lotes migrados. Sus templates son prompts
 ejecutables con la misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`,
 `KERNEL`, `COMPATIBILITY_SOURCE`, `LIVE_STATE`, `DO`, `OUTPUT`, `LIMITS`,
 `RECOMMENDED_NEXT_OPERATION`) y todos incluyen `PM_FEEDBACK_HUMANO` y
@@ -112,6 +112,14 @@ apruebe cambios de wizard o catalogo interactivo.
 | MOS-3.29 | draft-follow-up-from-security | `templates/mosdlc/operations/fase-3/MOS-3.29-draft-follow-up-from-security.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` |
 | MOS-3.30 | draft-manual-implementation-plan | `templates/mosdlc/operations/fase-3/MOS-3.30-draft-manual-implementation-plan.md` | `templates/operations/33-draft-manual-implementation-plan.md` |
 | MOS-3.31 | process-manual-implementation-result | `templates/mosdlc/operations/fase-3/MOS-3.31-process-manual-implementation-result.md` | `templates/operations/34-process-manual-implementation-result.md` |
+| MOS-4.1 | draft-qa-checklist-issue-pr | `templates/mosdlc/operations/fase-4/MOS-4.1-draft-qa-checklist-issue-pr.md` | `templates/operations/18-draft-human-qa-checklist.md` |
+| MOS-4.2 | draft-qa-checklist-description | `templates/mosdlc/operations/fase-4/MOS-4.2-draft-qa-checklist-description.md` | `templates/operations/18-draft-human-qa-checklist.md` |
+| MOS-4.3 | draft-production-readiness-checklist | `templates/mosdlc/operations/fase-4/MOS-4.3-draft-production-readiness-checklist.md` | `templates/operations/18-draft-human-qa-checklist.md` |
+| MOS-4.4 | process-qa-checklist-issue-pr | `templates/mosdlc/operations/fase-4/MOS-4.4-process-qa-checklist-issue-pr.md` | `templates/operations/30-process-human-qa-results.md` |
+| MOS-4.5 | process-qa-checklist-feature | `templates/mosdlc/operations/fase-4/MOS-4.5-process-qa-checklist-feature.md` | `templates/operations/30-process-human-qa-results.md` |
+| MOS-4.6 | process-production-readiness-checklist | `templates/mosdlc/operations/fase-4/MOS-4.6-process-production-readiness-checklist.md` | `templates/operations/30-process-human-qa-results.md` |
+| MOS-4.7 | draft-follow-up-from-qa | `templates/mosdlc/operations/fase-4/MOS-4.7-draft-follow-up-from-qa.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` |
+| MOS-4.8 | draft-correction-from-qa | `templates/mosdlc/operations/fase-4/MOS-4.8-draft-correction-from-qa.md` | `templates/operations/08-draft-review-correction-route-prompt.md` |
 
 Estos templates no guardan estado vivo durable y no autorizan escritura. Browser
 chat permanece draft-only; terminal agent escribe solo con aprobacion PM exacta,
