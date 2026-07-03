@@ -15,10 +15,10 @@
   ],
   "resolution_strategy": {
     "owner": "This manifest is the single resolution entrypoint and owns surface-aware routing: identify the execution surface, resolve current_actor_type from actors.json, then take the matching path below. Adapters, templates, and docs point to this strategy and never define a competing resolution order. Unknown surface resolves to actor.unknown and fails closed.",
-    "terminal": "Terminal surface (actor.terminal_agent) with a kernel checkout and repo-local Python: the default is the deterministic resolver fast path 'python3 -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode>', which reads the current kernel JSON, expands the resolution_sequence below, and emits operative task guidance plus live traceability obligations.",
+    "terminal": "Terminal surface (actor.terminal_agent) with a kernel checkout and repo-local Python: the default is the deterministic resolver fast path 'python3 -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode>', which reads the current kernel JSON and expands the resolution_sequence below.",
     "browser_and_non_terminal": "Browser chat (actor.browser_chat) and every other non-terminal surface never run repo-local Python; they resolve by reading this manifest and the kernel JSON directly.",
     "canonical_fallback": "Manual resolution from this manifest and the kernel JSON is the canonical fallback for every surface and the source the fast path expands; the resolver never replaces this manifest.",
-    "non_authorization": "Resolver output and manual resolution are operative behavior guidance for actor, workflow, mode, evidence, boundaries, and output shape, but neither grants permission (boundary.output_not_permission)."
+    "non_authorization": "Resolver output and manual resolution both only shape behavior and gates; neither grants permission (boundary.output_not_permission)."
   },
   "resolution_sequence": [
     "1. Resolve current_actor_type from actors.json and take the matching path in resolution_strategy (terminal fast path, or manual manifest/kernel read for browser and non-terminal surfaces).",

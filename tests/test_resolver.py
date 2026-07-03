@@ -90,6 +90,7 @@ class TestHappyPath:
 
         # Non-authorization notice is present.
         assert "non_authorization" in result
+        assert "operative task guidance" in result["non_authorization"]
         assert "never grants" in result["non_authorization"]
 
         guidance = result["operative_guidance"]
@@ -97,6 +98,7 @@ class TestHappyPath:
         assert "not merely informational context" in guidance["summary"]
         assert "workflow.issue_implementation" in " ".join(guidance["must_follow"])
         assert "mode.delegated_commit_pr" in " ".join(guidance["must_follow"])
+        assert "operative task guidance" in guidance["authorization"]
         assert "never grants" in guidance["authorization"]
 
         traceability = result["live_traceability"]

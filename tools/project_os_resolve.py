@@ -6,7 +6,7 @@ evidence, output, and boundary entries.
 
 This resolver is an optional deterministic accelerator for repo-local and
 terminal use.  It reads kernel JSON at runtime and never duplicates kernel
-data.  Resolver output shapes responses only and never grants permission
+data.  Resolver output is operative task guidance and never grants permission
 (boundary.output_not_permission).
 
 Exit codes: 0 = resolved, 1 = resolution error, 2 = tooling error.
@@ -127,10 +127,11 @@ WRITE_CAPABLE_ACTIONS = {
 }
 
 NON_AUTHORIZATION_NOTICE = (
-    "This resolution output shapes responses only. "
-    "It never grants write permission, authorization, merge, "
-    "closure, or any action authority. Permission comes only from "
-    "exact scoped PM approval plus kernel-resolved gates."
+    "This resolution output is operative task guidance for the resolved "
+    "actor, workflow, mode, evidence, boundaries, and output contract. "
+    "It never grants write permission, authorization, merge, closure, "
+    "or any action authority. Permission comes only from exact scoped "
+    "PM approval plus kernel-resolved gates."
 )
 
 EVIDENCE_LIVE_READS = {
