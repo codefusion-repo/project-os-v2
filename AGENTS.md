@@ -84,3 +84,7 @@ Security / project constraints:
 - Keep build commands, protected paths, domain constraints, and validation notes
   here when they are stable and target-owned; never store issue/PR/branch state,
   SHAs, review status, release status, or live validation results.
+- Follow proportional validation from `docs/VALIDATION_POLICY.md`: run scoped
+  required checks, draft PM-run commands when useful validation should remain
+  PM-executed, and do not impose Project OS-specific tests or add tests by
+  default unless the issue risk justifies them.

@@ -27,6 +27,12 @@ planificacion viva. Browser chat permanece draft-only; GitHub permanece como
 source of truth para issues, PRs, comentarios, reviews, branches, commits y
 validacion.
 
+La validacion es proporcional en todas las fases y targets
+(`docs/VALIDATION_POLICY.md`). Una operacion no exige full suite ni tests nuevos
+por defecto; clasifica validacion agent-run requerida, comandos PM-run drafted,
+validacion manual PM o ausencia justificada de validacion automatizada segun el
+scope y riesgo.
+
 ## Entry Shape
 
 Cada fila del mapa usa esta forma estandar:
@@ -233,10 +239,10 @@ boundaries.
 | Candidate | Decision | Rationale | Durable change |
 |---|---|---|---|
 | Process terminal-agent execution report outside PR review | Clarified in Operation 09; no separate normal PR execution-report processor. | When a PR exists, Operation 09 is already the review-before-close path and consumes EXECUTION_REPORT as an evidence lead. A non-PR processor would need exact PM decision and a proven non-duplicative case. | Operation 09 INPUT/LIVE_STATE/DO/OUTPUT/LIMITS plus docs/tests state the standard path and guard against duplicate normal PR processing. |
-| Process manual implementation result | New Operation 34. | After Operation 33, a human-applied result may need classification before PR review or when no PR exists. This is distinct from Operation 09 only until a PR exists. | `templates/operations/34-process-manual-implementation-result.md`, catalog/flow rows, and tests. |
-| Process `status.needs_pm_decision` | New Operation 36. | PM requested a named operation instead of ad hoc chat handling. It must return to the originating operation or draft a safe route without becoming a workflow engine. | `templates/operations/36-process-needs-pm-decision.md`, catalog/flow rows, and tests. |
-| Determine next lifecycle operation | New Operation 35. | The PM needs low-friction lifecycle routing, but it must remain read-only and recommendation-only. | `templates/operations/35-recommend-next-lifecycle-operation.md`, catalog/flow rows, and tests. |
-| Phase readiness review | New Operation 37. | PM requested a named advisory readiness gate before implementation, QA/security/design, closeout, release, dogfood, or handoff. | `templates/operations/37-review-phase-readiness.md`, catalog/flow rows, and tests. |
+| Process manual implementation result | New Operation 34. | After Operation 33, a human-applied result may need classification before PR review or when no PR exists. This is distinct from Operation 09 only until a PR exists. | `templates/operations/34-process-manual-implementation-result.md`, catalog/flow rows, and targeted guards. |
+| Process `status.needs_pm_decision` | New Operation 36. | PM requested a named operation instead of ad hoc chat handling. It must return to the originating operation or draft a safe route without becoming a workflow engine. | `templates/operations/36-process-needs-pm-decision.md`, catalog/flow rows, and targeted guards. |
+| Determine next lifecycle operation | New Operation 35. | The PM needs low-friction lifecycle routing, but it must remain read-only and recommendation-only. | `templates/operations/35-recommend-next-lifecycle-operation.md`, catalog/flow rows, and targeted guards. |
+| Phase readiness review | New Operation 37. | PM requested a named advisory readiness gate before implementation, QA/security/design, closeout, release, dogfood, or handoff. | `templates/operations/37-review-phase-readiness.md`, catalog/flow rows, and targeted guards. |
 
 Route-prompt authorization remains a two-option route-prompt/wizard-guided
 status, not a kernel permission grant: `PM_AUTHORIZATION_STATUS` has exactly two
@@ -263,7 +269,8 @@ transitions automatically.
 - Browser chat: siempre draft-only; no edita archivos, no ejecuta git, no muta
   GitHub, no afirma que edito codigo y no convierte outputs en permiso.
 - Terminal agent: puede escribir solo bajo modo de implementacion aprobado,
-  branch preflight, evidencia requerida y validacion proporcional.
+  branch preflight, evidencia requerida y validacion proporcional
+  (`docs/VALIDATION_POLICY.md`).
 - Humano PM: ejecuta bundles de comandos y decide merge, cierre, labels, tags,
   releases, settings, automation y cualquier excepcion.
 - GitHub/git: source of truth para estado vivo. Durable docs/templates guardan

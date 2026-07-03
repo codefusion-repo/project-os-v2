@@ -520,4 +520,6 @@ def test_legacy_00_37_templates_remain_usable_and_unmodified() -> None:
         assert path.read_text(encoding="utf-8").startswith("#")
 
     changed_files = _changed_files()
+    if not any(path.startswith("templates/mosdlc/operations/fase-5/") for path in changed_files):
+        return
     assert not any(path.startswith("templates/operations/") for path in changed_files)

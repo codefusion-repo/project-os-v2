@@ -111,6 +111,10 @@ Security / project constraints:
 - Keep build commands, protected paths, domain constraints, and validation notes
   here when they are stable and target-owned; never store issue/PR/branch state,
   SHAs, review status, release status, or live validation results.
+- Follow proportional validation from `KERNEL_REPOSITORY`'s
+  `docs/VALIDATION_POLICY.md`: draft scoped agent-run commands, PM-run commands,
+  or manual PM validation as the issue risk requires, and do not impose Project
+  OS-specific tests on this target by default.
 
 ## First-message activation
 

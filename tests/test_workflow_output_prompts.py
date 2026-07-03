@@ -196,23 +196,29 @@ def test_validation_discipline_boundary_is_compact_and_scoped() -> None:
 
     rule = boundary["rule"].lower()
     assert boundary["on_violation"] == "status.blocked"
-    # Keep it compact and non-duplicative: no notes field; flagging language lives in workflows.
-    assert "notes" not in boundary
-    assert len(rule) < 700
+    # Keep it compact and non-duplicative; detailed categories live in the policy doc.
+    assert len(rule) < 900
+    assert boundary["notes"] == (
+        "Categories, target-repository behavior, PM-run commands, manual validation, "
+        "full-suite limits, and test cleanup rules live once in docs/VALIDATION_POLICY.md."
+    )
 
     # Proportional automated tests, preserved for deterministic/regression/contract risk.
+    assert "all project os agents and target repositories" in rule
     assert "proportional validation" in rule
+    assert "run agent validation only for the scoped risk" in rule
+    assert "draft pm-run commands" in rule
     assert "add or update automated tests" in rule
     assert (
         "deterministic behavior, regression risk, security/privacy boundaries, protocol contracts, "
         "billing/storage logic, routing, or stable ui state contracts" in rule
     )
     # No confidence theater.
-    assert "broad, duplicated, brittle, or implementation-detail tests merely to create confidence theater" in rule
+    assert "broad, duplicated, brittle, implementation-detail, or confidence-theater tests" in rule
     # Distinguish automated validation from manual PM/user validation.
-    assert "ux feel" in rule
-    assert "ambiguous pm preference" in rule
-    assert "report the required manual validation instead of pretending automated tests prove it" in rule
+    assert "copy, docs, ux, onboarding, product judgment" in rule
+    assert "report manual pm validation" in rule
+    assert "mandatory validation remains for kernel, resolver" in rule
 
     # No broad QA/testing manifesto: stay focused on proportional validation, not a strategy doc.
     for manifesto_term in ("coverage", "test pyramid", "test strategy", "linter", "static analysis", "qa framework"):
@@ -225,16 +231,13 @@ def test_validation_discipline_boundary_is_compact_and_scoped() -> None:
     assert "proportional validation" not in primary_boundary["rule"].lower()
     assert "confidence theater" not in primary_boundary["rule"].lower()
 
-    # terminal_agent inherits it; no other actor does (it is write-capable only).
+    # Terminal and browser agents inherit it; browser uses it for route/review drafts.
     assert {entry["id"] for entry in actors["entries"]} == CANONICAL_ACTOR_IDS
-    terminal_agent = next(entry for entry in actors["entries"] if entry["id"] == "actor.terminal_agent")
-    non_terminal_refs = [
-        entry.get("boundary_refs", [])
-        for entry in actors["entries"]
-        if entry["id"] != "actor.terminal_agent"
-    ]
-    assert "boundary.validation_discipline" in terminal_agent["boundary_refs"]
-    assert all("boundary.validation_discipline" not in refs for refs in non_terminal_refs)
+    refs_by_actor = {entry["id"]: entry.get("boundary_refs", []) for entry in actors["entries"]}
+    assert "boundary.validation_discipline" in refs_by_actor["actor.terminal_agent"]
+    assert "boundary.validation_discipline" in refs_by_actor["actor.browser_chat"]
+    assert "boundary.validation_discipline" not in refs_by_actor["actor.human_pm"]
+    assert "boundary.validation_discipline" not in refs_by_actor["actor.unknown"]
 
     # Applied in issue_implementation; flaggable in review; auditable in the discipline audit.
     issue_steps = " ".join(issue_workflow["steps"]).lower()

@@ -36,7 +36,8 @@ LIVE_STATE:
   Store no issue, PR, branch, commit, validation, release, deployment, or planning state in durable files.
 
 DO:
-  Draft output.route_prompt with exact repository, issue, branch naming expectation, workflow.issue_implementation, execution mode, validation expectations, and PM_AUTHORIZATION_STATUS.
+  Draft output.route_prompt with exact repository, issue, branch naming expectation, workflow.issue_implementation, execution mode, proportional validation expectations, and PM_AUTHORIZATION_STATUS.
+  Classify validation via docs/VALIDATION_POLICY.md as agent-run required commands, PM-run drafted commands, manual PM validation, or justified no automated validation.
   State that the executing terminal agent must re-resolve kernel/manifest.json, read the issue live, perform branch preflight, validate, and report.
   Keep PM command bundles or route prompts non-authorizing; permission comes only from exact scoped PM approval plus kernel gates.
   Preserve route prompts as non-authorizing outputs; PM_AUTHORIZATION_STATUS is context, not permission.

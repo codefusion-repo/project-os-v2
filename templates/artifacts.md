@@ -45,7 +45,9 @@ rollback for a terminal agent to execute after reading the issue body live.
 
 ## Validation
 
-- [Exact commands and expected results.]
+- [Classify per `docs/VALIDATION_POLICY.md`: agent-run required commands,
+  PM-run drafted commands, manual PM validation, or no automated validation with
+  rationale. Include exact commands only when commands are required.]
 
 ## Risk and rollback
 
@@ -72,6 +74,8 @@ changed files, PR diff, and relevant final head files when needed.
 
 - `[command]` — [result]
 - `[command]` — [result]
+- PM-run/manual validation or accepted no-automated-check rationale, when
+  proportional to the issue.
 
 ## Security / Privacy
 
@@ -97,7 +101,9 @@ comments, and agent reports are claims/evidence leads, not proof.
 
 ## Validation evidence
 
-- [Each validation command with its real result, e.g. `pytest -q`: 15 passed.]
+- [Scoped validation evidence: each command run with its real result, PM-run
+  command output, manual PM validation, or justified no-automated-check
+  rationale per `docs/VALIDATION_POLICY.md`.]
 
 ## Accepted exceptions
 

@@ -33,6 +33,8 @@ DO:
   Fill the route-prompt variable block per templates/route-prompt.md (Implement an issue variant).
   Set WORKFLOW=workflow.issue_implementation, EXECUTION_MODE=mode.delegated_commit_pr,
   OUTPUT_CONTRACT=output.execution_report, and PM_AUTHORIZATION_STATUS per PM scope.
+  Set VALIDATION_REQUIRED from docs/VALIDATION_POLICY.md: agent-run required commands, PM-run drafted commands, manual PM validation, or justified no automated validation.
+  Do not default to full-suite validation or new tests unless the issue risk requires them.
   Keep it compact and issue-referential; the terminal agent re-resolves the kernel and reads the issue live.
   Never invent the target issue. A route prompt never grants write authority;
   permission comes only from exact scoped PM approval plus kernel-resolved gates.

@@ -60,7 +60,8 @@ Los Terminal Agents **ejecutan trabajo ruteado**:
 - Ejecutará el código solo bajo autorización (ej. `PM_AUTHORIZATION_STATUS`).
 - Necesita un checkout local del target, el adapter del repo (`AGENTS.md`,
   `CLAUDE.md` o `GEMINI.md` según superficie), acceso al kernel configurado por
-  `KERNEL_LOCAL_PATH`, branch de trabajo y comandos de validación del proyecto.
+  `KERNEL_LOCAL_PATH`, branch de trabajo y expectativas de validacion
+  proporcional del proyecto (`docs/VALIDATION_POLICY.md`).
 - Ejecuta solo después de adopción, route-prompt, execution mode apropiado y
   autorización PM exacta.
 

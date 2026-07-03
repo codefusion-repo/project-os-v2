@@ -38,10 +38,11 @@ materialize without a runtime, and micro-granular process issues.
   the validator fails it otherwise. It currently sits at a small fraction of the
   budget — roughly a 95% reduction against the v1 hot path. Growth requires
   shrinking something else.
-- **One validator.** `tools/validate_kernel.py` checks integrity (references,
+- **One kernel validator.** `tools/validate_kernel.py` checks integrity (references,
   canonical statuses, no permission grants, no live state, actor safety, size
-  budget). There is no other validation layer. Validators guard the kernel;
-  they do not model the process.
+  budget). Validators guard the kernel; they do not model the process. Project
+  and target work use the proportional validation policy in
+  `docs/VALIDATION_POLICY.md` instead of a blanket full-suite or new-test rule.
 - **Three layers, strictly separated.**
   - `kernel/` — stable behavior (versioned, validated).
   - GitHub — live state (`docs/TRACEABILITY_PROTOCOL.md`).
