@@ -709,8 +709,23 @@ def test_issue_346_scope_does_not_implement_tools6_or_kernel_growth() -> None:
 
     # #344/TOOLS.6 is the follow-up issue authorized to change the wizard
     # itself; this guard only continues to protect kernel/ from unrelated
-    # growth in this lifecycle-processing scope.
-    assert not any(path.startswith("kernel/") for path in changed_files)
+    # growth in this lifecycle-processing scope. Kernel files authorized by
+    # later PM-approved kernel-growth issues are excluded: #376 (MOSDLC.6a)
+    # adds minimal, internal-only, gated deploy-execution support per
+    # docs/decisions/0001. Content-level growth remains pinned by
+    # CANONICAL_KERNEL_ENTRY_IDS (test_issue_324_kernel_entry_ids_are_unchanged).
+    authorized_kernel_files = {
+        "kernel/actors.json",
+        "kernel/evidence.json",
+        "kernel/execution_modes.json",
+        "kernel/workflows.json",
+    }
+    unexpected_kernel = {
+        path
+        for path in changed_files
+        if path.startswith("kernel/") and path not in authorized_kernel_files
+    }
+    assert not unexpected_kernel, f"Unexpected kernel files were modified: {unexpected_kernel}"
     assert "Does not implement #344/TOOLS.6" in _operation_text(
         "templates/operations/34-process-manual-implementation-result.md"
     )

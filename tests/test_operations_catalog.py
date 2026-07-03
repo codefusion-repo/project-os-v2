@@ -108,11 +108,22 @@ def test_pm_operations_catalog_alignment():
         assert "github.com/" not in content, f"Live state found in {template}"
 
 def test_issue_343_kernel_growth_is_limited_to_manual_implementation_contracts():
-    # Kernel growth is allowed here only for the KOPS.2 manual no-write path.
+    # Kernel growth is allowed here only for the KOPS.2 manual no-write path,
+    # plus kernel files authorized by later PM-approved kernel-growth issues.
     import subprocess
     result = subprocess.run(["git", "diff", "--name-only", "origin/main...HEAD", "kernel/"], capture_output=True, text=True)
     changed_files = [f for f in result.stdout.strip().split('\n') if f]
-    allowed_files = {"kernel/workflows.json", "kernel/outputs.json"}
+    allowed_files = {
+        "kernel/workflows.json",
+        "kernel/outputs.json",
+        # Authorized by #376 (MOSDLC.6a) per docs/decisions/0001: minimal,
+        # internal-only, gated local/staging deploy-execution kernel support.
+        # Content-level growth stays pinned by CANONICAL_KERNEL_ENTRY_IDS in
+        # tests/test_pm_operation_contracts.py::test_issue_324_kernel_entry_ids_are_unchanged.
+        "kernel/actors.json",
+        "kernel/evidence.json",
+        "kernel/execution_modes.json",
+    }
     assert set(changed_files).issubset(allowed_files), f"Unexpected kernel files were modified: {changed_files}"
 
     if changed_files:
