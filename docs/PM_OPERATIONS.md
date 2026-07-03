@@ -39,7 +39,7 @@ como fuente de reemplazo y compatibilidad. La migracion de una fase agrega
 templates, docs y tests; no agrega ids de kernel ni cambia autorizacion por si
 misma.
 
-Fase 0, Fase 1, Fase 2, Fase 3 y Fase 4 son los lotes migrados. Sus templates son prompts
+Fase 0, Fase 1, Fase 2, Fase 3, Fase 4 y Fase 5 son los lotes migrados. Sus templates son prompts
 ejecutables con la misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`,
 `KERNEL`, `COMPATIBILITY_SOURCE`, `LIVE_STATE`, `DO`, `OUTPUT`, `LIMITS`,
 `RECOMMENDED_NEXT_OPERATION`) y todos incluyen `PM_FEEDBACK_HUMANO` y
@@ -120,11 +120,31 @@ apruebe cambios de wizard o catalogo interactivo.
 | MOS-4.6 | process-production-readiness-checklist | `templates/mosdlc/operations/fase-4/MOS-4.6-process-production-readiness-checklist.md` | `templates/operations/30-process-human-qa-results.md` |
 | MOS-4.7 | draft-follow-up-from-qa | `templates/mosdlc/operations/fase-4/MOS-4.7-draft-follow-up-from-qa.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` |
 | MOS-4.8 | draft-correction-from-qa | `templates/mosdlc/operations/fase-4/MOS-4.8-draft-correction-from-qa.md` | `templates/operations/08-draft-review-correction-route-prompt.md` |
+| MOS-5.1 | analyze-local-deploy-readiness | `templates/mosdlc/operations/fase-5/MOS-5.1-analyze-local-deploy-readiness.md` | — |
+| MOS-5.2 | draft-local-deploy-checklist | `templates/mosdlc/operations/fase-5/MOS-5.2-draft-local-deploy-checklist.md` | — |
+| MOS-5.3 | process-local-deploy-checklist | `templates/mosdlc/operations/fase-5/MOS-5.3-process-local-deploy-checklist.md` | — |
+| MOS-5.4 | analyze-staging-deploy-readiness | `templates/mosdlc/operations/fase-5/MOS-5.4-analyze-staging-deploy-readiness.md` | — |
+| MOS-5.5 | draft-staging-deploy-checklist | `templates/mosdlc/operations/fase-5/MOS-5.5-draft-staging-deploy-checklist.md` | — |
+| MOS-5.6 | process-staging-deploy-checklist | `templates/mosdlc/operations/fase-5/MOS-5.6-process-staging-deploy-checklist.md` | — |
+| MOS-5.7 | analyze-production-deploy-readiness | `templates/mosdlc/operations/fase-5/MOS-5.7-analyze-production-deploy-readiness.md` | — |
+| MOS-5.8 | draft-production-deploy-checklist | `templates/mosdlc/operations/fase-5/MOS-5.8-draft-production-deploy-checklist.md` | — |
+| MOS-5.9 | process-production-deploy-checklist | `templates/mosdlc/operations/fase-5/MOS-5.9-process-production-deploy-checklist.md` | — |
+| MOS-5.10 | draft-local-deploy-commands | `templates/mosdlc/operations/fase-5/MOS-5.10-draft-local-deploy-commands.md` | — |
+| MOS-5.11 | execute-local-deploy | `templates/mosdlc/operations/fase-5/MOS-5.11-execute-local-deploy.md` | — |
+| MOS-5.12 | draft-staging-deploy-commands | `templates/mosdlc/operations/fase-5/MOS-5.12-draft-staging-deploy-commands.md` | — |
+| MOS-5.13 | execute-staging-deploy | `templates/mosdlc/operations/fase-5/MOS-5.13-execute-staging-deploy.md` | — |
+| MOS-5.14 | draft-production-deploy-commands | `templates/mosdlc/operations/fase-5/MOS-5.14-draft-production-deploy-commands.md` | — |
+| MOS-5.15 | execute-production-deploy | `templates/mosdlc/operations/fase-5/MOS-5.15-execute-production-deploy.md` | — |
 
 Estos templates no guardan estado vivo durable y no autorizan escritura. Browser
 chat permanece draft-only; terminal agent escribe solo con aprobacion PM exacta,
 evidence requerido, branch preflight, validacion y review-before-close cuando
 aplique.
+
+Fase 5 agrega superficies de despliegue local, staging y produccion sin otorgar
+autoridad de deploy. Readiness es read-only, checklists y bundles son Human
+PM-facing, los comandos salen solo de notas target-owned, y MOS-5.11, MOS-5.13
+y MOS-5.15 son candidatos fail-closed sin ids nuevos de kernel.
 
 Las superficies (browser chat, terminal agent, Humano PM, destinatario externo)
 aparecen en la columna **Superficie**. Las variables son selectores de contexto,
