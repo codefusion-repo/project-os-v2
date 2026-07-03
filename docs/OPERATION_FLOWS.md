@@ -47,7 +47,7 @@ Cada fila del mapa usa esta forma estandar:
 
 ## MOSDLC Migration Flow
 
-La migracion MOSDLC empieza por Fase 0 y continua por Fase 1, Fase 2 y Fase 3,
+La migracion MOSDLC empieza por Fase 0 y continua por Fase 1, Fase 2, Fase 3 y Fase 4,
 documentadas en `docs/MOSDLC_TEMPLATE_STANDARD.md`. Los templates migrados viven en
 `templates/mosdlc/operations/fase-<n>/`; los templates `00`-`37` siguen siendo
 el catalogo de compatibilidad vigente, no se eliminan, no se renombran y no se
@@ -118,6 +118,14 @@ renumeran.
 | MOS-3.29 | Development / Implementation | `templates/mosdlc/operations/fase-3/MOS-3.29-draft-follow-up-from-security.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` | MOS-3.4. |
 | MOS-3.30 | Development / Implementation | `templates/mosdlc/operations/fase-3/MOS-3.30-draft-manual-implementation-plan.md` | `templates/operations/33-draft-manual-implementation-plan.md` | MOS-3.31. |
 | MOS-3.31 | Development / Implementation | `templates/mosdlc/operations/fase-3/MOS-3.31-process-manual-implementation-result.md` | `templates/operations/34-process-manual-implementation-result.md` | MOS-3.7 si hay PR. |
+| MOS-4.1 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.1-draft-qa-checklist-issue-pr.md` | `templates/operations/18-draft-human-qa-checklist.md` | MOS-4.4. |
+| MOS-4.2 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.2-draft-qa-checklist-description.md` | `templates/operations/18-draft-human-qa-checklist.md` | MOS-4.5. |
+| MOS-4.3 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.3-draft-production-readiness-checklist.md` | `templates/operations/18-draft-human-qa-checklist.md` | MOS-4.6. |
+| MOS-4.4 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.4-process-qa-checklist-issue-pr.md` | `templates/operations/30-process-human-qa-results.md` | MOS-4.8 para bloqueantes; MOS-4.7 para no bloqueantes; MOS-3.7 si QA soporta review-before-close. |
+| MOS-4.5 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.5-process-qa-checklist-feature.md` | `templates/operations/30-process-human-qa-results.md` | MOS-3.8 si nace trabajo nuevo; MOS-4.7 para no bloqueantes. |
+| MOS-4.6 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.6-process-production-readiness-checklist.md` | `templates/operations/30-process-human-qa-results.md` | MOS-R.4 antes de cualquier transicion posterior de fase. |
+| MOS-4.7 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.7-draft-follow-up-from-qa.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` | MOS-3.4 cuando se priorice. |
+| MOS-4.8 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.8-draft-correction-from-qa.md` | `templates/operations/08-draft-review-correction-route-prompt.md` | MOS-3.7 despues de aplicar correcciones. |
 
 Estas filas son superficie PM-facing de activacion, no un motor de workflow.
 Cada template debe resolver `kernel/manifest.json`, leer estado vivo solo al
