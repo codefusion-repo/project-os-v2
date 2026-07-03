@@ -92,6 +92,27 @@ class TestHappyPath:
         assert "non_authorization" in result
         assert "never grants" in result["non_authorization"]
 
+        guidance = result["operative_guidance"]
+        assert guidance["role"] == "operative_task_guidance"
+        assert "not merely informational context" in guidance["summary"]
+        assert "workflow.issue_implementation" in " ".join(guidance["must_follow"])
+        assert "mode.delegated_commit_pr" in " ".join(guidance["must_follow"])
+        assert "never grants" in guidance["authorization"]
+
+        traceability = result["live_traceability"]
+        assert traceability["status"] == "required_preflight"
+        assert traceability["resolver_role"] == "emit_obligations_only_no_github_or_git_fetch"
+        assert traceability["protocol_ref"] == "docs/TRACEABILITY_PROTOCOL.md"
+        assert "Before edits" in traceability["before_actions"]
+        reads = " ".join(traceability["required_live_reads"])
+        assert "current GitHub issue or PR live" in reads
+        assert "local git branch" in reads
+        assert "linked PRs live" in reads
+        assert "canonical roadmap issue" in reads
+        assert "docs/decisions ADRs" in reads
+        assert "memory" in traceability["state_policy"]
+        assert "durable files" in traceability["state_policy"]
+
     def test_browser_chat_review_before_close(self) -> None:
         result = _resolve_ok(
             "actor.browser_chat",
@@ -105,6 +126,31 @@ class TestHappyPath:
 
         # Browser chat boundaries should include draft_only_browser.
         assert "boundary.draft_only_browser" in resolved["boundaries"]
+
+        traceability = result["live_traceability"]
+        assert "Before non-trivial analysis" in traceability["before_actions"]
+        reads = " ".join(traceability["required_live_reads"])
+        assert "linked issue objective" in reads
+        assert "PR body, comments, reviews" in reads
+        assert "real diff" in reads
+        assert "code/diff/check evidence" in reads
+
+    def test_pm_intake_traceability_is_visible(self) -> None:
+        result = _resolve_ok(
+            "actor.browser_chat",
+            "workflow.pm_intake",
+            "mode.review_only",
+        )
+
+        traceability = result["live_traceability"]
+        assert traceability["status"] == "required_preflight"
+        reads = " ".join(traceability["required_live_reads"])
+        assert "source-basis issues" in reads
+        assert "roadmap evidence" in reads
+        assert "relevant ADRs" in reads
+        assert "single evidence-backed next outcome" in reads
+        assert "no_github_or_git_fetch" in traceability["resolver_role"]
+        assert "durable files" in traceability["state_policy"]
 
     def test_browser_chat_manual_implementation_plan_is_review_only(self) -> None:
         result = _resolve_ok(
@@ -514,7 +560,14 @@ class TestOutputStructure:
             "workflow.review_only",
             "mode.review_only",
         )
-        assert set(result.keys()) == {"resolved", "status", "errors", "non_authorization"}
+        assert set(result.keys()) == {
+            "resolved",
+            "status",
+            "errors",
+            "operative_guidance",
+            "live_traceability",
+            "non_authorization",
+        }
 
     def test_resolved_keys(self) -> None:
         result = _resolve_ok(
