@@ -47,7 +47,7 @@ Cada fila del mapa usa esta forma estandar:
 
 ## MOSDLC Migration Flow
 
-La migracion MOSDLC empieza por Fase 0 y continua por Fase 1, Fase 2, Fase 3 y Fase 4,
+La migracion MOSDLC empieza por Fase 0 y continua por Fase 1, Fase 2, Fase 3, Fase 4 y Fase 5,
 documentadas en `docs/MOSDLC_TEMPLATE_STANDARD.md`. Los templates migrados viven en
 `templates/mosdlc/operations/fase-<n>/`; los templates `00`-`37` siguen siendo
 el catalogo de compatibilidad vigente, no se eliminan, no se renombran y no se
@@ -126,12 +126,30 @@ renumeran.
 | MOS-4.6 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.6-process-production-readiness-checklist.md` | `templates/operations/30-process-human-qa-results.md` | MOS-R.4 antes de cualquier transicion posterior de fase. |
 | MOS-4.7 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.7-draft-follow-up-from-qa.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` | MOS-3.4 cuando se priorice. |
 | MOS-4.8 | Testing / QA | `templates/mosdlc/operations/fase-4/MOS-4.8-draft-correction-from-qa.md` | `templates/operations/08-draft-review-correction-route-prompt.md` | MOS-3.7 despues de aplicar correcciones. |
+| MOS-5.1 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.1-analyze-local-deploy-readiness.md` | — | MOS-5.2. |
+| MOS-5.2 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.2-draft-local-deploy-checklist.md` | — | MOS-5.3. |
+| MOS-5.3 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.3-process-local-deploy-checklist.md` | — | MOS-5.10 cuando exista evidencia target-owned; si no, MOS-R.3 o ejecucion humana seguida de MOS-R.13. |
+| MOS-5.4 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.4-analyze-staging-deploy-readiness.md` | — | MOS-5.5. |
+| MOS-5.5 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.5-draft-staging-deploy-checklist.md` | — | MOS-5.6. |
+| MOS-5.6 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.6-process-staging-deploy-checklist.md` | — | MOS-5.12 cuando exista evidencia target-owned; si no, MOS-R.3 o ejecucion humana seguida de MOS-R.13. |
+| MOS-5.7 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.7-analyze-production-deploy-readiness.md` | — | MOS-5.8. |
+| MOS-5.8 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.8-draft-production-deploy-checklist.md` | — | MOS-5.9. |
+| MOS-5.9 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.9-process-production-deploy-checklist.md` | — | MOS-5.14 cuando exista evidencia target-owned; produccion queda con Humano PM por defecto. |
+| MOS-5.10 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.10-draft-local-deploy-commands.md` | — | MOS-5.11 solo con candidato/aprobacion separada; por defecto Humano PM ejecuta y luego MOS-R.13. |
+| MOS-5.11 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.11-execute-local-deploy.md` | — | Fail-closed candidate; MOS-5.10, MOS-R.3 o MOS-R.13 tras ejecucion humana. |
+| MOS-5.12 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.12-draft-staging-deploy-commands.md` | — | MOS-5.13 solo con candidato/aprobacion separada; por defecto Humano PM ejecuta y luego MOS-R.13. |
+| MOS-5.13 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.13-execute-staging-deploy.md` | — | Fail-closed candidate; MOS-5.12, MOS-R.3 o MOS-R.13 tras ejecucion humana. |
+| MOS-5.14 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.14-draft-production-deploy-commands.md` | — | Humano PM ejecuta y luego MOS-R.13 por defecto; MOS-5.15 solo con candidato/aprobacion separada. |
+| MOS-5.15 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.15-execute-production-deploy.md` | — | Fail-closed candidate; MOS-5.14, MOS-R.3 o MOS-R.13 tras ejecucion humana. |
 
 Estas filas son superficie PM-facing de activacion, no un motor de workflow.
 Cada template debe resolver `kernel/manifest.json`, leer estado vivo solo al
 momento de ejecutar, fallar cerrado cuando falte evidencia, y declarar que el
 template no autoriza escrituras. Cualquier escritura terminal sigue requiriendo
 aprobacion PM exacta, evidence requerido, branch preflight, validacion y review.
+Fase 5 mantiene readiness read-only, checklists Human PM-facing, command bundles
+Human PM-executed y candidatos de ejecucion fail-closed; ningun template
+ejecuta deploy ni agrega ids de kernel.
 
 ## SDLC Comparison and KOPS.3 Fit Check
 

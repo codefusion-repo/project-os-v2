@@ -149,6 +149,33 @@ Cada template MOSDLC es un prompt ejecutable para IA y usa esta forma:
 | MOS-4.7 | `templates/mosdlc/operations/fase-4/MOS-4.7-draft-follow-up-from-qa.md` | `templates/operations/21-draft-create-follow-up-from-review-command.md` |
 | MOS-4.8 | `templates/mosdlc/operations/fase-4/MOS-4.8-draft-correction-from-qa.md` | `templates/operations/08-draft-review-correction-route-prompt.md` |
 
+## Fase 5 Migrada
+
+| MOSDLC ID | Template MOSDLC | Fuente de compatibilidad |
+|---|---|---|
+| MOS-5.1 | `templates/mosdlc/operations/fase-5/MOS-5.1-analyze-local-deploy-readiness.md` | — |
+| MOS-5.2 | `templates/mosdlc/operations/fase-5/MOS-5.2-draft-local-deploy-checklist.md` | — |
+| MOS-5.3 | `templates/mosdlc/operations/fase-5/MOS-5.3-process-local-deploy-checklist.md` | — |
+| MOS-5.4 | `templates/mosdlc/operations/fase-5/MOS-5.4-analyze-staging-deploy-readiness.md` | — |
+| MOS-5.5 | `templates/mosdlc/operations/fase-5/MOS-5.5-draft-staging-deploy-checklist.md` | — |
+| MOS-5.6 | `templates/mosdlc/operations/fase-5/MOS-5.6-process-staging-deploy-checklist.md` | — |
+| MOS-5.7 | `templates/mosdlc/operations/fase-5/MOS-5.7-analyze-production-deploy-readiness.md` | — |
+| MOS-5.8 | `templates/mosdlc/operations/fase-5/MOS-5.8-draft-production-deploy-checklist.md` | — |
+| MOS-5.9 | `templates/mosdlc/operations/fase-5/MOS-5.9-process-production-deploy-checklist.md` | — |
+| MOS-5.10 | `templates/mosdlc/operations/fase-5/MOS-5.10-draft-local-deploy-commands.md` | — |
+| MOS-5.11 | `templates/mosdlc/operations/fase-5/MOS-5.11-execute-local-deploy.md` | — |
+| MOS-5.12 | `templates/mosdlc/operations/fase-5/MOS-5.12-draft-staging-deploy-commands.md` | — |
+| MOS-5.13 | `templates/mosdlc/operations/fase-5/MOS-5.13-execute-staging-deploy.md` | — |
+| MOS-5.14 | `templates/mosdlc/operations/fase-5/MOS-5.14-draft-production-deploy-commands.md` | — |
+| MOS-5.15 | `templates/mosdlc/operations/fase-5/MOS-5.15-execute-production-deploy.md` | — |
+
+Fase 5 conserva las distinciones local, staging y produccion. Los analisis de
+readiness son read-only/draft-only; los checklists son Human PM-facing; los
+bundles de comandos son `output.pm_command_bundle` ejecutados por el Humano PM
+y derivados solo de comandos target-owned. MOS-5.11, MOS-5.13 y MOS-5.15
+preservan postura `kernel:candidate`, fallan cerrado bajo el kernel actual y no
+agregan ids nuevos.
+
 El wizard local sigue leyendo `templates/operations/` como catalogo de
 compatibilidad vigente. La exposicion PM de los templates MOSDLC migrados vive
 en este documento, `docs/PM_OPERATIONS.md` y `docs/OPERATION_FLOWS.md` hasta
