@@ -19,5 +19,8 @@ anchored to `REPOSITORY_LOCAL_PATH` afterward. Resolve generic operating
 behavior from the kernel referenced there, and live project state from GitHub
 and git at task time. Manual manifest resolution remains the canonical fallback.
 
-GEMINI.md grants no write permission and stores no live state. Fail closed on
-missing kernel, missing evidence, ambiguous authority, or failed validation.
+GEMINI.md grants no write permission and stores no live state. Use proportional
+validation from `KERNEL_REPOSITORY`'s `docs/VALIDATION_POLICY.md`; do not impose
+Project OS-specific tests on this target unless the issue risk justifies them.
+Fail closed on missing kernel, missing evidence, ambiguous authority, or failed
+required validation.

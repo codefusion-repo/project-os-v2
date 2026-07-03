@@ -68,7 +68,8 @@
     },
     {
       "id": "boundary.validation_discipline",
-      "rule": "Write-capable implementation must use proportional validation. Add or update automated tests when they protect deterministic behavior, regression risk, security/privacy boundaries, protocol contracts, billing/storage logic, routing, or stable UI state contracts. Do not add broad, duplicated, brittle, or implementation-detail tests merely to create confidence theater. When acceptance depends on UX feel, copy quality, product judgment, hardware behavior, Google Play behavior, or ambiguous PM preference, report the required manual validation instead of pretending automated tests prove it.",
+      "rule": "All Project OS agents and target repositories use proportional validation. Run agent validation only for the scoped risk; draft PM-run commands when useful validation should remain PM-executed; report manual PM validation for copy, docs, UX, onboarding, product judgment, or other human acceptance. Add or update automated tests only when they protect deterministic behavior, regression risk, security/privacy boundaries, protocol contracts, billing/storage logic, routing, or stable UI state contracts. Do not add broad, duplicated, brittle, implementation-detail, or confidence-theater tests. Mandatory validation remains for kernel, resolver, command safety, traceability, authorization, security/privacy, deployment, secret-sensitive, production-impacting, and deterministic contract changes.",
+      "notes": "Categories, target-repository behavior, PM-run commands, manual validation, full-suite limits, and test cleanup rules live once in docs/VALIDATION_POLICY.md.",
       "on_violation": "status.blocked"
     },
     {

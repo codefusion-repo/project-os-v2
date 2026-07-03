@@ -36,7 +36,9 @@ LIVE_STATE:
   Store no issue, PR, branch, commit, validation, release, deployment, or planning state in durable files.
 
 DO:
-  Compare issue objective, scope, out-of-scope, and acceptance criteria against changed files, diff, final files when needed, and validation evidence.
+  Compare issue objective, scope, out-of-scope, and acceptance criteria against changed files, diff, final files when needed, validation evidence, and docs/VALIDATION_POLICY.md.
+  Accept scoped PM-run command output, manual PM validation, or a justified no-automated-check exception only when mandatory validation was not required by risk.
+  Fail closed when mandatory validation is missing for kernel, resolver, security, authorization, traceability, deployment, secret-sensitive, production-impacting, or deterministic contract changes.
   Report findings before summary and draft closeout only when code-backed review resolves the issue.
   Return status.needs_context instead of GO when code, diff, final-file, issue, PR, or validation evidence cannot be inspected.
   Preserve review-before-close behavior; this template does not merge or close.

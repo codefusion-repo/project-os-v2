@@ -50,6 +50,7 @@
         "boundary.security_privacy",
         "boundary.fail_closed",
         "boundary.output_not_permission",
+        "boundary.validation_discipline",
         "boundary.context_economy"
       ]
     },

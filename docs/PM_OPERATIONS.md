@@ -36,8 +36,9 @@ El estandar de migracion vive en `docs/MOSDLC_TEMPLATE_STANDARD.md`.
 Los templates MOSDLC migrados se agregan bajo
 `templates/mosdlc/operations/fase-<n>/`; el catalogo `00`-`37` permanece usable
 como fuente de reemplazo y compatibilidad. La migracion de una fase agrega
-templates, docs y tests; no agrega ids de kernel ni cambia autorizacion por si
-misma.
+templates y docs; agrega o actualiza tests solo cuando protegen contratos
+deterministas, seguridad, trazabilidad, comandos, resolver, adopcion target u
+otro riesgo real. No agrega ids de kernel ni cambia autorizacion por si misma.
 
 Fase 0, Fase 1, Fase 2, Fase 3, Fase 4 y Fase 5 son los lotes migrados. Sus templates son prompts
 ejecutables con la misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`,
@@ -46,6 +47,12 @@ ejecutables con la misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`,
 `PM_QUESTION_HUMANO` como contexto opcional. El wizard local sigue leyendo
 `templates/operations/` como catalogo interactivo vigente hasta que otro issue
 apruebe cambios de wizard o catalogo interactivo.
+
+La validacion global es proporcional (`docs/VALIDATION_POLICY.md`). Las
+operaciones no asumen full suite ni tests nuevos por defecto; el route prompt o
+template debe clasificar validacion agent-run requerida, comandos PM-run
+drafted, validacion manual PM, o ausencia justificada de validacion
+automatizada.
 
 | MOSDLC ID | Operacion | Template MOSDLC | Fuente 00-37 |
 |---|---|---|---|

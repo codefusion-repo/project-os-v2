@@ -15,7 +15,7 @@ Decisiones PM que gobiernan este mapa:
   sirve como inspiración, referencia de compatibilidad y fuente de reemplazo
   hasta que la migración se apruebe por issues separados.
 - El crecimiento de operaciones no es crecimiento del kernel: las operaciones
-  son superficies de activación PM-facing (templates, docs y tests) sobre el
+  son superficies de activación PM-facing (templates, docs y targeted guards) sobre el
   kernel compacto existente. La única excepción aprobada es la ejecución interna
   de despliegue local/staging (#376), que agregó ids de kernel mínimos con gap
   estricto probado y aprobación PM exacta.
@@ -72,8 +72,10 @@ evidence.deployment_readiness para ejecución interna local y staging (MOS-5.11 
 MOS-5.13), con producción (MOS-5.15) fuera del alcance del agente y en manos del
 Humano PM. Ver
 [Candidatos de cambio de kernel](#candidatos-de-cambio-de-kernel-resueltos-en-376).
-Agregar una operación MOSDLC significa agregar template, filas de docs y tests;
-agregar ids de kernel siempre exige gap estricto probado y aprobación PM exacta
+Agregar una operación MOSDLC significa agregar template y filas de docs; tests
+se agregan o actualizan solo cuando protegen un contrato determinista,
+seguridad, trazabilidad, comandos, resolver, adopcion target u otro riesgo real.
+Agregar ids de kernel siempre exige gap estricto probado y aprobación PM exacta
 separada.
 
 ## Fase 0 — Adaptación
@@ -386,9 +388,11 @@ cada uno con su propio issue y aprobación PM:
    parametrizado o como templates separados.
 2. **Decisión de kernel fit**: evaluar los candidatos de la sección anterior
    con evidencia de dogfood antes de proponer cualquier id nuevo.
-3. **Actualización de docs y tests**: extender el índice canónico y el manual
-   de flujos cuando los primeros templates MOSDLC existan, manteniendo el
-   catálogo `00`–`37` operativo durante la transición.
+3. **Actualización de docs y guards proporcionales**: extender el índice
+   canónico y el manual de flujos cuando los primeros templates MOSDLC existan,
+   agregando tests solo cuando haya contratos deterministas o riesgo real que
+   proteger, y manteniendo el catálogo `00`–`37` operativo durante la
+   transición.
 4. **Operaciones de despliegue internal-only**: implementar las filas de la
    Fase 5 y MOS-R.11 a MOS-R.16 solo para targets con `Project-specific
    notes` estables, junto con MOS-R.23 para la conversión pre-release.

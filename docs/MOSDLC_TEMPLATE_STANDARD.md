@@ -42,7 +42,11 @@ Cada template MOSDLC es un prompt ejecutable para IA y usa esta forma:
   no introducen candidatos de kernel.
 - Un template MOSDLC no autoriza escrituras por si mismo. La escritura terminal
   requiere aprobacion PM exacta, evidence requerido, branch preflight,
-  validacion y review-before-close cuando aplique.
+  validacion proporcional y review-before-close cuando aplique.
+- La validacion sigue `docs/VALIDATION_POLICY.md`: los templates clasifican
+  validacion agent-run, comandos PM-run, validacion manual PM o ausencia
+  justificada de validacion automatizada. Una fase MOSDLC nueva no implica por
+  si misma un archivo de tests nuevo.
 - Cada template debe declarar `Template authority: none` en `LIMITS`.
 - Browser chat permanece draft-only.
 - Los templates no guardan URLs vivas de issues/PRs, ramas de trabajo, SHAs,

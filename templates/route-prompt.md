@@ -19,6 +19,13 @@ mere context and not authorization; the executing agent still reconstructs live
 traceability, confirms exact PM approval where required, and fails closed on
 missing evidence.
 
+Validation is proportional for every route and target repository
+(`boundary.validation_discipline`, `docs/VALIDATION_POLICY.md`). The route
+prompt states scoped validation expectations; it does not default to a full
+suite or new tests. Use `VALIDATION_REQUIRED` to distinguish agent-run required
+commands, PM-run drafted commands, manual PM validation, or justified no
+automated validation.
+
 ## Variable block (omit lines that do not apply)
 
 ~~~text
@@ -35,7 +42,7 @@ OUTPUT_CONTRACT = {{canonical output id from kernel/outputs.json}}
 SCOPE = {{1-3 lines, never the full issue body}}
 OUT_OF_SCOPE = {{1-3 lines, only plausible mistakes}}
 EVIDENCE_REQUIRED = {{canonical evidence ids from kernel/evidence.json}}
-VALIDATION_REQUIRED = {{exact commands}}
+VALIDATION_REQUIRED = {{agent-run commands | PM-run draft commands | manual validation | no automated validation, with rationale}}
 BRANCH_NAME = work/{{issue}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium | high | xhigh}} — {{1-2 line rationale}}
@@ -58,7 +65,11 @@ Set the workflow/mode/output as shown, then add the instruction line.
   `EVIDENCE_REQUIRED = evidence.issue_scope, evidence.branch_preflight, evidence.pm_approval, evidence.validation_output`.
   *Instruction:* "Implement ISSUE_OR_PR in REPOSITORY_NAME. Resolve the kernel,
   run branch preflight, work only inside SCOPE on BRANCH_NAME, validate, and
-  report per OUTPUT_CONTRACT."
+  report per OUTPUT_CONTRACT. Use proportional validation: run mandatory
+  agent-side checks for deterministic, kernel, resolver, security,
+  authorization, traceability, deployment, secret-sensitive,
+  production-impacting, or other high-risk changes; otherwise draft PM-run
+  commands or manual validation when that is the scoped evidence."
 
 - **Adopt target repository** — `WORKFLOW = workflow.target_adoption`;
   `EXECUTION_MODE = mode.review_only | mode.delegated_commit_pr`;
@@ -95,7 +106,9 @@ Set the workflow/mode/output as shown, then add the instruction line.
   PR body/comments/reports only as claims, then inspect changed files, PR diff,
   and relevant final head files when the diff is insufficient. Compare
   implementation behavior against issue objective/scope/out-of-scope/acceptance
-  criteria and validation against changed behavior. If code/diff/final file
+  criteria and validation against the issue's scoped validation expectations,
+  including accepted PM-run or manual validation evidence when proportional.
+  If code/diff/final file
   evidence cannot be inspected, return `status.needs_context`, not GO. Do not
   merge or close; report a verdict with findings by file:line and explicit
   not-reviewed gaps."

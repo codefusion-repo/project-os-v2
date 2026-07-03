@@ -28,8 +28,11 @@ evidence can be re-read.
    present, a concise friction note, and commit/PR references.
 
 4. **Every PR documents its own verification.** PR bodies follow
-   `templates/artifacts.md` (Pull request): summary, scope and boundaries, validation commands with
-   results, security/privacy notes, linked issue.
+   `templates/artifacts.md` (Pull request): summary, scope and boundaries,
+   validation commands with results or scoped PM/manual validation evidence,
+   security/privacy notes, linked issue. Validation is proportional per
+   `docs/VALIDATION_POLICY.md`; broad suites are not required when the issue
+   risk does not justify them.
 
 5. **One canonical roadmap issue per project.** It answers "what comes next
    and why" and is updated by superseding, not by storing mutable status.

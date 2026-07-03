@@ -22,8 +22,10 @@ LIVE_STATE:
   When a PR exists, this operation is the standard Project OS path for consuming terminal-agent execution reports before close.
 
 DO:
-  Compare implementation behavior and validation against the linked issue requirements.
+  Compare implementation behavior and validation against the linked issue requirements and docs/VALIDATION_POLICY.md.
   Compare EXECUTION_REPORT claims against issue scope, PR diff, final head files, and validation evidence.
+  Accept scoped PM-run command output, manual PM validation, or a justified no-automated-check exception when broad agent-run validation was intentionally out of scope.
+  Fail closed when mandatory validation is missing for kernel, resolver, security, authorization, traceability, deployment, secret-sensitive, production-impacting, or deterministic contract changes.
   Never emit GO/resolved based only on EXECUTION_REPORT, PR body, comments, or validation summary claims.
   Verify scope, out-of-scope, secret-safety, and acceptance criteria against code/diff/final-file evidence.
   Return output.review_result with verdict and findings.
