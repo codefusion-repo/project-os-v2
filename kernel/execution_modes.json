@@ -31,6 +31,13 @@
       "allowed_actions": ["read", "analyze", "edit_scoped_files", "run_validation", "commit", "push_work_branch", "open_draft_pr", "report"],
       "prohibited_actions": ["merge", "close_issue", "apply_labels", "create_tags_or_releases", "change_settings"],
       "required_evidence_refs": ["evidence.issue_scope", "evidence.branch_preflight", "evidence.pm_approval", "evidence.validation_output"]
+    },
+    {
+      "id": "mode.delegated_deploy_execution",
+      "summary": "Internal-only execution of target-owned deployment commands for one approved environment, local or staging only. Runs only commands documented as target-owned in the target's Project-specific notes; never edits repo files, commits, pushes, opens PRs, invents commands, exposes or requests secrets, runs broad environment/config dumps, or mutates secret stores. Production execution stays with the Human PM by default and is never run by a terminal agent under this mode.",
+      "allowed_actions": ["read", "analyze", "run_target_owned_deploy_commands", "run_validation", "report"],
+      "prohibited_actions": ["edit_scoped_files", "commit", "push_work_branch", "open_draft_pr", "any_github_mutation", "invent_deploy_commands", "execute_production_deploy", "deploy_without_exact_environment_scoped_approval", "expose_or_request_secrets", "broad_environment_or_config_dumps", "mutate_secret_stores_dns_host_provider_payment_or_database_outside_target_owned_commands"],
+      "required_evidence_refs": ["evidence.issue_scope", "evidence.pm_approval", "evidence.target_adoption", "evidence.deployment_readiness", "evidence.validation_output"]
     }
   ],
   "approval_note": "An explicit PM decision or approval is controlling evidence for the point decided. A PM-approved scoped route prompt, or manual PM execution of an already scoped command bundle, is approval evidence for that exact scope. Do not re-request authorization, return status.needs_pm_decision, or return status.blocked for agent disagreement alone. Report disagreement as risk or accepted exception unless a named boundary or gate is hit, separate exact approval is required for a different write action, or new material evidence changes scope, target, actor, write type, risk, feasibility, or evidence sufficiency."

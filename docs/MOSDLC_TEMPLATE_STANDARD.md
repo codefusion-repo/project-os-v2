@@ -172,9 +172,14 @@ Cada template MOSDLC es un prompt ejecutable para IA y usa esta forma:
 Fase 5 conserva las distinciones local, staging y produccion. Los analisis de
 readiness son read-only/draft-only; los checklists son Human PM-facing; los
 bundles de comandos son `output.pm_command_bundle` ejecutados por el Humano PM
-y derivados solo de comandos target-owned. MOS-5.11, MOS-5.13 y MOS-5.15
-preservan postura `kernel:candidate`, fallan cerrado bajo el kernel actual y no
-agregan ids nuevos.
+y derivados solo de comandos target-owned. El issue #376 (MOSDLC.6a) aplico
+`workflow.deployment`, `mode.delegated_deploy_execution` y
+`evidence.deployment_readiness` para ejecucion interna local y staging: MOS-5.11
+y MOS-5.13 son operaciones reales gated, internal-only y target-owned, con
+aprobacion PM exacta por target/entorno/accion y fail-closed. MOS-5.15
+(produccion) preserva postura `kernel:candidate`, no se ejecuta por agente y
+queda con el Humano PM por defecto. Los detalles viven en
+`docs/decisions/0001-fase5-deploy-execution-fail-closed.md`.
 
 El wizard local sigue leyendo `templates/operations/` como catalogo de
 compatibilidad vigente. La exposicion PM de los templates MOSDLC migrados vive

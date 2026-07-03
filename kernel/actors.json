@@ -18,7 +18,7 @@
       "capabilities": ["read", "analyze", "edit_scoped_files", "validate", "commit", "push", "open_draft_pr", "comment_when_scoped"],
       "denied_actions": ["merge", "close_issue", "apply_labels", "create_tags_or_releases", "change_settings", "create_automation", "edit_main_directly"],
       "denied_note": "Each denied action requires separate exact PM approval for that specific action; it is never implied by issue scope or mode.",
-      "allowed_mode_refs": ["mode.review_only", "mode.local_implementation", "mode.delegated_commit_push", "mode.delegated_commit_pr"],
+      "allowed_mode_refs": ["mode.review_only", "mode.local_implementation", "mode.delegated_commit_push", "mode.delegated_commit_pr", "mode.delegated_deploy_execution"],
       "boundary_refs": [
         "boundary.branch_preflight",
         "boundary.no_main_edits",

@@ -307,7 +307,7 @@ def test_map_doc_exists_with_required_sections() -> None:
         "Candidatos de cambio de kernel",
         "no otorga permiso",
         "Ninguna operación PM-written se elimina",
-        "Ningún candidato de kernel se aplica en este issue",
+        "Aplicado en #376",
     ):
         assert fragment in text, f"map doc must contain: {fragment}"
 
@@ -359,25 +359,31 @@ def test_every_row_has_complete_contract_fields() -> None:
             assert token in row["Postura"], f"{rid}: Postura missing {token}"
 
 
-def test_map_kernel_ids_resolve_and_candidates_are_not_applied() -> None:
+def test_map_kernel_ids_resolve_and_deploy_candidates_are_applied() -> None:
     text = _doc_text()
     kernel_ids = _kernel_ids()
     referenced = set(KERNEL_ID_PATTERN.findall(text))
-    unresolved = referenced - kernel_ids - KERNEL_CHANGE_CANDIDATE_IDS
+    unresolved = referenced - kernel_ids
     assert unresolved == set(), f"map references unknown kernel ids: {sorted(unresolved)}"
+    # #376 applied the three deploy-execution candidates; they now resolve in the kernel.
     applied = KERNEL_CHANGE_CANDIDATE_IDS & kernel_ids
-    assert applied == set(), f"kernel-change candidates must not be applied: {sorted(applied)}"
+    assert applied == KERNEL_CHANGE_CANDIDATE_IDS, (
+        f"deploy-execution kernel ids must be applied: missing {sorted(KERNEL_CHANGE_CANDIDATE_IDS - applied)}"
+    )
     for candidate in KERNEL_CHANGE_CANDIDATE_IDS:
-        assert candidate in text, f"candidate {candidate} must be documented in the map"
+        assert candidate in text, f"applied id {candidate} must stay documented in the map"
 
 
 def test_operation_growth_is_distinguished_from_kernel_growth() -> None:
-    candidate_rows = {
-        row["ID"] for row in _all_rows() if "kernel:candidate" in row["Kernel/Template"]
-    }
-    assert candidate_rows == DEPLOY_EXECUTE_ROW_IDS, (
-        "only agent-executed deploy rows may flag a kernel-change candidate: "
-        f"{sorted(candidate_rows)}"
+    applied_rows = {row["ID"] for row in _all_rows() if "kernel:applied" in row["Kernel/Template"]}
+    candidate_rows = {row["ID"] for row in _all_rows() if "kernel:candidate" in row["Kernel/Template"]}
+    # #376 applied kernel ids only to local/staging deploy execution.
+    assert applied_rows == {"MOS-5.11", "MOS-5.13"}, (
+        f"only local/staging deploy rows apply kernel ids: {sorted(applied_rows)}"
+    )
+    # Production deploy execution stays the single remaining kernel candidate.
+    assert candidate_rows == {"MOS-5.15"}, (
+        f"only production deploy execution stays a kernel candidate: {sorted(candidate_rows)}"
     )
     for row in _all_rows():
         if row["ID"] not in DEPLOY_EXECUTE_ROW_IDS:
@@ -460,8 +466,9 @@ def test_legacy_catalog_00_37_is_fully_mapped() -> None:
             assert rid in known_ids, f"op {row['Op']}: unknown MOSDLC row {rid}"
 
 
-def test_kernel_change_candidates_table_is_justified_and_deferred() -> None:
-    tables = _parse_tables(_doc_text(), "Candidato")
+def test_kernel_change_candidates_table_is_justified_and_resolved() -> None:
+    text = _doc_text()
+    tables = _parse_tables(text, "Candidato")
     rows = [row for section_rows in tables.values() for row in section_rows]
     named = {row["Candidato"].strip("`") for row in rows}
     assert named == KERNEL_CHANGE_CANDIDATE_IDS, (
@@ -469,9 +476,12 @@ def test_kernel_change_candidates_table_is_justified_and_deferred() -> None:
     )
     for row in rows:
         assert row["Justificación"], f"{row['Candidato']}: candidate needs a justification"
-        assert "issue separado" in row["Decisión"], (
-            f"{row['Candidato']}: candidates require a separate PM-approved issue"
+        # #376 applied all three; the table must record the application, not defer it.
+        assert "Aplicado en #376" in row["Decisión"], (
+            f"{row['Candidato']}: decision must record the #376 application"
         )
+    # Any further kernel id still requires a separate PM-approved issue.
+    assert "aprobación PM exacta" in text
 
 
 def test_connections_reference_existing_rows() -> None:

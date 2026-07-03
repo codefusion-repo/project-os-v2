@@ -135,10 +135,10 @@ renumeran.
 | MOS-5.7 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.7-analyze-production-deploy-readiness.md` | — | MOS-5.8. |
 | MOS-5.8 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.8-draft-production-deploy-checklist.md` | — | MOS-5.9. |
 | MOS-5.9 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.9-process-production-deploy-checklist.md` | — | MOS-5.14 cuando exista evidencia target-owned; produccion queda con Humano PM por defecto. |
-| MOS-5.10 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.10-draft-local-deploy-commands.md` | — | MOS-5.11 solo con candidato/aprobacion separada; por defecto Humano PM ejecuta y luego MOS-R.13. |
-| MOS-5.11 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.11-execute-local-deploy.md` | — | Fail-closed candidate; MOS-5.10, MOS-R.3 o MOS-R.13 tras ejecucion humana. |
-| MOS-5.12 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.12-draft-staging-deploy-commands.md` | — | MOS-5.13 solo con candidato/aprobacion separada; por defecto Humano PM ejecuta y luego MOS-R.13. |
-| MOS-5.13 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.13-execute-staging-deploy.md` | — | Fail-closed candidate; MOS-5.12, MOS-R.3 o MOS-R.13 tras ejecucion humana. |
+| MOS-5.10 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.10-draft-local-deploy-commands.md` | — | MOS-5.11 con aprobacion PM exacta por entorno, o el Humano PM ejecuta; luego MOS-R.13. |
+| MOS-5.11 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.11-execute-local-deploy.md` | — | Ejecucion local internal-only gated (aplicada en #376); MOS-5.10, MOS-R.3 o MOS-R.13 tras la ejecucion. |
+| MOS-5.12 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.12-draft-staging-deploy-commands.md` | — | MOS-5.13 con aprobacion PM exacta por entorno, o el Humano PM ejecuta; luego MOS-R.13. |
+| MOS-5.13 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.13-execute-staging-deploy.md` | — | Ejecucion staging internal-only gated (aplicada en #376); MOS-5.12, MOS-R.3 o MOS-R.13 tras la ejecucion. |
 | MOS-5.14 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.14-draft-production-deploy-commands.md` | — | Humano PM ejecuta y luego MOS-R.13 por defecto; MOS-5.15 solo con candidato/aprobacion separada. |
 | MOS-5.15 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.15-execute-production-deploy.md` | — | Fail-closed candidate; MOS-5.14, MOS-R.3 o MOS-R.13 tras ejecucion humana. |
 
@@ -147,9 +147,13 @@ Cada template debe resolver `kernel/manifest.json`, leer estado vivo solo al
 momento de ejecutar, fallar cerrado cuando falte evidencia, y declarar que el
 template no autoriza escrituras. Cualquier escritura terminal sigue requiriendo
 aprobacion PM exacta, evidence requerido, branch preflight, validacion y review.
-Fase 5 mantiene readiness read-only, checklists Human PM-facing, command bundles
-Human PM-executed y candidatos de ejecucion fail-closed; ningun template
-ejecuta deploy ni agrega ids de kernel.
+Fase 5 mantiene readiness read-only, checklists Human PM-facing y command bundles
+Human PM-executed. El issue #376 aplico `workflow.deployment`,
+`mode.delegated_deploy_execution` y `evidence.deployment_readiness`: MOS-5.11 y
+MOS-5.13 ejecutan local/staging internal-only por terminal agent con aprobacion
+PM exacta y fail-closed; MOS-5.15 (produccion) no se ejecuta por agente y queda
+con el Humano PM por defecto. Ver
+`docs/decisions/0001-fase5-deploy-execution-fail-closed.md`.
 
 ## SDLC Comparison and KOPS.3 Fit Check
 

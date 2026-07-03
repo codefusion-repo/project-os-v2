@@ -121,6 +121,9 @@ WRITE_CAPABLE_ACTIONS = {
     "commit",
     "push_work_branch",
     "open_draft_pr",
+    # Deployment execution mutates live target environments; it is write-capable
+    # and, like repo-write modes, may only be paired with a terminal surface.
+    "run_target_owned_deploy_commands",
 }
 
 

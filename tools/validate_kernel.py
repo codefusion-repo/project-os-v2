@@ -64,6 +64,9 @@ WRITE_CAPABLE_ACTIONS = {
     "commit",
     "push_work_branch",
     "open_draft_pr",
+    # Deployment execution mutates live target environments; treat it as
+    # write-capable so non-terminal actors can never be given a deploy mode.
+    "run_target_owned_deploy_commands",
 }
 
 REQUIRED_ENTRY_KEYS = {

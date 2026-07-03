@@ -16,7 +16,9 @@ Decisiones PM que gobiernan este mapa:
   hasta que la migración se apruebe por issues separados.
 - El crecimiento de operaciones no es crecimiento del kernel: las operaciones
   son superficies de activación PM-facing (templates, docs y tests) sobre el
-  kernel compacto existente.
+  kernel compacto existente. La única excepción aprobada es la ejecución interna
+  de despliegue local/staging (#376), que agregó ids de kernel mínimos con gap
+  estricto probado y aprobación PM exacta.
 - Las operaciones de despliegue por agente son internal-only para uso
   CodeFusion y deben removerse, ocultarse, deshabilitarse o convertirse antes
   de un release público de Project OS.
@@ -64,12 +66,15 @@ Cada fila usa esta forma:
 
 Las 121 operaciones de este mapa se resuelven con los workflows, modes,
 outputs y evidence ids existentes del kernel; no se asume un workflow por
-operación. Solo la ejecución de despliegue por agente (MOS-5.11, MOS-5.13,
-MOS-5.15) muestra un posible gap estricto, registrado en
-[Candidatos de cambio de kernel](#candidatos-de-cambio-de-kernel-identificados-no-aplicados)
-sin aplicarse. Agregar una operación MOSDLC significa agregar template, filas
-de docs y tests; nunca implica agregar ids de kernel sin gap probado y
-aprobación PM exacta separada.
+operación. La única excepción es la ejecución de despliegue por agente: la
+decisión #376 aplicó workflow.deployment, mode.delegated_deploy_execution y
+evidence.deployment_readiness para ejecución interna local y staging (MOS-5.11 y
+MOS-5.13), con producción (MOS-5.15) fuera del alcance del agente y en manos del
+Humano PM. Ver
+[Candidatos de cambio de kernel](#candidatos-de-cambio-de-kernel-resueltos-en-376).
+Agregar una operación MOSDLC significa agregar template, filas de docs y tests;
+agregar ids de kernel siempre exige gap estricto probado y aprobación PM exacta
+separada.
 
 ## Fase 0 — Adaptación
 
@@ -181,11 +186,11 @@ aprobación PM exacta separada.
 | MOS-5.8 | draft-production-deploy-checklist | Draftear checklist de despliegue de producción para los pasos humanos. | Hace: Draftea el checklist humano de despliegue de producción nombrando variables y pasos, nunca valores secretos. Para: Guiar los pasos humanos del despliegue de producción. Cómo: Checklist copy-safe para el Humano PM; secretos solo como nombres de variable. | browser_chat → human_pm | workflow.pm_intake | mode.review_only | output.status_result | evidence.repo_state, evidence.target_adoption, evidence.source_basis | Req: TARGET_REPOSITORY / Opc: — | No (draft-only; el Humano PM decide y ejecuta el bundle) | Prev: MOS-5.7. Next: MOS-5.9. Rec: MOS-5.9. | new | — | public-safe | medium | template:new; kernel:no-change | sec:strict; env:production; notes:req; pre-release:n/a |
 | MOS-5.9 | process-production-deploy-checklist | Procesar pasos humanos de despliegue de producción. | Hace: Procesa el resultado de los pasos humanos del despliegue de producción. Para: Confirmar readiness o derivar gaps antes de continuar. Cómo: Clasifica el CHECKLIST_RESULT hacia continuar, corregir o detener. | browser_chat → human_pm | workflow.pm_intake | mode.review_only | output.status_result (+output.route_prompt, output.pm_command_bundle) | evidence.source_basis, evidence.repo_state | Req: CHECKLIST_RESULT / Opc: TARGET_REPOSITORY | No (draft-only) | Prev: MOS-5.8. Next: MOS-5.14 o MOS-R.13. Rec: MOS-5.14. | new | — | public-safe | medium | template:new; kernel:no-change | sec:strict; env:production; notes:req; pre-release:n/a |
 | MOS-5.10 | draft-local-deploy-commands | Draftear comandos de despliegue local. | Hace: Draftea el bundle de comandos de despliegue local desde los comandos target-owned de Project-specific notes. Para: Preparar la ejecución del despliegue local sin inventar comandos. Cómo: Bundle copy-safe solo desde comandos target-owned; nunca imprime secretos. | browser_chat → human_pm | workflow.pm_intake | mode.review_only | output.pm_command_bundle | evidence.repo_state, evidence.target_adoption, evidence.source_basis | Req: TARGET_REPOSITORY / Opc: — | No (draft-only; el Humano PM decide y ejecuta el bundle) | Prev: MOS-5.3. Next: MOS-5.11 o ejecución del Humano PM. Rec: MOS-5.11 solo con aprobación exacta. | new; merge-candidate (vía TARGET_ENVIRONMENT, ver MOS-R.12) | — | internal-only | medium | template:new; kernel:no-change | sec:strict; env:local; notes:req; pre-release:convert |
-| MOS-5.11 | execute-local-deploy | Desplegar de manera local/debug, solo si es posible. | Hace: Ejecuta el despliegue local/debug por terminal agent solo si el target lo soporta. Para: Probar despliegues locales de dogfood interno sin pasos manuales repetitivos. Cómo: Ejecuta solo comandos target-owned bajo aprobación exacta y reporta redactado. | terminal_agent | candidato de kernel (hoy sin fit limpio; ver Candidatos de cambio de kernel) | candidato de kernel (ver Candidatos de cambio de kernel) | output.execution_report | evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.validation_output, evidence.repo_state | Req: TARGET_REPOSITORY / Opc: — | Sí (exacta por target, entorno y acción; nunca implícita) | Prev: MOS-5.10. Next: MOS-R.13. Rec: MOS-R.13. | new | — | internal-only | medium | template:new; kernel:candidate | sec:strict; env:local; notes:req; pre-release:convert |
+| MOS-5.11 | execute-local-deploy | Desplegar de manera local/debug, solo si es posible. | Hace: Ejecuta el despliegue local/debug por terminal agent solo si el target lo soporta. Para: Probar despliegues locales de dogfood interno sin pasos manuales repetitivos. Cómo: Ejecuta solo comandos target-owned bajo aprobación exacta y reporta redactado. | terminal_agent | workflow.deployment | mode.delegated_deploy_execution | output.execution_report | evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.deployment_readiness, evidence.validation_output, evidence.repo_state | Req: TARGET_REPOSITORY / Opc: — | Sí (exacta por target, entorno y acción; nunca implícita) | Prev: MOS-5.10. Next: MOS-R.13. Rec: MOS-R.13. | new | — | internal-only | medium | template:new; kernel:applied | sec:strict; env:local; notes:req; pre-release:convert |
 | MOS-5.12 | draft-staging-deploy-commands | Draftear comandos de despliegue staging. | Hace: Draftea el bundle de comandos de despliegue staging desde los comandos target-owned de Project-specific notes. Para: Preparar la ejecución del despliegue staging sin inventar comandos. Cómo: Bundle copy-safe solo desde comandos target-owned; nunca imprime secretos. | browser_chat → human_pm | workflow.pm_intake | mode.review_only | output.pm_command_bundle | evidence.repo_state, evidence.target_adoption, evidence.source_basis | Req: TARGET_REPOSITORY / Opc: — | No (draft-only; el Humano PM decide y ejecuta el bundle) | Prev: MOS-5.6. Next: MOS-5.13 o ejecución del Humano PM. Rec: MOS-5.13 solo con aprobación exacta. | new; merge-candidate (vía TARGET_ENVIRONMENT, ver MOS-R.12) | — | internal-only | medium | template:new; kernel:no-change | sec:strict; env:staging; notes:req; pre-release:convert |
-| MOS-5.13 | execute-staging-deploy | Desplegar en staging, solo si es posible. | Hace: Ejecuta el despliegue en staging por terminal agent solo si el target lo soporta. Para: Desplegar staging interno sin fricción cuando es seguro. Cómo: Ejecuta solo comandos target-owned bajo aprobación exacta y reporta redactado. | terminal_agent | candidato de kernel (hoy sin fit limpio; ver Candidatos de cambio de kernel) | candidato de kernel (ver Candidatos de cambio de kernel) | output.execution_report | evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.validation_output, evidence.repo_state | Req: TARGET_REPOSITORY / Opc: — | Sí (exacta por target, entorno y acción; nunca implícita) | Prev: MOS-5.12. Next: MOS-R.13. Rec: MOS-R.13. | new | — | internal-only | high | template:new; kernel:candidate | sec:strict; env:staging; notes:req; pre-release:convert |
+| MOS-5.13 | execute-staging-deploy | Desplegar en staging, solo si es posible. | Hace: Ejecuta el despliegue en staging por terminal agent solo si el target lo soporta. Para: Desplegar staging interno sin fricción cuando es seguro. Cómo: Ejecuta solo comandos target-owned bajo aprobación exacta y reporta redactado. | terminal_agent | workflow.deployment | mode.delegated_deploy_execution | output.execution_report | evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.deployment_readiness, evidence.validation_output, evidence.repo_state | Req: TARGET_REPOSITORY / Opc: — | Sí (exacta por target, entorno y acción; nunca implícita) | Prev: MOS-5.12. Next: MOS-R.13. Rec: MOS-R.13. | new | — | internal-only | high | template:new; kernel:applied | sec:strict; env:staging; notes:req; pre-release:convert |
 | MOS-5.14 | draft-production-deploy-commands | Draftear comandos de despliegue de producción. | Hace: Draftea el bundle de comandos de despliegue de producción desde los comandos target-owned de Project-specific notes. Para: Preparar la ejecución del despliegue de producción sin inventar comandos. Cómo: Bundle copy-safe solo desde comandos target-owned; nunca imprime secretos. | browser_chat → human_pm | workflow.pm_intake | mode.review_only | output.pm_command_bundle | evidence.repo_state, evidence.target_adoption, evidence.source_basis | Req: TARGET_REPOSITORY / Opc: — | No (draft-only; el Humano PM decide y ejecuta el bundle) | Prev: MOS-5.9. Next: MOS-5.15 o ejecución del Humano PM. Rec: ejecución del Humano PM por defecto. | new; merge-candidate (vía TARGET_ENVIRONMENT, ver MOS-R.12) | — | internal-only | medium | template:new; kernel:no-change | sec:strict; env:production; notes:req; pre-release:convert |
-| MOS-5.15 | execute-production-deploy | Desplegar en producción, solo si es posible. | Hace: Ejecuta el despliegue en producción por terminal agent solo si el target lo soporta. Para: Cubrir el caso interno donde el PM delega producción explícitamente. Cómo: Ejecuta solo comandos target-owned bajo aprobación exacta y reporta redactado; por defecto producción queda con el Humano PM. | terminal_agent | candidato de kernel (hoy sin fit limpio; ver Candidatos de cambio de kernel) | candidato de kernel (ver Candidatos de cambio de kernel) | output.execution_report | evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.validation_output, evidence.repo_state | Req: TARGET_REPOSITORY / Opc: — | Sí (exacta por target, entorno y acción; nunca implícita) | Prev: MOS-5.14. Next: MOS-R.13. Rec: MOS-R.13. | new | — | internal-only | high | template:new; kernel:candidate | sec:strict; env:production; notes:req; pre-release:convert |
+| MOS-5.15 | execute-production-deploy | Desplegar en producción, solo si es posible. | Hace: Ejecuta el despliegue en producción por terminal agent solo si el target lo soporta. Para: Cubrir el caso interno donde el PM delega producción explícitamente. Cómo: Ejecuta solo comandos target-owned bajo aprobación exacta y reporta redactado; por defecto producción queda con el Humano PM. | terminal_agent | candidato (produccion no ejecutada por agente; Humano PM por defecto) | candidato (Humano PM por defecto) | output.execution_report | evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.validation_output, evidence.repo_state | Req: TARGET_REPOSITORY / Opc: — | Sí (exacta por target, entorno y acción; nunca implícita) | Prev: MOS-5.14. Next: MOS-R.13. Rec: MOS-R.13. | new | — | internal-only | high | template:new; kernel:candidate | sec:strict; env:production; notes:req; pre-release:convert |
 
 ## Fase 6 — Mantenimiento y herramientas
 
@@ -351,18 +356,24 @@ Cobertura de los requisitos de despliegue del issue de mapeo:
 | draft rollback commands or rollback route when deploy fails | MOS-R.15 |
 | process rollback result | MOS-R.16 |
 
-## Candidatos de cambio de kernel (identificados, no aplicados)
+## Candidatos de cambio de kernel (resueltos en #376)
 
-Ningún candidato de kernel se aplica en este issue. Cada uno requiere un
-issue separado con gap estricto probado y aprobación PM exacta
-(`boundary.separate_pm_approval`); mientras tanto, las operaciones afectadas
-operan vía route-prompt scoped más `Project-specific notes` del target.
+La decisión #376 (MOSDLC.6a) resolvió los tres candidatos de ejecución de
+despliegue con aprobación PM exacta y gap estricto probado. `workflow.deployment`,
+`mode.delegated_deploy_execution` y `evidence.deployment_readiness` se aplicaron
+al kernel para ejecución interna local y staging por terminal agent (MOS-5.11 y
+MOS-5.13), internal-only y nunca public-safe por defecto. Producción (MOS-5.15)
+no se ejecuta por agente: queda con el Humano PM por defecto y su prerrequisito
+nombrado es una ruta más estricta aprobada por separado. Los detalles viven en
+`docs/decisions/0001-fase5-deploy-execution-fail-closed.md`. Cualquier id de
+kernel adicional sigue requiriendo un issue separado con gap estricto probado y
+aprobación PM exacta (`boundary.separate_pm_approval`).
 
 | Candidato | Gap | Justificación | Decisión |
 |---|---|---|---|
-| `workflow.deployment` | Ejecución de despliegue por agente (MOS-5.11, MOS-5.13, MOS-5.15) | Ningún workflow actual modela readiness, ejecución gated, verificación y rollback de despliegue; workflow.issue_implementation está orientado a escritura de repo, no a mutación de entornos. | Diferido a issue separado tras dogfood interno; hasta entonces las ejecuciones usan route-prompt scoped. |
-| `mode.delegated_deploy_execution` | Los execution modes actuales solo modelan alcance de escritura de repositorio | Ejecutar comandos de despliegue target-owned no es commit/push/PR; un mode explícito haría el gate de aprobación exacta más auditable que reutilizar modes de escritura de repo. | Diferido a issue separado junto al workflow candidato. |
-| `evidence.deployment_readiness` | Evidencia de readiness de entorno previa a ejecutar | Probablemente innecesario: la combinación evidence.validation_output, evidence.target_adoption y evidence.repo_state puede cubrirlo; se registra para decidirlo con datos de dogfood. | Diferido a issue separado; la recomendación actual es reutilizar evidence existente. |
+| `workflow.deployment` | Ejecución de despliegue por agente (MOS-5.11, MOS-5.13) | workflow.issue_implementation está orientado a escritura de repo, no a mutación de entornos; deploy execution necesita readiness, ejecución gated y verificación. | Aplicado en #376 para local/staging internal-only; producción queda con el Humano PM. |
+| `mode.delegated_deploy_execution` | Ejecutar comandos de despliegue target-owned no es commit/push/PR | Un mode explícito hace el gate de aprobación exacta por target/entorno/acción auditable y write-capable terminal-only. | Aplicado en #376; nunca ejecuta producción por agente. |
+| `evidence.deployment_readiness` | Evidencia de readiness de entorno previa a ejecutar | Gate explícito de readiness, comandos target-owned y secret-safety antes de ejecutar. | Aplicado en #376; falla cerrado a status.blocked cuando falta readiness, comandos target-owned o secret-safety. |
 
 ## Base para los próximos issues
 
