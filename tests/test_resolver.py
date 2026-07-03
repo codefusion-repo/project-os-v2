@@ -152,6 +152,50 @@ class TestHappyPath:
         assert any("not in actor" in e for e in result["errors"])
 
 
+class TestDeploymentResolution:
+    """#376: internal deploy execution resolves only for the terminal agent."""
+
+    def test_terminal_agent_deployment_resolves(self) -> None:
+        result = _resolve_ok(
+            "actor.terminal_agent",
+            "workflow.deployment",
+            "mode.delegated_deploy_execution",
+        )
+        resolved = result["resolved"]
+        assert resolved["workflow"]["id"] == "workflow.deployment"
+        assert resolved["execution_mode"]["id"] == "mode.delegated_deploy_execution"
+        # The deploy mode runs target-owned commands but never edits the repo.
+        actions = set(resolved["execution_mode"]["allowed_actions"])
+        assert "run_target_owned_deploy_commands" in actions
+        assert "edit_scoped_files" not in actions
+        assert "commit" not in actions
+        # Gated by exact approval, adoption, readiness, and validation evidence.
+        for eid in (
+            "evidence.pm_approval",
+            "evidence.target_adoption",
+            "evidence.deployment_readiness",
+            "evidence.validation_output",
+        ):
+            assert eid in resolved["evidence"]
+
+    def test_browser_chat_cannot_deploy(self) -> None:
+        result = _resolve_error(
+            "actor.browser_chat",
+            "workflow.deployment",
+            "mode.delegated_deploy_execution",
+        )
+        assert any("not in actor" in e for e in result["errors"])
+
+    def test_deploy_workflow_refuses_read_only_mode(self) -> None:
+        """workflow.deployment requires PM approval, so a read-only mode is refused."""
+        result = _resolve_error(
+            "actor.terminal_agent",
+            "workflow.deployment",
+            "mode.review_only",
+        )
+        assert any("read-only" in e for e in result["errors"])
+
+
 # ---------------------------------------------------------------------------
 # Effective resolution tests
 # ---------------------------------------------------------------------------

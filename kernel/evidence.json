@@ -53,6 +53,12 @@
       "id": "evidence.target_adoption",
       "satisfied_by": "For target-project adoption: target repository identity; AGENTS.md/CLAUDE.md/GEMINI.md/browser-chat adapter presence; existing adapter metadata, roadmap anchor, kernel repo/path/version, project notes, validation commands, durable live-state risk, and audit findings from KERNEL_REPOSITORY templates or tools.audit_target_adapters, read live.",
       "missing_status": "status.needs_context"
+    },
+    {
+      "id": "evidence.deployment_readiness",
+      "satisfied_by": "Live confirmation that one named, approved internal environment is ready to deploy: the exact deploy commands are documented as target-owned in the target's Project-specific notes (never invented), the environment scope (local or staging) is named and separately approved, prerequisite build/migration/config steps are validated, and secret-safety is confirmed by naming only variables, command names, file paths, and risk types, never values.",
+      "missing_status": "status.blocked",
+      "notes": "Deployment fails closed hard. Missing or ambiguous readiness, missing target-owned commands, missing environment scope, or unconfirmed secret-safety blocks execution. Production readiness is stricter, stays with the Human PM by default, and is not satisfied by this evidence for a terminal agent."
     }
   ]
 }

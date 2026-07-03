@@ -121,6 +121,21 @@
       ],
       "required_evidence_refs": ["evidence.target_adoption"],
       "allowed_output_refs": ["output.adoption_packet", "output.execution_report", "output.status_result"]
+    },
+    {
+      "id": "workflow.deployment",
+      "use_for": "Executing an internal deployment for one approved environment, local or staging only, using solely target-owned commands. Internal-only and never public-safe by default. Production stays with the Human PM by default and is not executed by a terminal agent unless a stricter, separately approved path is added later.",
+      "steps": [
+        "resolve kernel and confirm mode.delegated_deploy_execution plus exact PM approval scoped to target repository, environment, and action",
+        "read the issue scope, source basis, and the target-owned deploy commands documented in the target's Project-specific notes live; never invent, guess, or broaden commands",
+        "gather evidence.deployment_readiness, evidence.target_adoption, evidence.validation_output, and evidence.repo_state for the one named environment before running anything",
+        "fail closed with the evidence missing_status when target-owned commands, environment scope, exact approval, readiness, validation, or secret-safety is missing or ambiguous",
+        "run only the approved target-owned deploy commands for local or staging, one environment at a time; keep production with the Human PM by default",
+        "verify post-deploy state, then report with output.execution_report, redacting sensitive values as [REDACTED] and naming only variables, command names, file paths, and risk types",
+        "never expose or request secrets and never run broad environment or config dumps such as env, printenv, or set"
+      ],
+      "required_evidence_refs": ["evidence.pm_approval", "evidence.source_basis", "evidence.target_adoption", "evidence.deployment_readiness", "evidence.validation_output", "evidence.repo_state"],
+      "allowed_output_refs": ["output.execution_report", "output.status_result"]
     }
   ]
 }

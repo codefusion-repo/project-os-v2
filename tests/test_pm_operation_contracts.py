@@ -54,6 +54,8 @@ CANONICAL_KERNEL_ENTRY_IDS = {
         "mode.local_implementation",
         "mode.delegated_commit_push",
         "mode.delegated_commit_pr",
+        # Added by #376 (MOSDLC.6a): internal-only deploy execution for local/staging.
+        "mode.delegated_deploy_execution",
     },
     "statuses.json": {
         "status.resolved",
@@ -89,6 +91,8 @@ CANONICAL_KERNEL_ENTRY_IDS = {
         "evidence.review_evidence",
         "evidence.closure_evidence",
         "evidence.target_adoption",
+        # Added by #376 (MOSDLC.6a): environment readiness gate for deploy execution.
+        "evidence.deployment_readiness",
     },
     "workflows.json": {
         "workflow.review_only",
@@ -102,6 +106,8 @@ CANONICAL_KERNEL_ENTRY_IDS = {
         "workflow.release_readiness",
         "workflow.handoff",
         "workflow.target_adoption",
+        # Added by #376 (MOSDLC.6a): gated internal deploy execution workflow.
+        "workflow.deployment",
     },
     "outputs.json": {
         "output.execution_report",

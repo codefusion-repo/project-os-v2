@@ -51,4 +51,4 @@ LIMITS:
   PM_FEEDBACK_HUMANO and PM_QUESTION_HUMANO are optional context only.
 
 RECOMMENDED_NEXT_OPERATION:
-  MOS-5.13 only with separate exact deploy approval and candidate handling; otherwise Human PM execution followed by MOS-R.13.
+  MOS-5.13 only with separate exact environment-scoped deploy approval; otherwise Human PM execution followed by MOS-R.13.

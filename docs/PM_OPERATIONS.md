@@ -142,9 +142,13 @@ evidence requerido, branch preflight, validacion y review-before-close cuando
 aplique.
 
 Fase 5 agrega superficies de despliegue local, staging y produccion sin otorgar
-autoridad de deploy. Readiness es read-only, checklists y bundles son Human
-PM-facing, los comandos salen solo de notas target-owned, y MOS-5.11, MOS-5.13
-y MOS-5.15 son candidatos fail-closed sin ids nuevos de kernel.
+autoridad de deploy por si misma. Readiness es read-only, checklists y bundles
+son Human PM-facing, los comandos salen solo de notas target-owned. El issue #376
+aplico `workflow.deployment`, `mode.delegated_deploy_execution` y
+`evidence.deployment_readiness`: MOS-5.11 y MOS-5.13 ejecutan local/staging
+internal-only por terminal agent con aprobacion PM exacta y fail-closed; MOS-5.15
+(produccion) no se ejecuta por agente y queda con el Humano PM por defecto. Ver
+`docs/decisions/0001-fase5-deploy-execution-fail-closed.md`.
 
 Las superficies (browser chat, terminal agent, Humano PM, destinatario externo)
 aparecen en la columna **Superficie**. Las variables son selectores de contexto,
