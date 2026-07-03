@@ -24,6 +24,24 @@ COMMIT_SHA_PATTERN = re.compile(
     re.IGNORECASE,
 )
 LEGACY_PM_QUESTION_PATTERN = re.compile(r"\bPM_QUESTION\b")
+# Files that carry the global proportional-validation policy (#380) and are
+# expected to change alongside Fase 3 route/review templates. Their kernel
+# and legacy-shim content is separately guarded by
+# tests/test_validation_policy.py, so this migration-isolation guard exempts
+# only these exact paths rather than all of kernel/ or templates/operations/.
+GLOBAL_VALIDATION_POLICY_COMPANIONS = {
+    "kernel/actors.json",
+    "kernel/boundaries.json",
+    "templates/operations/07-draft-issue-implementation-route-prompt.md",
+    "templates/operations/09-review-pr-before-close-and-draft-package.md",
+    "templates/route-prompt.md",
+    "templates/artifacts.md",
+    "AGENTS.md",
+    "adapters/AGENTS.target.md",
+    "adapters/BROWSER_CHAT.target.md",
+    "adapters/CLAUDE.target.md",
+    "adapters/GEMINI.target.md",
+}
 KERNEL_GROWTH_CANDIDATES = {
     ".".join(parts)
     for parts in (
@@ -340,12 +358,17 @@ def test_mosdlc_fase3_migration_does_not_expand_kernel_or_unsupported_phases() -
     )
     if not migration_changed:
         return
-    assert not any(path.startswith("kernel/") for path in changed_files)
-    assert not any(path.startswith("templates/operations/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-4/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-5/") for path in changed_files)
     assert not any(path.startswith("templates/mosdlc/operations/fase-6/") for path in changed_files)
     assert not any("/MOS-R." in path for path in changed_files)
+    non_companion_kernel_or_legacy = {
+        path
+        for path in changed_files
+        if (path.startswith("kernel/") or path.startswith("templates/operations/"))
+        and path not in GLOBAL_VALIDATION_POLICY_COMPANIONS
+    }
+    assert not non_companion_kernel_or_legacy
     assert all(
         path.startswith(
             (
@@ -354,5 +377,6 @@ def test_mosdlc_fase3_migration_does_not_expand_kernel_or_unsupported_phases() -
                 "templates/mosdlc/operations/fase-3/",
             )
         )
+        or path in GLOBAL_VALIDATION_POLICY_COMPANIONS
         for path in changed_files
     )
