@@ -13,7 +13,10 @@ How the executing agent resolves the kernel is owned by `kernel/manifest.json`
 (its `resolution_sequence` and surface-aware `resolution_strategy`); the route
 prompt routes work and never restates or overrides resolver strategy. It stays
 the same regardless of surface — keep it compact and never restate issue bodies
-or kernel rules.
+or kernel rules. Resolver output is operative task guidance for the selected
+actor/workflow/mode/evidence/boundaries/output contract, not mere context and
+not authorization; the executing agent still must reconstruct live traceability,
+confirm exact PM approval where required, and fail closed on missing evidence.
 
 ## Variable block (omit lines that do not apply)
 

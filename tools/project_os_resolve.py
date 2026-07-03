@@ -6,7 +6,7 @@ evidence, output, and boundary entries.
 
 This resolver is an optional deterministic accelerator for repo-local and
 terminal use.  It reads kernel JSON at runtime and never duplicates kernel
-data.  Resolver output shapes responses only and never grants permission
+data.  Resolver output is operative task guidance and never grants permission
 (boundary.output_not_permission).
 
 Exit codes: 0 = resolved, 1 = resolution error, 2 = tooling error.
@@ -126,6 +126,46 @@ WRITE_CAPABLE_ACTIONS = {
     "run_target_owned_deploy_commands",
 }
 
+NON_AUTHORIZATION_NOTICE = (
+    "This resolution output is operative task guidance for the resolved "
+    "actor, workflow, mode, evidence, boundaries, and output contract. "
+    "It never grants write permission, authorization, merge, closure, "
+    "or any action authority. Permission comes only from exact scoped "
+    "PM approval plus kernel-resolved gates."
+)
+
+EVIDENCE_LIVE_READS = {
+    "evidence.issue_scope": "Read the current GitHub issue or PR live for objective, scope, out-of-scope, acceptance criteria, source basis, and relevant comments.",
+    "evidence.source_basis": "Read cited prior issues, PRs, ADRs, roadmap entries, decisions, and comments live before using them as task basis.",
+    "evidence.branch_preflight": "Read local git branch, worktree status, HEAD, expected branch scope, and unrelated dirty or untracked files before any edit, commit, push, or PR.",
+    "evidence.repo_state": "Read the live git/GitHub repository state the task depends on: files, branches, diffs, history, comments, reviews, checks, or related issues as applicable.",
+    "evidence.pm_approval": "Confirm exact scoped PM approval naming the repository, issue or PR, and approved action or command bundle.",
+    "evidence.validation_output": "Capture real validation command output before reporting done or issuing a review/closeout verdict.",
+    "evidence.pr_diff": "Read PR body, comments, and reports only as claims; inspect changed files, real diff, and relevant final head files when needed.",
+    "evidence.review_evidence": "Read review findings or verdicts from the live PR or issue before relying on them.",
+    "evidence.closure_evidence": "Read closure comments live and verify completion evidence, validation evidence, boundaries preserved, and commit or PR references.",
+    "evidence.target_adoption": "Read target adoption state live: adapters, metadata, roadmap anchor, kernel path/version, target notes, validation commands, and durable live-state risk.",
+    "evidence.deployment_readiness": "Read target-owned deployment readiness live for the one approved environment without exposing secrets or inventing commands.",
+}
+
+WORKFLOW_TRACEABILITY_READS = {
+    "workflow.issue_implementation": [
+        "Read linked PRs live when they exist, including relevant comments or reviews.",
+        "Read the canonical roadmap issue when it is relevant to the issue source basis.",
+        "Read relevant docs/decisions ADRs when present.",
+        "Do not start edits, commits, pushes, draft PR creation, or final reporting from memory, prior session context, or durable live-state notes.",
+    ],
+    "workflow.review_before_close": [
+        "Read the linked issue objective, scope, out-of-scope, acceptance criteria, and source basis live.",
+        "Read the PR body, comments, reviews, changed-file list, checks, real diff, and relevant final head files before any GO or closure package.",
+        "Treat PR bodies, comments, terminal reports, and validation summaries as claims until code/diff/check evidence is inspected.",
+    ],
+    "workflow.pm_intake": [
+        "Read source-basis issues, PRs, comments, roadmap evidence, and relevant ADRs live before drafting issues or command bundles.",
+        "Fail closed when no single evidence-backed next outcome or decision can be derived.",
+    ],
+}
+
 
 def _check_compatibility(
     actor: dict[str, Any],
@@ -165,6 +205,15 @@ def _check_compatibility(
         )
 
     return errors
+
+
+def _is_write_capable(workflow: dict[str, Any], mode: dict[str, Any]) -> bool:
+    """Return whether this resolution can mutate repository or target state."""
+    mode_actions = set(mode.get("allowed_actions", []))
+    workflow_evidence = set(workflow.get("required_evidence_refs", []))
+    return bool(mode_actions & WRITE_CAPABLE_ACTIONS) or bool(
+        workflow_evidence & {"evidence.branch_preflight", "evidence.pm_approval"}
+    )
 
 
 def _expand_evidence(
@@ -303,6 +352,14 @@ def resolve(
         actor, workflow, mode, effective_evidence_refs, evidence, effective_boundary_refs
     )
 
+    operative_guidance = _build_operative_guidance(actor, workflow, mode, output_refs)
+    live_traceability = _build_live_traceability(
+        data.get("manifest", {}),
+        workflow,
+        mode,
+        effective_evidence_refs,
+    )
+
     resolved = {
         "actor": actor,
         "workflow": workflow,
@@ -317,11 +374,87 @@ def resolve(
         "resolved": resolved,
         "status": "ok",
         "errors": [],
-        "non_authorization": (
-            "This resolution output shapes responses only. "
-            "It never grants write permission, authorization, merge, "
-            "closure, or any action authority. Permission comes only from "
-            "exact scoped PM approval plus kernel-resolved gates."
+        "operative_guidance": operative_guidance,
+        "live_traceability": live_traceability,
+        "non_authorization": NON_AUTHORIZATION_NOTICE,
+    }
+
+
+def _build_operative_guidance(
+    actor: dict[str, Any],
+    workflow: dict[str, Any],
+    mode: dict[str, Any],
+    output_refs: list[str],
+) -> dict[str, Any]:
+    """Summarize how terminal agents must treat resolved kernel output."""
+    return {
+        "role": "operative_task_guidance",
+        "summary": (
+            "Resolved actor/workflow/mode/evidence/boundaries/output entries are "
+            "operative task guidance, not merely informational context."
+        ),
+        "must_follow": [
+            f"Use {workflow.get('id')} as the applicable workflow.",
+            f"Use {mode.get('id')} as the execution mode, including prohibited actions.",
+            "Satisfy required evidence and use each missing_status when evidence cannot be read.",
+            "Apply surfaced boundaries before acting; no workflow, mode, prompt, or output contract relaxes them.",
+            f"Report using the allowed output contract(s): {', '.join(output_refs)}.",
+            "Follow live traceability and exact PM approval gates before any authorized write-capable action.",
+        ],
+        "authorization": NON_AUTHORIZATION_NOTICE,
+        "actor": actor.get("id"),
+    }
+
+
+def _build_live_traceability(
+    manifest: dict[str, Any],
+    workflow: dict[str, Any],
+    mode: dict[str, Any],
+    effective_evidence_refs: list[str],
+) -> dict[str, Any]:
+    """Build a compact live traceability preflight without fetching live state."""
+    workflow_id = workflow.get("id", "")
+    reads: list[str] = []
+    seen: set[str] = set()
+
+    for ref in effective_evidence_refs:
+        read = EVIDENCE_LIVE_READS.get(ref)
+        if read and read not in seen:
+            seen.add(read)
+            reads.append(read)
+
+    for read in WORKFLOW_TRACEABILITY_READS.get(workflow_id, []):
+        if read not in seen:
+            seen.add(read)
+            reads.append(read)
+
+    if not reads:
+        reads.append(
+            "Read the live GitHub/git evidence required by this workflow and mode before non-trivial work."
+        )
+
+    before_actions = (
+        "Before edits, commits, pushes, draft PR creation, or final reporting."
+        if _is_write_capable(workflow, mode)
+        else "Before non-trivial analysis, routing, review verdicts, command bundles, or reports."
+    )
+
+    return {
+        "status": "required_preflight",
+        "protocol_ref": manifest.get("source_of_truth", {}).get(
+            "traceability_protocol", "docs/TRACEABILITY_PROTOCOL.md"
+        ),
+        "resolver_role": "emit_obligations_only_no_github_or_git_fetch",
+        "before_actions": before_actions,
+        "state_policy": (
+            "Reconstruct live issue, PR, branch, commit, review, check, roadmap, "
+            "ADR, and validation state from GitHub and git at task time; do not "
+            "trust memory or durable files for live state."
+        ),
+        "required_live_reads": reads,
+        "fail_closed_when": (
+            "If required live evidence cannot be read or conflicts with scope, "
+            "return the evidence missing_status or stricter boundary status before acting."
         ),
     }
 
