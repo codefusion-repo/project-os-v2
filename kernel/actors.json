@@ -31,7 +31,8 @@
         "boundary.implementation_discipline",
         "boundary.primary_path_discipline",
         "boundary.validation_discipline",
-        "boundary.code_clarity"
+        "boundary.code_clarity",
+        "boundary.context_economy"
       ]
     },
     {
@@ -48,7 +49,8 @@
         "boundary.no_invented_state",
         "boundary.security_privacy",
         "boundary.fail_closed",
-        "boundary.output_not_permission"
+        "boundary.output_not_permission",
+        "boundary.context_economy"
       ]
     },
     {

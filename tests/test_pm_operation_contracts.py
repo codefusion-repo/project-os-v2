@@ -79,6 +79,8 @@ CANONICAL_KERNEL_ENTRY_IDS = {
         "boundary.validation_discipline",
         "boundary.code_clarity",
         "boundary.copy_safe_commands",
+        # Added by #382: context/token/subagent economy hard floor.
+        "boundary.context_economy",
     },
     "evidence.json": {
         "evidence.issue_scope",
