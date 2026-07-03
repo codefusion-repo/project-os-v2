@@ -1,0 +1,22 @@
+# MOS-3.5 — Draftear el route prompt de corrección
+
+Operación MOSDLC `draft-correction-route-prompt` · Fase 3 — Implementación · Riesgo: low.
+Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+
+- Superficie: browser_chat → terminal_agent
+- Kernel: workflow.pm_intake · mode.review_only · output.route_prompt
+- Evidencia: evidence.source_basis, evidence.repo_state
+- Compatibilidad: `templates/operations/08-draft-review-correction-route-prompt.md`
+- Aprobación PM: No (el route-prompt no autoriza; la escritura exige aprobación PM exacta)
+
+**Hace:** Draftea el route-prompt de corrección de un PR/issue desde feedback accionable.
+**Para:** Corregir sin expandir el scope original.
+**Cómo:** Encapsula findings en una ruta de corrección delegada.
+
+**Variables**
+- Requeridas: ISSUE_NUMBER
+- Opcionales: PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+
+**Entrega:** output.route_prompt. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
+
+**Conexiones:** Antes: MOS-3.7, MOS-3.25 o MOS-4.4. Después: MOS-3.7. Recomendada: MOS-3.7.
