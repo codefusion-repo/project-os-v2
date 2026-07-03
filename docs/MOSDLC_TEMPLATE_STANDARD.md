@@ -185,6 +185,32 @@ aprobacion PM exacta por target/entorno/accion y fail-closed. MOS-5.15
 queda con el Humano PM por defecto. Los detalles viven en
 `docs/decisions/0001-fase5-deploy-execution-fail-closed.md`.
 
+## Fase 6 Migrada
+
+| MOSDLC ID | Template MOSDLC | Fuente de compatibilidad |
+|---|---|---|
+| MOS-6.1 | `templates/mosdlc/operations/fase-6/MOS-6.1-review-security-production-readiness.md` | `templates/operations/20-request-owasp-security-review.md`, `templates/operations/25-audit-implementation-discipline-gaps.md` |
+| MOS-6.2 | `templates/mosdlc/operations/fase-6/MOS-6.2-review-feature-gaps-production.md` | — |
+| MOS-6.3 | `templates/mosdlc/operations/fase-6/MOS-6.3-analyze-performance-improvements.md` | — |
+| MOS-6.4 | `templates/mosdlc/operations/fase-6/MOS-6.4-analyze-product-improvements.md` | — |
+| MOS-6.5 | `templates/mosdlc/operations/fase-6/MOS-6.5-analyze-code-quality-gaps.md` | `templates/operations/25-audit-implementation-discipline-gaps.md` |
+| MOS-6.6 | `templates/mosdlc/operations/fase-6/MOS-6.6-audit-dead-code.md` | — |
+| MOS-6.7 | `templates/mosdlc/operations/fase-6/MOS-6.7-process-security-production-results.md` | `templates/operations/31-process-security-review-results.md` |
+| MOS-6.8 | `templates/mosdlc/operations/fase-6/MOS-6.8-process-feature-gap-results.md` | — |
+| MOS-6.9 | `templates/mosdlc/operations/fase-6/MOS-6.9-process-performance-improvements.md` | — |
+| MOS-6.10 | `templates/mosdlc/operations/fase-6/MOS-6.10-process-product-improvements.md` | — |
+| MOS-6.11 | `templates/mosdlc/operations/fase-6/MOS-6.11-process-code-improvements.md` | — |
+| MOS-6.12 | `templates/mosdlc/operations/fase-6/MOS-6.12-process-dead-code-cleanup.md` | — |
+
+Fase 6 cubre mantenimiento y herramientas: analisis read-only de seguridad,
+gaps funcionales, rendimiento, producto, calidad de codigo y codigo muerto
+(MOS-6.1 a MOS-6.6), y su procesamiento draft-only hacia correccion, follow-up,
+roadmap o PM decision (MOS-6.7 a MOS-6.12). Ninguna fila agrega ids de kernel;
+todas resuelven `workflow.review_only` o `workflow.pm_intake` con
+`mode.review_only` existentes. Los analisis nunca ejecutan cambios ni claman
+completitud; el procesamiento nunca autoriza correcciones, limpieza o
+despliegue por si mismo.
+
 El wizard local sigue leyendo `templates/operations/` como catalogo de
 compatibilidad vigente. La exposicion PM de los templates MOSDLC migrados vive
 en este documento, `docs/PM_OPERATIONS.md` y `docs/OPERATION_FLOWS.md` hasta

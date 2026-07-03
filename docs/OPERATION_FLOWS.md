@@ -53,7 +53,7 @@ Cada fila del mapa usa esta forma estandar:
 
 ## MOSDLC Migration Flow
 
-La migracion MOSDLC empieza por Fase 0 y continua por Fase 1, Fase 2, Fase 3, Fase 4 y Fase 5,
+La migracion MOSDLC empieza por Fase 0 y continua por Fase 1, Fase 2, Fase 3, Fase 4, Fase 5 y Fase 6,
 documentadas en `docs/MOSDLC_TEMPLATE_STANDARD.md`. Los templates migrados viven en
 `templates/mosdlc/operations/fase-<n>/`; los templates `00`-`37` siguen siendo
 el catalogo de compatibilidad vigente, no se eliminan, no se renombran y no se
@@ -147,6 +147,18 @@ renumeran.
 | MOS-5.13 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.13-execute-staging-deploy.md` | — | Ejecucion staging internal-only gated (aplicada en #376); MOS-5.12, MOS-R.3 o MOS-R.13 tras la ejecucion. |
 | MOS-5.14 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.14-draft-production-deploy-commands.md` | — | Humano PM ejecuta y luego MOS-R.13 por defecto; MOS-5.15 solo con candidato/aprobacion separada. |
 | MOS-5.15 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-5.15-execute-production-deploy.md` | — | Fail-closed candidate; MOS-5.14, MOS-R.3 o MOS-R.13 tras ejecucion humana. |
+| MOS-6.1 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.1-review-security-production-readiness.md` | `templates/operations/20-request-owasp-security-review.md`, `templates/operations/25-audit-implementation-discipline-gaps.md` | MOS-6.7. |
+| MOS-6.2 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.2-review-feature-gaps-production.md` | — | MOS-6.8. |
+| MOS-6.3 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.3-analyze-performance-improvements.md` | — | MOS-6.9. |
+| MOS-6.4 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.4-analyze-product-improvements.md` | — | MOS-6.10. |
+| MOS-6.5 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.5-analyze-code-quality-gaps.md` | `templates/operations/25-audit-implementation-discipline-gaps.md` | MOS-6.11. |
+| MOS-6.6 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.6-audit-dead-code.md` | — | MOS-6.12. |
+| MOS-6.7 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.7-process-security-production-results.md` | `templates/operations/31-process-security-review-results.md` | MOS-3.5 para bloqueantes; MOS-3.3 para no bloqueantes. |
+| MOS-6.8 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.8-process-feature-gap-results.md` | — | MOS-3.8 o MOS-3.3. |
+| MOS-6.9 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.9-process-performance-improvements.md` | — | MOS-3.8 o MOS-3.3. |
+| MOS-6.10 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.10-process-product-improvements.md` | — | MOS-1.8 si toca el roadmap; MOS-3.8. |
+| MOS-6.11 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.11-process-code-improvements.md` | — | MOS-3.5 o MOS-3.3. |
+| MOS-6.12 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.12-process-dead-code-cleanup.md` | — | MOS-3.8. |
 
 Estas filas son superficie PM-facing de activacion, no un motor de workflow.
 Cada template debe resolver `kernel/manifest.json`, leer estado vivo solo al
@@ -160,6 +172,13 @@ MOS-5.13 ejecutan local/staging internal-only por terminal agent con aprobacion
 PM exacta y fail-closed; MOS-5.15 (produccion) no se ejecuta por agente y queda
 con el Humano PM por defecto. Ver
 `docs/decisions/0001-fase5-deploy-execution-fail-closed.md`.
+
+Fase 6 no agrega ids de kernel. MOS-6.1 a MOS-6.6 son analisis read-only de
+seguridad de production readiness, gaps funcionales, rendimiento, producto,
+calidad de codigo y codigo muerto; nunca ejecutan cambios ni claman
+completitud. MOS-6.7 a MOS-6.12 procesan esos resultados en modo draft-only
+hacia correccion, follow-up, roadmap o PM decision, sin autorizar limpieza,
+correccion ni despliegue por si mismos.
 
 ## SDLC Comparison and KOPS.3 Fit Check
 
