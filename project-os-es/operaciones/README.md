@@ -60,12 +60,18 @@ ejecútalo en la superficie que indica (`browser_chat`, `terminal_agent`,
 `human_pm` o destinatario externo). El bloque **Conexiones** de cada operación
 indica la operación previa, las siguientes seguras y la recomendada.
 
-Las operaciones `MOS-R.*` mencionadas en algunas conexiones son las
-recomendadas aceptadas del mapa MOSDLC; viven en
-`docs/MOSDLC_OPERATION_MAP.md` y aún no tienen template migrado ni archivo en
-esta carpeta.
+Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
+también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de
+vida: `cross-fase/`, `fase-0/`, `fase-2/`, `fase-3/`, `fase-4/`, `fase-5/` y
+`fase-6/`.
 
 ## Índice
+
+### Transversales — Operaciones recomendadas aceptadas
+
+- [MOS-R.2 — Recomendar la siguiente operación](cross-fase/MOS-R.2-recommend-next-operation.md)
+- [MOS-R.3 — Procesar una decisión PM pendiente](cross-fase/MOS-R.3-process-needs-pm-decision.md)
+- [MOS-R.4 — Revisar readiness de fase](cross-fase/MOS-R.4-review-phase-readiness.md)
 
 ### Fase 0 — Adaptación
 
@@ -75,6 +81,8 @@ esta carpeta.
 - [MOS-0.4 — Actualizar la adopción de un proyecto](fase-0/MOS-0.4-update-project-adoption.md)
 - [MOS-0.5 — Verificar la adopción del target](fase-0/MOS-0.5-verify-target-adoption.md)
 - [MOS-0.6 — Transferir el contexto de sesión](fase-0/MOS-0.6-handoff-session-context.md)
+- [MOS-R.5 — Auditar adopción de targets en lote](fase-0/MOS-R.5-audit-target-adoption-batch.md)
+- [MOS-R.10 — Actualizar catálogo de adapters del target](fase-0/MOS-R.10-update-target-adapters-catalog.md)
 
 ### Fase 1 — Requerimientos, planificación y viabilidad
 
@@ -107,6 +115,8 @@ esta carpeta.
 - [MOS-2.12 — Actualizar estándares de codificación](fase-2/MOS-2.12-update-coding-standards-docs.md)
 - [MOS-2.13 — Actualizar documentación de seguridad](fase-2/MOS-2.13-update-security-docs.md)
 - [MOS-2.14 — Validar la documentación de diseño actualizada](fase-2/MOS-2.14-validate-updated-design-docs.md)
+- [MOS-R.1 — Registrar una decisión ADR](fase-2/MOS-R.1-record-adr-decision.md)
+- [MOS-R.6 — Crear o actualizar ADR desde diseño](fase-2/MOS-R.6-create-update-adr-from-design.md)
 
 ### Fase 3 — Implementación
 
@@ -141,6 +151,11 @@ esta carpeta.
 - [MOS-3.29 — Draftear un follow-up desde seguridad](fase-3/MOS-3.29-draft-follow-up-from-security.md)
 - [MOS-3.30 — Draftear un plan de implementación manual](fase-3/MOS-3.30-draft-manual-implementation-plan.md)
 - [MOS-3.31 — Procesar el resultado de implementación manual](fase-3/MOS-3.31-process-manual-implementation-result.md)
+- [MOS-R.7 — Revisar readiness de licenciamiento y publicación](fase-3/MOS-R.7-review-licensing-publication-readiness.md)
+- [MOS-R.8 — Procesar incidente o hotfix](fase-3/MOS-R.8-process-incident-hotfix.md)
+- [MOS-R.9 — Auditar drift entre docs y producto](fase-3/MOS-R.9-audit-docs-product-drift.md)
+- [MOS-R.22 — Revisar seguridad de packaging público](fase-3/MOS-R.22-public-packaging-safety-review.md)
+- [MOS-R.23 — Convertir operaciones internas antes de release](fase-3/MOS-R.23-convert-internal-operations-before-release.md)
 
 ### Fase 4 — QA y verificación humana
 
@@ -152,6 +167,9 @@ esta carpeta.
 - [MOS-4.6 — Procesar el checklist de production readiness](fase-4/MOS-4.6-process-production-readiness-checklist.md)
 - [MOS-4.7 — Draftear un follow-up desde QA](fase-4/MOS-4.7-draft-follow-up-from-qa.md)
 - [MOS-4.8 — Draftear una corrección desde QA](fase-4/MOS-4.8-draft-correction-from-qa.md)
+- [MOS-R.19 — Planificar ciclo de validación](fase-4/MOS-R.19-plan-validation-cycle.md)
+- [MOS-R.20 — Revisar readiness de ciclo de validación](fase-4/MOS-R.20-review-validation-cycle-readiness.md)
+- [MOS-R.21 — Procesar hallazgos de ciclo de validación](fase-4/MOS-R.21-process-validation-cycle-findings.md)
 
 ### Fase 5 — Despliegue local / staging / producción
 
@@ -170,6 +188,12 @@ esta carpeta.
 - [MOS-5.13 — Ejecutar el despliegue staging (interno)](fase-5/MOS-5.13-execute-staging-deploy.md)
 - [MOS-5.14 — Draftear comandos de despliegue a producción](fase-5/MOS-5.14-draft-production-deploy-commands.md)
 - [MOS-5.15 — Despliegue a producción (Humano PM)](fase-5/MOS-5.15-execute-production-deploy.md)
+- [MOS-R.11 — Revisar readiness de despliegue por entorno](fase-5/MOS-R.11-deployment-readiness-review.md)
+- [MOS-R.12 — Draftear bundle de comandos de despliegue](fase-5/MOS-R.12-draft-deploy-command-bundle.md)
+- [MOS-R.13 — Verificar estado post-deploy](fase-5/MOS-R.13-verify-post-deploy-state.md)
+- [MOS-R.14 — Procesar resultado de despliegue](fase-5/MOS-R.14-process-deployment-result.md)
+- [MOS-R.15 — Draftear comandos de rollback](fase-5/MOS-R.15-draft-rollback-commands.md)
+- [MOS-R.16 — Procesar resultado de rollback](fase-5/MOS-R.16-process-rollback-result.md)
 
 ### Fase 6 — Mantenimiento y mejoras
 
@@ -185,3 +209,5 @@ esta carpeta.
 - [MOS-6.10 — Procesar mejoras de producto](fase-6/MOS-6.10-process-product-improvements.md)
 - [MOS-6.11 — Procesar mejoras de código](fase-6/MOS-6.11-process-code-improvements.md)
 - [MOS-6.12 — Procesar limpieza de código muerto](fase-6/MOS-6.12-process-dead-code-cleanup.md)
+- [MOS-R.17 — Auditar actualizaciones de seguridad de dependencias](fase-6/MOS-R.17-dependency-security-update-audit.md)
+- [MOS-R.18 — Auditar configuración de forma segura para secretos](fase-6/MOS-R.18-secret-safe-config-audit.md)
