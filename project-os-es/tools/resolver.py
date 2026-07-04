@@ -9,6 +9,15 @@ compatibilidad con el actor, y mode_key en evidencia/salidas no selecciona
 registros. Lee el kernel JSON en runtime y no duplica data del kernel; no
 lee estado vivo de GitHub/git y no muta archivos ni target alguno.
 
+El output publico (PR #399, correccion QA) expone top-level exactamente
+estado, resuelto, autorizacion y errores; resuelto expone exactamente
+manifest, reglas_operativas, actor, limites, mode, workflow y
+estados_permitidos. workflow.required_evidence y workflow.allowed_outputs
+llevan el contenido hidratado (no ids crudos) y ningun registro publico
+expone workflow_key ni mode_key. Los registros crudos del kernel se
+proyectan a este subconjunto publico mediante un shaping helper privado;
+internamente el resolver sigue usando los registros crudos.
+
 El output hidratado es guia operativa y nunca concede permisos
 (rule.no_autorizacion, boundary.output_not_permission). Toda falla resuelve
 cerrada con output estructurado (rule.resolucion_fail_closed).
@@ -48,24 +57,80 @@ _ARCHIVOS_KERNEL = {
 
 MODE_FALLBACK = "mode.review_only"
 
-NO_AUTORIZACION = (
-    "Este JSON hidratado es guia operativa de la superficie del kernel en "
-    "espanol y nunca concede permisos ni autoriza accion alguna. La "
-    "autoridad de escritura requiere aprobacion PM exacta para el proyecto, "
-    "la unidad de trabajo y la accion; actor y mode compatibles; evidencia "
-    "viva suficiente; preflight para writes; validacion proporcional; "
-    "limits respetados. Merge, cierre, labels, tags, releases, settings, "
-    "automatizacion, deployment y cambios de secretos requieren aprobacion "
-    "PM exacta separada."
+AUTORIZACION = (
+    "La autorización de acciones depende de el modo de ejecución recibido; "
+    "esta resolución no concede permisos por sí sola."
 )
+
+# Reglas de diseno interno del resolver (emision, hidratacion): guian la
+# implementacion pero no son operativas para el agente que consume la
+# resolucion, asi que el shaping publico las excluye de reglas_operativas.
+_REGLAS_INTERNAS_EXCLUIDAS = {"rule.emision_resolver", "rule.hidratacion"}
+
+_GUIA_MANIFEST_PUBLICA = [
+    "Lee esta resolución",
+    "Es tu guía operativa obligatoria",
+    "Debes respetar las reglas_operativas obligatoriamente.",
+    "Debes respetar los limites obligatorios y el contexto de tu superficie de actuación.",
+    "Debes respetar las acciones disponibles y prohibidas de tu modo de ejecución obligatoriamente.",
+    "Debes ejecutar exclusivamente el workflow resuelto.",
+    "Debes respetar las evidencias y salidas del workflow resuelto obligatoriamente.",
+    "Debes respetar los estados resueltos obligatoriamente.",
+]
+
+_CLAVES_REGLA = (
+    "key", "manifest_key", "resolution_sequence", "on_violation", "priority", "active",
+)
+_CLAVES_ACTOR = ("key", "surface", "context", "allowed_modes", "active")
+_CLAVES_LIMITE = ("key", "actor_key", "rule", "on_violation", "blocking", "active")
+_CLAVES_MODE = ("key", "allowed_actions", "prohibited_actions", "fallback", "active")
+_CLAVES_EVIDENCIA = ("key", "satisfied_by", "missing_status", "required", "active")
+_CLAVES_SALIDA = ("key", "use_for", "status_key", "must_include", "active")
+_CLAVES_ESTADO = ("key", "meaning", "type", "active")
+
+
+def _campos_publicos(registro: dict[str, Any], claves: tuple[str, ...]) -> dict[str, Any]:
+    """Proyecta un registro crudo del kernel a su subconjunto publico exacto."""
+    return {clave: registro.get(clave) for clave in claves}
+
+
+def _manifest_publico(manifest: dict[str, Any]) -> dict[str, Any]:
+    """Manifest publico: campos del kernel mas guia operativa fija (no la
+    resolution_sequence interna del loader)."""
+    publico = {
+        clave: manifest.get(clave) for clave in ("key", "version", "language", "objetivo")
+    }
+    publico["resolution_sequence"] = list(_GUIA_MANIFEST_PUBLICA)
+    publico["active"] = manifest.get("active")
+    return publico
+
+
+def _workflow_publico(
+    workflow: dict[str, Any],
+    evidencia: dict[str, dict[str, Any]],
+    salidas: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Workflow publico con required_evidence/allowed_outputs hidratados
+    (contenido, no ids), sin workflow_key ni mode_key."""
+    publico = _campos_publicos(workflow, ("key", "use_for", "required_behavior"))
+    publico["required_evidence"] = [
+        _campos_publicos(evidencia[key], _CLAVES_EVIDENCIA)
+        for key in workflow.get("required_evidence", [])
+    ]
+    publico["allowed_outputs"] = [
+        _campos_publicos(salidas[key], _CLAVES_SALIDA)
+        for key in workflow.get("allowed_outputs", [])
+    ]
+    publico["active"] = workflow.get("active")
+    return publico
 
 
 def _fail_closed(errores: list[str]) -> dict[str, Any]:
     return {
         "estado": "status.blocked",
         "resuelto": None,
+        "autorizacion": AUTORIZACION,
         "errores": errores,
-        "no_autorizacion": NO_AUTORIZACION,
     }
 
 
@@ -163,7 +228,6 @@ def resolver(
         if registro.get("actor_key") in (None, registro_actor["key"])
     ]
 
-    mode_fallback_aplicado = not mode
     mode_efectivo = mode if mode else MODE_FALLBACK
     modos = _indexar(data["modos"])
     registro_mode = modos.get(mode_efectivo)
@@ -228,40 +292,24 @@ def resolver(
     if faltantes:
         return _fail_closed(faltantes)
 
-    # rule.emision_resolver: guia operativa, checklist de lecturas vivas,
-    # missing statuses y acciones efectivas; nunca permisos ni estado vivo.
-    checklist_lecturas_vivas = [
-        f"Leer vivo {key} (requerida por el workflow): "
-        f"{registro.get('satisfied_by', '')}"
-        for key, registro in evidencia.items()
-    ]
-    missing_statuses = [
-        {"evidence": key, "missing_status": registro["missing_status"]}
-        for key, registro in evidencia.items()
-        if registro.get("missing_status")
-    ]
-
     return {
         "estado": "status.resolved",
         "resuelto": {
-            "manifest": manifest,
-            "reglas_operativas": reglas,
-            "actor": registro_actor,
-            "limites": limites,
-            "mode": registro_mode,
-            "mode_fallback_aplicado": mode_fallback_aplicado,
-            "workflow": registro_workflow,
-            "evidencia": evidencia,
-            "salidas": salidas,
-            "estados": estados,
+            "manifest": _manifest_publico(manifest),
+            "reglas_operativas": [
+                _campos_publicos(regla, _CLAVES_REGLA)
+                for regla in reglas
+                if regla.get("key") not in _REGLAS_INTERNAS_EXCLUIDAS
+            ],
+            "actor": _campos_publicos(registro_actor, _CLAVES_ACTOR),
+            "limites": [_campos_publicos(limite, _CLAVES_LIMITE) for limite in limites],
+            "mode": _campos_publicos(registro_mode, _CLAVES_MODE),
+            "workflow": _workflow_publico(registro_workflow, evidencia, salidas),
+            "estados_permitidos": [
+                _campos_publicos(estado, _CLAVES_ESTADO) for estado in estados.values()
+            ],
         },
-        "guia_operativa": {
-            "acciones_permitidas": registro_mode.get("allowed_actions", []),
-            "acciones_prohibidas": registro_mode.get("prohibited_actions", []),
-            "checklist_lecturas_vivas": checklist_lecturas_vivas,
-            "missing_statuses": missing_statuses,
-        },
-        "no_autorizacion": NO_AUTORIZACION,
+        "autorizacion": AUTORIZACION,
         "errores": [],
     }
 
