@@ -2,25 +2,24 @@
 
 Hidrata el contrato JSON del kernel en espanol (project-os-es/kernel/) por
 (actor, mode, workflow) siguiendo la resolution_sequence del manifest activo.
-Por decision PM (PR #399), evidence y salidas hidratan solo desde las
-referencias del workflow resuelto (required_evidence, allowed_outputs); el
-mode gobierna unicamente acciones permitidas/prohibidas, fallback y
-compatibilidad con el actor, y mode_key en evidencia/salidas no selecciona
-registros. Lee el kernel JSON en runtime y no duplica data del kernel; no
-lee estado vivo de GitHub/git y no muta archivos ni target alguno.
+Evidence y salidas hidratan solo desde las referencias del workflow resuelto
+(required_evidence, allowed_outputs); el mode gobierna unicamente acciones
+permitidas/prohibidas, fallback y compatibilidad con el actor, y mode_key en
+evidencia/salidas no selecciona registros. Lee el kernel JSON en runtime y no
+duplica data del kernel; no lee estado vivo de GitHub/git y no muta archivos
+ni target alguno.
 
-El output publico (PR #399, correccion QA) expone top-level exactamente
-estado, resuelto, autorizacion y errores; resuelto expone exactamente
-manifest, reglas_operativas, actor, limites, mode, workflow y
-estados_permitidos. workflow.required_evidence y workflow.allowed_outputs
-llevan el contenido hidratado (no ids crudos) y ningun registro publico
-expone workflow_key ni mode_key. Los registros crudos del kernel se
-proyectan a este subconjunto publico mediante un shaping helper privado;
-internamente el resolver sigue usando los registros crudos.
+El resolver devuelve exactamente el contrato JSON operativo del (actor, mode,
+workflow) resuelto: top-level estado, resuelto, autorizacion, errores;
+resuelto expone manifest, reglas_operativas, actor, limites, mode, workflow y
+estados_permitidos. Los campos required_evidence y allowed_outputs del
+workflow llevan el contenido hidratado, no ids crudos, y ningun registro
+expone workflow_key ni mode_key.
 
 El output hidratado es guia operativa y nunca concede permisos
 (rule.no_autorizacion, boundary.output_not_permission). Toda falla resuelve
-cerrada con output estructurado (rule.resolucion_fail_closed).
+cerrada con el mismo contrato top-level y estado status.blocked
+(rule.resolucion_fail_closed).
 
 Importable como funcion o ejecutable como comando desde cualquier cwd:
 
@@ -62,12 +61,7 @@ AUTORIZACION = (
     "esta resolución no concede permisos por sí sola."
 )
 
-# Reglas de diseno interno del resolver (emision, hidratacion): guian la
-# implementacion pero no son operativas para el agente que consume la
-# resolucion, asi que el shaping publico las excluye de reglas_operativas.
-_REGLAS_INTERNAS_EXCLUIDAS = {"rule.emision_resolver", "rule.hidratacion"}
-
-_GUIA_MANIFEST_PUBLICA = [
+_MANIFEST_RESOLUTION_SEQUENCE = [
     "Lee esta resolución",
     "Es tu guía operativa obligatoria",
     "Debes respetar las reglas_operativas obligatoriamente.",
@@ -89,40 +83,41 @@ _CLAVES_SALIDA = ("key", "use_for", "status_key", "must_include", "active")
 _CLAVES_ESTADO = ("key", "meaning", "type", "active")
 
 
-def _campos_publicos(registro: dict[str, Any], claves: tuple[str, ...]) -> dict[str, Any]:
-    """Proyecta un registro crudo del kernel a su subconjunto publico exacto."""
+def _campos(registro: dict[str, Any], claves: tuple[str, ...]) -> dict[str, Any]:
+    """Selecciona del registro del kernel exactamente las claves dadas."""
     return {clave: registro.get(clave) for clave in claves}
 
 
-def _manifest_publico(manifest: dict[str, Any]) -> dict[str, Any]:
-    """Manifest publico: campos del kernel mas guia operativa fija (no la
-    resolution_sequence interna del loader)."""
-    publico = {
+def _manifest_resuelto(manifest: dict[str, Any]) -> dict[str, Any]:
+    """Manifest del contrato: campos del kernel con la resolution_sequence
+    operativa fija (no la resolution_sequence interna del loader)."""
+    resuelto = {
         clave: manifest.get(clave) for clave in ("key", "version", "language", "objetivo")
     }
-    publico["resolution_sequence"] = list(_GUIA_MANIFEST_PUBLICA)
-    publico["active"] = manifest.get("active")
-    return publico
+    resuelto["resolution_sequence"] = list(_MANIFEST_RESOLUTION_SEQUENCE)
+    resuelto["active"] = manifest.get("active")
+    return resuelto
 
 
-def _workflow_publico(
+def _workflow_resuelto(
     workflow: dict[str, Any],
     evidencia: dict[str, dict[str, Any]],
     salidas: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
-    """Workflow publico con required_evidence/allowed_outputs hidratados
-    (contenido, no ids), sin workflow_key ni mode_key."""
-    publico = _campos_publicos(workflow, ("key", "use_for", "required_behavior"))
-    publico["required_evidence"] = [
-        _campos_publicos(evidencia[key], _CLAVES_EVIDENCIA)
+    """Workflow del contrato con los campos required_evidence y
+    allowed_outputs hidratados (contenido, no ids), sin workflow_key ni
+    mode_key."""
+    resuelto = _campos(workflow, ("key", "use_for", "required_behavior"))
+    resuelto["required_evidence"] = [
+        _campos(evidencia[key], _CLAVES_EVIDENCIA)
         for key in workflow.get("required_evidence", [])
     ]
-    publico["allowed_outputs"] = [
-        _campos_publicos(salidas[key], _CLAVES_SALIDA)
+    resuelto["allowed_outputs"] = [
+        _campos(salidas[key], _CLAVES_SALIDA)
         for key in workflow.get("allowed_outputs", [])
     ]
-    publico["active"] = workflow.get("active")
-    return publico
+    resuelto["active"] = workflow.get("active")
+    return resuelto
 
 
 def _fail_closed(errores: list[str]) -> dict[str, Any]:
@@ -295,18 +290,14 @@ def resolver(
     return {
         "estado": "status.resolved",
         "resuelto": {
-            "manifest": _manifest_publico(manifest),
-            "reglas_operativas": [
-                _campos_publicos(regla, _CLAVES_REGLA)
-                for regla in reglas
-                if regla.get("key") not in _REGLAS_INTERNAS_EXCLUIDAS
-            ],
-            "actor": _campos_publicos(registro_actor, _CLAVES_ACTOR),
-            "limites": [_campos_publicos(limite, _CLAVES_LIMITE) for limite in limites],
-            "mode": _campos_publicos(registro_mode, _CLAVES_MODE),
-            "workflow": _workflow_publico(registro_workflow, evidencia, salidas),
+            "manifest": _manifest_resuelto(manifest),
+            "reglas_operativas": [_campos(regla, _CLAVES_REGLA) for regla in reglas],
+            "actor": _campos(registro_actor, _CLAVES_ACTOR),
+            "limites": [_campos(limite, _CLAVES_LIMITE) for limite in limites],
+            "mode": _campos(registro_mode, _CLAVES_MODE),
+            "workflow": _workflow_resuelto(registro_workflow, evidencia, salidas),
             "estados_permitidos": [
-                _campos_publicos(estado, _CLAVES_ESTADO) for estado in estados.values()
+                _campos(estado, _CLAVES_ESTADO) for estado in estados.values()
             ],
         },
         "autorizacion": AUTORIZACION,
