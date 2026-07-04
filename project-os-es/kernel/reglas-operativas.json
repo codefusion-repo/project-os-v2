@@ -113,30 +113,6 @@
       "on_violation": "status.blocked",
       "priority": 9,
       "active": true
-    },
-    {
-      "key": "rule.emision_resolver",
-      "manifest_key": "manifest.kernel_es",
-      "resolution_sequence": [
-        "Un resolver que hidrate esta superficie debe emitir: actor, mode, workflow, evidence, limits y output resueltos como guia operativa; checklist de lecturas vivas; aviso de no autorizacion; missing statuses; acciones permitidas y prohibidas efectivas.",
-        "Nunca debe emitir permisos de escritura, merge, cierre, labels, tags, releases ni settings, ni estado vivo copiado de archivos durables."
-      ],
-      "on_violation": "status.blocked",
-      "priority": 10,
-      "active": true
-    },
-    {
-      "key": "rule.hidratacion",
-      "manifest_key": "manifest.kernel_es",
-      "resolution_sequence": [
-        "Cargar evidence por workflow y mode como union: los registros nombrados por required_evidence del workflow resuelto mas los registros cuyo mode_key contiene el mode resuelto.",
-        "Cargar output por workflow y mode con la misma semantica: los registros nombrados por allowed_outputs del workflow resuelto; un mode_key vacio no restringe por mode.",
-        "En evidence y output, workflow_key y mode_key son selectores independientes; una lista vacia significa que esa dimension no selecciona el registro y nunca excluye lo seleccionado por la otra.",
-        "Todo required_evidence de un workflow hidrata bajo cada mode permitido; mode_key nunca lo filtra."
-      ],
-      "on_violation": "status.blocked",
-      "priority": 11,
-      "active": true
     }
   ]
 }
