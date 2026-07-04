@@ -1,0 +1,244 @@
+"""Resolver de la superficie Project OS en espanol.
+
+Hidrata el contrato JSON del kernel en espanol (project-os-es/kernel/) por
+(actor, mode, workflow) siguiendo la resolution_sequence del manifest activo
+y rule.hidratacion. Lee el kernel JSON en runtime y no duplica data del
+kernel; no lee estado vivo de GitHub/git y no muta archivos ni target alguno.
+
+El output hidratado es guia operativa y nunca concede permisos
+(rule.no_autorizacion, boundary.output_not_permission). Toda falla resuelve
+cerrada con output estructurado (rule.resolucion_fail_closed).
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+_KERNEL_DIR_DEFAULT = Path(__file__).resolve().parent.parent / "kernel"
+
+# alias -> (archivo, lista raiz dentro del JSON)
+_ARCHIVOS_KERNEL = {
+    "manifest": ("manifest.json", "manifest"),
+    "reglas": ("reglas-operativas.json", "operational_rules"),
+    "actores": ("actores.json", "actors"),
+    "modos": ("modos.json", "modes"),
+    "workflows": ("workflows.json", "workflows"),
+    "limites": ("limites.json", "limits"),
+    "evidencia": ("evidencia.json", "evidence"),
+    "salidas": ("salidas.json", "outputs"),
+    "estados": ("estados.json", "statuses"),
+}
+
+MODE_FALLBACK = "mode.review_only"
+
+NO_AUTORIZACION = (
+    "Este JSON hidratado es guia operativa de la superficie del kernel en "
+    "espanol y nunca concede permisos ni autoriza accion alguna. La "
+    "autoridad de escritura requiere aprobacion PM exacta para el proyecto, "
+    "la unidad de trabajo y la accion; actor y mode compatibles; evidencia "
+    "viva suficiente; preflight para writes; validacion proporcional; "
+    "limits respetados. Merge, cierre, labels, tags, releases, settings, "
+    "automatizacion, deployment y cambios de secretos requieren aprobacion "
+    "PM exacta separada."
+)
+
+
+def _fail_closed(errores: list[str]) -> dict[str, Any]:
+    return {
+        "estado": "status.blocked",
+        "resuelto": None,
+        "errores": errores,
+        "no_autorizacion": NO_AUTORIZACION,
+    }
+
+
+def _cargar_kernel(kernel_dir: Path) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
+    """Carga los archivos del kernel es; solo registros dict con active true."""
+    data: dict[str, list[dict[str, Any]]] = {}
+    errores: list[str] = []
+    for alias, (nombre, familia) in _ARCHIVOS_KERNEL.items():
+        ruta = kernel_dir / nombre
+        if not ruta.is_file():
+            errores.append(f"archivo del kernel faltante: {ruta}")
+            continue
+        try:
+            contenido = json.loads(ruta.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            errores.append(f"archivo del kernel ilegible o invalido: {nombre}: {exc}")
+            continue
+        registros = contenido.get(familia) if isinstance(contenido, dict) else None
+        if not isinstance(registros, list):
+            errores.append(f"{nombre} no contiene la lista '{familia}'")
+            continue
+        data[alias] = [r for r in registros if isinstance(r, dict) and r.get("active")]
+    return data, errores
+
+
+def _indexar(registros: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {r["key"]: r for r in registros if isinstance(r.get("key"), str)}
+
+
+def resolver(
+    actor: str | None,
+    mode: str | None = None,
+    workflow: str | None = None,
+    kernel_dir: Path | str | None = None,
+) -> dict[str, Any]:
+    """Resuelve (actor, mode, workflow) contra el kernel es en runtime.
+
+    Devuelve siempre un dict estructurado: estado status.resolved con el
+    contrato hidratado y la guia operativa, o fail-closed con estado
+    status.blocked y errores explicitos. Mode faltante cae a
+    mode.review_only; mode invalido nunca cae, falla cerrado.
+    """
+    dir_kernel = Path(kernel_dir) if kernel_dir is not None else _KERNEL_DIR_DEFAULT
+    if not dir_kernel.is_dir():
+        return _fail_closed([f"directorio del kernel no encontrado: {dir_kernel}"])
+
+    data, errores = _cargar_kernel(dir_kernel)
+    if errores:
+        return _fail_closed(errores)
+
+    manifests = data["manifest"]
+    if len(manifests) != 1:
+        return _fail_closed(
+            [f"el kernel debe tener exactamente un manifest activo; hay {len(manifests)}"]
+        )
+    manifest = manifests[0]
+
+    reglas = sorted(
+        (r for r in data["reglas"] if r.get("manifest_key") == manifest.get("key")),
+        key=lambda r: r.get("priority", 0),
+    )
+    if not reglas:
+        return _fail_closed(
+            [f"sin operational_rules activas para {manifest.get('key')}"]
+        )
+
+    actores = _indexar(data["actores"])
+    registro_actor = actores.get(actor or "")
+    if registro_actor is None:
+        return _fail_closed(
+            [f"actor desconocido: {actor!r} (conocidos: {sorted(actores)})"]
+        )
+
+    # Limits aplicables antes de mode y workflow: globales mas los del actor.
+    limites = [
+        registro
+        for registro in data["limites"]
+        if registro.get("actor_key") in (None, registro_actor["key"])
+    ]
+
+    mode_fallback_aplicado = not mode
+    mode_efectivo = mode if mode else MODE_FALLBACK
+    modos = _indexar(data["modos"])
+    registro_mode = modos.get(mode_efectivo)
+    if registro_mode is None:
+        return _fail_closed(
+            [f"mode desconocido: {mode_efectivo!r} (conocidos: {sorted(modos)})"]
+        )
+
+    allowed_modes = registro_actor.get("allowed_modes", [])
+    if mode_efectivo not in allowed_modes:
+        return _fail_closed(
+            [
+                f"mode incompatible: {mode_efectivo!r} no esta en allowed_modes "
+                f"de {registro_actor['key']!r} (permitidos: {allowed_modes})"
+            ]
+        )
+
+    workflows = _indexar(data["workflows"])
+    registro_workflow = workflows.get(workflow or "")
+    if registro_workflow is None:
+        return _fail_closed(
+            [f"workflow desconocido: {workflow!r} (conocidos: {sorted(workflows)})"]
+        )
+
+    # rule.hidratacion: evidence y output hidratan como union de los registros
+    # nombrados por el workflow mas los registros cuyo mode_key contiene el
+    # mode; los selectores son independientes y una lista vacia nunca excluye.
+    faltantes: list[str] = []
+
+    evidencia_idx = _indexar(data["evidencia"])
+    evidencia: dict[str, dict[str, Any]] = {}
+    for key in registro_workflow.get("required_evidence", []):
+        registro = evidencia_idx.get(key)
+        if registro is None:
+            faltantes.append(f"evidence referenciada no encontrada: {key}")
+        else:
+            evidencia[key] = registro
+    for key, registro in evidencia_idx.items():
+        if key not in evidencia and mode_efectivo in registro.get("mode_key", []):
+            evidencia[key] = registro
+
+    salidas_idx = _indexar(data["salidas"])
+    salidas: dict[str, dict[str, Any]] = {}
+    for key in registro_workflow.get("allowed_outputs", []):
+        registro = salidas_idx.get(key)
+        if registro is None:
+            faltantes.append(f"output referenciado no encontrado: {key}")
+        else:
+            salidas[key] = registro
+    for key, registro in salidas_idx.items():
+        if key not in salidas and mode_efectivo in registro.get("mode_key", []):
+            salidas[key] = registro
+
+    if faltantes:
+        return _fail_closed(faltantes)
+
+    # Statuses referenciados por limits, evidence y output.
+    estados_idx = _indexar(data["estados"])
+    referencias_estado = (
+        [registro.get("on_violation") for registro in limites]
+        + [registro.get("missing_status") for registro in evidencia.values()]
+        + [registro.get("status_key") for registro in salidas.values()]
+    )
+    estados: dict[str, dict[str, Any]] = {}
+    for key in referencias_estado:
+        if not key or key in estados:
+            continue
+        registro = estados_idx.get(key)
+        if registro is None:
+            faltantes.append(f"status referenciado no encontrado: {key}")
+        else:
+            estados[key] = registro
+    if faltantes:
+        return _fail_closed(faltantes)
+
+    # rule.emision_resolver: guia operativa, checklist de lecturas vivas,
+    # missing statuses y acciones efectivas; nunca permisos ni estado vivo.
+    checklist_lecturas_vivas = [
+        f"Leer vivo {key}: {registro.get('satisfied_by', '')}"
+        for key, registro in evidencia.items()
+    ]
+    missing_statuses = [
+        {"evidence": key, "missing_status": registro["missing_status"]}
+        for key, registro in evidencia.items()
+        if registro.get("missing_status")
+    ]
+
+    return {
+        "estado": "status.resolved",
+        "resuelto": {
+            "manifest": manifest,
+            "reglas_operativas": reglas,
+            "actor": registro_actor,
+            "limites": limites,
+            "mode": registro_mode,
+            "mode_fallback_aplicado": mode_fallback_aplicado,
+            "workflow": registro_workflow,
+            "evidencia": evidencia,
+            "salidas": salidas,
+            "estados": estados,
+        },
+        "guia_operativa": {
+            "acciones_permitidas": registro_mode.get("allowed_actions", []),
+            "acciones_prohibidas": registro_mode.get("prohibited_actions", []),
+            "checklist_lecturas_vivas": checklist_lecturas_vivas,
+            "missing_statuses": missing_statuses,
+        },
+        "no_autorizacion": NO_AUTORIZACION,
+        "errores": [],
+    }
