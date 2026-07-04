@@ -34,13 +34,15 @@ renumera, autoriza escritura ni guarda estado vivo.
 
 El estandar de migracion vive en `docs/MOSDLC_TEMPLATE_STANDARD.md`.
 Los templates MOSDLC migrados se agregan bajo
-`templates/mosdlc/operations/fase-<n>/`; el catalogo `00`-`37` permanece usable
-como fuente de reemplazo y compatibilidad. La migracion de una fase agrega
+`templates/mosdlc/operations/fase-<n>/` y, para las operaciones recomendadas
+aceptadas, bajo `templates/mosdlc/operations/recommended/`; el catalogo
+`00`-`37` permanece usable como fuente de reemplazo y compatibilidad. La migracion de una fase agrega
 templates y docs; agrega o actualiza tests solo cuando protegen contratos
 deterministas, seguridad, trazabilidad, comandos, resolver, adopcion target u
 otro riesgo real. No agrega ids de kernel ni cambia autorizacion por si misma.
 
-Fase 0, Fase 1, Fase 2, Fase 3, Fase 4, Fase 5 y Fase 6 son los lotes migrados. Sus templates son prompts
+Fase 0, Fase 1, Fase 2, Fase 3, Fase 4, Fase 5, Fase 6 y el lote transversal de
+operaciones recomendadas aceptadas (MOS-R.1 a MOS-R.23) son los lotes migrados. Sus templates son prompts
 ejecutables con la misma disciplina de bloques (`MOSDLC`, `OPERATION`, `INPUT`,
 `KERNEL`, `COMPATIBILITY_SOURCE`, `LIVE_STATE`, `DO`, `OUTPUT`, `LIMITS`,
 `RECOMMENDED_NEXT_OPERATION`) y todos incluyen `PM_FEEDBACK_HUMANO` y
@@ -154,6 +156,29 @@ automatizada.
 | MOS-6.10 | process-product-improvements | `templates/mosdlc/operations/fase-6/MOS-6.10-process-product-improvements.md` | — |
 | MOS-6.11 | process-code-improvements | `templates/mosdlc/operations/fase-6/MOS-6.11-process-code-improvements.md` | — |
 | MOS-6.12 | process-dead-code-cleanup | `templates/mosdlc/operations/fase-6/MOS-6.12-process-dead-code-cleanup.md` | — |
+| MOS-R.1 | record-adr-decision | `templates/mosdlc/operations/recommended/MOS-R.1-record-adr-decision.md` | `templates/operations/22-record-adr-decision.md` |
+| MOS-R.2 | recommend-next-operation | `templates/mosdlc/operations/recommended/MOS-R.2-recommend-next-operation.md` | `templates/operations/35-recommend-next-lifecycle-operation.md` |
+| MOS-R.3 | process-needs-pm-decision | `templates/mosdlc/operations/recommended/MOS-R.3-process-needs-pm-decision.md` | `templates/operations/36-process-needs-pm-decision.md` |
+| MOS-R.4 | review-phase-readiness | `templates/mosdlc/operations/recommended/MOS-R.4-review-phase-readiness.md` | `templates/operations/37-review-phase-readiness.md` |
+| MOS-R.5 | audit-target-adoption-batch | `templates/mosdlc/operations/recommended/MOS-R.5-audit-target-adoption-batch.md` | `templates/operations/14-audit-target-adapters.md`, `templates/operations/03-verify-target-adoption.md` |
+| MOS-R.6 | create-update-adr-from-design | `templates/mosdlc/operations/recommended/MOS-R.6-create-update-adr-from-design.md` | `templates/operations/22-record-adr-decision.md` |
+| MOS-R.7 | review-licensing-publication-readiness | `templates/mosdlc/operations/recommended/MOS-R.7-review-licensing-publication-readiness.md` | `templates/operations/12-analyze-release-or-tag-readiness.md` |
+| MOS-R.8 | process-incident-hotfix | `templates/mosdlc/operations/recommended/MOS-R.8-process-incident-hotfix.md` | — |
+| MOS-R.9 | audit-docs-product-drift | `templates/mosdlc/operations/recommended/MOS-R.9-audit-docs-product-drift.md` | `templates/operations/05-review-project-state-and-misalignment.md` |
+| MOS-R.10 | update-target-adapters-catalog | `templates/mosdlc/operations/recommended/MOS-R.10-update-target-adapters-catalog.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` |
+| MOS-R.11 | deployment-readiness-review | `templates/mosdlc/operations/recommended/MOS-R.11-deployment-readiness-review.md` | — |
+| MOS-R.12 | draft-deploy-command-bundle | `templates/mosdlc/operations/recommended/MOS-R.12-draft-deploy-command-bundle.md` | — |
+| MOS-R.13 | verify-post-deploy-state | `templates/mosdlc/operations/recommended/MOS-R.13-verify-post-deploy-state.md` | `templates/operations/11-verify-post-merge-state.md` |
+| MOS-R.14 | process-deployment-result | `templates/mosdlc/operations/recommended/MOS-R.14-process-deployment-result.md` | — |
+| MOS-R.15 | draft-rollback-commands | `templates/mosdlc/operations/recommended/MOS-R.15-draft-rollback-commands.md` | — |
+| MOS-R.16 | process-rollback-result | `templates/mosdlc/operations/recommended/MOS-R.16-process-rollback-result.md` | — |
+| MOS-R.17 | dependency-security-update-audit | `templates/mosdlc/operations/recommended/MOS-R.17-dependency-security-update-audit.md` | — |
+| MOS-R.18 | secret-safe-config-audit | `templates/mosdlc/operations/recommended/MOS-R.18-secret-safe-config-audit.md` | — |
+| MOS-R.19 | plan-validation-cycle | `templates/mosdlc/operations/recommended/MOS-R.19-plan-validation-cycle.md` | — |
+| MOS-R.20 | review-validation-cycle-readiness | `templates/mosdlc/operations/recommended/MOS-R.20-review-validation-cycle-readiness.md` | `templates/operations/37-review-phase-readiness.md` |
+| MOS-R.21 | process-validation-cycle-findings | `templates/mosdlc/operations/recommended/MOS-R.21-process-validation-cycle-findings.md` | — |
+| MOS-R.22 | public-packaging-safety-review | `templates/mosdlc/operations/recommended/MOS-R.22-public-packaging-safety-review.md` | — |
+| MOS-R.23 | convert-internal-operations-before-release | `templates/mosdlc/operations/recommended/MOS-R.23-convert-internal-operations-before-release.md` | — |
 
 Estos templates no guardan estado vivo durable y no autorizan escritura. Browser
 chat permanece draft-only; terminal agent escribe solo con aprobacion PM exacta,
@@ -175,6 +200,20 @@ rendimiento, producto, calidad de codigo y codigo muerto en modo read-only;
 MOS-6.7 a MOS-6.12 procesan esos resultados hacia correccion, follow-up,
 roadmap o PM decision en modo draft-only, sin ejecutar limpieza, correccion ni
 despliegue por si mismos.
+
+Las operaciones recomendadas aceptadas (MOS-R.1 a MOS-R.23) son el lote
+transversal migrado en #393: routing y decisiones (MOS-R.2, MOS-R.3, MOS-R.4),
+ADRs (MOS-R.1, MOS-R.6), adopcion multi-target (MOS-R.5, MOS-R.10), incidentes
+(MOS-R.8), drift documental (MOS-R.9), ciclo de despliegue parametrizado por
+entorno (MOS-R.11 a MOS-R.16), auditorias de dependencias y configuracion
+secret-safe (MOS-R.17, MOS-R.18), ciclo de validacion target-agnostic
+(MOS-R.19 a MOS-R.21) y preparacion de publicacion (MOS-R.7, MOS-R.22,
+MOS-R.23). MOS-R.3 clarifica variables (DECISION_SOURCE, DECISION_CONTEXT,
+DECISION_QUESTION, DECISION_OPTIONS y opcionales) y categorias de decision
+seguras sin autorizar nada. MOS-R.12 y MOS-R.15 son internal-only con
+pre-release convert. Ninguna operacion recomendada asume que todo target tiene
+dogfood, despliegue, staging, packaging publico o adapters; cada dependencia se
+declara y falla cerrado cuando no aplica.
 
 Las superficies (browser chat, terminal agent, Humano PM, destinatario externo)
 aparecen en la columna **Superficie**. Las variables son selectores de contexto,
