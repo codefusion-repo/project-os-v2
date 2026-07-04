@@ -4,10 +4,7 @@
       "key": "workflow.review_only",
       "use_for": "analisis, auditoria, preguntas y hallazgos sin cambios",
       "required_behavior": [
-        "resolver kernel",
-        "recolectar evidencia viva",
-        "analizar",
-        "reportar hallazgos con referencias a evidencia"
+        "analizar el scope pedido y producir hallazgos en lugar de cambios"
       ],
       "required_evidence": [
         "evidence.repo_state"
@@ -22,14 +19,7 @@
       "key": "workflow.issue_implementation",
       "use_for": "implementar una unidad de trabajo trazable y acotada en un target; un GitHub issue es un adapter posible",
       "required_behavior": [
-        "resolver kernel y modo",
-        "leer vivos el scope y el source basis de la unidad de trabajo",
-        "ejecutar branch preflight",
-        "trabajar solo en la rama scoped",
-        "implementar solo dentro del scope",
-        "validar",
-        "commit, push y draft PR solo si el modo lo permite",
-        "reportar con execution report"
+        "implementar el cambio completo dentro del scope vivo de la unidad de trabajo y de nada mas"
       ],
       "required_evidence": [
         "evidence.issue_scope",
@@ -47,10 +37,7 @@
       "key": "workflow.issue_implementation_manual",
       "use_for": "draftear un plan humano-ejecutable sin mutar el repositorio ni el target remoto",
       "required_behavior": [
-        "inspeccionar la unidad de trabajo y el contexto de codigo disponible",
-        "nombrar archivos y anclas solo cuando se puedan verificar",
-        "declarar que no se editaron archivos ni se valido codigo",
-        "fallar cerrado si el contexto no alcanza"
+        "draftear un plan humano-ejecutable nombrando archivos y anclas solo cuando se puedan verificar"
       ],
       "required_evidence": [
         "evidence.issue_scope",
@@ -67,12 +54,7 @@
       "key": "workflow.review_before_close",
       "use_for": "revisar trabajo terminado antes del merge o cierre PM",
       "required_behavior": [
-        "leer viva la unidad de trabajo",
-        "tratar body y reportes como claims",
-        "inspeccionar changed files, diff y archivos finales relevantes",
-        "comparar implementacion y validacion contra el scope",
-        "devolver status.needs_context si falta evidencia de codigo",
-        "dejar merge y cierre al PM"
+        "comparar la implementacion y la validacion reales contra scope, out of scope y acceptance criteria de la unidad de trabajo"
       ],
       "required_evidence": [
         "evidence.issue_scope",
@@ -91,11 +73,8 @@
       "key": "workflow.implementation_discipline_audit",
       "use_for": "auditoria read-only de disciplina de implementacion",
       "required_behavior": [
-        "recolectar evidencia viva del repositorio y del scope provisto",
-        "comparar contra boundary.implementation_discipline, boundary.primary_path_discipline y boundary.validation_discipline",
-        "reportar solo hallazgos con evidencia y referencia a archivo o linea",
-        "recomendar o draftear follow-ups sin mutar el target remoto",
-        "nunca refactorizar ni editar archivos"
+        "auditar la evidencia contra boundary.implementation_discipline, boundary.primary_path_discipline y boundary.validation_discipline",
+        "distinguir gaps de disciplina de tradeoffs locales aceptables o convenciones explicitas del proyecto"
       ],
       "required_evidence": [
         "evidence.repo_state"
@@ -111,10 +90,7 @@
       "key": "workflow.pm_intake",
       "use_for": "convertir input PM en unidades de trabajo drafteadas, route prompts o decision requests",
       "required_behavior": [
-        "recolectar source basis vivo",
-        "draftear unidades de trabajo bien formadas para revision PM",
-        "presentar las decisiones que el PM debe tomar",
-        "entregar solo drafts y command bundles copy-safe, sin writes"
+        "presentar explicitamente las decisiones que el PM debe tomar"
       ],
       "required_evidence": [
         "evidence.source_basis"
@@ -131,10 +107,8 @@
       "key": "workflow.design_asset",
       "use_for": "preparar un prompt de asset para un destinatario externo que no es actor",
       "required_behavior": [
-        "leer vivos el contexto del target y la evidencia de diseno provista",
-        "identificar assets y constraints de producto, marca, accesibilidad, formato, dimensiones y aceptacion",
-        "draftear el prompt manteniendo la verdad de producto y diseno en el target",
-        "no generar assets, no editar archivos del target y no reclamar propiedad de diseno"
+        "identificar los assets necesarios y sus constraints de producto, marca, accesibilidad, formato, dimensiones y aceptacion",
+        "mantener la verdad de producto y diseno en el target, nunca en el prompt"
       ],
       "required_evidence": [
         "evidence.repo_state",
@@ -150,10 +124,7 @@
       "key": "workflow.security_revision",
       "use_for": "preparar un prompt de revision de seguridad OWASP sin exponer secretos",
       "required_behavior": [
-        "leer vivo el contexto de seguridad sin exponer secretos",
-        "identificar superficies sensibles: auth, autorizacion, sesiones, input validation, uploads, redirects, dependencias, admin, secretos, logging y config",
-        "draftear el prompt con requisitos de redaccion y evidencia concreta a inspeccionar",
-        "nunca pedir imprimir, pegar, subir ni resumir valores secretos o de entorno"
+        "identificar las superficies sensibles del target: auth, autorizacion, sesiones, input validation, uploads, redirects, dependencias, admin, secretos, logging y config"
       ],
       "required_evidence": [
         "evidence.repo_state",
@@ -169,9 +140,7 @@
       "key": "workflow.release_readiness",
       "use_for": "evaluar readiness de tag o release sin crear tag ni release",
       "required_behavior": [
-        "recolectar viva la evidencia de merges, validacion y riesgos abiertos",
-        "reportar readiness nombrando gaps",
-        "detenerse antes de cualquier accion de tag o release"
+        "evaluar readiness nombrando cada gap abierto"
       ],
       "required_evidence": [
         "evidence.repo_state",
@@ -188,8 +157,7 @@
       "key": "workflow.handoff",
       "use_for": "transferir sesion o trabajo apuntando a evidencia viva",
       "required_behavior": [
-        "asegurar que todo estado transferible este en las fuentes de registro del target",
-        "producir un handoff packet que apunta a evidencia viva sin duplicarla como verdad durable"
+        "dejar todo estado transferible en las fuentes de registro del target antes de cerrar la sesion"
       ],
       "required_evidence": [
         "evidence.repo_state"
@@ -204,11 +172,9 @@
       "key": "workflow.target_adoption",
       "use_for": "auditar o bootstrappear adapters de un target sobre este kernel",
       "required_behavior": [
-        "inspeccionar primero el estado de adopcion del target: adapters, metadata, anchor de roadmap, version y path del kernel, notas target-owned y riesgo de estado vivo durable",
-        "auditar adapters existentes contra los canonicos y reportar drift sin sobreescribir notas, constraints ni comandos target-owned",
-        "bajo modo draft-only, draftear contenido y checklist sin editar archivos ni mutar el target remoto",
-        "bajo modo delegado con aprobacion PM exacta, crear solo los adapters canonicos y abrir draft PR solo si el modo lo permite",
-        "mantener la adopcion acotada: rama scoped, diff solo de adapters, sin codigo de producto ni autoridad extra"
+        "auditar los adapters del target contra los canonicos y reportar drift sin sobreescribir notas, constraints ni comandos target-owned",
+        "cuando la adopcion falta, crear o draftear solo los adapters canonicos",
+        "mantener el diff de adopcion solo en adapters, sin codigo de producto ni autoridad extra"
       ],
       "required_evidence": [
         "evidence.target_adoption"
@@ -224,13 +190,8 @@
       "key": "workflow.deployment",
       "use_for": "ejecutar un deploy interno local o staging con comandos target-owned",
       "required_behavior": [
-        "confirmar el modo de deploy y la aprobacion PM exacta scoped a proyecto, entorno y accion",
-        "leer vivos el scope, el source basis y los comandos de deploy target-owned; nunca inventar ni ampliar comandos",
-        "recolectar readiness, adopcion, validacion y estado del repositorio para el unico entorno aprobado antes de ejecutar",
-        "fallar cerrado si falta comando target-owned, scope de entorno, aprobacion exacta, readiness, validacion o secret safety",
-        "ejecutar solo los comandos aprobados para un entorno por vez; produccion queda con el PM",
-        "verificar el estado post-deploy y reportar redactando valores sensibles como [REDACTED]",
-        "nunca exponer secretos ni ejecutar dumps amplios de entorno o configuracion"
+        "ejecutar el deploy de un entorno por vez",
+        "verificar el estado post-deploy antes de reportar"
       ],
       "required_evidence": [
         "evidence.pm_approval",

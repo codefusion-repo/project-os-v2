@@ -19,7 +19,7 @@
     {
       "key": "boundary.draft_only_browser",
       "actor_key": "actor.browser_chat",
-      "rule": "La superficie browser chat no edita archivos ni muta el repositorio o el target remoto; la aprobacion PM para writes rutea el trabajo a una superficie terminal.",
+      "rule": "La superficie browser chat no edita archivos ni muta el repositorio o el target remoto; la aprobacion PM para writes rutea el trabajo a una superficie terminal y nunca expande la capacidad del browser.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true

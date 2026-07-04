@@ -97,7 +97,7 @@
         "mode.delegated_commit_pr",
         "mode.delegated_deploy_execution"
       ],
-      "satisfied_by": "comandos de validacion ejecutados para este cambio con su resultado real; nunca declarar done sin reportarla cuando se requiere",
+      "satisfied_by": "comandos de validacion ejecutados para este cambio con su resultado real",
       "missing_status": "status.needs_context",
       "required": true,
       "active": true

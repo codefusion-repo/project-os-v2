@@ -10,7 +10,7 @@
     {
       "key": "actor.terminal_agent",
       "surface": "terminal",
-      "context": "Agente con capacidad de repositorio operando bajo este kernel y el adapter del target; unica superficie con writes delegados. Cada accion denegada por limits (merge, cierre, labels, tags, releases, settings, automatizacion, editar la rama principal) requiere aprobacion PM exacta separada y nunca queda implicita en scope ni mode.",
+      "context": "Agente con capacidad de repositorio operando bajo este kernel y el adapter del target; unica superficie con writes delegados, siempre acotada por sus limits y por el mode resuelto.",
       "allowed_modes": [
         "mode.review_only",
         "mode.local_implementation",
@@ -23,7 +23,7 @@
     {
       "key": "actor.browser_chat",
       "surface": "browser",
-      "context": "Superficie draft-only: lee contexto provisto, analiza y draftea unidades de trabajo, prompts, reportes y command bundles copy-safe. El trabajo write-capable se rutea a una superficie terminal; la aprobacion PM para writes nunca expande la capacidad del browser.",
+      "context": "Superficie draft-only: lee contexto provisto, analiza y draftea unidades de trabajo, prompts, reportes y command bundles copy-safe.",
       "allowed_modes": [
         "mode.review_only"
       ],
