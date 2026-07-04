@@ -4,7 +4,7 @@
       "key": "manifest.kernel_es",
       "version": "1.0.0",
       "language": "es",
-      "objetivo": "Definir el contrato operativo compacto que un resolver hidrata por (actor, mode, workflow) para gobernar comportamiento de agentes sobre un proyecto o target, sin conceder permisos. El modelo es agnostico al proyecto: GitHub, git, issues y PRs aparecen solo como adapters o ejemplos de fuente. Los artefactos son unidades drafteables/creables/trazables/documentables con una responsabilidad y, cuando dependen de template, un required_template .md. Esta superficie es data de diseno compacta en espanol; el kernel raiz kernel/*.json sigue siendo la fuente canonica de comportamiento.",
+      "objetivo": "Definir el contrato operativo compacto que un resolver hidrata por (actor, mode, workflow) para gobernar comportamiento de agentes sobre un proyecto o target, sin conceder permisos. El modelo es agnostico al proyecto: GitHub, git, issues y PRs aparecen solo como adapters o ejemplos de fuente. Los artefactos son unidades drafteables/creables/trazables/documentables con una responsabilidad y, cuando dependen de template, un required_template .md. Esta superficie opera desde project-os-es/kernel/*.json; el kernel raiz queda como source-basis/compatibilidad historica, no como ruta activa en espanol.",
       "resolution_sequence": [
         "Lee esta resolución completa.",
         "Trátala como tu guía operativa obligatoria.",

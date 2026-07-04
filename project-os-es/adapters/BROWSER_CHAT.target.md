@@ -1,8 +1,7 @@
 # BROWSER_CHAT.md (adapter browser para target)
 
-Pega este contenido en las instrucciones del proyecto/chat browser. Reemplaza
-`{{PLACEHOLDERS}}`. Si no puedes fijar instrucciones, usa el bloque final como
-primer mensaje.
+Pega este contenido en las instrucciones del proyecto/chat browser y reemplaza
+`{{PLACEHOLDERS}}`.
 
 ---
 
@@ -29,12 +28,12 @@ DEFAULT_BRANCH = main
 WORK_BRANCH_PATTERN = work/*
 PM_FACING_LANGUAGE = es
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
-KERNEL_LOCAL_PATH = {{ruta a kernel si existe}}
+KERNEL_LOCAL_PATH = {{ruta a project-os-es/kernel si existe}}
 KERNEL_VERSION_ADOPTED = {{version adoptada o "tracks latest"}}
 
 ## Resolucion del kernel
 
-Antes de trabajo no trivial, lee `kernel/manifest.json` en
+Antes de trabajo no trivial, lee `project-os-es/kernel/manifest.json` en
 `KERNEL_REPOSITORY` y sigue su `resolution_sequence`. Browser chat no ejecuta
 Python local ni usa el fast path terminal.
 
@@ -57,26 +56,7 @@ Para draft, usa los artefactos y templates del kernel:
 ## Seguridad y validacion
 
 - No pidas ni expongas secretos; redacta valores sensibles como `[REDACTED]`.
-- Draftea validacion proporcional segun `docs/VALIDATION_POLICY.md`.
+- Draftea validacion proporcional segun `project-os-es/docs/reglas.md` y las
+  reglas resueltas desde `project-os-es/kernel/`.
 - La aprobacion PM exacta puede viajar como evidencia para una ruta scoped, pero
   no elimina evidencia viva, preflight, validacion ni fail-closed.
-
-## Activacion de primer mensaje
-
-~~~text
-PROJECT_NAME = {{name}}
-REPOSITORY_NAME = {{org/repo}}
-KERNEL_REPOSITORY = codefusion-repo/project-os-v2
-KERNEL_LOCAL_PATH = {{ruta a kernel si existe}}
-CURRENT_ACTOR_TYPE = actor.browser_chat
-WORKFLOW = workflow.pm_intake
-ROADMAP_ISSUE = {{#N si aplica}}
-
-Actua como actor.browser_chat. Resuelve manualmente el kernel desde
-KERNEL_REPOSITORY/kernel/manifest.json antes de trabajo no trivial. Reconstruye
-estado vivo desde GitHub/git; si falta evidencia, responde status.needs_context
-o status.blocked segun corresponda. Draft-only: no edites archivos ni mutas
-GitHub. Usa project-os-es/templates/route-prompt.md,
-project-os-es/templates/pm-command-bundle.md y los required_template de
-artefactos resueltos. Este mensaje no concede permisos.
-~~~

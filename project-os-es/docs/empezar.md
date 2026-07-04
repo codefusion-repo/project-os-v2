@@ -77,12 +77,12 @@ Haz esto solo cuando vayas a delegar implementación a un terminal agent:
 Fast path del resolver cuando el repo ya está listo:
 
 ```sh
-python -m tools.project_os_resolve --actor <actor> --workflow <workflow> \
-  --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH"
+python project-os-es/tools/resolver.py --actor <actor> --workflow <workflow> \
+  --mode <mode> --kernel-dir project-os-es/kernel
 ```
 
-La resolución manual de `kernel/manifest.json` sigue siendo el fallback
-canónico.
+La resolución manual de `project-os-es/kernel/manifest.json` sigue siendo el
+fallback canónico para la superficie en español.
 
 Cuando draftees outputs, el resolver puede exponer artefactos con
 `required_template`; usa ese template de

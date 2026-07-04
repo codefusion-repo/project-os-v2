@@ -28,26 +28,26 @@ DEFAULT_BRANCH = main
 WORK_BRANCH_PATTERN = work/*
 PM_FACING_LANGUAGE = es
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
-KERNEL_LOCAL_PATH = {{ruta absoluta a project-os-v2/kernel}}
+KERNEL_LOCAL_PATH = {{ruta absoluta a project-os-v2/project-os-es/kernel}}
 KERNEL_VERSION_ADOPTED = {{version adoptada o "tracks latest"}}
 
 ## Resolucion del kernel
 
 Antes de trabajo no trivial, resuelve desde `KERNEL_LOCAL_PATH` siguiendo
-`manifest.json` exactamente. En terminal usa el fast path desde el checkout de
-Project OS, no desde el target:
+`project-os-es/kernel/manifest.json` exactamente. En terminal usa el resolver
+de la superficie espanola:
 
 ```sh
-PROJECT_OS_LOCAL_PATH="${KERNEL_LOCAL_PATH%/}"
-PROJECT_OS_LOCAL_PATH="${PROJECT_OS_LOCAL_PATH%/kernel}"
-cd "$PROJECT_OS_LOCAL_PATH"
-if [ -d .venv ]; then . .venv/bin/activate; fi
-python -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH"
-cd "$REPOSITORY_LOCAL_PATH"
+PROJECT_OS_ES_LOCAL_PATH="${KERNEL_LOCAL_PATH%/}"
+PROJECT_OS_ES_LOCAL_PATH="${PROJECT_OS_ES_LOCAL_PATH%/kernel}"
+python "$PROJECT_OS_ES_LOCAL_PATH/tools/resolver.py" \
+  --actor <actor> --workflow <workflow> --mode <mode> \
+  --kernel-dir "$KERNEL_LOCAL_PATH"
 ```
 
-La resolucion manual de `kernel/manifest.json` es el fallback canonico. La
-resolucion da forma operativa y nunca concede permisos.
+La resolucion manual de `project-os-es/kernel/manifest.json` es el fallback
+canonico para esta superficie. La resolucion da forma operativa y nunca concede
+permisos.
 
 ## Outputs y artefactos
 
@@ -76,7 +76,8 @@ devuelve el estado no resuelto correspondiente; no inventes.
   sin aprobacion PM exacta separada.
 - Para web/API/user-facing, considera auth, autorizacion, sesiones, input
   validation, uploads, redirects, dependencias y superficies admin.
-- Valida proporcionalmente segun `docs/VALIDATION_POLICY.md` del kernel:
+- Valida proporcionalmente segun `project-os-es/docs/reglas.md` y las reglas
+  resueltas desde `project-os-es/kernel/`:
   comandos agent-run cuando el riesgo lo exige, comandos PM-run cuando
   corresponda, validacion manual PM para claridad/UX/copy, o ausencia
   justificada.
