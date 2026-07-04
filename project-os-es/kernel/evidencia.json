@@ -1,0 +1,69 @@
+{
+  "id": "project_os_es.kernel.evidencia",
+  "responsibility": "Definir evidencia viva requerida y estado cuando falta.",
+  "source_basis": "kernel/evidence.json",
+  "rules": [
+    "Toda evidencia se lee al momento de la tarea.",
+    "GitHub y git son la fuente de estado vivo.",
+    "Memoria, reportes previos y archivos durables son claims hasta verificarlos.",
+    "Nunca inventes evidencia; si falta, usa el missing_status del id."
+  ],
+  "entries": [
+    {
+      "id_ref": "evidence.issue_scope",
+      "satisfied_by": "issue o PR vivo con objetivo, scope, out of scope y acceptance criteria",
+      "missing_status": "status.needs_context"
+    },
+    {
+      "id_ref": "evidence.source_basis",
+      "satisfied_by": "issues, PRs, ADRs o decisiones previas leidas vivas",
+      "missing_status": "status.needs_context"
+    },
+    {
+      "id_ref": "evidence.branch_preflight",
+      "satisfied_by": "output real de rama, worktree, HEAD, rama esperada y archivos ajenos antes de editar",
+      "missing_status": "status.needs_context"
+    },
+    {
+      "id_ref": "evidence.repo_state",
+      "satisfied_by": "archivos, ramas, diffs, historia, checks o comentarios que la tarea necesita",
+      "missing_status": "status.needs_context"
+    },
+    {
+      "id_ref": "evidence.pm_approval",
+      "satisfied_by": "aprobacion PM exacta para repositorio, issue o PR, y accion",
+      "missing_status": "status.blocked"
+    },
+    {
+      "id_ref": "evidence.validation_output",
+      "satisfied_by": "comandos de validacion ejecutados y resultado real",
+      "missing_status": "status.needs_context",
+      "required_behavior": "Nunca declarar done sin reportar esta evidencia cuando el workflow la requiere."
+    },
+    {
+      "id_ref": "evidence.pr_diff",
+      "satisfied_by": "changed files y diff reales, mas archivos finales relevantes cuando el diff no alcanza",
+      "missing_status": "status.needs_context"
+    },
+    {
+      "id_ref": "evidence.review_evidence",
+      "satisfied_by": "hallazgos o veredicto de review en PR o issue",
+      "missing_status": "status.needs_context"
+    },
+    {
+      "id_ref": "evidence.closure_evidence",
+      "satisfied_by": "comentario de cierre con completion evidence, validacion, limites preservados y referencias PR/commit",
+      "missing_status": "status.needs_pm_decision"
+    },
+    {
+      "id_ref": "evidence.target_adoption",
+      "satisfied_by": "identidad target, adapters, metadata, roadmap anchor, version/path kernel, notas target-owned, validacion y riesgo durable",
+      "missing_status": "status.needs_context"
+    },
+    {
+      "id_ref": "evidence.deployment_readiness",
+      "satisfied_by": "entorno interno aprobado, comandos target-owned documentados, prerequisitos validados y secret safety sin valores",
+      "missing_status": "status.blocked"
+    }
+  ]
+}

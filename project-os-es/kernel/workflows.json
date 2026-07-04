@@ -1,0 +1,190 @@
+{
+  "id": "project_os_es.kernel.workflows",
+  "responsibility": "Perfilar trabajos Project OS sin convertirlos en workflow engine.",
+  "source_basis": "kernel/workflows.json",
+  "rules": [
+    "Selecciona exactamente un workflow por tarea.",
+    "Los pasos son guia operativa, no secuencia runtime obligatoria.",
+    "Workflow, modo, actor, limites, evidencia y output deben ser compatibles.",
+    "No se agregan workflows nuevos en esta superficie."
+  ],
+  "entries": [
+    {
+      "id_ref": "workflow.review_only",
+      "use_for": "analisis, auditoria, preguntas y hallazgos sin cambios",
+      "required_evidence": [
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.review_result",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.issue_implementation",
+      "use_for": "implementar un issue GitHub acotado",
+      "required_behavior": [
+        "resolver kernel y modo",
+        "leer issue scope y source basis vivos",
+        "ejecutar branch preflight",
+        "trabajar solo en rama scoped",
+        "implementar solo dentro del scope",
+        "validar",
+        "commit, push y draft PR solo si el modo lo permite",
+        "reportar con execution report"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.branch_preflight",
+        "evidence.pm_approval",
+        "evidence.validation_output"
+      ],
+      "allowed_outputs": [
+        "output.execution_report",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.issue_implementation_manual",
+      "use_for": "draftear plan humano-ejecutable sin mutar repositorio ni GitHub",
+      "required_behavior": [
+        "inspeccionar issue y contexto de codigo disponible",
+        "nombrar archivos y anclas solo cuando se puedan verificar",
+        "declarar que no se editaron archivos ni se valido codigo",
+        "fallar cerrado si el contexto no alcanza"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.source_basis",
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.manual_implementation_plan",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.review_before_close",
+      "use_for": "revisar trabajo antes de merge o cierre PM",
+      "required_behavior": [
+        "leer issue vivo",
+        "tratar PR body y reportes como claims",
+        "inspeccionar changed files, diff y archivos finales relevantes",
+        "comparar implementacion y validacion contra scope",
+        "devolver status.needs_context si falta evidencia de codigo"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.pr_diff",
+        "evidence.validation_output"
+      ],
+      "allowed_outputs": [
+        "output.review_result",
+        "output.closure_comment",
+        "output.pm_command_bundle",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.implementation_discipline_audit",
+      "use_for": "auditoria read-only de disciplina de implementacion",
+      "required_evidence": [
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.review_result",
+        "output.status_result",
+        "output.draft_issue"
+      ]
+    },
+    {
+      "id_ref": "workflow.pm_intake",
+      "use_for": "convertir input PM en issues, route prompts o decision requests",
+      "required_evidence": [
+        "evidence.source_basis"
+      ],
+      "allowed_outputs": [
+        "output.draft_issue",
+        "output.route_prompt",
+        "output.pm_command_bundle",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.design_asset",
+      "use_for": "preparar prompt de asset para destinatario externo no actor",
+      "required_evidence": [
+        "evidence.repo_state",
+        "evidence.source_basis"
+      ],
+      "allowed_outputs": [
+        "output.asset_prompt",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.security_revision",
+      "use_for": "preparar prompt de revision OWASP sin exponer secretos",
+      "required_evidence": [
+        "evidence.repo_state",
+        "evidence.source_basis"
+      ],
+      "allowed_outputs": [
+        "output.security_review_prompt",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.release_readiness",
+      "use_for": "evaluar readiness de tag o release sin crear tag ni release",
+      "required_evidence": [
+        "evidence.repo_state",
+        "evidence.validation_output"
+      ],
+      "allowed_outputs": [
+        "output.review_result",
+        "output.pm_command_bundle",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.handoff",
+      "use_for": "transferir sesion apuntando a evidencia viva",
+      "required_evidence": [
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.handoff_packet",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.target_adoption",
+      "use_for": "auditar o bootstrappear adapters de target",
+      "required_evidence": [
+        "evidence.target_adoption"
+      ],
+      "allowed_outputs": [
+        "output.adoption_packet",
+        "output.execution_report",
+        "output.status_result"
+      ]
+    },
+    {
+      "id_ref": "workflow.deployment",
+      "use_for": "ejecutar deploy interno local o staging con comandos target-owned",
+      "required_evidence": [
+        "evidence.pm_approval",
+        "evidence.source_basis",
+        "evidence.target_adoption",
+        "evidence.deployment_readiness",
+        "evidence.validation_output",
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.execution_report",
+        "output.status_result"
+      ]
+    }
+  ]
+}

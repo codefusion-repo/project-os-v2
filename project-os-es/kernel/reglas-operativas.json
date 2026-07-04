@@ -1,0 +1,106 @@
+{
+  "id": "project_os_es.kernel.reglas_operativas",
+  "responsibility": "Compactar reglas operativas antes dispersas en documentos largos para consumo de agentes.",
+  "source_basis": [
+    "root kernel JSON",
+    "resolver operative guidance",
+    "traceability protocol",
+    "validation policy",
+    "context economy",
+    "ADR 0002 layering"
+  ],
+  "traceability": {
+    "priority": "required_preflight",
+    "rules": [
+      "Reconstruir antes de actuar desde GitHub y git.",
+      "Leer issue o PR vivo con objetivo, scope, out of scope, acceptance criteria y source basis.",
+      "Leer PRs vinculados, comments, reviews, changed files, diff, checks y archivos finales cuando apliquen.",
+      "Leer roadmap canonico y ADRs relevantes cuando son source basis.",
+      "Tratar PR body, comentarios, reportes y memoria como claims hasta verificar evidencia viva.",
+      "No guardar estado vivo en archivos durables.",
+      "Ramas de trabajo siguen forma work/<issue>-<slug> para mapear codigo a issue."
+    ],
+    "fail_closed_when": [
+      "issue scope no se puede leer",
+      "branch preflight falta antes de write",
+      "PR diff o archivos finales faltan para review-before-close",
+      "validacion requerida falta o falla",
+      "fuentes vivas se contradicen"
+    ]
+  },
+  "validation": {
+    "model": "proportional_validation",
+    "categories": [
+      "agent-run required",
+      "PM-run drafted commands",
+      "manual PM validation",
+      "no automated validation with reason"
+    ],
+    "agent_run_required_for": [
+      "kernel JSON or kernel reference contracts",
+      "resolver or tooling behavior",
+      "command safety",
+      "traceability behavior",
+      "authorization or write boundaries",
+      "security, privacy, secret handling, redaction or logging risk",
+      "deployment, external services or production-impacting behavior",
+      "data migrations, billing, storage, auth or payments",
+      "deterministic workflow, output, evidence, adapter-audit or route-prompt contracts"
+    ],
+    "test_policy": [
+      "Agregar o cambiar tests solo para proteger comportamiento deterministico, regresion, seguridad, privacidad, protocolos, routing o contratos estables.",
+      "No agregar tests por defecto por docs, prompts, templates o fases nuevas.",
+      "No correr full suite salvo que cambios amplios compartidos vuelvan insuficiente la evidencia targeted."
+    ],
+    "manual_review_required_for": [
+      "claridad en espanol",
+      "organizacion de contenido",
+      "juicio de producto",
+      "UX or onboarding copy",
+      "paridad semantica de docs o prompts"
+    ]
+  },
+  "context_economy": {
+    "rules": [
+      "Leer vivo lo que sea estado vivo; no pegarlo como verdad durable.",
+      "Citar o resumir fuentes largas con ubicacion minima.",
+      "No repetir cuerpos completos de issues, diffs, logs, reportes ni reglas que el kernel ya posee.",
+      "Usar contexto grande solo cuando el riesgo lo justifica: seguridad, autorizacion, deploy, migracion, billing, storage o arquitectura compleja.",
+      "Subagentes no son default; usarlos solo si reducen riesgo, complejidad o carga experta.",
+      "La salida de subagentes es claim hasta verificarla contra evidencia viva."
+    ],
+    "never_drop": [
+      "required evidence",
+      "live traceability reads",
+      "branch preflight",
+      "validation",
+      "secret safety",
+      "exact PM approval gates"
+    ]
+  },
+  "secret_safety": {
+    "rules": [
+      "Nunca pedir, imprimir, copiar, commitear, subir, resumir ni registrar secretos.",
+      "No exponer valores de .env, claves privadas, tokens, OAuth/client secrets, database URLs, cookies, session tokens, JWTs, payment keys, SSH/GPG keys, CI secrets ni valores con pinta de secreto.",
+      "Redactar valores como [REDACTED].",
+      "Reportar solo rutas, nombres de variables, nombres de comandos y tipos de riesgo.",
+      "No ejecutar dumps amplios de entorno o configuracion salvo aprobacion PM exacta para diagnostico seguro y redactado."
+    ]
+  },
+  "operative_guidance_for_future_resolver": {
+    "must_emit": [
+      "resolved actor, workflow, mode, evidence, boundaries and output as operative guidance",
+      "live-read checklist derived from evidence and workflow",
+      "non-authorization notice",
+      "missing evidence statuses",
+      "effective allowed and prohibited actions"
+    ],
+    "must_not_emit": [
+      "write permission",
+      "merge permission",
+      "closure permission",
+      "labels, tags, releases or settings permission",
+      "live state copied from durable files"
+    ]
+  }
+}

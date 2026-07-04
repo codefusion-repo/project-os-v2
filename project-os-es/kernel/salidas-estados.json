@@ -1,0 +1,115 @@
+{
+  "id": "project_os_es.kernel.salidas_estados",
+  "responsibility": "Definir contratos de salida y estados de resolucion sin conceder permisos.",
+  "source_basis": [
+    "kernel/outputs.json",
+    "kernel/statuses.json"
+  ],
+  "rules": [
+    "Un output define estructura, no autoridad.",
+    "Cada resolucion emite exactamente un estado.",
+    "Cuando hay conflicto de gates, gana el estado mas estricto.",
+    "No se agregan outputs ni estados nuevos en esta superficie."
+  ],
+  "outputs": [
+    {
+      "id_ref": "output.execution_report",
+      "use_for": "reportar implementacion",
+      "must_include": [
+        "issue or PR",
+        "repository",
+        "branch",
+        "evidence reviewed",
+        "files changed",
+        "validation performed",
+        "risks and limitations",
+        "commit or PR reference",
+        "remaining work"
+      ]
+    },
+    {
+      "id_ref": "output.manual_implementation_plan",
+      "use_for": "draftear instrucciones humano-ejecutables",
+      "must_include": [
+        "objective",
+        "files to inspect",
+        "files to modify",
+        "anchored change plan",
+        "validation commands",
+        "manual QA",
+        "risks and rollback",
+        "recommended next operation",
+        "no-write statement"
+      ]
+    },
+    {
+      "id_ref": "output.review_result",
+      "use_for": "reportar findings de revision o analisis",
+      "must_include": [
+        "scope reviewed",
+        "evidence reviewed",
+        "comparison to issue scope",
+        "findings",
+        "verdict or recommendation",
+        "risks",
+        "not reviewed"
+      ]
+    },
+    {
+      "id_ref": "output.closure_comment",
+      "use_for": "draftear paquete de cierre PM",
+      "required_behavior": "Solo tras review con evidencia de codigo; nunca desde claims."
+    },
+    {
+      "id_ref": "output.draft_issue",
+      "use_for": "draftear issue para revision PM"
+    },
+    {
+      "id_ref": "output.route_prompt",
+      "use_for": "rutear trabajo scoped a otra superficie",
+      "required_behavior": "Scope y forma solamente; la autorizacion viaja como aprobacion PM exacta."
+    },
+    {
+      "id_ref": "output.pm_command_bundle",
+      "use_for": "draftear comandos copy-safe ejecutados por PM"
+    },
+    {
+      "id_ref": "output.asset_prompt",
+      "use_for": "draftear prompt de asset"
+    },
+    {
+      "id_ref": "output.security_review_prompt",
+      "use_for": "draftear prompt de revision de seguridad"
+    },
+    {
+      "id_ref": "output.handoff_packet",
+      "use_for": "transferir sesion apuntando a evidencia viva"
+    },
+    {
+      "id_ref": "output.adoption_packet",
+      "use_for": "reportar adopcion de target"
+    },
+    {
+      "id_ref": "output.status_result",
+      "use_for": "reportar needs_context, needs_pm_decision o blocked"
+    }
+  ],
+  "statuses_by_precedence": [
+    {
+      "id_ref": "status.blocked",
+      "meaning": "un limite, autoridad, seguridad, aprobacion o validacion impide actuar"
+    },
+    {
+      "id_ref": "status.needs_pm_decision",
+      "meaning": "falta decision material del PM"
+    },
+    {
+      "id_ref": "status.needs_context",
+      "meaning": "falta contexto o evidencia obtenible"
+    },
+    {
+      "id_ref": "status.resolved",
+      "meaning": "resolucion de forma completada; no agrega permisos"
+    }
+  ]
+}

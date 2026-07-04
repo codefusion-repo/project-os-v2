@@ -1,0 +1,130 @@
+{
+  "id": "project_os_es.kernel.modos",
+  "responsibility": "Definir alcance de accion por modo sin superar actor ni limites.",
+  "source_basis": "kernel/execution_modes.json",
+  "default_mode": "mode.review_only",
+  "rules": [
+    "El modo es scoped por el PM para la tarea.",
+    "Un modo nunca supera actor, limites ni evidencia requerida.",
+    "La aprobacion PM explicita es evidencia solo para el punto exacto decidido.",
+    "El desacuerdo del agente se reporta como riesgo salvo que exista gate o boundary nombrado."
+  ],
+  "entries": [
+    {
+      "id_ref": "mode.review_only",
+      "allowed_actions": [
+        "read",
+        "analyze",
+        "run read-only commands",
+        "report"
+      ],
+      "prohibited_actions": [
+        "edit files",
+        "commit",
+        "push",
+        "open PR",
+        "comment",
+        "GitHub mutation"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope"
+      ]
+    },
+    {
+      "id_ref": "mode.local_implementation",
+      "allowed_actions": [
+        "read",
+        "analyze",
+        "edit scoped files",
+        "run validation",
+        "report"
+      ],
+      "prohibited_actions": [
+        "commit",
+        "push",
+        "open PR",
+        "comment",
+        "GitHub mutation"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.branch_preflight",
+        "evidence.pm_approval"
+      ]
+    },
+    {
+      "id_ref": "mode.delegated_commit_push",
+      "allowed_actions": [
+        "edit scoped files",
+        "run validation",
+        "commit",
+        "push work branch",
+        "report"
+      ],
+      "prohibited_actions": [
+        "open PR",
+        "merge",
+        "close issue",
+        "unscoped comment",
+        "other GitHub mutation"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.branch_preflight",
+        "evidence.pm_approval",
+        "evidence.validation_output"
+      ]
+    },
+    {
+      "id_ref": "mode.delegated_commit_pr",
+      "allowed_actions": [
+        "edit scoped files",
+        "run validation",
+        "commit",
+        "push work branch",
+        "open draft PR",
+        "report"
+      ],
+      "prohibited_actions": [
+        "merge",
+        "close issue",
+        "apply labels",
+        "create tags or releases",
+        "change settings"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.branch_preflight",
+        "evidence.pm_approval",
+        "evidence.validation_output"
+      ]
+    },
+    {
+      "id_ref": "mode.delegated_deploy_execution",
+      "allowed_actions": [
+        "run target-owned deploy commands for one approved local or staging environment",
+        "run validation",
+        "report"
+      ],
+      "prohibited_actions": [
+        "edit files",
+        "commit",
+        "push",
+        "open PR",
+        "GitHub mutation",
+        "invent deploy commands",
+        "production deploy",
+        "secret exposure",
+        "broad environment or config dumps",
+        "secret-store mutation"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.pm_approval",
+        "evidence.target_adoption",
+        "evidence.deployment_readiness",
+        "evidence.validation_output"
+      ]
+    }
+  ]
+}

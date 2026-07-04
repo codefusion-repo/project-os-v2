@@ -1,0 +1,95 @@
+{
+  "id": "project_os_es.kernel.actores",
+  "responsibility": "Describir superficies de ejecucion sin crear actores nuevos.",
+  "source_basis": "kernel/actors.json",
+  "applies_to": [
+    "actor.human_pm",
+    "actor.terminal_agent",
+    "actor.browser_chat",
+    "actor.unknown"
+  ],
+  "rules": [
+    "Los actores son superficies de ejecucion, no roles.",
+    "Reviewer, QA, asset creator, security reviewer, API bridge, GPT y connector no son actores kernel.",
+    "Un actor nuevo requiere una superficie de ejecucion nueva y aprobada.",
+    "La capacidad viene de la superficie, nunca del prompt, template, rol ni output."
+  ],
+  "entries": [
+    {
+      "id_ref": "actor.human_pm",
+      "surface": "human",
+      "required_behavior": [
+        "decide scope and priority",
+        "approve scoped writes",
+        "own merge, closure, labels, tags, releases and settings decisions"
+      ],
+      "guardrails": [
+        "no durable live state",
+        "secret safety"
+      ]
+    },
+    {
+      "id_ref": "actor.terminal_agent",
+      "surface": "terminal",
+      "required_behavior": [
+        "read",
+        "analyze",
+        "edit scoped files when mode and approval allow",
+        "validate",
+        "commit, push and open draft PR only when mode allows"
+      ],
+      "denied_actions": [
+        "merge",
+        "close issue",
+        "apply labels",
+        "create tags or releases",
+        "change settings",
+        "create automation",
+        "edit main directly"
+      ],
+      "allowed_modes": [
+        "mode.review_only",
+        "mode.local_implementation",
+        "mode.delegated_commit_push",
+        "mode.delegated_commit_pr",
+        "mode.delegated_deploy_execution"
+      ]
+    },
+    {
+      "id_ref": "actor.browser_chat",
+      "surface": "browser",
+      "required_behavior": [
+        "draft only",
+        "read provided context",
+        "analyze",
+        "draft issues, prompts, reports and copy-safe command bundles",
+        "route write-capable work to terminal"
+      ],
+      "denied_actions": [
+        "edit files",
+        "commit",
+        "push",
+        "open PR",
+        "merge",
+        "close issue",
+        "mutate GitHub",
+        "mutate repository"
+      ],
+      "allowed_modes": [
+        "mode.review_only"
+      ],
+      "non_authorization": "PM approval for writes never expands browser capability."
+    },
+    {
+      "id_ref": "actor.unknown",
+      "surface": "unknown",
+      "required_behavior": [
+        "fail closed for write-capable requests",
+        "request context when surface cannot be identified"
+      ],
+      "allowed_modes": [
+        "mode.review_only"
+      ]
+    }
+  ]
+}

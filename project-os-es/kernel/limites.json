@@ -1,0 +1,92 @@
+{
+  "id": "project_os_es.kernel.limites",
+  "responsibility": "Compactar boundaries que siempre aplican.",
+  "source_basis": "kernel/boundaries.json",
+  "rules": [
+    "Los limites se heredan por actor y aplican globalmente.",
+    "Ningun workflow, modo, prompt, template, rol ni output los relaja.",
+    "Cruzar un limite resuelve al estado indicado por el root kernel."
+  ],
+  "entries": [
+    {
+      "id_ref": "boundary.branch_preflight",
+      "rule": "Antes de edit, commit, push o PR: verificar rama, worktree, HEAD, scope de rama y archivos ajenos con output real.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.no_main_edits",
+      "rule": "main es baseline limpio; editar solo despues de crear o cambiar a rama scoped.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.draft_only_browser",
+      "rule": "Browser chat no edita ni muta git/GitHub; aprobacion PM enruta a terminal.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.separate_pm_approval",
+      "rule": "Merge, cierre, labels, tags, releases, settings, automatizacion y artefactos target requieren aprobacion PM exacta separada.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.review_before_close",
+      "rule": "Cierre solo tras comparar issue, changed files, diff, archivos finales relevantes, validacion y riesgos.",
+      "on_violation": "status.needs_pm_decision"
+    },
+    {
+      "id_ref": "boundary.no_live_state_durable",
+      "rule": "Archivos durables no guardan estado vivo de issue, PR, branch, commit, review, validacion, release, deploy ni planificacion.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.no_invented_state",
+      "rule": "No inventar git output, estado repo, issue, PR, validacion, review ni aprobacion PM.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.security_privacy",
+      "rule": "No exponer ni guardar secretos, credenciales, tokens, keys, datos sensibles ni detalles operativos confidenciales.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.fail_closed",
+      "rule": "Ante autoridad ambigua, evidencia faltante, conflicto, validacion fallida o aprobacion faltante: detenerse.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.output_not_permission",
+      "rule": "Outputs, templates, roles, variables y route packets solo dan forma; nunca autorizan escritura.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.implementation_discipline",
+      "rule": "Completar scope vivo sin rewrites ajenos, abstraccion especulativa, over-implementation ni under-implementation.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.primary_path_discipline",
+      "rule": "Mantener ruta principal correcta y validada; no agregar fallback para ocultar errores.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.validation_discipline",
+      "rule": "Validacion proporcional; tests solo para comportamiento, riesgo o contratos que lo justifican.",
+      "on_violation": "status.blocked"
+    },
+    {
+      "id_ref": "boundary.code_clarity",
+      "rule": "Preferir codigo autodocumentado y comentarios solo para intencion no obvia o riesgo real.",
+      "on_violation": "status.needs_pm_decision"
+    },
+    {
+      "id_ref": "boundary.copy_safe_commands",
+      "rule": "Command bundles PM-facing deben ser copy-safe, con targets exactos y campos soportados.",
+      "on_violation": "status.needs_pm_decision"
+    },
+    {
+      "id_ref": "boundary.context_economy",
+      "rule": "Usar solo contexto y subagentes necesarios sin perder evidencia, validacion, secretos ni aprobacion.",
+      "on_violation": "status.needs_pm_decision"
+    }
+  ]
+}
