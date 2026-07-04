@@ -49,6 +49,17 @@ cd "$REPOSITORY_LOCAL_PATH"
 La resolucion manual de `kernel/manifest.json` es el fallback canonico. La
 resolucion da forma operativa y nunca concede permisos.
 
+## Outputs y artefactos
+
+Cuando produzcas reportes de ejecucion, cuerpos de PR, paquetes de handoff,
+paquetes de adopcion u otros outputs, usa los artefactos/template references
+resueltos desde `project-os-es` cuando apliquen. Los templates dan forma y nunca
+autorizan.
+
+El terminal agent sigue obligado por scope vivo, branch preflight, aprobacion PM
+exacta, validacion proporcional y review-before-close. Ningun artefacto ni
+template reemplaza esos gates.
+
 ## Estado vivo
 
 Reconstruye estado para `REPOSITORY_NAME` desde GitHub y git al momento de la

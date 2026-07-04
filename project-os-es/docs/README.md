@@ -31,6 +31,16 @@ El catálogo de operaciones en español vive en
 [`project-os-es/operaciones/README.md`](../operaciones/README.md): un prompt
 compacto por operación, organizado por fase.
 
+## Cómo se conectan las piezas
+
+1. [Docs](README.md) orienta al PM y a la persona usuaria.
+2. [Operaciones](../operaciones/README.md) elige la acción concreta.
+3. [Adapters](../adapters/README.md) bootloadean el target o la superficie.
+4. [Kernel](../kernel/manifest.json) y resolver hidratan comportamiento y
+   artefactos.
+5. Los artefactos enlazan un `required_template`; los
+   [templates](../templates/README.md) dan forma al output sin autorizar nada.
+
 ## Siguiente paso
 
 ¿Primera vez? Lee [empezar.md](empezar.md). ¿Ya operando? Abre

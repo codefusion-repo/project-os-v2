@@ -33,9 +33,11 @@ aquí solo se referencia, no se redefine.
    suite ni tests nuevos por defecto.
 4. **Economía de contexto.** Aplica `docs/CONTEXT_ECONOMY.md` para clases de
    contexto y disciplina de subagentes.
-5. **Formas PM-facing.** Los route prompts y command bundles siguen
-   `templates/route-prompt.md` y `templates/pm-command-bundle.md`; son outputs
-   no autorizantes que el PM revisa y ejecuta.
+5. **Formas PM-facing.** Los outputs drafteables usan los artefactos resueltos
+   desde `project-os-es/kernel/artefactos.json`: cada artefacto apunta a un
+   `required_template` en `project-os-es/templates/`. Los templates raíz quedan
+   como fuente de compatibilidad cuando haga falta; los outputs siguen siendo
+   no autorizantes.
 6. **Ningún template autoriza nada.** Template authority: none
    (`boundary.output_not_permission`). Escritura, merge, cierre, labels,
    settings, release y despliegue exigen aprobación PM exacta separada más los

@@ -8,6 +8,14 @@ El catalogo `project-os-es/kernel/artefactos.json` enlaza cada artefacto con
 exactamente un `required_template`. El resolver debe exponer esas referencias,
 no copiar el contenido del template.
 
+## Puente operativo
+
+- Mapa PM-facing: `project-os-es/docs/README.md`.
+- Entrada de accion: `project-os-es/operaciones/README.md`.
+- Bootloaders de adopcion: `project-os-es/adapters/README.md`.
+- Catalogo de artefactos: `project-os-es/kernel/artefactos.json`.
+- Hidratador de `required_template`: `project-os-es/tools/resolver.py`.
+
 ## Catalogo
 
 - `project-os-es/templates/route-prompt.md`: ruteo scoped hacia otra superficie.

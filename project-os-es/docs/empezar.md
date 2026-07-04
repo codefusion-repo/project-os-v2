@@ -50,7 +50,10 @@ Haz esto en la superficie browser antes de usarla para draft o revisión:
 
 1. Usa ChatGPT recomendado u otra superficie browser que permita proyecto/chat
    con instrucciones persistentes.
-2. Carga las instrucciones de Project OS o el adapter del target cuando exista.
+2. Carga las instrucciones de Project OS o el adapter del target cuando exista;
+   para browser project/chat usa
+   [`project-os-es/adapters/BROWSER_CHAT.target.md`](../adapters/BROWSER_CHAT.target.md)
+   como bootloader.
 3. Conecta o verifica GitHub en esa superficie.
 4. Confirma que puede leer el repo target; cuando aplique, confirma también que
    puede leer el repo Project OS.
@@ -67,7 +70,9 @@ Haz esto solo cuando vayas a delegar implementación a un terminal agent:
 3. Confirma acceso a issues y PRs del target cuando el agente necesite leerlos,
    comentarlos o abrir PRs.
 4. Ten Python disponible si usaras el resolver.
-5. Conoce `KERNEL_LOCAL_PATH` desde el adapter del target.
+5. Adopta o revisa el adapter terminal del target con
+   [`project-os-es/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md) y
+   conoce `KERNEL_LOCAL_PATH` desde ese adapter.
 
 Fast path del resolver cuando el repo ya está listo:
 
@@ -78,6 +83,11 @@ python -m tools.project_os_resolve --actor <actor> --workflow <workflow> \
 
 La resolución manual de `kernel/manifest.json` sigue siendo el fallback
 canónico.
+
+Cuando draftees outputs, el resolver puede exponer artefactos con
+`required_template`; usa ese template de
+[`project-os-es/templates/`](../templates/README.md) como forma del output, no
+como permiso.
 
 ## 5. Primera sesión
 
