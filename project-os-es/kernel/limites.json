@@ -1,0 +1,132 @@
+{
+  "limits": [
+    {
+      "key": "boundary.branch_preflight",
+      "actor_key": null,
+      "rule": "Antes de edit, commit, push o PR: verificar rama actual, worktree, HEAD, scope de rama y archivos ajenos con output real.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.no_main_edits",
+      "actor_key": null,
+      "rule": "La rama principal es solo baseline limpio pre-rama; editar solo despues de crear o cambiar a una rama scoped.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.draft_only_browser",
+      "actor_key": "actor.browser_chat",
+      "rule": "La superficie browser chat no edita archivos ni muta el repositorio o el target remoto; la aprobacion PM para writes rutea el trabajo a una superficie terminal y nunca expande la capacidad del browser.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.separate_pm_approval",
+      "actor_key": null,
+      "rule": "Merge, cierre, labels, tags, releases, settings, automatizacion y artefactos del target requieren aprobacion PM exacta separada que nombre proyecto, unidad de trabajo y accion.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.review_before_close",
+      "actor_key": null,
+      "rule": "Cierre solo tras comparar la unidad de trabajo contra changed files, diff, archivos finales relevantes, validacion y riesgos; body y reportes son claims, no prueba.",
+      "on_violation": "status.needs_pm_decision",
+      "blocking": false,
+      "active": true
+    },
+    {
+      "key": "boundary.no_live_state_durable",
+      "actor_key": null,
+      "rule": "Los archivos durables no guardan estado vivo de unidad de trabajo, PR, rama, commit, review, validacion, release, deployment ni planificacion.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.no_invented_state",
+      "actor_key": null,
+      "rule": "No inventar output de comandos, estado del repositorio, estado de la unidad de trabajo, validacion, review ni aprobacion PM.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.security_privacy",
+      "actor_key": null,
+      "rule": "No exponer ni guardar secretos, credenciales, tokens, keys, datos sensibles ni detalles operativos confidenciales en ningun archivo, output, log, comando ni comentario.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.fail_closed",
+      "actor_key": null,
+      "rule": "Ante autoridad ambigua, kernel faltante, evidencia faltante, fuentes en conflicto, validacion fallida o aprobacion faltante: detenerse con el estado no resuelto correspondiente.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.output_not_permission",
+      "actor_key": null,
+      "rule": "Outputs, templates, roles, variables y route packets solo definen forma; nunca autorizan escritura ni accion alguna.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.implementation_discipline",
+      "actor_key": null,
+      "rule": "Completar el scope vivo de la unidad de trabajo sin rewrites ajenos, abstraccion especulativa, over-implementation ni under-implementation disfrazada de minimalismo.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.primary_path_discipline",
+      "actor_key": null,
+      "rule": "Mantener la ruta principal correcta, explicita y validada; no agregar fallbacks para ocultar o evitar investigar errores.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.validation_discipline",
+      "actor_key": null,
+      "rule": "Validacion proporcional al riesgo; tests solo para comportamiento, regresion, seguridad o contratos que lo justifican.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.code_clarity",
+      "actor_key": null,
+      "rule": "Preferir codigo autodocumentado; comentarios solo para intencion no obvia, invariantes, riesgo real o supuestos externos.",
+      "on_violation": "status.needs_pm_decision",
+      "blocking": false,
+      "active": true
+    },
+    {
+      "key": "boundary.copy_safe_commands",
+      "actor_key": null,
+      "rule": "Los command bundles PM-facing deben ser copy-safe: targets exactos, campos soportados, sin patrones que corten o corrompan la sesion.",
+      "on_violation": "status.needs_pm_decision",
+      "blocking": false,
+      "active": true
+    },
+    {
+      "key": "boundary.context_economy",
+      "actor_key": null,
+      "rule": "Usar solo el contexto y los subagentes necesarios sin perder evidencia requerida, validacion, secret safety ni aprobacion exacta.",
+      "on_violation": "status.needs_pm_decision",
+      "blocking": false,
+      "active": true
+    }
+  ]
+}

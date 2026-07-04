@@ -1,0 +1,251 @@
+{
+  "outputs": [
+    {
+      "key": "output.execution_report",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.target_adoption",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "use_for": "reportar trabajo de implementacion; nunca declarar done sin scope completo, out of scope respetado y validacion reportada",
+      "status_key": "status.resolved",
+      "must_include": [
+        "unidad de trabajo o PR",
+        "proyecto o repositorio",
+        "rama",
+        "evidencia revisada",
+        "archivos cambiados",
+        "validacion realizada con resultados, validacion no ejecutada con razon y validacion manual PM requerida",
+        "riesgos y limitaciones",
+        "referencia a commit o PR cuando aplique",
+        "trabajo restante"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.manual_implementation_plan",
+      "workflow_key": [
+        "workflow.issue_implementation_manual"
+      ],
+      "mode_key": [],
+      "use_for": "draftear instrucciones humano-ejecutables; nunca reclamar codigo editado ni validado",
+      "status_key": "status.resolved",
+      "must_include": [
+        "objetivo",
+        "archivos a inspeccionar",
+        "archivos a modificar",
+        "plan de cambios anclado",
+        "comandos de validacion",
+        "QA manual",
+        "riesgos y rollback",
+        "siguiente operacion recomendada",
+        "declaracion de no escritura"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.review_result",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.review_before_close",
+        "workflow.implementation_discipline_audit",
+        "workflow.release_readiness"
+      ],
+      "mode_key": [],
+      "use_for": "reportar hallazgos de revision o analisis; un GO exige comparacion respaldada por codigo",
+      "status_key": "status.resolved",
+      "must_include": [
+        "scope revisado",
+        "evidencia revisada",
+        "comparacion contra el scope de la unidad de trabajo",
+        "hallazgos con referencias",
+        "veredicto o recomendacion",
+        "riesgos",
+        "no revisado"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.closure_comment",
+      "workflow_key": [
+        "workflow.review_before_close"
+      ],
+      "mode_key": [],
+      "use_for": "draftear el paquete de cierre PM; solo tras review con evidencia de codigo, nunca desde claims",
+      "status_key": "status.resolved",
+      "must_include": [
+        "evidencia de completitud",
+        "evidencia de validacion con output real",
+        "excepciones aceptadas",
+        "limites preservados",
+        "nota de friccion",
+        "referencias a commit o PR"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.draft_issue",
+      "workflow_key": [
+        "workflow.implementation_discipline_audit",
+        "workflow.pm_intake"
+      ],
+      "mode_key": [],
+      "use_for": "draftear una unidad de trabajo para revision PM; un resultado por unidad",
+      "status_key": "status.resolved",
+      "must_include": [
+        "por que existe",
+        "objetivo",
+        "source basis",
+        "scope",
+        "out of scope",
+        "acceptance criteria",
+        "expectativas de validacion",
+        "riesgo y rollback"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.route_prompt",
+      "workflow_key": [
+        "workflow.pm_intake"
+      ],
+      "mode_key": [],
+      "use_for": "rutear trabajo scoped a otra superficie; scope y forma solamente, la autorizacion viaja como aprobacion PM exacta",
+      "status_key": "status.resolved",
+      "must_include": [
+        "bloque de variables estandar",
+        "instruccion de tarea en terminos del scope",
+        "esfuerzo recomendado con rationale",
+        "nota de que el agente ejecutor re-resuelve el kernel y el prompt no concede permisos"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.pm_command_bundle",
+      "workflow_key": [
+        "workflow.review_before_close",
+        "workflow.pm_intake",
+        "workflow.release_readiness"
+      ],
+      "mode_key": [],
+      "use_for": "draftear command bundles copy-safe que el PM ejecuta manualmente",
+      "status_key": "status.resolved",
+      "must_include": [
+        "que hace el bundle y su scope en prosa",
+        "comandos con targets exactos en orden de ejecucion",
+        "output esperado de verificacion",
+        "riesgo y rollback en prosa"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.asset_prompt",
+      "workflow_key": [
+        "workflow.design_asset"
+      ],
+      "mode_key": [],
+      "use_for": "draftear un prompt de asset para un destinatario real de diseno; solo rutea trabajo y no crea assets",
+      "status_key": "status.resolved",
+      "must_include": [
+        "contexto leido vivo",
+        "objetivo del asset",
+        "destinatario y decision de no actor",
+        "tipo de asset y contexto de uso",
+        "dimensiones, formato y entrega",
+        "constraints de marca y producto desde la verdad del target",
+        "notas de accesibilidad",
+        "acceptance criteria",
+        "out of scope y limites de autoridad"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.security_review_prompt",
+      "workflow_key": [
+        "workflow.security_revision"
+      ],
+      "mode_key": [],
+      "use_for": "draftear un prompt de revision de seguridad OWASP; solo rutea revision, no ejecuta scanner ni expone secretos",
+      "status_key": "status.resolved",
+      "must_include": [
+        "contexto leido vivo",
+        "objetivo de la revision",
+        "destinatario y decision de no actor",
+        "superficies sensibles",
+        "areas OWASP a inspeccionar",
+        "requisitos de redaccion de secretos",
+        "evidencia a revisar",
+        "formato de hallazgos",
+        "out of scope y limites de autoridad"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.handoff_packet",
+      "workflow_key": [
+        "workflow.handoff"
+      ],
+      "mode_key": [],
+      "use_for": "transferir trabajo entre sesiones, agentes o herramientas apuntando a evidencia viva; nunca se vuelve archivo de estado durable",
+      "status_key": "status.resolved",
+      "must_include": [
+        "estado actual con referencias vivas",
+        "verificado versus asumido",
+        "proximos pasos con su source basis",
+        "decisiones abiertas para el PM",
+        "limites activos sobre el trabajo restante"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.adoption_packet",
+      "workflow_key": [
+        "workflow.target_adoption"
+      ],
+      "mode_key": [],
+      "use_for": "reportar auditoria o bootstrap de adopcion de un target",
+      "status_key": "status.resolved",
+      "must_include": [
+        "target y repositorio",
+        "version del kernel adoptada",
+        "estado de adopcion actual",
+        "archivos presentes y faltantes",
+        "hallazgos de auditoria",
+        "diff o draft de adapters",
+        "scope exacto de escritura cuando aplique",
+        "checklist de adopcion",
+        "que queda target-owned",
+        "rollback"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.status_result",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.issue_implementation",
+        "workflow.issue_implementation_manual",
+        "workflow.review_before_close",
+        "workflow.implementation_discipline_audit",
+        "workflow.pm_intake",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.release_readiness",
+        "workflow.handoff",
+        "workflow.target_adoption",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "use_for": "reportar un estado no resuelto nombrando con precision la fuente faltante o el limite que bloquea",
+      "status_key": null,
+      "must_include": [
+        "el estado",
+        "que falta, conflictua o bloquea exactamente",
+        "de donde deberia venir o quien decide",
+        "el siguiente paso seguro"
+      ],
+      "active": true
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "actors": [
+    {
+      "key": "actor.human_pm",
+      "surface": "human",
+      "context": "Autoridad del proyecto: decide scope, prioridad y aprobaciones exactas; posee merge, cierre, labels, tags, releases y settings del target. No opera bajo modos delegados. Los actores son superficies de ejecucion, no roles; la capacidad viene de la superficie, nunca del prompt, template, rol ni output.",
+      "allowed_modes": [],
+      "active": true
+    },
+    {
+      "key": "actor.terminal_agent",
+      "surface": "terminal",
+      "context": "Agente con capacidad de repositorio operando bajo este kernel y el adapter del target; unica superficie con writes delegados, siempre acotada por sus limits y por el mode resuelto.",
+      "allowed_modes": [
+        "mode.review_only",
+        "mode.local_implementation",
+        "mode.delegated_commit_push",
+        "mode.delegated_commit_pr",
+        "mode.delegated_deploy_execution"
+      ],
+      "active": true
+    },
+    {
+      "key": "actor.browser_chat",
+      "surface": "browser",
+      "context": "Superficie draft-only: lee contexto provisto, analiza y draftea unidades de trabajo, prompts, reportes y command bundles copy-safe.",
+      "allowed_modes": [
+        "mode.review_only"
+      ],
+      "active": true
+    },
+    {
+      "key": "actor.unknown",
+      "surface": "unknown",
+      "context": "Superficie no identificada: falla cerrado ante requests write-capable y pide contexto cuando la superficie no se puede identificar. Un actor nuevo requiere una superficie de ejecucion nueva y aprobada, nunca un rol nuevo.",
+      "allowed_modes": [
+        "mode.review_only"
+      ],
+      "active": true
+    }
+  ]
+}

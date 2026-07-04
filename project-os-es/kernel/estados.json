@@ -1,0 +1,28 @@
+{
+  "statuses": [
+    {
+      "key": "status.blocked",
+      "meaning": "un limite, autoridad, seguridad, aprobacion o validacion impide actuar; primero en precedencia cuando hay conflicto de gates",
+      "type": "no_resuelto",
+      "active": true
+    },
+    {
+      "key": "status.needs_pm_decision",
+      "meaning": "falta una decision material del PM; segundo en precedencia",
+      "type": "no_resuelto",
+      "active": true
+    },
+    {
+      "key": "status.needs_context",
+      "meaning": "falta contexto o evidencia obtenible; tercero en precedencia",
+      "type": "no_resuelto",
+      "active": true
+    },
+    {
+      "key": "status.resolved",
+      "meaning": "resolucion de forma completada; no agrega permisos; ultimo en precedencia",
+      "type": "resuelto",
+      "active": true
+    }
+  ]
+}

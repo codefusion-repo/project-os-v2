@@ -1,0 +1,103 @@
+{
+  "modes": [
+    {
+      "key": "mode.review_only",
+      "allowed_actions": [
+        "leer",
+        "analizar",
+        "ejecutar comandos read-only",
+        "reportar"
+      ],
+      "prohibited_actions": [
+        "editar archivos",
+        "commit",
+        "push",
+        "abrir PR",
+        "comentar",
+        "mutar el target remoto"
+      ],
+      "fallback": null,
+      "active": true
+    },
+    {
+      "key": "mode.local_implementation",
+      "allowed_actions": [
+        "leer",
+        "analizar",
+        "editar archivos scoped",
+        "ejecutar validacion",
+        "reportar"
+      ],
+      "prohibited_actions": [
+        "commit",
+        "push",
+        "abrir PR",
+        "comentar",
+        "mutar el target remoto"
+      ],
+      "fallback": "mode.review_only",
+      "active": true
+    },
+    {
+      "key": "mode.delegated_commit_push",
+      "allowed_actions": [
+        "editar archivos scoped",
+        "ejecutar validacion",
+        "commit",
+        "push a la rama de trabajo",
+        "reportar"
+      ],
+      "prohibited_actions": [
+        "abrir PR",
+        "merge",
+        "cerrar la unidad de trabajo",
+        "comentar fuera de scope",
+        "otra mutacion del target remoto"
+      ],
+      "fallback": "mode.review_only",
+      "active": true
+    },
+    {
+      "key": "mode.delegated_commit_pr",
+      "allowed_actions": [
+        "editar archivos scoped",
+        "ejecutar validacion",
+        "commit",
+        "push a la rama de trabajo",
+        "abrir draft PR",
+        "reportar"
+      ],
+      "prohibited_actions": [
+        "merge",
+        "cerrar la unidad de trabajo",
+        "aplicar labels",
+        "crear tags o releases",
+        "cambiar settings"
+      ],
+      "fallback": "mode.review_only",
+      "active": true
+    },
+    {
+      "key": "mode.delegated_deploy_execution",
+      "allowed_actions": [
+        "ejecutar comandos de deploy target-owned para un unico entorno aprobado local o staging",
+        "ejecutar validacion",
+        "reportar"
+      ],
+      "prohibited_actions": [
+        "editar archivos",
+        "commit",
+        "push",
+        "abrir PR",
+        "mutar el target remoto",
+        "inventar comandos de deploy",
+        "deploy a produccion",
+        "exponer secretos",
+        "dumps amplios de entorno o configuracion",
+        "mutar secret stores"
+      ],
+      "fallback": "mode.review_only",
+      "active": true
+    }
+  ]
+}
