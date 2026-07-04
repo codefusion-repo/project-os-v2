@@ -1,7 +1,7 @@
 # MOS-1.5 — Validar la documentación de requisitos
 
 Operación MOSDLC `validate-requirements-docs` · Fase 1 — Requerimientos, planificación y viabilidad · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result

@@ -1,7 +1,7 @@
 # MOS-6.3 — Analizar mejoras de rendimiento
 
 Operación MOSDLC `analyze-performance-improvements` · Fase 6 — Mantenimiento y mejoras · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result

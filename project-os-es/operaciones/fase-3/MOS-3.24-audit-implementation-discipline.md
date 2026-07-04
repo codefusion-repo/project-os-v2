@@ -1,7 +1,7 @@
 # MOS-3.24 — Auditar disciplina de implementación
 
 Operación MOSDLC `audit-implementation-discipline` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.implementation_discipline_audit · mode.review_only · output.review_result (+output.draft_issue)

@@ -1,7 +1,7 @@
 # MOS-1.6 — Planificar el roadmap del proyecto
 
 Operación MOSDLC `plan-project-roadmap` · Fase 1 — Requerimientos, planificación y viabilidad · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.draft_issue (+output.pm_command_bundle)

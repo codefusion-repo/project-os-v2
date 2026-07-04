@@ -1,7 +1,7 @@
 # MOS-3.23 — Solicitar revisión de seguridad
 
 Operación MOSDLC `request-security-review` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → external_recipient
 - Kernel: workflow.security_revision · mode.review_only · output.security_review_prompt

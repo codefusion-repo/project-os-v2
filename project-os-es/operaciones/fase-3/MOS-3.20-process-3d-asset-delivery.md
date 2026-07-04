@@ -1,7 +1,7 @@
 # MOS-3.20 — Procesar la entrega de un asset 3D
 
 Operación MOSDLC `process-3d-asset-delivery` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.status_result (+output.route_prompt, output.pm_command_bundle)

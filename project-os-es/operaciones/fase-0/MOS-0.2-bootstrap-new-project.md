@@ -1,7 +1,7 @@
 # MOS-0.2 — Iniciar un proyecto nuevo
 
 Operación MOSDLC `bootstrap-new-project` · Fase 0 — Adaptación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat
 - Kernel: workflow.target_adoption · mode.review_only · output.adoption_packet

@@ -1,7 +1,7 @@
 # MOS-0.6 — Transferir el contexto de sesión
 
 Operación MOSDLC `handoff-session-context` · Fase 0 — Adaptación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat
 - Kernel: workflow.handoff · mode.review_only · output.handoff_packet

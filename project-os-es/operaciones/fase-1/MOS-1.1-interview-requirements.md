@@ -1,7 +1,7 @@
 # MOS-1.1 — Entrevistar requisitos
 
 Operación MOSDLC `interview-requirements` · Fase 1 — Requerimientos, planificación y viabilidad · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.status_result

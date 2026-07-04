@@ -1,7 +1,7 @@
 # MOS-0.5 — Verificar la adopción del target
 
 Operación MOSDLC `verify-target-adoption` · Fase 0 — Adaptación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.target_adoption · mode.review_only · output.status_result

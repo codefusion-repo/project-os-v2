@@ -1,7 +1,7 @@
 # MOS-3.15 — Solicitar un asset 2D
 
 Operación MOSDLC `request-2d-asset` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → external_recipient
 - Kernel: workflow.design_asset · mode.review_only · output.asset_prompt

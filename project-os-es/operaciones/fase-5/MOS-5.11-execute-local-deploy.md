@@ -1,7 +1,7 @@
 # MOS-5.11 — Ejecutar el despliegue local (interno)
 
 Operación MOSDLC `execute-local-deploy` · Fase 5 — Despliegue local / staging / producción · Riesgo: medium.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: terminal_agent
 - Kernel: workflow.deployment · mode.delegated_deploy_execution · output.execution_report

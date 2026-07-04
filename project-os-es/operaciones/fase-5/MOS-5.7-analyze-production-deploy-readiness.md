@@ -1,7 +1,7 @@
 # MOS-5.7 — Analizar readiness de despliegue a producción
 
 Operación MOSDLC `analyze-production-deploy-readiness` · Fase 5 — Despliegue local / staging / producción · Riesgo: medium.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.review_only · mode.review_only · output.status_result

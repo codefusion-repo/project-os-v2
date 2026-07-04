@@ -1,7 +1,7 @@
 # MOS-3.13 — Auditar trazabilidad
 
 Operación MOSDLC `audit-traceability` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.review_only · mode.review_only · output.status_result

@@ -1,7 +1,7 @@
 # MOS-5.15 — Despliegue a producción (Humano PM)
 
 Operación MOSDLC `execute-production-deploy` · Fase 5 — Despliegue local / staging / producción · Riesgo: high.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: terminal_agent
 - Kernel: workflow y mode siguen como candidatos, no aplicados (producción no se ejecuta por agente; Humano PM por defecto) · output.execution_report

@@ -1,7 +1,7 @@
 # MOS-3.1 — Draftear el siguiente issue desde trazabilidad
 
 Operación MOSDLC `draft-next-issue-from-traceability` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.pm_command_bundle

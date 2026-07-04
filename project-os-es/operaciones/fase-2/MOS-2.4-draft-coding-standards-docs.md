@@ -1,7 +1,7 @@
 # MOS-2.4 — Draftear estándares de codificación
 
 Operación MOSDLC `draft-coding-standards-docs` · Fase 2 — Diseño · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → terminal_agent
 - Kernel: workflow.pm_intake · mode.review_only · output.route_prompt (+output.draft_issue, output.status_result)

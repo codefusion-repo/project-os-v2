@@ -1,7 +1,7 @@
 # MOS-5.5 — Draftear el checklist de despliegue staging
 
 Operación MOSDLC `draft-staging-deploy-checklist` · Fase 5 — Despliegue local / staging / producción · Riesgo: medium.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.status_result

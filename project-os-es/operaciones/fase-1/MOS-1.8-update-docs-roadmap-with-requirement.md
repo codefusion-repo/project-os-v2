@@ -1,7 +1,7 @@
 # MOS-1.8 — Actualizar docs y roadmap con un requerimiento
 
 Operación MOSDLC `update-docs-roadmap-with-requirement` · Fase 1 — Requerimientos, planificación y viabilidad · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → terminal_agent
 - Kernel: workflow.pm_intake · mode.review_only · output.route_prompt (+output.pm_command_bundle)

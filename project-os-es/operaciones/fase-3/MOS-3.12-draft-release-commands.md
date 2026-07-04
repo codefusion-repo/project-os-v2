@@ -1,7 +1,7 @@
 # MOS-3.12 — Draftear comandos de release
 
 Operación MOSDLC `draft-release-commands` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.release_readiness · mode.review_only · output.pm_command_bundle

@@ -1,7 +1,7 @@
 # MOS-3.7 — Revisar el PR antes de cerrar
 
 Operación MOSDLC `review-pr-before-close` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat
 - Kernel: workflow.review_before_close · mode.review_only · output.review_result (+output.pm_command_bundle)

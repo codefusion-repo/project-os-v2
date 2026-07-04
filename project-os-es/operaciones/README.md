@@ -8,7 +8,7 @@ cuál es la siguiente operación segura.
 Fuentes de esta superficie (issue #377): `docs/MOSDLC_OPERATION_MAP.md` (mapa
 canónico) y los templates migrados en `templates/mosdlc/operations/fase-*`.
 Los templates raíz (`templates/mosdlc/operations/` y
-`templates/operations/00`–`37`) siguen disponibles como fuente de reemplazo y
+`templates/operations/` 00-37) siguen disponibles como fuente de reemplazo y
 referencia de compatibilidad; esta carpeta no los reemplaza ni los renumera.
 
 ## Contrato común

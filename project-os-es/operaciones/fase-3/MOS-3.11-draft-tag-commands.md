@@ -1,7 +1,7 @@
 # MOS-3.11 — Draftear comandos de tag
 
 Operación MOSDLC `draft-tag-commands` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.release_readiness · mode.review_only · output.pm_command_bundle

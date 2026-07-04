@@ -1,7 +1,7 @@
 # MOS-3.10 — Analizar readiness de release
 
 Operación MOSDLC `analyze-release-readiness` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat
 - Kernel: workflow.release_readiness · mode.review_only · output.status_result (+output.pm_command_bundle)

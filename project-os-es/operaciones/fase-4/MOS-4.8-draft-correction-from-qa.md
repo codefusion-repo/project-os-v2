@@ -1,7 +1,7 @@
 # MOS-4.8 — Draftear una corrección desde QA
 
 Operación MOSDLC `draft-correction-from-qa` · Fase 4 — QA y verificación humana · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → terminal_agent
 - Kernel: workflow.pm_intake · mode.review_only · output.route_prompt

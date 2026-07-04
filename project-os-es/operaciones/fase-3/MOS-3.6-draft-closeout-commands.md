@@ -1,7 +1,7 @@
 # MOS-3.6 — Draftear comandos de closeout
 
 Operación MOSDLC `draft-closeout-commands` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.review_before_close · mode.review_only · output.pm_command_bundle

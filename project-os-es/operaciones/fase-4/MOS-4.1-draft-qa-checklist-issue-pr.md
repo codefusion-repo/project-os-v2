@@ -1,7 +1,7 @@
 # MOS-4.1 — Draftear el checklist QA de un issue/PR
 
 Operación MOSDLC `draft-qa-checklist-issue-pr` · Fase 4 — QA y verificación humana · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result

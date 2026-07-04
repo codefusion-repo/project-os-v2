@@ -1,7 +1,7 @@
 # MOS-2.8 — Auditar gaps de documentación de diseño
 
 Operación MOSDLC `audit-design-doc-gaps` · Fase 2 — Diseño · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result

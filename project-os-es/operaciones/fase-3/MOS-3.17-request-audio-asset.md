@@ -1,7 +1,7 @@
 # MOS-3.17 — Solicitar un asset de audio
 
 Operación MOSDLC `request-audio-asset` · Fase 3 — Implementación · Riesgo: low.
-Contrato común: `../README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 
 - Superficie: browser_chat → external_recipient
 - Kernel: workflow.design_asset · mode.review_only · output.asset_prompt
