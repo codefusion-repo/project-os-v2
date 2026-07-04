@@ -1,9 +1,13 @@
 """Resolver de la superficie Project OS en espanol.
 
 Hidrata el contrato JSON del kernel en espanol (project-os-es/kernel/) por
-(actor, mode, workflow) siguiendo la resolution_sequence del manifest activo
-y rule.hidratacion. Lee el kernel JSON en runtime y no duplica data del
-kernel; no lee estado vivo de GitHub/git y no muta archivos ni target alguno.
+(actor, mode, workflow) siguiendo la resolution_sequence del manifest activo.
+Por decision PM (PR #399), evidence y salidas hidratan solo desde las
+referencias del workflow resuelto (required_evidence, allowed_outputs); el
+mode gobierna unicamente acciones permitidas/prohibidas, fallback y
+compatibilidad con el actor, y mode_key en evidencia/salidas no selecciona
+registros. Lee el kernel JSON en runtime y no duplica data del kernel; no
+lee estado vivo de GitHub/git y no muta archivos ni target alguno.
 
 El output hidratado es guia operativa y nunca concede permisos
 (rule.no_autorizacion, boundary.output_not_permission). Toda falla resuelve
@@ -55,22 +59,6 @@ NO_AUTORIZACION = (
     "PM exacta separada."
 )
 
-CAVEAT_HIDRATACION = (
-    "Hidratacion por union segun rule.hidratacion: cada registro de "
-    "evidencia y salida lleva 'seleccionado_por', un campo de procedencia "
-    "agregado por el resolver (no existe en el kernel) que indica si el "
-    "registro fue nombrado por el workflow resuelto, seleccionado por el "
-    "mode resuelto via mode_key, o ambos. Un registro seleccionado solo por "
-    "mode es una obligacion del mode resuelto y no prueba que el workflow lo "
-    "haya nombrado."
-)
-
-_ETIQUETAS_SELECCION = {
-    ("workflow",): "requerida por el workflow",
-    ("mode",): "seleccionada por el mode",
-    ("workflow", "mode"): "requerida por el workflow y seleccionada por el mode",
-}
-
 
 def _fail_closed(errores: list[str]) -> dict[str, Any]:
     return {
@@ -107,31 +95,20 @@ def _indexar(registros: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return {r["key"]: r for r in registros if isinstance(r.get("key"), str)}
 
 
-def _hidratar_union(
+def _hidratar_nombrados(
     nombrados: list[str],
     indice: dict[str, dict[str, Any]],
-    mode_efectivo: str,
     error_no_encontrado: str,
     faltantes: list[str],
 ) -> dict[str, dict[str, Any]]:
-    """Hidrata por union rule.hidratacion con procedencia por registro.
-
-    Copia cada registro del kernel y le agrega 'seleccionado_por' (campo del
-    resolver, no del kernel) con la o las dimensiones que lo seleccionaron.
-    """
+    """Hidrata los registros nombrados por el workflow; falla cerrado si faltan."""
     hidratados: dict[str, dict[str, Any]] = {}
     for key in nombrados:
         registro = indice.get(key)
         if registro is None:
             faltantes.append(f"{error_no_encontrado}: {key}")
-            continue
-        seleccion = ["workflow"]
-        if mode_efectivo in registro.get("mode_key", []):
-            seleccion.append("mode")
-        hidratados[key] = {**registro, "seleccionado_por": seleccion}
-    for key, registro in indice.items():
-        if key not in hidratados and mode_efectivo in registro.get("mode_key", []):
-            hidratados[key] = {**registro, "seleccionado_por": ["mode"]}
+        else:
+            hidratados[key] = registro
     return hidratados
 
 
@@ -211,23 +188,22 @@ def resolver(
             [f"workflow desconocido: {workflow!r} (conocidos: {sorted(workflows)})"]
         )
 
-    # rule.hidratacion: evidence y output hidratan como union de los registros
-    # nombrados por el workflow mas los registros cuyo mode_key contiene el
-    # mode; los selectores son independientes y una lista vacia nunca excluye.
+    # Decision PM (PR #399): evidence y salidas hidratan solo desde las
+    # referencias del workflow resuelto; mode_key en estos registros no
+    # selecciona ni excluye nada. Normalizar mode_key en el kernel es un
+    # cleanup separado.
     faltantes: list[str] = []
 
-    evidencia = _hidratar_union(
+    evidencia = _hidratar_nombrados(
         registro_workflow.get("required_evidence", []),
         _indexar(data["evidencia"]),
-        mode_efectivo,
-        "evidence referenciada no encontrada",
+        "evidence requerida por el workflow no encontrada",
         faltantes,
     )
-    salidas = _hidratar_union(
+    salidas = _hidratar_nombrados(
         registro_workflow.get("allowed_outputs", []),
         _indexar(data["salidas"]),
-        mode_efectivo,
-        "output referenciado no encontrado",
+        "output permitido por el workflow no encontrado",
         faltantes,
     )
 
@@ -256,8 +232,7 @@ def resolver(
     # rule.emision_resolver: guia operativa, checklist de lecturas vivas,
     # missing statuses y acciones efectivas; nunca permisos ni estado vivo.
     checklist_lecturas_vivas = [
-        f"Leer vivo {key} "
-        f"({_ETIQUETAS_SELECCION[tuple(registro['seleccionado_por'])]}): "
+        f"Leer vivo {key} (requerida por el workflow): "
         f"{registro.get('satisfied_by', '')}"
         for key, registro in evidencia.items()
     ]
@@ -286,7 +261,6 @@ def resolver(
             "acciones_prohibidas": registro_mode.get("prohibited_actions", []),
             "checklist_lecturas_vivas": checklist_lecturas_vivas,
             "missing_statuses": missing_statuses,
-            "caveat_hidratacion": CAVEAT_HIDRATACION,
         },
         "no_autorizacion": NO_AUTORIZACION,
         "errores": [],
