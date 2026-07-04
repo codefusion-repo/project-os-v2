@@ -62,8 +62,10 @@ indica la operación previa, las siguientes seguras y la recomendada.
 
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
 también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de
-vida: `cross-fase/`, `fase-0/`, `fase-2/`, `fase-3/`, `fase-4/`, `fase-5/` y
-`fase-6/`.
+vida: `project-os-es/operaciones/cross-fase/`,
+`project-os-es/operaciones/fase-0/`, `project-os-es/operaciones/fase-2/`,
+`project-os-es/operaciones/fase-3/`, `project-os-es/operaciones/fase-4/`,
+`project-os-es/operaciones/fase-5/` y `project-os-es/operaciones/fase-6/`.
 
 ## Índice
 
