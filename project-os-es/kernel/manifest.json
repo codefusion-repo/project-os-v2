@@ -6,19 +6,14 @@
       "language": "es",
       "objetivo": "Definir el contrato operativo compacto que un resolver hidrata por (actor, mode, workflow) para gobernar comportamiento de agentes sobre un proyecto o target, sin conceder permisos. El modelo es agnostico al proyecto: GitHub, git, issues y PRs aparecen solo como adapters o ejemplos de fuente. Esta superficie es data de diseno para una ruta de hidratacion futura; el kernel raiz kernel/*.json sigue siendo la fuente canonica de comportamiento y esta carpeta no declara consumo runtime actual.",
       "resolution_sequence": [
-        "Cargar el manifest activo.",
-        "Cargar las operational_rules del manifest.",
-        "Resolver el actor por key.",
-        "Cargar los limits del actor.",
-        "Aplicar los limits antes de modo y workflow.",
-        "Resolver el mode solicitado.",
-        "Si falta el mode, usar mode.review_only.",
-        "Validar que allowed_modes del actor contiene el mode.",
-        "Resolver el workflow solicitado.",
-        "Cargar evidence desde required_evidence del workflow resuelto; el mode nunca selecciona evidence.",
-        "Cargar output desde allowed_outputs del workflow resuelto.",
-        "Cargar los statuses referenciados por limits, evidence y output.",
-        "Devolver el JSON operativo hidratado."
+        "Lee esta resolución",
+        "Es tu guía operativa obligatoria",
+        "Debes respetar las reglas_operativas obligatoriamente.",
+        "Debes respetar los limites obligatorios y el contexto de tu superficie de actuación.",
+        "Debes respetar las acciones disponibles y prohibidas de tu modo de ejecución obligatoriamente.",
+        "Debes ejecutar exclusivamente el workflow resuelto.",
+        "Debes respetar las evidencias y salidas del workflow resuelto obligatoriamente.",
+        "Debes respetar los estados resueltos obligatoriamente."
       ],
       "active": true
     }

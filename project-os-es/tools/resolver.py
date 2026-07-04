@@ -1,7 +1,7 @@
 """Resolver de la superficie Project OS en espanol.
 
 Hidrata el contrato JSON del kernel en espanol (project-os-es/kernel/) por
-(actor, mode, workflow) siguiendo la resolution_sequence del manifest activo.
+(actor, mode, workflow) a partir del manifest activo.
 Evidence y salidas hidratan solo desde las referencias del workflow resuelto
 (required_evidence, allowed_outputs); el mode gobierna unicamente acciones
 permitidas/prohibidas, fallback y compatibilidad con el actor, y mode_key en
@@ -61,17 +61,9 @@ AUTORIZACION = (
     "esta resolución no concede permisos por sí sola."
 )
 
-_MANIFEST_RESOLUTION_SEQUENCE = [
-    "Lee esta resolución",
-    "Es tu guía operativa obligatoria",
-    "Debes respetar las reglas_operativas obligatoriamente.",
-    "Debes respetar los limites obligatorios y el contexto de tu superficie de actuación.",
-    "Debes respetar las acciones disponibles y prohibidas de tu modo de ejecución obligatoriamente.",
-    "Debes ejecutar exclusivamente el workflow resuelto.",
-    "Debes respetar las evidencias y salidas del workflow resuelto obligatoriamente.",
-    "Debes respetar los estados resueltos obligatoriamente.",
-]
-
+_CLAVES_MANIFEST = (
+    "key", "version", "language", "objetivo", "resolution_sequence", "active",
+)
 _CLAVES_REGLA = (
     "key", "manifest_key", "resolution_sequence", "on_violation", "priority", "active",
 )
@@ -86,17 +78,6 @@ _CLAVES_ESTADO = ("key", "meaning", "type", "active")
 def _campos(registro: dict[str, Any], claves: tuple[str, ...]) -> dict[str, Any]:
     """Selecciona del registro del kernel exactamente las claves dadas."""
     return {clave: registro.get(clave) for clave in claves}
-
-
-def _manifest_resuelto(manifest: dict[str, Any]) -> dict[str, Any]:
-    """Manifest del contrato: campos del kernel con la resolution_sequence
-    operativa fija (no la resolution_sequence interna del loader)."""
-    resuelto = {
-        clave: manifest.get(clave) for clave in ("key", "version", "language", "objetivo")
-    }
-    resuelto["resolution_sequence"] = list(_MANIFEST_RESOLUTION_SEQUENCE)
-    resuelto["active"] = manifest.get("active")
-    return resuelto
 
 
 def _workflow_resuelto(
@@ -290,7 +271,7 @@ def resolver(
     return {
         "estado": "status.resolved",
         "resuelto": {
-            "manifest": _manifest_resuelto(manifest),
+            "manifest": _campos(manifest, _CLAVES_MANIFEST),
             "reglas_operativas": [_campos(regla, _CLAVES_REGLA) for regla in reglas],
             "actor": _campos(registro_actor, _CLAVES_ACTOR),
             "limites": [_campos(limite, _CLAVES_LIMITE) for limite in limites],
