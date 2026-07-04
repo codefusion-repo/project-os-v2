@@ -24,6 +24,8 @@ Tres verdades sostienen todo el sistema:
 | [empezar.md](empezar.md) | Quién hace qué y cómo se adopta Project OS. | Arrancas un proyecto o una sesión nueva. |
 | [reglas.md](reglas.md) | Las reglas de seguridad y verdad que nunca se negocian. | Antes de delegar escritura a un agente. |
 | [ritmo.md](ritmo.md) | El ciclo de trabajo día a día y las variables PM. | Operas el proyecto y necesitas el siguiente paso. |
+| [adapters](../adapters/README.md) | Bootloaders compactos para targets. | Adoptas Project OS en un repo. |
+| [templates](../templates/README.md) | Formas no operacionales enlazadas por artefactos. | Drafteas route prompts, bundles, reports o documentos. |
 
 El catálogo de operaciones en español vive en
 [`project-os-es/operaciones/README.md`](../operaciones/README.md): un prompt

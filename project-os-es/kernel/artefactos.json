@@ -1,0 +1,194 @@
+{
+  "artefactos": [
+    {
+      "key": "artefacto.reporte_ejecucion",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.target_adoption",
+        "workflow.deployment"
+      ],
+      "output_key": "output.execution_report",
+      "responsabilidad": "Reportar trabajo ejecutado, evidencia y validacion sin solicitar merge ni cierre.",
+      "required_template": "project-os-es/templates/reporte-ejecucion.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.plan_implementacion_manual",
+      "workflow_key": [
+        "workflow.issue_implementation_manual"
+      ],
+      "output_key": "output.manual_implementation_plan",
+      "responsabilidad": "Draftear instrucciones humano-ejecutables sin reclamar codigo editado ni validado.",
+      "required_template": "project-os-es/templates/plan-implementacion-manual.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.resultado_revision",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.review_before_close",
+        "workflow.implementation_discipline_audit",
+        "workflow.release_readiness"
+      ],
+      "output_key": "output.review_result",
+      "responsabilidad": "Reportar hallazgos o veredicto con evidencia concreta y gaps no revisados.",
+      "required_template": "project-os-es/templates/resultado-revision.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.comentario_cierre",
+      "workflow_key": [
+        "workflow.review_before_close"
+      ],
+      "output_key": "output.closure_comment",
+      "responsabilidad": "Draftear el paquete de reconstruccion para cierre PM despues de review respaldada por codigo.",
+      "required_template": "project-os-es/templates/comentario-cierre.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.issue",
+      "workflow_key": [
+        "workflow.implementation_discipline_audit",
+        "workflow.pm_intake"
+      ],
+      "output_key": "output.draft_issue",
+      "responsabilidad": "Draftear un issue verificable con una sola outcome y validacion proporcional.",
+      "required_template": "project-os-es/templates/issue.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.route_prompt",
+      "workflow_key": [
+        "workflow.pm_intake"
+      ],
+      "output_key": "output.route_prompt",
+      "responsabilidad": "Rutear trabajo scoped a otra superficie sin pegar el issue completo ni conceder permisos.",
+      "required_template": "project-os-es/templates/route-prompt.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.route_prompt_correccion",
+      "workflow_key": [
+        "workflow.pm_intake"
+      ],
+      "output_key": "output.route_prompt",
+      "responsabilidad": "Rutear correcciones acotadas a hallazgos concretos sin ampliar el scope.",
+      "required_template": "project-os-es/templates/route-prompt.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.pm_command_bundle",
+      "workflow_key": [
+        "workflow.review_before_close",
+        "workflow.pm_intake",
+        "workflow.release_readiness"
+      ],
+      "output_key": "output.pm_command_bundle",
+      "responsabilidad": "Draftear comandos PM copy-safe con targets exactos, verificacion y rollback en prosa.",
+      "required_template": "project-os-es/templates/pm-command-bundle.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.closeout_command_bundle",
+      "workflow_key": [
+        "workflow.review_before_close"
+      ],
+      "output_key": "output.pm_command_bundle",
+      "responsabilidad": "Draftear el bundle de cierre y limpieza solo despues de review-before-close.",
+      "required_template": "project-os-es/templates/pm-command-bundle.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.prompt_asset",
+      "workflow_key": [
+        "workflow.design_asset"
+      ],
+      "output_key": "output.asset_prompt",
+      "responsabilidad": "Draftear una solicitud de asset para un destinatario externo que no es actor kernel.",
+      "required_template": "project-os-es/templates/prompt-asset.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.prompt_revision_seguridad",
+      "workflow_key": [
+        "workflow.security_revision"
+      ],
+      "output_key": "output.security_review_prompt",
+      "responsabilidad": "Draftear una solicitud de revision OWASP sin ejecutar scanner ni exponer secretos.",
+      "required_template": "project-os-es/templates/prompt-revision-seguridad.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.paquete_handoff",
+      "workflow_key": [
+        "workflow.handoff"
+      ],
+      "output_key": "output.handoff_packet",
+      "responsabilidad": "Transferir contexto entre sesiones apuntando a evidencia viva, nunca como estado durable.",
+      "required_template": "project-os-es/templates/paquete-handoff.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.paquete_adopcion",
+      "workflow_key": [
+        "workflow.target_adoption"
+      ],
+      "output_key": "output.adoption_packet",
+      "responsabilidad": "Reportar auditoria o bootstrap de adapters de un target preservando ownership del target.",
+      "required_template": "project-os-es/templates/paquete-adopcion.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.resultado_estado",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.issue_implementation",
+        "workflow.issue_implementation_manual",
+        "workflow.review_before_close",
+        "workflow.implementation_discipline_audit",
+        "workflow.pm_intake",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.release_readiness",
+        "workflow.handoff",
+        "workflow.target_adoption",
+        "workflow.deployment"
+      ],
+      "output_key": "output.status_result",
+      "responsabilidad": "Reportar un estado no resuelto nombrando el bloqueo, su fuente y el siguiente paso seguro.",
+      "required_template": "project-os-es/templates/resultado-estado.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.pull_request_body",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.target_adoption"
+      ],
+      "output_key": null,
+      "responsabilidad": "Documentar claims, limites y validacion de un PR draft; no prueba completitud.",
+      "required_template": "project-os-es/templates/pull-request.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.adr",
+      "workflow_key": [
+        "workflow.pm_intake"
+      ],
+      "output_key": null,
+      "responsabilidad": "Documentar una decision durable que sobrevive a la unidad de trabajo.",
+      "required_template": "project-os-es/templates/adr.md",
+      "active": true
+    },
+    {
+      "key": "artefacto.roadmap",
+      "workflow_key": [
+        "workflow.pm_intake"
+      ],
+      "output_key": null,
+      "responsabilidad": "Documentar que sigue y por que sin guardar estado vivo.",
+      "required_template": "project-os-es/templates/roadmap.md",
+      "active": true
+    }
+  ]
+}
