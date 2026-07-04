@@ -1,4 +1,4 @@
-"""MOSDLC.7 Fase 6 template migration guards."""
+"""MOSDLC.8 accepted recommended operation template guards (#393)."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MAP_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_OPERATION_MAP.md"
 STANDARD_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_TEMPLATE_STANDARD.md"
-MOSDLC_FASE6_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations" / "fase-6"
+MOSDLC_OPERATIONS_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations"
 LEGACY_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
 
 HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
@@ -33,17 +33,72 @@ KERNEL_GROWTH_CANDIDATES = {
         ("actor", "external_recipient"),
     )
 }
-FASE6_IDS = [f"MOS-6.{index}" for index in range(1, 13)]
-ANALYSIS_ROWS = {"MOS-6.1", "MOS-6.2", "MOS-6.3", "MOS-6.4", "MOS-6.5", "MOS-6.6"}
-PROCESSING_ROWS = {
-    "MOS-6.7",
-    "MOS-6.8",
-    "MOS-6.9",
-    "MOS-6.10",
-    "MOS-6.11",
-    "MOS-6.12",
+RECOMMENDED_IDS = [f"MOS-R.{index}" for index in range(1, 24)]
+RECOMMENDED_PLACEMENT = {
+    "MOS-R.1": "fase-2",
+    "MOS-R.2": "cross-fase",
+    "MOS-R.3": "cross-fase",
+    "MOS-R.4": "cross-fase",
+    "MOS-R.5": "fase-0",
+    "MOS-R.6": "fase-2",
+    "MOS-R.7": "fase-3",
+    "MOS-R.8": "fase-3",
+    "MOS-R.9": "fase-3",
+    "MOS-R.10": "fase-0",
+    "MOS-R.11": "fase-5",
+    "MOS-R.12": "fase-5",
+    "MOS-R.13": "fase-5",
+    "MOS-R.14": "fase-5",
+    "MOS-R.15": "fase-5",
+    "MOS-R.16": "fase-5",
+    "MOS-R.17": "fase-6",
+    "MOS-R.18": "fase-6",
+    "MOS-R.19": "fase-4",
+    "MOS-R.20": "fase-4",
+    "MOS-R.21": "fase-4",
+    "MOS-R.22": "fase-3",
+    "MOS-R.23": "fase-3",
 }
-REQUIRED_LEGACY_SOURCES = {"20", "25", "31"}
+CROSS_PHASE_RECOMMENDED_IDS = {"MOS-R.2", "MOS-R.3", "MOS-R.4"}
+READ_ONLY_ROWS = {
+    "MOS-R.2",
+    "MOS-R.4",
+    "MOS-R.5",
+    "MOS-R.7",
+    "MOS-R.9",
+    "MOS-R.11",
+    "MOS-R.13",
+    "MOS-R.17",
+    "MOS-R.18",
+    "MOS-R.20",
+    "MOS-R.22",
+}
+PROCESSING_ROWS = {"MOS-R.3", "MOS-R.8", "MOS-R.14", "MOS-R.16", "MOS-R.21"}
+EXACT_APPROVAL_ROWS = {"MOS-R.1", "MOS-R.6", "MOS-R.10", "MOS-R.23"}
+INTERNAL_ONLY_ROWS = {"MOS-R.12", "MOS-R.15"}
+VALIDATION_CYCLE_ROWS = {"MOS-R.19", "MOS-R.20", "MOS-R.21"}
+# Target-agnostic contract: no operation in the canonical recommended batch may
+# be dogfood-only or exclusive to project-os-v2 / Project OS internal work.
+PROJECT_EXCLUSIVE_TOKENS = ("dogfood", "codefusion", "project-os-v2", "project os")
+# Validation-cycle wording must work for different target project types.
+VALIDATION_SURFACE_FRAGMENTS = (
+    "internal QA",
+    "staging",
+    "UAT",
+    "TestFlight",
+    "release candidate",
+    "playtest",
+    "pilot",
+)
+DECISION_CATEGORY_FRAGMENTS = (
+    "missing-context",
+    "choose-route",
+    "approve-correction",
+    "create-follow-up",
+    "stop-no-op",
+    "return-to-source",
+    "need-more-evidence",
+)
 
 REQUIRED_BLOCKS = [
     "MOSDLC:",
@@ -75,13 +130,13 @@ def _parse_operation_rows() -> dict[str, dict[str, str]]:
     text = MAP_DOC_PATH.read_text(encoding="utf-8")
     headers: list[str] | None = None
     rows: dict[str, dict[str, str]] = {}
-    in_fase6 = False
+    in_section = False
     for line in text.splitlines():
         if line.startswith("## "):
-            in_fase6 = line.strip().startswith("## Fase 6 ")
+            in_section = line.strip().startswith("## Operaciones recomendadas aceptadas")
             headers = None
             continue
-        if not in_fase6:
+        if not in_section:
             continue
         if line.startswith("| ID |"):
             headers = [cell.strip() for cell in line.strip("|").split("|")]
@@ -146,11 +201,16 @@ def _mosdlc_sort_key(value: str) -> tuple[int, ...]:
 
 
 def _mosdlc_template_paths() -> list[Path]:
-    return sorted(MOSDLC_FASE6_DIR.glob("MOS-6.*.md"), key=lambda path: _mosdlc_sort_key(path.stem))
+    paths: list[Path] = []
+    for rid in RECOMMENDED_IDS:
+        matches = sorted((MOSDLC_OPERATIONS_DIR / RECOMMENDED_PLACEMENT[rid]).glob(f"{rid}-*.md"))
+        assert len(matches) == 1, f"{rid} must have exactly one MOSDLC template"
+        paths.append(matches[0])
+    return paths
 
 
 def _template_path(row: dict[str, str]) -> Path:
-    return MOSDLC_FASE6_DIR / f"{row['ID']}-{row['Operación']}.md"
+    return MOSDLC_OPERATIONS_DIR / RECOMMENDED_PLACEMENT[row["ID"]] / f"{row['ID']}-{row['Operación']}.md"
 
 
 def _legacy_refs(row: dict[str, str]) -> list[str]:
@@ -180,33 +240,57 @@ def _changed_files() -> set[str]:
     return changed
 
 
-def test_mosdlc_fase6_templates_are_documented_and_discoverable() -> None:
+def test_mosdlc_recommended_templates_are_documented_and_discoverable() -> None:
     rows = _parse_operation_rows()
     standard = STANDARD_DOC_PATH.read_text(encoding="utf-8")
     catalog = (REPO_ROOT / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
     flows = (REPO_ROOT / "docs" / "OPERATION_FLOWS.md").read_text(encoding="utf-8")
+    map_doc = MAP_DOC_PATH.read_text(encoding="utf-8")
 
     for fragment in (
-        "## Fase 6 Migrada",
-        "templates/mosdlc/operations/fase-6/",
+        "## Operaciones Recomendadas Migradas",
+        "templates/mosdlc/operations/cross-fase/",
+        "templates/mosdlc/operations/fase-<n>/",
         "El wizard local sigue leyendo `templates/operations/`",
         "Template authority: none",
     ):
         assert fragment in standard
 
+    assert "templates/mosdlc/operations/cross-fase/" in map_doc
+    assert "templates/mosdlc/operations/recommended/" not in standard
+    assert "templates/mosdlc/operations/recommended/" not in catalog
+    assert "templates/mosdlc/operations/recommended/" not in flows
+    assert "templates/mosdlc/operations/recommended/" not in map_doc
+    assert not (MOSDLC_OPERATIONS_DIR / "recommended").exists()
+
     for rid, row in rows.items():
-        path = f"templates/mosdlc/operations/fase-6/{rid}-{row['Operación']}.md"
+        path = _template_path(row).relative_to(REPO_ROOT).as_posix()
         assert rid in standard
         assert path in standard
         assert path in catalog
         assert path in flows
 
 
-def test_fase6_map_rows_have_matching_mosdlc_templates() -> None:
+def test_recommended_templates_have_phase_or_cross_phase_placement() -> None:
     rows = _parse_operation_rows()
-    assert list(rows) == FASE6_IDS
+    assert set(RECOMMENDED_PLACEMENT) == set(RECOMMENDED_IDS)
+    assert {rid for rid, folder in RECOMMENDED_PLACEMENT.items() if folder == "cross-fase"} == (
+        CROSS_PHASE_RECOMMENDED_IDS
+    )
+    for rid, row in rows.items():
+        path = _template_path(row)
+        assert path.exists()
+        if rid in CROSS_PHASE_RECOMMENDED_IDS:
+            assert path.parent.name == "cross-fase"
+        else:
+            assert re.fullmatch(r"fase-[0-6]", path.parent.name)
+
+
+def test_recommended_map_rows_have_matching_mosdlc_templates() -> None:
+    rows = _parse_operation_rows()
+    assert list(rows) == RECOMMENDED_IDS
     assert [path.name for path in _mosdlc_template_paths()] == [
-        f"{rows[rid]['ID']}-{rows[rid]['Operación']}.md" for rid in FASE6_IDS
+        f"{rows[rid]['ID']}-{rows[rid]['Operación']}.md" for rid in RECOMMENDED_IDS
     ]
 
     for rid, row in rows.items():
@@ -224,7 +308,7 @@ def test_fase6_map_rows_have_matching_mosdlc_templates() -> None:
             assert block in text, f"{path.name} missing {block}"
 
 
-def test_fase6_template_metadata_matches_source_map_kernel_contract() -> None:
+def test_recommended_template_metadata_matches_source_map_kernel_contract() -> None:
     rows = _parse_operation_rows()
     for rid, row in rows.items():
         text = _template_path(row).read_text(encoding="utf-8")
@@ -234,6 +318,7 @@ def test_fase6_template_metadata_matches_source_map_kernel_contract() -> None:
         assert metadata["Classification"] == row["Clasificación"]
         assert metadata["Workflow"] == row["Workflow"]
         assert metadata["Mode"] == row["Mode"]
+        assert "accepted-recommended" in metadata["Classification"]
         assert row["Kernel/Template"].endswith("kernel:no-change")
         assert set(re.findall(r"output\.[A-Za-z0-9_]+", metadata["Output"])) == set(
             re.findall(r"output\.[A-Za-z0-9_]+", row["Output"])
@@ -245,7 +330,7 @@ def test_fase6_template_metadata_matches_source_map_kernel_contract() -> None:
             assert legacy in metadata["Compatibility source"]
 
 
-def test_fase6_templates_use_required_fields_and_optional_human_context() -> None:
+def test_recommended_templates_use_required_fields_and_optional_human_context() -> None:
     rows = _parse_operation_rows()
     for rid, row in rows.items():
         text = _template_path(row).read_text(encoding="utf-8")
@@ -260,7 +345,7 @@ def test_fase6_templates_use_required_fields_and_optional_human_context() -> Non
         assert "PM_FEEDBACK_HUMANO and PM_QUESTION_HUMANO are optional context only." in text
 
 
-def test_fase6_templates_reference_only_valid_kernel_ids() -> None:
+def test_recommended_templates_reference_only_valid_kernel_ids() -> None:
     kernel_ids = _kernel_ids()
     offenders: list[str] = []
     for path in _mosdlc_template_paths() + [STANDARD_DOC_PATH]:
@@ -271,7 +356,7 @@ def test_fase6_templates_reference_only_valid_kernel_ids() -> None:
     assert offenders == []
 
 
-def test_fase6_templates_do_not_store_live_state_or_authority_grants() -> None:
+def test_recommended_templates_do_not_store_live_state_or_authority_grants() -> None:
     offenders: list[str] = []
     for path in _mosdlc_template_paths():
         text = path.read_text(encoding="utf-8")
@@ -289,30 +374,118 @@ def test_fase6_templates_do_not_store_live_state_or_authority_grants() -> None:
     assert offenders == []
 
 
-def test_fase6_analysis_rows_are_read_only_and_do_not_claim_completion() -> None:
+def test_recommended_templates_are_target_agnostic() -> None:
+    """No dogfood-only or project-os-v2-only operation enters the canonical batch."""
     rows = _parse_operation_rows()
-    for rid in ANALYSIS_ROWS:
+    offenders: list[str] = []
+    for path in _mosdlc_template_paths():
+        text = path.read_text(encoding="utf-8").lower()
+        for token in PROJECT_EXCLUSIVE_TOKENS:
+            if token in text:
+                offenders.append(f"{path.name}: project-exclusive wording {token!r}")
+    # The map keeps the PM statements verbatim, but short names and generic
+    # descriptions must not stay dogfood-specific.
+    for rid, row in rows.items():
+        for cell in ("Operación", "Descripción"):
+            if "dogfood" in row[cell].lower():
+                offenders.append(f"map {rid}: dogfood wording in {cell}")
+    assert offenders == []
+
+
+def test_validation_cycle_rows_cover_multiple_target_types_and_fail_closed() -> None:
+    rows = _parse_operation_rows()
+    for rid in VALIDATION_CYCLE_ROWS:
         text = _template_path(rows[rid]).read_text(encoding="utf-8")
+        for fragment in VALIDATION_SURFACE_FRAGMENTS:
+            assert fragment in text, f"{rid} missing validation surface wording {fragment!r}"
+    for rid in ("MOS-R.19", "MOS-R.20"):
+        text = _template_path(rows[rid]).read_text(encoding="utf-8")
+        assert "fail closed" in text.lower(), f"{rid} must fail closed without a validation surface"
+        assert "status.needs_context" in text
+
+
+def test_process_needs_pm_decision_has_clear_variables_and_decision_categories() -> None:
+    rows = _parse_operation_rows()
+    text = _template_path(rows["MOS-R.3"]).read_text(encoding="utf-8")
+    for variable in ("DECISION_SOURCE", "DECISION_CONTEXT", "DECISION_QUESTION", "DECISION_OPTIONS"):
+        assert f"{variable}=<{variable}>" in text, f"MOS-R.3 missing required variable {variable}"
+    for fragment in DECISION_CATEGORY_FRAGMENTS:
+        assert fragment in text, f"MOS-R.3 missing decision category {fragment!r}"
+    # Compatibility with root Operation 36 stays explicit and non-authorizing.
+    assert "templates/operations/36-process-needs-pm-decision.md" in text
+    assert "ORIGINATING_OPERATION to DECISION_SOURCE" in text
+    for fragment in (
+        "no hidden workflow engine",
+        "no auto-approval",
+        "never infer approval",
+        "return status.needs_pm_decision",
+    ):
+        assert fragment in text, f"MOS-R.3 missing non-authorizing fragment {fragment!r}"
+
+
+def test_recommended_read_only_rows_are_read_only_and_fail_closed() -> None:
+    rows = _parse_operation_rows()
+    for rid in READ_ONLY_ROWS:
+        row = rows[rid]
+        assert row["Aprobación PM"].startswith("No (read-only)"), f"{rid} must stay read-only"
+        text = _template_path(row).read_text(encoding="utf-8")
         assert "Read-only" in text
         assert "status.needs_context" in text
         assert "output.status_result" in text
 
 
-def test_fase6_processing_rows_are_non_authorizing_and_pm_executed() -> None:
+def test_recommended_processing_rows_are_non_authorizing_and_pm_executed() -> None:
     rows = _parse_operation_rows()
     for rid in PROCESSING_ROWS:
         text = _template_path(rows[rid]).read_text(encoding="utf-8")
         for fragment in (
             "PM decision",
-            "only when evidence supports that route",
-            "Draft-only classification",
-            "non-authorizing outputs",
+            "Draft-only",
+            "non-authorizing output",
             "Human PM-executed",
         ):
             assert fragment in text, f"{rid} missing {fragment!r}"
 
 
-def test_fase6_templates_do_not_imply_kernel_growth() -> None:
+def test_recommended_exact_approval_rows_require_separate_exact_pm_approval() -> None:
+    rows = _parse_operation_rows()
+    for rid in EXACT_APPROVAL_ROWS:
+        row = rows[rid]
+        assert row["Aprobación PM"].startswith("Sí (exacta"), f"{rid} must require exact PM approval"
+        text = _template_path(row).read_text(encoding="utf-8")
+        assert "separate exact PM approval" in text, f"{rid} missing exact-approval wording"
+
+
+def test_recommended_strict_security_rows_stay_redacted_and_secret_safe() -> None:
+    rows = _parse_operation_rows()
+    strict_ids = {rid for rid, row in rows.items() if "sec:strict" in row["Postura"]}
+    assert strict_ids, "the map must keep strict security rows in the recommended batch"
+    for rid in strict_ids:
+        text = _template_path(rows[rid]).read_text(encoding="utf-8")
+        assert "[REDACTED]" in text, f"{rid} must keep strict redaction wording"
+        assert "secret" in text.lower(), f"{rid} must keep secret-safety wording"
+
+
+def test_recommended_internal_only_rows_keep_conversion_and_target_owned_commands() -> None:
+    rows = _parse_operation_rows()
+    internal_ids = {rid for rid, row in rows.items() if row["Exposición"] == "internal-only"}
+    assert internal_ids == INTERNAL_ONLY_ROWS
+    for rid in internal_ids:
+        row = rows[rid]
+        assert "pre-release:convert" in row["Postura"], f"{rid} must convert before public release"
+        text = _template_path(row).read_text(encoding="utf-8")
+        for fragment in (
+            "Internal-only exposure",
+            "pre-release convert",
+            "target-owned",
+            "Human PM-executed",
+            "templates/pm-command-bundle.md",
+            "Fail closed",
+        ):
+            assert fragment in text, f"{rid} missing {fragment!r}"
+
+
+def test_recommended_templates_do_not_imply_kernel_growth() -> None:
     for path in _mosdlc_template_paths():
         text = path.read_text(encoding="utf-8")
         for candidate in KERNEL_GROWTH_CANDIDATES:
@@ -320,18 +493,11 @@ def test_fase6_templates_do_not_imply_kernel_growth() -> None:
         assert "kernel:no-change" not in text
 
 
-def test_legacy_00_37_templates_remain_usable_and_fase6_sources_are_preserved() -> None:
+def test_legacy_00_37_templates_remain_usable_and_recommended_sources_are_preserved() -> None:
     rows = _parse_operation_rows()
     expected = [f"{index:02d}" for index in range(38)]
     legacy_paths = sorted(LEGACY_OPERATIONS_DIR.glob("*.md"))
     assert [path.name[:2] for path in legacy_paths] == expected
-
-    referenced_sources = {
-        Path(legacy_ref).name[:2]
-        for row in rows.values()
-        for legacy_ref in _legacy_refs(row)
-    }
-    assert referenced_sources == REQUIRED_LEGACY_SOURCES
 
     for rid, row in rows.items():
         for legacy_ref in _legacy_refs(row):
@@ -340,24 +506,42 @@ def test_legacy_00_37_templates_remain_usable_and_fase6_sources_are_preserved() 
             assert legacy.read_text(encoding="utf-8").startswith("#")
 
 
-def test_mosdlc_fase6_migration_does_not_expand_kernel_or_unsupported_phases() -> None:
+def test_mosdlc_recommended_migration_does_not_expand_kernel_or_unrelated_surfaces() -> None:
     changed_files = _changed_files()
     migration_changed = any(
-        path.startswith("templates/mosdlc/operations/fase-6/") and "/MOS-R." not in path for path in changed_files
+        path.startswith("templates/mosdlc/operations/cross-fase/")
+        or re.match(r"templates/mosdlc/operations/fase-[0-6]/MOS-R\.", path)
+        for path in changed_files
     )
     if not migration_changed:
         return
     assert not any(path.startswith("kernel/") for path in changed_files)
-    assert not any(path.startswith("templates/operations/") for path in changed_files)
-    assert not any(path.startswith("templates/mosdlc/operations/fase-5/") and "/MOS-R." not in path for path in changed_files)
-    assert not any("/MOS-R." in path for path in changed_files)
+    assert not any(path.startswith("project-os-es/") for path in changed_files)
+    assert not (MOSDLC_OPERATIONS_DIR / "recommended").exists()
+    # Root Operation 36 is the only 00-37 template that #393 may touch, narrowly.
+    assert all(
+        path == "templates/operations/36-process-needs-pm-decision.md"
+        for path in changed_files
+        if path.startswith("templates/operations/")
+    )
     assert all(
         path.startswith(
             (
                 "docs/",
                 "tests/",
-                "templates/mosdlc/operations/fase-6/",
+                "templates/mosdlc/operations/cross-fase/",
+                "templates/mosdlc/operations/fase-0/MOS-R.",
+                "templates/mosdlc/operations/fase-2/MOS-R.",
+                "templates/mosdlc/operations/fase-3/MOS-R.",
+                "templates/mosdlc/operations/fase-4/MOS-R.",
+                "templates/mosdlc/operations/fase-5/MOS-R.",
+                "templates/mosdlc/operations/fase-6/MOS-R.",
+                "templates/operations/36-process-needs-pm-decision.md",
             )
+        )
+        or (
+            path.startswith("templates/mosdlc/operations/recommended/")
+            and not (REPO_ROOT / path).exists()
         )
         for path in changed_files
     )

@@ -169,7 +169,7 @@ def _mosdlc_sort_key(value: str) -> tuple[int, ...]:
 
 
 def _mosdlc_template_paths() -> list[Path]:
-    return sorted(MOSDLC_FASE5_DIR.glob("*.md"), key=lambda path: _mosdlc_sort_key(path.stem))
+    return sorted(MOSDLC_FASE5_DIR.glob("MOS-5.*.md"), key=lambda path: _mosdlc_sort_key(path.stem))
 
 
 def _template_path(row: dict[str, str]) -> Path:
@@ -459,11 +459,11 @@ def test_fase5_deploy_execution_kernel_ids_are_applied_and_in_scope() -> None:
     # #376 stays in scope: no fase-6/MOS-R migration, no legacy 00-37 edits, and
     # changes are confined to docs, tests, fase-5 templates, kernel, and tools.
     changed_files = _changed_files()
-    migration_changed = any(path.startswith("templates/mosdlc/operations/fase-5/") for path in changed_files)
+    migration_changed = any(path.startswith("templates/mosdlc/operations/fase-5/") and "/MOS-R." not in path for path in changed_files)
     if not migration_changed:
         return
     assert not any(path.startswith("templates/operations/") for path in changed_files)
-    assert not any(path.startswith("templates/mosdlc/operations/fase-6/") for path in changed_files)
+    assert not any(path.startswith("templates/mosdlc/operations/fase-6/") and "/MOS-R." not in path for path in changed_files)
     assert not any("/MOS-R." in path for path in changed_files)
     assert all(
         path.startswith(
@@ -520,6 +520,6 @@ def test_legacy_00_37_templates_remain_usable_and_unmodified() -> None:
         assert path.read_text(encoding="utf-8").startswith("#")
 
     changed_files = _changed_files()
-    if not any(path.startswith("templates/mosdlc/operations/fase-5/") for path in changed_files):
+    if not any(path.startswith("templates/mosdlc/operations/fase-5/") and "/MOS-R." not in path for path in changed_files):
         return
     assert not any(path.startswith("templates/operations/") for path in changed_files)
