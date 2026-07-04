@@ -26,10 +26,27 @@ Tres verdades sostienen todo el sistema:
 | [ritmo.md](ritmo.md) | El ciclo de trabajo día a día y las variables PM. | Operas el proyecto y necesitas el siguiente paso. |
 
 El catálogo de operaciones en español vive en
-[`../operaciones/README.md`](../operaciones/README.md): un prompt compacto por
-operación, organizado por fase.
+[`project-os-es/operaciones/README.md`](../operaciones/README.md): un prompt
+compacto por operación, organizado por fase.
 
 ## Siguiente paso
 
 ¿Primera vez? Lee [empezar.md](empezar.md). ¿Ya operando? Abre
 [ritmo.md](ritmo.md) y elige la operación de tu fase.
+
+### Casos frecuentes
+
+| Si quieres… | Empieza por |
+|---|---|
+| Empezar con Project OS por primera vez | [empezar.md](empezar.md) |
+| Adoptar un repo target existente | [MOS-0.3](../operaciones/fase-0/MOS-0.3-adoptar-proyecto-existente.md), verificando con [MOS-0.5](../operaciones/fase-0/MOS-0.5-verificar-adopcion-del-target.md) |
+| Activar una sesión de browser chat | [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md) |
+| Rescatar una sesión incoherente o agotada | [MOS-0.6](../operaciones/fase-0/MOS-0.6-transferir-contexto-de-sesion.md) |
+| Crear o derivar el siguiente issue | [MOS-3.1](../operaciones/fase-3/MOS-3.1-draftear-siguiente-issue-desde-trazabilidad.md) o [MOS-3.8](../operaciones/fase-3/MOS-3.8-draftear-issue-desde-descripcion.md) |
+| Routear una implementación al terminal agent | [MOS-3.4](../operaciones/fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md) |
+| Trabajar sin terminal agent (plan manual) | [MOS-3.30](../operaciones/fase-3/MOS-3.30-draftear-plan-de-implementacion-manual.md), procesando el resultado con [MOS-3.31](../operaciones/fase-3/MOS-3.31-procesar-resultado-de-implementacion-manual.md) |
+| Revisar un PR antes de cerrarlo | [MOS-3.7](../operaciones/fase-3/MOS-3.7-revisar-pr-antes-de-cerrar.md) |
+| Cerrar un PR/issue con evidencia | [MOS-3.6](../operaciones/fase-3/MOS-3.6-draftear-comandos-de-closeout.md) y [MOS-3.9](../operaciones/fase-3/MOS-3.9-verificar-estado-post-merge.md) |
+| Procesar QA humano | [MOS-4.4](../operaciones/fase-4/MOS-4.4-procesar-checklist-qa-de-issue-pr.md) o [MOS-4.5](../operaciones/fase-4/MOS-4.5-procesar-checklist-qa-de-feature.md) |
+| Revisar seguridad o auditar | [MOS-3.23](../operaciones/fase-3/MOS-3.23-solicitar-revision-de-seguridad.md) o [MOS-3.13](../operaciones/fase-3/MOS-3.13-auditar-trazabilidad.md) |
+| Preparar release o deploy | [MOS-3.10](../operaciones/fase-3/MOS-3.10-analizar-readiness-de-release.md) o [MOS-R.11](../operaciones/fase-5/MOS-R.11-revisar-readiness-de-despliegue-por-entorno.md) |

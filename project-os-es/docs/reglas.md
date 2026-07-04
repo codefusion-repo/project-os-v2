@@ -27,8 +27,8 @@ inventado** (lo que no se puede leer en vivo, falta; se reporta como faltante).
 ## Permisos: el texto nunca autoriza
 
 Ningún doc, template, prompt, adapter ni salida de resolver otorga permiso
-(`boundary.output_not_permission`). La escritura del terminal agent exige,
-todas a la vez:
+(`boundary.output_not_permission`). La escritura del terminal agent exige
+estas cinco condiciones, todas a la vez:
 
 1. aprobación PM exacta que nombra repo, issue/PR y acción aprobada;
 2. el modo de ejecución correcto resuelto del kernel;

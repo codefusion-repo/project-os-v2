@@ -34,7 +34,7 @@ Todo lo demás es variación de este ciclo.**
 ## Las fases, de un vistazo
 
 El catálogo completo, con un prompt compacto por operación, está en
-[`../operaciones/README.md`](../operaciones/README.md):
+[`project-os-es/operaciones/README.md`](../operaciones/README.md):
 
 - **Fase 0 — Adaptación:** activar sesiones, adoptar/verificar targets,
   transferir contexto.
@@ -59,6 +59,30 @@ o revisa readiness de fase con
 Cuando una operación devuelve `status.needs_pm_decision`, procésala con
 [MOS-R.3](../operaciones/cross-fase/MOS-R.3-procesar-decision-pm-pendiente.md).
 
+## Rutas frecuentes
+
+El ciclo central es la ruta más común, no la única. Estas son las rutas
+típicas, solo como navegación (cada operación conserva sus propios gates;
+el prompt de cada una vive en el catálogo):
+
+- **Nuevo proyecto desde cero:** MOS-0.2 → requerimientos (fase 1) →
+  roadmap → ciclo central.
+- **Repo target existente:** adopción (MOS-0.3 → MOS-0.5) → primer issue
+  (MOS-3.1) → ciclo central.
+- **Issue listo con terminal agent:** route prompt (MOS-3.4) →
+  implementación delegada → PR en draft → review (MOS-3.7) → closeout
+  (MOS-3.6).
+- **Sin terminal agent:** plan de implementación manual (MOS-3.30) →
+  ejecución PM/humana → procesar resultado (MOS-3.31) → review normal.
+- **QA humano:** checklist (MOS-4.1) → tú lo ejecutas → procesar resultado
+  (MOS-4.4) → corrección (MOS-4.8) o follow-up (MOS-4.7).
+- **Seguridad / auditoría read-only:** solicitar revisión (MOS-3.23) →
+  procesar hallazgos (MOS-3.25) → follow-ups o correcciones (MOS-3.29).
+- **Release / deploy readiness:** análisis (MOS-3.10 o MOS-R.11) → comandos
+  drafteados y PM-gated (MOS-3.11, MOS-3.12 o fase 5 por entorno).
+- **Sesión agotada:** transferir contexto (MOS-0.6) → sesión nueva
+  reconstruida solo desde el estado de GitHub.
+
 ## Variables PM
 
 Las variables son selectores de contexto, **no fronteras de autorización**.
@@ -79,6 +103,6 @@ Las variables jamás portan secretos; todo valor sensible se redacta como
 
 ## Siguiente paso
 
-Abre [`../operaciones/README.md`](../operaciones/README.md), ubica tu fase y
+Abre el [catálogo de operaciones](../operaciones/README.md), ubica tu fase y
 copia el prompt de la operación que toca. Si estás arrancando de cero,
 vuelve a [empezar.md](empezar.md).

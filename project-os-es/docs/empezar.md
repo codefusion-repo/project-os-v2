@@ -28,6 +28,25 @@ La capacidad viene de la superficie de ejecución, nunca del rol:
 
 Antes de cualquier operación, ten claro cuál repo cumple cada rol.
 
+## Requisitos mínimos antes de comenzar
+
+No necesitas `.env` ni secretos para empezar; basta esta lista:
+
+- **Cuenta GitHub activa**, con acceso de lectura al repo Project OS
+  (`codefusion-repo/project-os-v2`).
+- **Repo target ya creado** en GitHub (aunque esté vacío), y los roles claros:
+  cuál repo es Project OS y cuál es el target.
+- **Browser chat configurado**: un proyecto/chat (Claude en browser o
+  superficie equivalente) con las instrucciones de Project OS cargadas.
+- **Lectura verificada desde el browser**: el chat puede leer el repo
+  Project OS y el repo target en modo solo lectura.
+- **Para delegar implementación, un terminal agent listo**: checkout local
+  del repo, `gh auth status` correcto, Python disponible y la ruta del kernel
+  conocida (`KERNEL_LOCAL_PATH` del adapter).
+- **Permisos mínimos por superficie**: browser chat lee y draftea; el
+  terminal agent escribe solo en ramas `work/*` y PRs en draft; el Humano PM
+  conserva merge, cierre, settings y secretos.
+
 ## Adoptar Project OS en un proyecto
 
 1. **Target existente:** copia `adapters/AGENTS.target.md` al repo target como
@@ -42,14 +61,21 @@ Antes de cualquier operación, ten claro cuál repo cumple cada rol.
 
 ## Arrancar una sesión
 
-- **Browser chat:** actívalo con
-  [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md). El
-  chat necesita poder **leer** el repo Project OS y el target (issues, PRs,
-  diffs, docs, kernel). Si no puede leer algo requerido, devuelve
-  `status.needs_context` nombrando exactamente qué falta — nunca inventa
-  estado.
-- **Terminal agent:** resuelve el kernel antes de trabajar. Con checkout local
-  y Python, el fast path es:
+- **Browser chat (configuración por primera vez):**
+  1. Crea o abre el proyecto/chat en tu superficie de browser y carga las
+     instrucciones de Project OS (el adapter de browser chat del target
+     cuando exista; si no, las instrucciones base del repo Project OS).
+  2. Confirma el conector o acceso GitHub: el chat necesita poder **leer** el
+     repo Project OS y el target (issues, PRs, diffs, docs, kernel).
+  3. Pide al chat activar la sesión con
+     [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md).
+  4. Verifica el fail-closed: si le falta acceso a algo requerido, debe
+     devolver `status.needs_context` nombrando exactamente qué falta — nunca
+     inventar estado. Si inventa estado, la sesión no quedó bien configurada.
+- **Terminal agent:** antes de cualquier implementación delegada confirma el
+  checkout local del repo, el branch preflight (rama, worktree y HEAD) y
+  `gh auth status`. Luego resuelve el kernel; con checkout local y Python, el
+  fast path es:
 
   ```sh
   python -m tools.project_os_resolve --actor <actor> --workflow <workflow> \
