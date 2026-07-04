@@ -8,11 +8,22 @@ kernel; no lee estado vivo de GitHub/git y no muta archivos ni target alguno.
 El output hidratado es guia operativa y nunca concede permisos
 (rule.no_autorizacion, boundary.output_not_permission). Toda falla resuelve
 cerrada con output estructurado (rule.resolucion_fail_closed).
+
+Importable como funcion o ejecutable como comando desde cualquier cwd:
+
+    python /ruta/a/project-os-es/tools/resolver.py \
+        --actor actor.browser_chat --mode mode.review_only \
+        --workflow workflow.review_only [--kernel-dir DIR]
+
+Exit codes: 0 = status.resolved, 1 = fail-closed estructurado, 2 = error de
+tooling inesperado.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +54,22 @@ NO_AUTORIZACION = (
     "automatizacion, deployment y cambios de secretos requieren aprobacion "
     "PM exacta separada."
 )
+
+CAVEAT_HIDRATACION = (
+    "Hidratacion por union segun rule.hidratacion: cada registro de "
+    "evidencia y salida lleva 'seleccionado_por', un campo de procedencia "
+    "agregado por el resolver (no existe en el kernel) que indica si el "
+    "registro fue nombrado por el workflow resuelto, seleccionado por el "
+    "mode resuelto via mode_key, o ambos. Un registro seleccionado solo por "
+    "mode es una obligacion del mode resuelto y no prueba que el workflow lo "
+    "haya nombrado."
+)
+
+_ETIQUETAS_SELECCION = {
+    ("workflow",): "requerida por el workflow",
+    ("mode",): "seleccionada por el mode",
+    ("workflow", "mode"): "requerida por el workflow y seleccionada por el mode",
+}
 
 
 def _fail_closed(errores: list[str]) -> dict[str, Any]:
@@ -78,6 +105,34 @@ def _cargar_kernel(kernel_dir: Path) -> tuple[dict[str, list[dict[str, Any]]], l
 
 def _indexar(registros: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return {r["key"]: r for r in registros if isinstance(r.get("key"), str)}
+
+
+def _hidratar_union(
+    nombrados: list[str],
+    indice: dict[str, dict[str, Any]],
+    mode_efectivo: str,
+    error_no_encontrado: str,
+    faltantes: list[str],
+) -> dict[str, dict[str, Any]]:
+    """Hidrata por union rule.hidratacion con procedencia por registro.
+
+    Copia cada registro del kernel y le agrega 'seleccionado_por' (campo del
+    resolver, no del kernel) con la o las dimensiones que lo seleccionaron.
+    """
+    hidratados: dict[str, dict[str, Any]] = {}
+    for key in nombrados:
+        registro = indice.get(key)
+        if registro is None:
+            faltantes.append(f"{error_no_encontrado}: {key}")
+            continue
+        seleccion = ["workflow"]
+        if mode_efectivo in registro.get("mode_key", []):
+            seleccion.append("mode")
+        hidratados[key] = {**registro, "seleccionado_por": seleccion}
+    for key, registro in indice.items():
+        if key not in hidratados and mode_efectivo in registro.get("mode_key", []):
+            hidratados[key] = {**registro, "seleccionado_por": ["mode"]}
+    return hidratados
 
 
 def resolver(
@@ -161,29 +216,20 @@ def resolver(
     # mode; los selectores son independientes y una lista vacia nunca excluye.
     faltantes: list[str] = []
 
-    evidencia_idx = _indexar(data["evidencia"])
-    evidencia: dict[str, dict[str, Any]] = {}
-    for key in registro_workflow.get("required_evidence", []):
-        registro = evidencia_idx.get(key)
-        if registro is None:
-            faltantes.append(f"evidence referenciada no encontrada: {key}")
-        else:
-            evidencia[key] = registro
-    for key, registro in evidencia_idx.items():
-        if key not in evidencia and mode_efectivo in registro.get("mode_key", []):
-            evidencia[key] = registro
-
-    salidas_idx = _indexar(data["salidas"])
-    salidas: dict[str, dict[str, Any]] = {}
-    for key in registro_workflow.get("allowed_outputs", []):
-        registro = salidas_idx.get(key)
-        if registro is None:
-            faltantes.append(f"output referenciado no encontrado: {key}")
-        else:
-            salidas[key] = registro
-    for key, registro in salidas_idx.items():
-        if key not in salidas and mode_efectivo in registro.get("mode_key", []):
-            salidas[key] = registro
+    evidencia = _hidratar_union(
+        registro_workflow.get("required_evidence", []),
+        _indexar(data["evidencia"]),
+        mode_efectivo,
+        "evidence referenciada no encontrada",
+        faltantes,
+    )
+    salidas = _hidratar_union(
+        registro_workflow.get("allowed_outputs", []),
+        _indexar(data["salidas"]),
+        mode_efectivo,
+        "output referenciado no encontrado",
+        faltantes,
+    )
 
     if faltantes:
         return _fail_closed(faltantes)
@@ -210,7 +256,9 @@ def resolver(
     # rule.emision_resolver: guia operativa, checklist de lecturas vivas,
     # missing statuses y acciones efectivas; nunca permisos ni estado vivo.
     checklist_lecturas_vivas = [
-        f"Leer vivo {key}: {registro.get('satisfied_by', '')}"
+        f"Leer vivo {key} "
+        f"({_ETIQUETAS_SELECCION[tuple(registro['seleccionado_por'])]}): "
+        f"{registro.get('satisfied_by', '')}"
         for key, registro in evidencia.items()
     ]
     missing_statuses = [
@@ -238,7 +286,52 @@ def resolver(
             "acciones_prohibidas": registro_mode.get("prohibited_actions", []),
             "checklist_lecturas_vivas": checklist_lecturas_vivas,
             "missing_statuses": missing_statuses,
+            "caveat_hidratacion": CAVEAT_HIDRATACION,
         },
         "no_autorizacion": NO_AUTORIZACION,
         "errores": [],
     }
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Entrypoint ejecutable minimo; imprime el resultado JSON en stdout.
+
+    Exit codes: 0 = status.resolved, 1 = fail-closed estructurado,
+    2 = error de tooling inesperado.
+    """
+    parser = argparse.ArgumentParser(
+        description=(
+            "Resolver de la superficie Project OS en espanol: hidrata "
+            "project-os-es/kernel/ por (actor, mode, workflow). El output es "
+            "guia operativa y nunca concede permisos."
+        ),
+    )
+    parser.add_argument("--actor", required=True, help="ej. actor.browser_chat")
+    parser.add_argument(
+        "--mode",
+        default=None,
+        help="opcional; si falta cae a mode.review_only",
+    )
+    parser.add_argument("--workflow", required=True, help="ej. workflow.review_only")
+    parser.add_argument(
+        "--kernel-dir",
+        default=None,
+        help="directorio del kernel es (default: kernel/ junto a tools/)",
+    )
+    args = parser.parse_args(argv)
+
+    try:
+        resultado = resolver(
+            args.actor, args.mode, args.workflow, kernel_dir=args.kernel_dir
+        )
+    except Exception as exc:
+        error = _fail_closed([f"error de tooling inesperado: {exc}"])
+        print(json.dumps(error, indent=2, ensure_ascii=False), file=sys.stderr)
+        return 2
+
+    print(json.dumps(resultado, indent=2, ensure_ascii=False))
+    return 0 if resultado.get("estado") == "status.resolved" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
