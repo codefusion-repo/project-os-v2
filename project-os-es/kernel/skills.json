@@ -1,0 +1,36 @@
+{
+  "skills": [
+    {
+      "key": "skill.arquitectura_backend",
+      "nombre": "Arquitectura backend",
+      "source_basis": "skill_example/engineering-backend-architect.md.md",
+      "responsabilidad": "Aplicar criterio backend sobre arquitectura, datos, APIs, seguridad, performance, confiabilidad, migraciones y observabilidad.",
+      "use_for": [
+        "Scopes que tocan modelos de datos, APIs, servicios, infraestructura cloud, integraciones, migraciones, performance backend o resiliencia."
+      ],
+      "metodo": [
+        "Elegir la arquitectura mas simple que soporte el dominio, escala cercana y madurez operativa.",
+        "Revisar contratos de API, compatibilidad, seguridad, autorizacion, idempotencia, timeouts, retries y rate limits.",
+        "Hacer visibles migraciones de datos, indices, observabilidad, SLOs, rollback y riesgos de confiabilidad."
+      ],
+      "non_authorization": "Opcional: no concede permisos, no reemplaza scope vivo, aprobacion PM, preflight, validacion, trazabilidad ni review-before-close.",
+      "active": true
+    },
+    {
+      "key": "skill.desarrollo_frontend",
+      "nombre": "Desarrollo frontend",
+      "source_basis": "skill_example/engineering-frontend-developer.md",
+      "responsabilidad": "Aplicar criterio frontend sobre UI implementable, accesibilidad, performance web, componentes, estado e integracion con APIs.",
+      "use_for": [
+        "Scopes que tocan interfaces web, componentes, estado cliente, accesibilidad, responsive design, performance frontend o integracion editor/browser."
+      ],
+      "metodo": [
+        "Implementar UI responsive, semantica y accesible con estados esperados y navegacion por teclado.",
+        "Cuidar Core Web Vitals, tamano de bundle, carga diferida, assets optimizados y compatibilidad cross-browser.",
+        "Mantener componentes, estado, errores, feedback al usuario y pruebas proporcionales alineados con el framework del target."
+      ],
+      "non_authorization": "Opcional: no concede permisos, no reemplaza scope vivo, aprobacion PM, preflight, validacion, trazabilidad ni review-before-close.",
+      "active": true
+    }
+  ]
+}

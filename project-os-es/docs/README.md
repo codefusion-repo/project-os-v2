@@ -26,6 +26,7 @@ Tres verdades sostienen todo el sistema:
 | [ritmo.md](ritmo.md) | El ciclo de trabajo día a día y las variables PM. | Operas el proyecto y necesitas el siguiente paso. |
 | [adapters](../adapters/README.md) | Bootloaders compactos para targets. | Adoptas Project OS en un repo. |
 | [templates](../templates/README.md) | Formas no operacionales enlazadas por artefactos. | Drafteas route prompts, bundles, reports o documentos. |
+| [skills](../kernel/skills.json) | Capacidades opcionales referenciables por resolver. | Quieres pedir o recomendar una capacidad de agente sin cambiar permisos. |
 
 El catálogo de operaciones en español vive en
 [`project-os-es/operaciones/README.md`](../operaciones/README.md): un prompt
@@ -36,10 +37,12 @@ compacto por operación, organizado por fase.
 1. [Docs](README.md) orienta al PM y a la persona usuaria.
 2. [Operaciones](../operaciones/README.md) elige la acción concreta.
 3. [Adapters](../adapters/README.md) bootloadean el target o la superficie.
-4. [Kernel](../kernel/manifest.json) y resolver hidratan comportamiento y
-   artefactos.
+4. [Kernel](../kernel/manifest.json) y resolver hidratan comportamiento,
+   artefactos y, solo si se piden, skills opcionales.
 5. Los artefactos enlazan un `required_template`; los
    [templates](../templates/README.md) dan forma al output sin autorizar nada.
+   Los skills describen metodo/capacidad del agente y permanecen separados de
+   artefactos y templates.
 
 ## Siguiente paso
 

@@ -14,6 +14,8 @@ TARGET_ACTOR_TYPE = {{actor id}}
 WORKFLOW = {{workflow id}}
 EXECUTION_MODE = {{mode id}}
 OUTPUT_CONTRACT = {{output id}}
+OPTIONAL_SKILL = {{skill.<id> | none}}
+RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}
 SCOPE = {{1-3 lineas, no el cuerpo completo}}
 OUT_OF_SCOPE = {{errores plausibles a evitar}}
 EVIDENCE_REQUIRED = {{evidence ids requeridas}}
@@ -26,4 +28,7 @@ recommended_effort: {{medium|high|xhigh}} - {{razon breve}}
 ```
 
 El agente receptor re-resuelve el kernel, lee evidencia viva y falla cerrado si
-falta contexto, autoridad o validacion. Este prompt no autoriza escritura.
+falta contexto, autoridad o validacion. `OPTIONAL_SKILL` y
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` son recomendaciones no vinculantes; no
+eligen permisos, no reemplazan aprobacion PM exacta y no fuerzan herramienta.
+Este prompt no autoriza escritura.

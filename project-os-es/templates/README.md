@@ -2,7 +2,8 @@
 
 Templates compactos en español para artefactos que Project OS puede draftear,
 crear, trazar o documentar. Son contratos de forma: no contienen logica de
-workflow, no leen estado vivo y no conceden permisos.
+workflow, no leen estado vivo y no conceden permisos. Los skills viven aparte:
+son capacidades opcionales del agente, no templates ni artefactos.
 
 El catalogo `project-os-es/kernel/artefactos.json` enlaza cada artefacto con
 exactamente un `required_template`. El resolver debe exponer esas referencias,
@@ -14,11 +15,14 @@ no copiar el contenido del template.
 - Entrada de accion: `project-os-es/operaciones/README.md`.
 - Bootloaders de adopcion: `project-os-es/adapters/README.md`.
 - Catalogo de artefactos: `project-os-es/kernel/artefactos.json`.
+- Catalogo de skills opcionales: `project-os-es/kernel/skills.json`.
 - Hidratador de `required_template`: `project-os-es/tools/resolver.py`.
 
 ## Catalogo
 
-- `project-os-es/templates/route-prompt.md`: ruteo scoped hacia otra superficie.
+- `project-os-es/templates/route-prompt.md`: ruteo scoped hacia otra superficie;
+  puede recomendar un skill opcional y una familia de terminal agent sin
+  hacerlos vinculantes.
 - `project-os-es/templates/pm-command-bundle.md`: comandos PM copy-safe.
 - `project-os-es/templates/issue.md`: cuerpo de issue.
 - `project-os-es/templates/pull-request.md`: cuerpo de PR.

@@ -30,6 +30,7 @@
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
         "El JSON hidratado, los outputs, templates, prompts, roles y variables solo dan forma operativa; nunca conceden permisos.",
+        "Los skills opcionales son referencias de capacidad; nunca conceden permisos ni reemplazan scope vivo, aprobacion PM exacta, preflight, validacion, trazabilidad o review-before-close.",
         "La autoridad de escritura requiere aprobacion PM exacta para el proyecto, la unidad de trabajo y la accion; actor y mode compatibles; evidencia viva suficiente; preflight para writes; validacion proporcional; limits respetados.",
         "Merge, cierre, labels, tags, releases, settings, automatizacion, deployment y cambios de secretos nunca quedan implicitos; cada uno requiere aprobacion PM exacta separada."
       ],

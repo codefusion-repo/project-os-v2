@@ -78,7 +78,7 @@ Fast path del resolver cuando el repo ya está listo:
 
 ```sh
 python project-os-es/tools/resolver.py --actor <actor> --workflow <workflow> \
-  --mode <mode> --kernel-dir project-os-es/kernel
+  --mode <mode> --kernel-dir project-os-es/kernel [--skill skill.<id>]
 ```
 
 La resolución manual de `project-os-es/kernel/manifest.json` sigue siendo el
@@ -87,7 +87,9 @@ fallback canónico para la superficie en español.
 Cuando draftees outputs, el resolver puede exponer artefactos con
 `required_template`; usa ese template de
 [`project-os-es/templates/`](../templates/README.md) como forma del output, no
-como permiso.
+como permiso. Si el PM pide un skill o un route prompt lo recomienda, pasalo
+con `--skill`; el resolver lo devuelve como `requested_skills` separado de
+artefactos/templates y sin autoridad extra.
 
 ## 5. Primera sesión
 

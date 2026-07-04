@@ -4,7 +4,8 @@ Estos archivos son bootloaders para adoptar Project OS en repos target. Su
 responsabilidad es apuntar al kernel, a la evidencia viva y a las constraints
 del target; no duplican comportamiento del kernel ni guardan estado vivo.
 Despues de resolver workflow/kernel, los artefactos y templates dan forma a los
-outputs de esa superficie.
+outputs de esa superficie. Los skills opcionales, cuando se piden o recomiendan,
+dan guia de metodo al agente y permanecen separados de artefactos/templates.
 
 - `project-os-es/adapters/AGENTS.target.md`: adapter terminal/repo-wide.
 - `project-os-es/adapters/BROWSER_CHAT.target.md`: adapter draft-only para browser chat.

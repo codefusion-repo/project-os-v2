@@ -43,20 +43,24 @@ a rutas raíz.
    `required_template` en `project-os-es/templates/`. Los templates raíz quedan
    como fuente de compatibilidad cuando haga falta; los outputs siguen siendo
    no autorizantes.
-6. **Ningún template autoriza nada.** Template authority: none
+6. **Skills opcionales.** `project-os-es/kernel/skills.json` describe
+   capacidades que un agente puede aplicar cuando el PM las pide o un route
+   prompt las recomienda. No son artefactos, no son templates, no son workflow
+   logic y nunca autorizan.
+7. **Ningún template autoriza nada.** Template authority: none
    (`boundary.output_not_permission`). Escritura, merge, cierre, labels,
    settings, release y despliegue exigen aprobación PM exacta separada más los
    gates resueltos del kernel para esa acción específica. Browser chat
    permanece draft-only.
-7. **Fail-closed.** Ante kernel faltante, evidencia faltante, autoridad
+8. **Fail-closed.** Ante kernel faltante, evidencia faltante, autoridad
    ambigua o validación fallida: detente y entrega `output.status_result` con
    la decisión que el PM debe tomar (`status.needs_pm_decision`,
    `status.needs_context` o `status.blocked` según corresponda).
-8. **Secretos.** Nunca pidas, expongas ni registres secretos, valores de
+9. **Secretos.** Nunca pidas, expongas ni registres secretos, valores de
    `.env`, credenciales, tokens, cookies, JWTs, URLs de base de datos, claves
    privadas ni valores con pinta de secreto; redacta como `[REDACTED]` y
    referencia solo nombres de variables, comandos, rutas y tipos de riesgo.
-9. **Contexto humano opcional.** `PM_FEEDBACK_HUMANO` y `PM_QUESTION_HUMANO`
+10. **Contexto humano opcional.** `PM_FEEDBACK_HUMANO` y `PM_QUESTION_HUMANO`
    están disponibles en toda operación como contexto del PM; nunca reemplazan
    evidencia viva requerida ni autorizan mutaciones.
 
