@@ -89,7 +89,8 @@ Cuando draftees outputs, el resolver puede exponer artefactos con
 [`project-os-es/templates/`](../templates/README.md) como forma del output, no
 como permiso. Si el PM pide un skill o un route prompt lo recomienda, pasalo
 con `--skill`; el resolver lo devuelve como `requested_skills` separado de
-artefactos/templates y sin autoridad extra.
+artefactos/templates, referenciado por `required_skill` bajo
+[`project-os-es/habilidades/`](../habilidades/), y sin autoridad extra.
 
 ## 5. Primera sesión
 

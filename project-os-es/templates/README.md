@@ -3,7 +3,8 @@
 Templates compactos en español para artefactos que Project OS puede draftear,
 crear, trazar o documentar. Son contratos de forma: no contienen logica de
 workflow, no leen estado vivo y no conceden permisos. Los skills viven aparte:
-son capacidades opcionales del agente, no templates ni artefactos.
+son capacidades opcionales del agente bajo `project-os-es/habilidades/`, no
+templates ni artefactos.
 
 El catalogo `project-os-es/kernel/artefactos.json` enlaza cada artefacto con
 exactamente un `required_template`. El resolver debe exponer esas referencias,
@@ -16,6 +17,7 @@ no copiar el contenido del template.
 - Bootloaders de adopcion: `project-os-es/adapters/README.md`.
 - Catalogo de artefactos: `project-os-es/kernel/artefactos.json`.
 - Catalogo de skills opcionales: `project-os-es/kernel/skills.json`.
+- Archivos compactos de skills: `project-os-es/habilidades/`.
 - Hidratador de `required_template`: `project-os-es/tools/resolver.py`.
 
 ## Catalogo

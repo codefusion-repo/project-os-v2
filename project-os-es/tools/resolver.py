@@ -16,8 +16,9 @@ resuelto expone manifest, reglas_operativas, actor, limites, mode, workflow y
 estados_permitidos. Los campos required_evidence y allowed_outputs del
 workflow llevan el contenido hidratado, no ids crudos, y ningun registro
 expone workflow_key ni mode_key. Los artefactos exponen referencias de template
-(`required_template`) y nunca contenido de templates. Los skills solicitados se
-exponen fuera de workflow como `requested_skills`, separados de artefactos y
+(`required_template`) y nunca contenido de templates. Los skills solicitados
+exponen referencias de habilidad (`required_skill`) y nunca contenido markdown;
+viven fuera de workflow como `requested_skills`, separados de artefactos y
 templates.
 
 El output hidratado es guia operativa y nunca concede permisos
@@ -82,8 +83,8 @@ _CLAVES_ARTEFACTO = (
     "key", "output_key", "responsabilidad", "required_template", "active",
 )
 _CLAVES_SKILL = (
-    "key", "nombre", "responsabilidad", "use_for", "metodo",
-    "source_basis", "non_authorization", "active",
+    "key", "nombre", "responsabilidad", "required_skill", "use_for",
+    "non_authorization", "active",
 )
 _CLAVES_ESTADO = ("key", "meaning", "type", "active")
 
@@ -180,6 +181,16 @@ def _template_existe(required_template: str, kernel_dir: Path) -> bool:
     return any(candidate.is_file() for candidate in candidates)
 
 
+def _skill_file_existe(required_skill: str, kernel_dir: Path) -> bool:
+    """Valida referencias .md bajo project-os-es/habilidades/ sin leer contenido."""
+    ruta = Path(required_skill)
+    if ruta.is_absolute() or ruta.parts[:2] != ("project-os-es", "habilidades"):
+        return False
+    if len(ruta.parts) != 3 or ruta.suffix != ".md":
+        return False
+    return (kernel_dir.parent.parent / ruta).is_file()
+
+
 def _artefactos_resueltos(
     workflow: dict[str, Any],
     salidas: dict[str, dict[str, Any]],
@@ -227,9 +238,10 @@ def _skill_keys_solicitadas(
 def _skills_solicitados(
     skill_keys: list[str],
     skills: dict[str, dict[str, Any]],
+    kernel_dir: Path,
     faltantes: list[str],
 ) -> list[dict[str, Any]]:
-    """Hidrata skills pedidos explicitamente, sin volverlos workflow logic."""
+    """Hidrata skills pedidos explicitamente y valida su referencia compacta."""
     resueltos: list[dict[str, Any]] = []
     vistos: set[str] = set()
     for key in skill_keys:
@@ -239,6 +251,16 @@ def _skills_solicitados(
         registro = skills.get(key)
         if registro is None:
             faltantes.append(f"skill desconocido: {key!r} (conocidos: {sorted(skills)})")
+            continue
+        required_skill = registro.get("required_skill")
+        if not isinstance(required_skill, str) or not required_skill.endswith(".md"):
+            faltantes.append(f"skill sin required_skill .md valido: {key}")
+            continue
+        if not _skill_file_existe(required_skill, kernel_dir):
+            faltantes.append(
+                f"skill requerido no encontrado o fuera de project-os-es/habilidades: "
+                f"{key}: {required_skill}"
+            )
             continue
         resueltos.append(_campos(registro, _CLAVES_SKILL))
     return resueltos
@@ -343,7 +365,7 @@ def resolver(
         registro_workflow, salidas, data["artefactos"], dir_kernel, faltantes
     )
     requested_skills = _skills_solicitados(
-        _skill_keys_solicitadas(skill), _indexar(data["skills"]), faltantes
+        _skill_keys_solicitadas(skill), _indexar(data["skills"]), dir_kernel, faltantes
     )
 
     if faltantes:

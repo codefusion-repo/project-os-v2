@@ -61,7 +61,8 @@ resueltos desde `project-os-es` cuando apliquen. Los templates dan forma y nunca
 autorizan.
 
 Cuando el PM pida una capacidad o un route prompt la recomiende, usa el skill
-resuelto solo como guia de metodo. Los skills no son artefactos ni templates.
+resuelto como referencia a `project-os-es/habilidades/`. Los skills no son
+artefactos ni templates.
 
 El terminal agent sigue obligado por scope vivo, branch preflight, aprobacion PM
 exacta, validacion proporcional y review-before-close. Ningun artefacto ni
