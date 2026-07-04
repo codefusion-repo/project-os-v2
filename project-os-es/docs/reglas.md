@@ -11,9 +11,10 @@ Cada tipo de información tiene exactamente un dueño:
   y evidencia de validación se reconstruyen desde GitHub y git al momento de
   la tarea. La memoria del chat, los reportes previos y los archivos durables
   no son evidencia: son claims hasta verificarlos.
-- **Comportamiento estable → kernel.** `kernel/*.json` define actores, modos,
-  workflows, límites, evidencia, salidas y estados, y se resuelve vía
-  `kernel/manifest.json` antes de trabajo no trivial.
+- **Comportamiento estable → kernel español.** `project-os-es/kernel/*.json`
+  define actores, modos, workflows, límites, evidencia, salidas y estados para
+  esta superficie, y se resuelve vía `project-os-es/kernel/manifest.json` antes
+  de trabajo no trivial.
 - **Verdad del producto → repo target.** Dominio, runtime, build y validación
   del target viven en el target, nunca en el kernel.
 - **Decisiones que sobreviven a un issue → ADRs** en `docs/decisions/` del
@@ -61,7 +62,8 @@ el cambio toca kernel, resolver, comandos, autorización, trazabilidad,
 seguridad, secretos, deploy o contratos deterministas), **comandos PM-run
 drafteados**, **validación manual PM** (claridad de docs, wording, UX) o
 **sin validación automatizada, con justificación**. Nunca se asume full suite
-ni tests nuevos por defecto; detalle en `docs/VALIDATION_POLICY.md` (raíz).
+ni tests nuevos por defecto; esta superficie usa este resumen y
+`project-os-es/kernel/reglas-operativas.json` como ruta operativa.
 
 ## Economía de contexto
 
@@ -69,8 +71,8 @@ El costo en tokens y subagentes se mantiene proporcional a la tarea, pero la
 economía está subordinada a la seguridad: ningún atajo elimina un gate. Lee el
 estado vivo en vez de pegarlo; cita ubicaciones (`issue #`, `archivo:línea`)
 en vez de repetir cuerpos completos; usa subagentes solo con razón acotada y
-verifica su salida contra evidencia viva. Detalle en
-`docs/CONTEXT_ECONOMY.md` (raíz).
+verifica su salida contra evidencia viva. El detalle operativo de esta
+superficie vive en `project-os-es/kernel/reglas-operativas.json`.
 
 ## Secretos
 

@@ -9,10 +9,10 @@ Tres verdades sostienen todo el sistema:
 1. **GitHub es la memoria viva.** Issues, PRs, comentarios, reviews, ramas,
    commits y evidencia de validación se leen en vivo, nunca de la memoria de un
    chat.
-2. **El kernel es el comportamiento estable.** `kernel/*.json` (en la raíz del
-   repo) define actores, modos, workflows, límites, evidencia y estados. La
-   carpeta `project-os-es/kernel/` es la superficie compacta en español; el
-   kernel raíz sigue siendo la fuente canónica de comportamiento.
+2. **El kernel español es el comportamiento operativo de esta superficie.**
+   `project-os-es/kernel/*.json` define actores, modos, workflows, límites,
+   evidencia y estados para `project-os-es`. El kernel raíz queda como
+   source-basis/compatibilidad histórica, no como ruta activa en español.
 3. **Ningún texto otorga permisos.** Docs, templates, prompts y salidas de
    resolver solo dan forma al trabajo. Escribir, mergear, cerrar o desplegar
    exige aprobación PM exacta más los gates del kernel.
@@ -24,10 +24,22 @@ Tres verdades sostienen todo el sistema:
 | [empezar.md](empezar.md) | Quién hace qué y cómo se adopta Project OS. | Arrancas un proyecto o una sesión nueva. |
 | [reglas.md](reglas.md) | Las reglas de seguridad y verdad que nunca se negocian. | Antes de delegar escritura a un agente. |
 | [ritmo.md](ritmo.md) | El ciclo de trabajo día a día y las variables PM. | Operas el proyecto y necesitas el siguiente paso. |
+| [adapters](../adapters/README.md) | Bootloaders compactos para targets. | Adoptas Project OS en un repo. |
+| [templates](../templates/README.md) | Formas no operacionales enlazadas por artefactos. | Drafteas route prompts, bundles, reports o documentos. |
 
 El catálogo de operaciones en español vive en
 [`project-os-es/operaciones/README.md`](../operaciones/README.md): un prompt
 compacto por operación, organizado por fase.
+
+## Cómo se conectan las piezas
+
+1. [Docs](README.md) orienta al PM y a la persona usuaria.
+2. [Operaciones](../operaciones/README.md) elige la acción concreta.
+3. [Adapters](../adapters/README.md) bootloadean el target o la superficie.
+4. [Kernel](../kernel/manifest.json) y resolver hidratan comportamiento y
+   artefactos.
+5. Los artefactos enlazan un `required_template`; los
+   [templates](../templates/README.md) dan forma al output sin autorizar nada.
 
 ## Siguiente paso
 

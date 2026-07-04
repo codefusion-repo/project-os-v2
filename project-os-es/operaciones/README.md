@@ -5,37 +5,44 @@ Esta carpeta es la superficie PM-facing en español de las operaciones MOSDLC
 compacto: qué hace, qué variables necesita, qué evidencia exige, qué entrega y
 cuál es la siguiente operación segura.
 
-Fuentes de esta superficie (issue #377): `docs/MOSDLC_OPERATION_MAP.md` (mapa
-canónico) y los templates migrados en `templates/mosdlc/operations/fase-*`.
+Fuentes historicas de esta superficie (issue #377): `docs/MOSDLC_OPERATION_MAP.md`
+(mapa canónico) y los templates migrados en `templates/mosdlc/operations/fase-*`.
 Los templates raíz (`templates/mosdlc/operations/` y
 `templates/operations/` 00-37) siguen disponibles como fuente de reemplazo y
-referencia de compatibilidad; esta carpeta no los reemplaza ni los renumera.
+referencia de compatibilidad; no son la ruta operativa de `project-os-es` y
+esta carpeta no los reemplaza ni los renumera.
 
 ## Contrato común
 
 Toda operación de esta carpeta opera bajo este contrato. Cada regla vive en su
-capa dueña (ver `docs/decisions/0002-pre-377-validation-fastpath-audit.md`);
-aquí solo se referencia, no se redefine.
+capa de `project-os-es` correspondiente; aquí se resume para operar sin volver
+a rutas raíz.
 
-1. **Kernel primero.** Resuelve `kernel/manifest.json` siguiendo su
-   `resolution_sequence` antes de actuar. En terminal usa el fast path
-   `python -m tools.project_os_resolve --actor <actor> --workflow <workflow>
-   --mode <mode> --kernel-dir <KERNEL_LOCAL_PATH>`; el resolver emite guía
-   operativa y lecturas de trazabilidad, y nunca consulta GitHub/git por ti.
+1. **Kernel primero.** Resuelve `project-os-es/kernel/manifest.json` siguiendo
+   su `resolution_sequence` antes de actuar. En terminal usa el resolver
+   espanol; el resolver emite guia operativa y nunca consulta GitHub/git por ti.
+
+   ```sh
+   python project-os-es/tools/resolver.py --actor <actor> --workflow <workflow> \
+     --mode <mode> --kernel-dir project-os-es/kernel
+   ```
 2. **Estado vivo, siempre vivo.** Reconstruye issues, PRs, ramas, commits y
-   validaciones desde GitHub/git al momento de ejecutar, según
-   `docs/TRACEABILITY_PROTOCOL.md`. Nada de estado vivo en archivos durables y
-   nada de estado inventado: reportes y comentarios son claims hasta
-   verificarlos.
+   validaciones desde GitHub/git al momento de ejecutar, segun
+   `project-os-es/docs/reglas.md` y `project-os-es/kernel/reglas-operativas.json`.
+   Nada de estado vivo en archivos durables y nada de estado inventado:
+   reportes y comentarios son claims hasta verificarlos.
 3. **Validación proporcional.** Clasifica la validación según
-   `docs/VALIDATION_POLICY.md`: agent-run obligatoria, comandos PM-run
-   drafteados, validación manual PM, o ausencia justificada. Nunca asumas full
-   suite ni tests nuevos por defecto.
-4. **Economía de contexto.** Aplica `docs/CONTEXT_ECONOMY.md` para clases de
-   contexto y disciplina de subagentes.
-5. **Formas PM-facing.** Los route prompts y command bundles siguen
-   `templates/route-prompt.md` y `templates/pm-command-bundle.md`; son outputs
-   no autorizantes que el PM revisa y ejecuta.
+   `project-os-es/docs/reglas.md` y el kernel espanol resuelto: agent-run
+   obligatoria, comandos PM-run drafteados, validación manual PM, o ausencia
+   justificada. Nunca asumas full suite ni tests nuevos por defecto.
+4. **Economía de contexto.** Usa solo el contexto y subagentes que el scope
+   necesita, sin perder evidencia viva, validación, secret safety ni aprobación
+   PM exacta.
+5. **Formas PM-facing.** Los outputs drafteables usan los artefactos resueltos
+   desde `project-os-es/kernel/artefactos.json`: cada artefacto apunta a un
+   `required_template` en `project-os-es/templates/`. Los templates raíz quedan
+   como fuente de compatibilidad cuando haga falta; los outputs siguen siendo
+   no autorizantes.
 6. **Ningún template autoriza nada.** Template authority: none
    (`boundary.output_not_permission`). Escritura, merge, cierre, labels,
    settings, release y despliegue exigen aprobación PM exacta separada más los

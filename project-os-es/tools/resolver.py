@@ -2,7 +2,7 @@
 
 Hidrata el contrato JSON del kernel en espanol (project-os-es/kernel/) por
 (actor, mode, workflow) a partir del manifest activo.
-Evidence y salidas hidratan solo desde las referencias del workflow resuelto
+Evidence, salidas y artefactos hidratan desde el workflow resuelto
 (required_evidence, allowed_outputs); el mode gobierna unicamente acciones
 permitidas/prohibidas, fallback y compatibilidad con el actor, y mode_key en
 evidencia/salidas no selecciona registros. Lee el kernel JSON en runtime y no
@@ -14,7 +14,8 @@ workflow) resuelto: top-level estado, resuelto, autorizacion, errores;
 resuelto expone manifest, reglas_operativas, actor, limites, mode, workflow y
 estados_permitidos. Los campos required_evidence y allowed_outputs del
 workflow llevan el contenido hidratado, no ids crudos, y ningun registro
-expone workflow_key ni mode_key.
+expone workflow_key ni mode_key. Los artefactos exponen referencias de template
+(`required_template`) y nunca contenido de templates.
 
 El output hidratado es guia operativa y nunca concede permisos
 (rule.no_autorizacion, boundary.output_not_permission). Toda falla resuelve
@@ -51,6 +52,7 @@ _ARCHIVOS_KERNEL = {
     "limites": ("limites.json", "limits"),
     "evidencia": ("evidencia.json", "evidence"),
     "salidas": ("salidas.json", "outputs"),
+    "artefactos": ("artefactos.json", "artefactos"),
     "estados": ("estados.json", "statuses"),
 }
 
@@ -72,6 +74,9 @@ _CLAVES_LIMITE = ("key", "actor_key", "rule", "on_violation", "blocking", "activ
 _CLAVES_MODE = ("key", "allowed_actions", "prohibited_actions", "fallback", "active")
 _CLAVES_EVIDENCIA = ("key", "satisfied_by", "missing_status", "required", "active")
 _CLAVES_SALIDA = ("key", "use_for", "status_key", "must_include", "active")
+_CLAVES_ARTEFACTO = (
+    "key", "output_key", "responsabilidad", "required_template", "active",
+)
 _CLAVES_ESTADO = ("key", "meaning", "type", "active")
 
 
@@ -84,9 +89,11 @@ def _workflow_resuelto(
     workflow: dict[str, Any],
     evidencia: dict[str, dict[str, Any]],
     salidas: dict[str, dict[str, Any]],
+    artefactos: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """Workflow del contrato con los campos required_evidence y
-    allowed_outputs hidratados (contenido, no ids), sin workflow_key ni
+    allowed_outputs hidratados (contenido, no ids), mas artefactos
+    operativamente relevantes por template reference, sin workflow_key ni
     mode_key."""
     resuelto = _campos(workflow, ("key", "use_for", "required_behavior"))
     resuelto["required_evidence"] = [
@@ -96,6 +103,9 @@ def _workflow_resuelto(
     resuelto["allowed_outputs"] = [
         _campos(salidas[key], _CLAVES_SALIDA)
         for key in workflow.get("allowed_outputs", [])
+    ]
+    resuelto["artefactos"] = [
+        _campos(artefacto, _CLAVES_ARTEFACTO) for artefacto in artefactos
     ]
     resuelto["active"] = workflow.get("active")
     return resuelto
@@ -151,6 +161,49 @@ def _hidratar_nombrados(
         else:
             hidratados[key] = registro
     return hidratados
+
+
+def _template_existe(required_template: str, kernel_dir: Path) -> bool:
+    """Valida referencias .md sin leer ni incrustar el contenido del template."""
+    candidates = [
+        kernel_dir.parent / required_template,
+        kernel_dir.parent.parent / required_template,
+    ]
+    return any(candidate.is_file() for candidate in candidates)
+
+
+def _artefactos_resueltos(
+    workflow: dict[str, Any],
+    salidas: dict[str, dict[str, Any]],
+    artefactos: list[dict[str, Any]],
+    kernel_dir: Path,
+    faltantes: list[str],
+) -> list[dict[str, Any]]:
+    """Selecciona artefactos por workflow/output y valida required_template."""
+    workflow_key = workflow.get("key")
+    output_keys = set(salidas)
+    resueltos: list[dict[str, Any]] = []
+    for artefacto in artefactos:
+        workflows = artefacto.get("workflow_key", [])
+        output_key = artefacto.get("output_key")
+        if workflow_key not in workflows:
+            continue
+        if output_key is not None and output_key not in output_keys:
+            continue
+        required_template = artefacto.get("required_template")
+        if not isinstance(required_template, str) or not required_template.endswith(".md"):
+            faltantes.append(
+                f"artefacto sin required_template .md valido: {artefacto.get('key')}"
+            )
+            continue
+        if not _template_existe(required_template, kernel_dir):
+            faltantes.append(
+                f"template requerido por artefacto no encontrado: "
+                f"{artefacto.get('key')}: {required_template}"
+            )
+            continue
+        resueltos.append(artefacto)
+    return resueltos
 
 
 def resolver(
@@ -246,6 +299,10 @@ def resolver(
         faltantes,
     )
 
+    artefactos = _artefactos_resueltos(
+        registro_workflow, salidas, data["artefactos"], dir_kernel, faltantes
+    )
+
     if faltantes:
         return _fail_closed(faltantes)
 
@@ -276,7 +333,9 @@ def resolver(
             "actor": _campos(registro_actor, _CLAVES_ACTOR),
             "limites": [_campos(limite, _CLAVES_LIMITE) for limite in limites],
             "mode": _campos(registro_mode, _CLAVES_MODE),
-            "workflow": _workflow_resuelto(registro_workflow, evidencia, salidas),
+            "workflow": _workflow_resuelto(
+                registro_workflow, evidencia, salidas, artefactos
+            ),
             "estados_permitidos": [
                 _campos(estado, _CLAVES_ESTADO) for estado in estados.values()
             ],
