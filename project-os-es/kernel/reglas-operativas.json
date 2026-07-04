@@ -113,30 +113,6 @@
       "on_violation": "status.blocked",
       "priority": 9,
       "active": true
-    },
-    {
-      "key": "rule.emision_resolver",
-      "manifest_key": "manifest.kernel_es",
-      "resolution_sequence": [
-        "Un resolver que hidrate esta superficie debe emitir: actor, mode, workflow, evidence, limits y output resueltos como guia operativa; checklist de lecturas vivas; aviso de no autorizacion; missing statuses; acciones permitidas y prohibidas efectivas.",
-        "Nunca debe emitir permisos de escritura, merge, cierre, labels, tags, releases ni settings, ni estado vivo copiado de archivos durables."
-      ],
-      "on_violation": "status.blocked",
-      "priority": 10,
-      "active": true
-    },
-    {
-      "key": "rule.hidratacion",
-      "manifest_key": "manifest.kernel_es",
-      "resolution_sequence": [
-        "Cargar evidence solo desde required_evidence del workflow resuelto; el mode nunca selecciona ni filtra evidence.",
-        "Cargar output solo desde allowed_outputs del workflow resuelto; mode_key no participa en la seleccion de output en este contrato.",
-        "El mode gobierna unicamente acciones permitidas y prohibidas, fallback y compatibilidad con el actor; nunca altera evidence ni output.",
-        "Toda evidence u output nombrado por el workflow resuelto que no exista en el kernel falla cerrado."
-      ],
-      "on_violation": "status.blocked",
-      "priority": 11,
-      "active": true
     }
   ]
 }
