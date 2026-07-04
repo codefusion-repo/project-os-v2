@@ -68,10 +68,6 @@ Haz esto solo cuando vayas a delegar implementación a un terminal agent:
    comentarlos o abrir PRs.
 4. Ten Python disponible si usaras el resolver.
 5. Conoce `KERNEL_LOCAL_PATH` desde el adapter del target.
-6. Antes de editar, corre branch preflight: rama actual, worktree, HEAD y scope
-   esperado.
-7. El terminal agent solo escribe en ramas `work/*` y PRs draft con aprobación
-   PM exacta para ese scope y modo. La salida del resolver guía; no autoriza.
 
 Fast path del resolver cuando el repo ya está listo:
 
