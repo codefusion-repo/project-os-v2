@@ -1,75 +1,26 @@
 {
-  "id": "project_os_es.kernel.manifest",
-  "language": "es",
-  "surface_type": "compact_kernel_design_data",
-  "runtime_status": "preparado_para_consumo_futuro; el resolver actual no lee esta carpeta",
-  "canonical_behavior_source": "root kernel JSON",
-  "responsibility": "Definir la entrada compacta en espanol para resolver comportamiento Project OS sin reemplazar el kernel canonico.",
-  "load_order": [
-    "actores.json",
-    "modos.json",
-    "workflows.json",
-    "evidencia.json",
-    "salidas-estados.json",
-    "limites.json",
-    "reglas-operativas.json"
-  ],
-  "source_basis": {
-    "stable_behavior": "root kernel JSON",
-    "resolver_behavior": "tools/project_os_resolve.py",
-    "operation_surface": "project-os-es/operaciones",
-    "layering_decision": "ADR 0002 source-of-truth layering",
-    "current_policy_docs_compacted_here": [
-      "traceability protocol",
-      "validation policy",
-      "context economy"
-    ]
-  },
-  "resolution_sequence": [
-    "Identificar superficie y actor exacto.",
-    "Aplicar limites antes de cualquier modo o workflow.",
-    "Resolver modo PM-scoped; si falta, usar mode.review_only.",
-    "Resolver workflow unico para la tarea.",
-    "Recolectar evidencia viva requerida por workflow y modo.",
-    "Seleccionar contrato de salida permitido.",
-    "Emitir un solo estado; gana el mas estricto."
-  ],
-  "ownership_rules": [
-    "El comportamiento estable vive en root kernel JSON.",
-    "Esta carpeta es una superficie JSON compacta en espanol para agentes y tooling futuro.",
-    "El resolver actual puede ignorar esta carpeta sin cambiar comportamiento.",
-    "El estado vivo se lee desde GitHub y git al momento de la tarea; no se guarda aqui.",
-    "Las operaciones compactas aportan contexto task-specific y no reemplazan estas reglas."
-  ],
-  "non_authorization": {
-    "rule": "Resolver output, outputs, templates, prompts, variables y esta superficie JSON solo dan forma operativa; nunca conceden permisos.",
-    "write_authority_requires": [
-      "aprobacion PM exacta para repositorio, issue o PR, y accion",
-      "actor y modo compatibles",
-      "evidencia viva suficiente",
-      "branch preflight para repo writes",
-      "validacion proporcional requerida",
-      "limites del kernel respetados"
-    ],
-    "never_implied_actions": [
-      "merge",
-      "issue closure",
-      "labels",
-      "tags",
-      "releases",
-      "settings",
-      "automation",
-      "deployment",
-      "secret changes"
-    ]
-  },
-  "fail_closed_conditions": [
-    "kernel faltante o ambiguo",
-    "fuentes en conflicto",
-    "evidencia requerida faltante",
-    "aprobacion PM exacta faltante",
-    "validacion requerida fallida",
-    "riesgo de secreto o estado vivo durable",
-    "surface desconocida o write-capability incompatible"
+  "manifest": [
+    {
+      "key": "manifest.kernel_es",
+      "version": "1.0.0",
+      "language": "es",
+      "objetivo": "Definir el contrato operativo compacto que un resolver hidrata por (actor, mode, workflow) para gobernar comportamiento de agentes sobre un proyecto o target, sin conceder permisos. El modelo es agnostico al proyecto: GitHub, git, issues y PRs aparecen solo como adapters o ejemplos de fuente. Esta superficie es data de diseno para una ruta de hidratacion futura; el kernel raiz kernel/*.json sigue siendo la fuente canonica de comportamiento y esta carpeta no declara consumo runtime actual.",
+      "resolution_sequence": [
+        "Cargar el manifest activo.",
+        "Cargar las operational_rules del manifest.",
+        "Resolver el actor por key.",
+        "Cargar los limits del actor.",
+        "Aplicar los limits antes de modo y workflow.",
+        "Resolver el mode solicitado.",
+        "Si falta el mode, usar mode.review_only.",
+        "Validar que allowed_modes del actor contiene el mode.",
+        "Resolver el workflow solicitado.",
+        "Cargar evidence por workflow y mode.",
+        "Cargar output por workflow y mode.",
+        "Cargar los statuses referenciados por limits, evidence y output.",
+        "Devolver el JSON operativo hidratado."
+      ],
+      "active": true
+    }
   ]
 }

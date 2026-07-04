@@ -1,106 +1,129 @@
 {
-  "id": "project_os_es.kernel.reglas_operativas",
-  "responsibility": "Compactar reglas operativas antes dispersas en documentos largos para consumo de agentes.",
-  "source_basis": [
-    "root kernel JSON",
-    "resolver operative guidance",
-    "traceability protocol",
-    "validation policy",
-    "context economy",
-    "ADR 0002 layering"
-  ],
-  "traceability": {
-    "priority": "required_preflight",
-    "rules": [
-      "Reconstruir antes de actuar desde GitHub y git.",
-      "Leer issue o PR vivo con objetivo, scope, out of scope, acceptance criteria y source basis.",
-      "Leer PRs vinculados, comments, reviews, changed files, diff, checks y archivos finales cuando apliquen.",
-      "Leer roadmap canonico y ADRs relevantes cuando son source basis.",
-      "Tratar PR body, comentarios, reportes y memoria como claims hasta verificar evidencia viva.",
-      "No guardar estado vivo en archivos durables.",
-      "Ramas de trabajo siguen forma work/<issue>-<slug> para mapear codigo a issue."
-    ],
-    "fail_closed_when": [
-      "issue scope no se puede leer",
-      "branch preflight falta antes de write",
-      "PR diff o archivos finales faltan para review-before-close",
-      "validacion requerida falta o falla",
-      "fuentes vivas se contradicen"
-    ]
-  },
-  "validation": {
-    "model": "proportional_validation",
-    "categories": [
-      "agent-run required",
-      "PM-run drafted commands",
-      "manual PM validation",
-      "no automated validation with reason"
-    ],
-    "agent_run_required_for": [
-      "kernel JSON or kernel reference contracts",
-      "resolver or tooling behavior",
-      "command safety",
-      "traceability behavior",
-      "authorization or write boundaries",
-      "security, privacy, secret handling, redaction or logging risk",
-      "deployment, external services or production-impacting behavior",
-      "data migrations, billing, storage, auth or payments",
-      "deterministic workflow, output, evidence, adapter-audit or route-prompt contracts"
-    ],
-    "test_policy": [
-      "Agregar o cambiar tests solo para proteger comportamiento deterministico, regresion, seguridad, privacidad, protocolos, routing o contratos estables.",
-      "No agregar tests por defecto por docs, prompts, templates o fases nuevas.",
-      "No correr full suite salvo que cambios amplios compartidos vuelvan insuficiente la evidencia targeted."
-    ],
-    "manual_review_required_for": [
-      "claridad en espanol",
-      "organizacion de contenido",
-      "juicio de producto",
-      "UX or onboarding copy",
-      "paridad semantica de docs o prompts"
-    ]
-  },
-  "context_economy": {
-    "rules": [
-      "Leer vivo lo que sea estado vivo; no pegarlo como verdad durable.",
-      "Citar o resumir fuentes largas con ubicacion minima.",
-      "No repetir cuerpos completos de issues, diffs, logs, reportes ni reglas que el kernel ya posee.",
-      "Usar contexto grande solo cuando el riesgo lo justifica: seguridad, autorizacion, deploy, migracion, billing, storage o arquitectura compleja.",
-      "Subagentes no son default; usarlos solo si reducen riesgo, complejidad o carga experta.",
-      "La salida de subagentes es claim hasta verificarla contra evidencia viva."
-    ],
-    "never_drop": [
-      "required evidence",
-      "live traceability reads",
-      "branch preflight",
-      "validation",
-      "secret safety",
-      "exact PM approval gates"
-    ]
-  },
-  "secret_safety": {
-    "rules": [
-      "Nunca pedir, imprimir, copiar, commitear, subir, resumir ni registrar secretos.",
-      "No exponer valores de .env, claves privadas, tokens, OAuth/client secrets, database URLs, cookies, session tokens, JWTs, payment keys, SSH/GPG keys, CI secrets ni valores con pinta de secreto.",
-      "Redactar valores como [REDACTED].",
-      "Reportar solo rutas, nombres de variables, nombres de comandos y tipos de riesgo.",
-      "No ejecutar dumps amplios de entorno o configuracion salvo aprobacion PM exacta para diagnostico seguro y redactado."
-    ]
-  },
-  "operative_guidance_for_future_resolver": {
-    "must_emit": [
-      "resolved actor, workflow, mode, evidence, boundaries and output as operative guidance",
-      "live-read checklist derived from evidence and workflow",
-      "non-authorization notice",
-      "missing evidence statuses",
-      "effective allowed and prohibited actions"
-    ],
-    "must_not_emit": [
-      "write permission",
-      "merge permission",
-      "closure permission",
-      "labels, tags, releases or settings permission",
-      "live state copied from durable files"
-    ]
-  }
+  "operational_rules": [
+    {
+      "key": "rule.fuente_canonica",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Tratar el kernel raiz kernel/*.json como fuente canonica del comportamiento estable.",
+        "Tratar esta superficie como data de diseno compacta en espanol para un resolver futuro; no reemplaza al kernel canonico.",
+        "Tratar las operaciones compactas como contexto task-specific que nunca reemplaza estas reglas.",
+        "Ante conflicto entre fuentes, detenerse sin resolver."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 1,
+      "active": true
+    },
+    {
+      "key": "rule.resolucion_fail_closed",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Seguir resolution_sequence del manifest sin pasos improvisados.",
+        "Emitir exactamente un estado por resolucion; ante conflicto de gates gana el mas estricto.",
+        "Ante kernel faltante o ambiguo, autoridad ambigua, evidencia requerida faltante, aprobacion PM exacta faltante, validacion requerida fallida o superficie desconocida: detenerse con el estado correspondiente, nunca adivinar y seguir."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 2,
+      "active": true
+    },
+    {
+      "key": "rule.no_autorizacion",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "El JSON hidratado, los outputs, templates, prompts, roles y variables solo dan forma operativa; nunca conceden permisos.",
+        "La autoridad de escritura requiere aprobacion PM exacta para el proyecto, la unidad de trabajo y la accion; actor y mode compatibles; evidencia viva suficiente; preflight para writes; validacion proporcional; limits respetados.",
+        "Merge, cierre, labels, tags, releases, settings, automatizacion, deployment y cambios de secretos nunca quedan implicitos; cada uno requiere aprobacion PM exacta separada."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 3,
+      "active": true
+    },
+    {
+      "key": "rule.trazabilidad_viva",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Reconstruir el estado vivo del target desde sus fuentes de registro al momento de la tarea; GitHub y git son adapters posibles, no el modelo universal.",
+        "Leer viva la unidad de trabajo con objetivo, scope, out of scope, acceptance criteria y source basis.",
+        "Leer cambios vinculados, comentarios, reviews, diffs, checks y archivos finales cuando apliquen.",
+        "Tratar memoria, reportes previos y archivos durables como claims hasta verificarlos contra evidencia viva."
+      ],
+      "on_violation": "status.needs_context",
+      "priority": 4,
+      "active": true
+    },
+    {
+      "key": "rule.preflight",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Resolver kernel, actor, limits y mode antes de actuar.",
+        "Ejecutar preflight del arbol de trabajo antes de cualquier write al repositorio del target: rama actual, estado del worktree, HEAD, scope esperado y archivos ajenos, con output real.",
+        "Usar ramas de trabajo scoped trazables a la unidad de trabajo; work/<unidad>-<slug> es el patron actual cuando el target usa git."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 5,
+      "active": true
+    },
+    {
+      "key": "rule.validacion_proporcional",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Validar proporcional al riesgo: validacion agent-run requerida para kernel, resolver, tooling, seguridad, privacidad, autorizacion, trazabilidad, deployment, migraciones, billing, storage y contratos deterministicos.",
+        "Draftear comandos PM-run cuando la validacion util debe quedar en manos del PM.",
+        "Reportar validacion manual PM para claridad, organizacion de contenido, juicio de producto, UX y paridad semantica.",
+        "Agregar o cambiar tests solo para proteger comportamiento deterministico, regresion, seguridad, privacidad, protocolos, routing o contratos estables; nunca por defecto para docs, prompts o templates.",
+        "Nunca declarar done sin reportar la validacion requerida."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 6,
+      "active": true
+    },
+    {
+      "key": "rule.economia_de_contexto",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Usar solo el contexto y los subagentes que la tarea scoped necesita.",
+        "Citar fuentes largas con ubicacion minima; no repetir cuerpos completos de unidades de trabajo, diffs, logs, reportes ni reglas que el kernel ya posee.",
+        "Usar subagentes solo con razon scoped que reduzca riesgo, complejidad o carga experta; su salida es claim hasta verificarla contra evidencia viva.",
+        "Usar contexto grande solo cuando el riesgo lo justifica: seguridad, autorizacion, deployment, migraciones, billing, storage o arquitectura compleja.",
+        "La economia nunca elimina evidencia requerida, lecturas vivas, preflight, validacion, secret safety ni gates de aprobacion PM exacta."
+      ],
+      "on_violation": "status.needs_pm_decision",
+      "priority": 7,
+      "active": true
+    },
+    {
+      "key": "rule.estado_vivo_no_durable",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Los archivos durables nunca guardan estado vivo: unidad de trabajo, PR, rama, commit, review, validacion, release, deployment ni planificacion.",
+        "El estado vivo vive solo en las fuentes de registro del target y se lee al momento de la tarea.",
+        "Nunca inventar estado del repositorio, estado de la unidad de trabajo, output de comandos, validacion, review ni aprobacion PM; si falta, leerlo vivo o devolver el missing_status."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 8,
+      "active": true
+    },
+    {
+      "key": "rule.secret_safety",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Nunca pedir, imprimir, copiar, commitear, subir, resumir ni registrar secretos, credenciales, tokens, keys ni valores con pinta de secreto.",
+        "Redactar valores sensibles como [REDACTED]; reportar solo rutas, nombres de variables, nombres de comandos y tipos de riesgo.",
+        "No ejecutar dumps amplios de entorno o configuracion salvo aprobacion PM exacta para un diagnostico seguro y redactado."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 9,
+      "active": true
+    },
+    {
+      "key": "rule.emision_resolver",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Un resolver que hidrate esta superficie debe emitir: actor, mode, workflow, evidence, limits y output resueltos como guia operativa; checklist de lecturas vivas; aviso de no autorizacion; missing statuses; acciones permitidas y prohibidas efectivas.",
+        "Nunca debe emitir permisos de escritura, merge, cierre, labels, tags, releases ni settings, ni estado vivo copiado de archivos durables."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 10,
+      "active": true
+    }
+  ]
 }

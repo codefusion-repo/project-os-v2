@@ -1,130 +1,103 @@
 {
-  "id": "project_os_es.kernel.modos",
-  "responsibility": "Definir alcance de accion por modo sin superar actor ni limites.",
-  "source_basis": "kernel/execution_modes.json",
-  "default_mode": "mode.review_only",
-  "rules": [
-    "El modo es scoped por el PM para la tarea.",
-    "Un modo nunca supera actor, limites ni evidencia requerida.",
-    "La aprobacion PM explicita es evidencia solo para el punto exacto decidido.",
-    "El desacuerdo del agente se reporta como riesgo salvo que exista gate o boundary nombrado."
-  ],
-  "entries": [
+  "modes": [
     {
-      "id_ref": "mode.review_only",
+      "key": "mode.review_only",
       "allowed_actions": [
-        "read",
-        "analyze",
-        "run read-only commands",
-        "report"
+        "leer",
+        "analizar",
+        "ejecutar comandos read-only",
+        "reportar"
       ],
       "prohibited_actions": [
-        "edit files",
+        "editar archivos",
         "commit",
         "push",
-        "open PR",
-        "comment",
-        "GitHub mutation"
+        "abrir PR",
+        "comentar",
+        "mutar el target remoto"
       ],
-      "required_evidence": [
-        "evidence.issue_scope"
-      ]
+      "fallback": null,
+      "active": true
     },
     {
-      "id_ref": "mode.local_implementation",
+      "key": "mode.local_implementation",
       "allowed_actions": [
-        "read",
-        "analyze",
-        "edit scoped files",
-        "run validation",
-        "report"
+        "leer",
+        "analizar",
+        "editar archivos scoped",
+        "ejecutar validacion",
+        "reportar"
       ],
       "prohibited_actions": [
         "commit",
         "push",
-        "open PR",
-        "comment",
-        "GitHub mutation"
+        "abrir PR",
+        "comentar",
+        "mutar el target remoto"
       ],
-      "required_evidence": [
-        "evidence.issue_scope",
-        "evidence.branch_preflight",
-        "evidence.pm_approval"
-      ]
+      "fallback": "mode.review_only",
+      "active": true
     },
     {
-      "id_ref": "mode.delegated_commit_push",
+      "key": "mode.delegated_commit_push",
       "allowed_actions": [
-        "edit scoped files",
-        "run validation",
+        "editar archivos scoped",
+        "ejecutar validacion",
         "commit",
-        "push work branch",
-        "report"
+        "push a la rama de trabajo",
+        "reportar"
       ],
       "prohibited_actions": [
-        "open PR",
+        "abrir PR",
         "merge",
-        "close issue",
-        "unscoped comment",
-        "other GitHub mutation"
+        "cerrar la unidad de trabajo",
+        "comentar fuera de scope",
+        "otra mutacion del target remoto"
       ],
-      "required_evidence": [
-        "evidence.issue_scope",
-        "evidence.branch_preflight",
-        "evidence.pm_approval",
-        "evidence.validation_output"
-      ]
+      "fallback": "mode.review_only",
+      "active": true
     },
     {
-      "id_ref": "mode.delegated_commit_pr",
+      "key": "mode.delegated_commit_pr",
       "allowed_actions": [
-        "edit scoped files",
-        "run validation",
+        "editar archivos scoped",
+        "ejecutar validacion",
         "commit",
-        "push work branch",
-        "open draft PR",
-        "report"
+        "push a la rama de trabajo",
+        "abrir draft PR",
+        "reportar"
       ],
       "prohibited_actions": [
         "merge",
-        "close issue",
-        "apply labels",
-        "create tags or releases",
-        "change settings"
+        "cerrar la unidad de trabajo",
+        "aplicar labels",
+        "crear tags o releases",
+        "cambiar settings"
       ],
-      "required_evidence": [
-        "evidence.issue_scope",
-        "evidence.branch_preflight",
-        "evidence.pm_approval",
-        "evidence.validation_output"
-      ]
+      "fallback": "mode.review_only",
+      "active": true
     },
     {
-      "id_ref": "mode.delegated_deploy_execution",
+      "key": "mode.delegated_deploy_execution",
       "allowed_actions": [
-        "run target-owned deploy commands for one approved local or staging environment",
-        "run validation",
-        "report"
+        "ejecutar comandos de deploy target-owned para un unico entorno aprobado local o staging",
+        "ejecutar validacion",
+        "reportar"
       ],
       "prohibited_actions": [
-        "edit files",
+        "editar archivos",
         "commit",
         "push",
-        "open PR",
-        "GitHub mutation",
-        "invent deploy commands",
-        "production deploy",
-        "secret exposure",
-        "broad environment or config dumps",
-        "secret-store mutation"
+        "abrir PR",
+        "mutar el target remoto",
+        "inventar comandos de deploy",
+        "deploy a produccion",
+        "exponer secretos",
+        "dumps amplios de entorno o configuracion",
+        "mutar secret stores"
       ],
-      "required_evidence": [
-        "evidence.issue_scope",
-        "evidence.pm_approval",
-        "evidence.target_adoption",
-        "evidence.deployment_readiness",
-        "evidence.validation_output"
-      ]
+      "fallback": "mode.review_only",
+      "active": true
     }
   ]
 }

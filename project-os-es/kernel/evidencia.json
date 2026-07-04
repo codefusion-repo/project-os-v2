@@ -1,69 +1,162 @@
 {
-  "id": "project_os_es.kernel.evidencia",
-  "responsibility": "Definir evidencia viva requerida y estado cuando falta.",
-  "source_basis": "kernel/evidence.json",
-  "rules": [
-    "Toda evidencia se lee al momento de la tarea.",
-    "GitHub y git son la fuente de estado vivo.",
-    "Memoria, reportes previos y archivos durables son claims hasta verificarlos.",
-    "Nunca inventes evidencia; si falta, usa el missing_status del id."
-  ],
-  "entries": [
+  "evidence": [
     {
-      "id_ref": "evidence.issue_scope",
-      "satisfied_by": "issue o PR vivo con objetivo, scope, out of scope y acceptance criteria",
-      "missing_status": "status.needs_context"
-    },
-    {
-      "id_ref": "evidence.source_basis",
-      "satisfied_by": "issues, PRs, ADRs o decisiones previas leidas vivas",
-      "missing_status": "status.needs_context"
-    },
-    {
-      "id_ref": "evidence.branch_preflight",
-      "satisfied_by": "output real de rama, worktree, HEAD, rama esperada y archivos ajenos antes de editar",
-      "missing_status": "status.needs_context"
-    },
-    {
-      "id_ref": "evidence.repo_state",
-      "satisfied_by": "archivos, ramas, diffs, historia, checks o comentarios que la tarea necesita",
-      "missing_status": "status.needs_context"
-    },
-    {
-      "id_ref": "evidence.pm_approval",
-      "satisfied_by": "aprobacion PM exacta para repositorio, issue o PR, y accion",
-      "missing_status": "status.blocked"
-    },
-    {
-      "id_ref": "evidence.validation_output",
-      "satisfied_by": "comandos de validacion ejecutados y resultado real",
+      "key": "evidence.issue_scope",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.issue_implementation_manual",
+        "workflow.review_before_close"
+      ],
+      "mode_key": [
+        "mode.review_only",
+        "mode.local_implementation",
+        "mode.delegated_commit_push",
+        "mode.delegated_commit_pr",
+        "mode.delegated_deploy_execution"
+      ],
+      "satisfied_by": "unidad de trabajo viva con objetivo, scope, out of scope y acceptance criteria; un issue o PR de GitHub es un adapter posible",
       "missing_status": "status.needs_context",
-      "required_behavior": "Nunca declarar done sin reportar esta evidencia cuando el workflow la requiere."
+      "required": true,
+      "active": true
     },
     {
-      "id_ref": "evidence.pr_diff",
+      "key": "evidence.source_basis",
+      "workflow_key": [
+        "workflow.issue_implementation_manual",
+        "workflow.pm_intake",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "unidades de trabajo, cambios, ADRs o decisiones previas del target leidas vivas",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.branch_preflight",
+      "workflow_key": [
+        "workflow.issue_implementation"
+      ],
+      "mode_key": [
+        "mode.local_implementation",
+        "mode.delegated_commit_push",
+        "mode.delegated_commit_pr"
+      ],
+      "satisfied_by": "output real de rama actual, worktree, HEAD, rama esperada y archivos ajenos, capturado antes de editar",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.repo_state",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.issue_implementation_manual",
+        "workflow.implementation_discipline_audit",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.release_readiness",
+        "workflow.handoff",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "archivos, ramas, diffs, historia, checks o comentarios que la tarea necesita, leidos vivos",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.pm_approval",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.deployment"
+      ],
+      "mode_key": [
+        "mode.local_implementation",
+        "mode.delegated_commit_push",
+        "mode.delegated_commit_pr",
+        "mode.delegated_deploy_execution"
+      ],
+      "satisfied_by": "aprobacion PM exacta que nombra proyecto, unidad de trabajo y accion o command bundle aprobado",
+      "missing_status": "status.blocked",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.validation_output",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.review_before_close",
+        "workflow.release_readiness",
+        "workflow.deployment"
+      ],
+      "mode_key": [
+        "mode.delegated_commit_push",
+        "mode.delegated_commit_pr",
+        "mode.delegated_deploy_execution"
+      ],
+      "satisfied_by": "comandos de validacion ejecutados para este cambio con su resultado real; nunca declarar done sin reportarla cuando se requiere",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.pr_diff",
+      "workflow_key": [
+        "workflow.review_before_close"
+      ],
+      "mode_key": [],
       "satisfied_by": "changed files y diff reales, mas archivos finales relevantes cuando el diff no alcanza",
-      "missing_status": "status.needs_context"
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
     },
     {
-      "id_ref": "evidence.review_evidence",
-      "satisfied_by": "hallazgos o veredicto de review en PR o issue",
-      "missing_status": "status.needs_context"
+      "key": "evidence.review_evidence",
+      "workflow_key": [],
+      "mode_key": [],
+      "satisfied_by": "hallazgos o veredicto de review registrados en la unidad de trabajo o el cambio",
+      "missing_status": "status.needs_context",
+      "required": false,
+      "active": true
     },
     {
-      "id_ref": "evidence.closure_evidence",
-      "satisfied_by": "comentario de cierre con completion evidence, validacion, limites preservados y referencias PR/commit",
-      "missing_status": "status.needs_pm_decision"
+      "key": "evidence.closure_evidence",
+      "workflow_key": [],
+      "mode_key": [],
+      "satisfied_by": "comentario de cierre con completion evidence, validacion, limites preservados y referencias al cambio",
+      "missing_status": "status.needs_pm_decision",
+      "required": false,
+      "active": true
     },
     {
-      "id_ref": "evidence.target_adoption",
-      "satisfied_by": "identidad target, adapters, metadata, roadmap anchor, version/path kernel, notas target-owned, validacion y riesgo durable",
-      "missing_status": "status.needs_context"
+      "key": "evidence.target_adoption",
+      "workflow_key": [
+        "workflow.target_adoption",
+        "workflow.deployment"
+      ],
+      "mode_key": [
+        "mode.delegated_deploy_execution"
+      ],
+      "satisfied_by": "identidad del target, adapters, metadata, anchor de roadmap, version y path del kernel, notas target-owned, validacion y riesgo durable",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
     },
     {
-      "id_ref": "evidence.deployment_readiness",
-      "satisfied_by": "entorno interno aprobado, comandos target-owned documentados, prerequisitos validados y secret safety sin valores",
-      "missing_status": "status.blocked"
+      "key": "evidence.deployment_readiness",
+      "workflow_key": [
+        "workflow.deployment"
+      ],
+      "mode_key": [
+        "mode.delegated_deploy_execution"
+      ],
+      "satisfied_by": "entorno interno aprobado, comandos target-owned documentados, prerequisitos validados y secret safety sin valores expuestos",
+      "missing_status": "status.blocked",
+      "required": true,
+      "active": true
     }
   ]
 }
