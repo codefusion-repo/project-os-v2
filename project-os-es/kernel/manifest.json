@@ -15,8 +15,8 @@
         "Si falta el mode, usar mode.review_only.",
         "Validar que allowed_modes del actor contiene el mode.",
         "Resolver el workflow solicitado.",
-        "Cargar evidence por workflow y mode.",
-        "Cargar output por workflow y mode.",
+        "Cargar evidence desde required_evidence del workflow resuelto; el mode nunca selecciona evidence.",
+        "Cargar output desde allowed_outputs del workflow resuelto.",
         "Cargar los statuses referenciados por limits, evidence y output.",
         "Devolver el JSON operativo hidratado."
       ],

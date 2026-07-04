@@ -129,10 +129,10 @@
       "key": "rule.hidratacion",
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
-        "Cargar evidence por workflow y mode como union: los registros nombrados por required_evidence del workflow resuelto mas los registros cuyo mode_key contiene el mode resuelto.",
-        "Cargar output por workflow y mode con la misma semantica: los registros nombrados por allowed_outputs del workflow resuelto; un mode_key vacio no restringe por mode.",
-        "En evidence y output, workflow_key y mode_key son selectores independientes; una lista vacia significa que esa dimension no selecciona el registro y nunca excluye lo seleccionado por la otra.",
-        "Todo required_evidence de un workflow hidrata bajo cada mode permitido; mode_key nunca lo filtra."
+        "Cargar evidence solo desde required_evidence del workflow resuelto; el mode nunca selecciona ni filtra evidence.",
+        "Cargar output solo desde allowed_outputs del workflow resuelto; mode_key no participa en la seleccion de output en este contrato.",
+        "El mode gobierna unicamente acciones permitidas y prohibidas, fallback y compatibilidad con el actor; nunca altera evidence ni output.",
+        "Toda evidence u output nombrado por el workflow resuelto que no exista en el kernel falla cerrado."
       ],
       "on_violation": "status.blocked",
       "priority": 11,

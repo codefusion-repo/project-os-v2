@@ -190,8 +190,7 @@ def resolver(
 
     # Decision PM (PR #399): evidence y salidas hidratan solo desde las
     # referencias del workflow resuelto; mode_key en estos registros no
-    # selecciona ni excluye nada. Normalizar mode_key en el kernel es un
-    # cleanup separado.
+    # selecciona ni excluye nada y el kernel es lo mantiene vacio.
     faltantes: list[str] = []
 
     evidencia = _hidratar_nombrados(

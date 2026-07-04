@@ -7,13 +7,7 @@
         "workflow.issue_implementation_manual",
         "workflow.review_before_close"
       ],
-      "mode_key": [
-        "mode.review_only",
-        "mode.local_implementation",
-        "mode.delegated_commit_push",
-        "mode.delegated_commit_pr",
-        "mode.delegated_deploy_execution"
-      ],
+      "mode_key": [],
       "satisfied_by": "unidad de trabajo viva con objetivo, scope, out of scope y acceptance criteria; un issue o PR de GitHub es un adapter posible",
       "missing_status": "status.needs_context",
       "required": true,
@@ -39,11 +33,7 @@
       "workflow_key": [
         "workflow.issue_implementation"
       ],
-      "mode_key": [
-        "mode.local_implementation",
-        "mode.delegated_commit_push",
-        "mode.delegated_commit_pr"
-      ],
+      "mode_key": [],
       "satisfied_by": "output real de rama actual, worktree, HEAD, rama esperada y archivos ajenos, capturado antes de editar",
       "missing_status": "status.needs_context",
       "required": true,
@@ -73,12 +63,7 @@
         "workflow.issue_implementation",
         "workflow.deployment"
       ],
-      "mode_key": [
-        "mode.local_implementation",
-        "mode.delegated_commit_push",
-        "mode.delegated_commit_pr",
-        "mode.delegated_deploy_execution"
-      ],
+      "mode_key": [],
       "satisfied_by": "aprobacion PM exacta que nombra proyecto, unidad de trabajo y accion o command bundle aprobado",
       "missing_status": "status.blocked",
       "required": true,
@@ -92,11 +77,7 @@
         "workflow.release_readiness",
         "workflow.deployment"
       ],
-      "mode_key": [
-        "mode.delegated_commit_push",
-        "mode.delegated_commit_pr",
-        "mode.delegated_deploy_execution"
-      ],
+      "mode_key": [],
       "satisfied_by": "comandos de validacion ejecutados para este cambio con su resultado real",
       "missing_status": "status.needs_context",
       "required": true,
@@ -137,9 +118,7 @@
         "workflow.target_adoption",
         "workflow.deployment"
       ],
-      "mode_key": [
-        "mode.delegated_deploy_execution"
-      ],
+      "mode_key": [],
       "satisfied_by": "identidad del target, adapters, metadata, anchor de roadmap, version y path del kernel, notas target-owned, validacion y riesgo durable",
       "missing_status": "status.needs_context",
       "required": true,
@@ -150,9 +129,7 @@
       "workflow_key": [
         "workflow.deployment"
       ],
-      "mode_key": [
-        "mode.delegated_deploy_execution"
-      ],
+      "mode_key": [],
       "satisfied_by": "entorno interno aprobado, comandos target-owned documentados, prerequisitos validados y secret safety sin valores expuestos",
       "missing_status": "status.blocked",
       "required": true,
