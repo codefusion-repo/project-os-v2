@@ -10,8 +10,9 @@ compatibilidad:
 
 - Catalogo vigente de compatibilidad: templates numerados `00`-`37` bajo `templates/operations/`.
 - Templates MOSDLC migrados: `templates/mosdlc/operations/fase-<n>/`.
-- Operaciones recomendadas aceptadas migradas (lote transversal):
-  `templates/mosdlc/operations/recommended/`.
+- Operaciones recomendadas aceptadas migradas: bajo la fase que corresponda en
+  `templates/mosdlc/operations/fase-<n>/`, o bajo
+  `templates/mosdlc/operations/cross-fase/` cuando son transversales.
 
 Las fases migradas usan `templates/mosdlc/operations/fase-<n>/` y conservan
 los templates numerados `00`-`37` como fuentes de reemplazo o referencias de
@@ -217,38 +218,42 @@ despliegue por si mismo.
 
 | MOSDLC ID | Template MOSDLC | Fuente de compatibilidad |
 |---|---|---|
-| MOS-R.1 | `templates/mosdlc/operations/recommended/MOS-R.1-record-adr-decision.md` | `templates/operations/22-record-adr-decision.md` |
-| MOS-R.2 | `templates/mosdlc/operations/recommended/MOS-R.2-recommend-next-operation.md` | `templates/operations/35-recommend-next-lifecycle-operation.md` |
-| MOS-R.3 | `templates/mosdlc/operations/recommended/MOS-R.3-process-needs-pm-decision.md` | `templates/operations/36-process-needs-pm-decision.md` |
-| MOS-R.4 | `templates/mosdlc/operations/recommended/MOS-R.4-review-phase-readiness.md` | `templates/operations/37-review-phase-readiness.md` |
-| MOS-R.5 | `templates/mosdlc/operations/recommended/MOS-R.5-audit-target-adoption-batch.md` | `templates/operations/14-audit-target-adapters.md`, `templates/operations/03-verify-target-adoption.md` |
-| MOS-R.6 | `templates/mosdlc/operations/recommended/MOS-R.6-create-update-adr-from-design.md` | `templates/operations/22-record-adr-decision.md` |
-| MOS-R.7 | `templates/mosdlc/operations/recommended/MOS-R.7-review-licensing-publication-readiness.md` | `templates/operations/12-analyze-release-or-tag-readiness.md` |
-| MOS-R.8 | `templates/mosdlc/operations/recommended/MOS-R.8-process-incident-hotfix.md` | — |
-| MOS-R.9 | `templates/mosdlc/operations/recommended/MOS-R.9-audit-docs-product-drift.md` | `templates/operations/05-review-project-state-and-misalignment.md` |
-| MOS-R.10 | `templates/mosdlc/operations/recommended/MOS-R.10-update-target-adapters-catalog.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` |
-| MOS-R.11 | `templates/mosdlc/operations/recommended/MOS-R.11-deployment-readiness-review.md` | — |
-| MOS-R.12 | `templates/mosdlc/operations/recommended/MOS-R.12-draft-deploy-command-bundle.md` | — |
-| MOS-R.13 | `templates/mosdlc/operations/recommended/MOS-R.13-verify-post-deploy-state.md` | `templates/operations/11-verify-post-merge-state.md` |
-| MOS-R.14 | `templates/mosdlc/operations/recommended/MOS-R.14-process-deployment-result.md` | — |
-| MOS-R.15 | `templates/mosdlc/operations/recommended/MOS-R.15-draft-rollback-commands.md` | — |
-| MOS-R.16 | `templates/mosdlc/operations/recommended/MOS-R.16-process-rollback-result.md` | — |
-| MOS-R.17 | `templates/mosdlc/operations/recommended/MOS-R.17-dependency-security-update-audit.md` | — |
-| MOS-R.18 | `templates/mosdlc/operations/recommended/MOS-R.18-secret-safe-config-audit.md` | — |
-| MOS-R.19 | `templates/mosdlc/operations/recommended/MOS-R.19-plan-validation-cycle.md` | — |
-| MOS-R.20 | `templates/mosdlc/operations/recommended/MOS-R.20-review-validation-cycle-readiness.md` | `templates/operations/37-review-phase-readiness.md` |
-| MOS-R.21 | `templates/mosdlc/operations/recommended/MOS-R.21-process-validation-cycle-findings.md` | — |
-| MOS-R.22 | `templates/mosdlc/operations/recommended/MOS-R.22-public-packaging-safety-review.md` | — |
-| MOS-R.23 | `templates/mosdlc/operations/recommended/MOS-R.23-convert-internal-operations-before-release.md` | — |
+| MOS-R.1 | `templates/mosdlc/operations/fase-2/MOS-R.1-record-adr-decision.md` | `templates/operations/22-record-adr-decision.md` |
+| MOS-R.2 | `templates/mosdlc/operations/cross-fase/MOS-R.2-recommend-next-operation.md` | `templates/operations/35-recommend-next-lifecycle-operation.md` |
+| MOS-R.3 | `templates/mosdlc/operations/cross-fase/MOS-R.3-process-needs-pm-decision.md` | `templates/operations/36-process-needs-pm-decision.md` |
+| MOS-R.4 | `templates/mosdlc/operations/cross-fase/MOS-R.4-review-phase-readiness.md` | `templates/operations/37-review-phase-readiness.md` |
+| MOS-R.5 | `templates/mosdlc/operations/fase-0/MOS-R.5-audit-target-adoption-batch.md` | `templates/operations/14-audit-target-adapters.md`, `templates/operations/03-verify-target-adoption.md` |
+| MOS-R.6 | `templates/mosdlc/operations/fase-2/MOS-R.6-create-update-adr-from-design.md` | `templates/operations/22-record-adr-decision.md` |
+| MOS-R.7 | `templates/mosdlc/operations/fase-3/MOS-R.7-review-licensing-publication-readiness.md` | `templates/operations/12-analyze-release-or-tag-readiness.md` |
+| MOS-R.8 | `templates/mosdlc/operations/fase-3/MOS-R.8-process-incident-hotfix.md` | — |
+| MOS-R.9 | `templates/mosdlc/operations/fase-3/MOS-R.9-audit-docs-product-drift.md` | `templates/operations/05-review-project-state-and-misalignment.md` |
+| MOS-R.10 | `templates/mosdlc/operations/fase-0/MOS-R.10-update-target-adapters-catalog.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` |
+| MOS-R.11 | `templates/mosdlc/operations/fase-5/MOS-R.11-deployment-readiness-review.md` | — |
+| MOS-R.12 | `templates/mosdlc/operations/fase-5/MOS-R.12-draft-deploy-command-bundle.md` | — |
+| MOS-R.13 | `templates/mosdlc/operations/fase-5/MOS-R.13-verify-post-deploy-state.md` | `templates/operations/11-verify-post-merge-state.md` |
+| MOS-R.14 | `templates/mosdlc/operations/fase-5/MOS-R.14-process-deployment-result.md` | — |
+| MOS-R.15 | `templates/mosdlc/operations/fase-5/MOS-R.15-draft-rollback-commands.md` | — |
+| MOS-R.16 | `templates/mosdlc/operations/fase-5/MOS-R.16-process-rollback-result.md` | — |
+| MOS-R.17 | `templates/mosdlc/operations/fase-6/MOS-R.17-dependency-security-update-audit.md` | — |
+| MOS-R.18 | `templates/mosdlc/operations/fase-6/MOS-R.18-secret-safe-config-audit.md` | — |
+| MOS-R.19 | `templates/mosdlc/operations/fase-4/MOS-R.19-plan-validation-cycle.md` | — |
+| MOS-R.20 | `templates/mosdlc/operations/fase-4/MOS-R.20-review-validation-cycle-readiness.md` | `templates/operations/37-review-phase-readiness.md` |
+| MOS-R.21 | `templates/mosdlc/operations/fase-4/MOS-R.21-process-validation-cycle-findings.md` | — |
+| MOS-R.22 | `templates/mosdlc/operations/fase-3/MOS-R.22-public-packaging-safety-review.md` | — |
+| MOS-R.23 | `templates/mosdlc/operations/fase-3/MOS-R.23-convert-internal-operations-before-release.md` | — |
 
-Las operaciones recomendadas aceptadas (MOS-R.1 a MOS-R.23) son un lote
-transversal: no pertenecen a una fase y viven en
-`templates/mosdlc/operations/recommended/` (#393). MOS-R.3 clarifica las
-variables y categorias de decision del procesamiento de
-status.needs_pm_decision y declara el mapeo de variables hacia el template 36
-de compatibilidad. MOS-R.19 a MOS-R.21 son operaciones target-agnostic de ciclo
-de validacion (QA interna, staging/UAT, beta, TestFlight/internal testing,
-playtest, release-candidate trial o pilot rollout segun el tipo de target).
+Las operaciones recomendadas aceptadas (MOS-R.1 a MOS-R.23) se ubican segun su
+rol de ciclo de vida: MOS-R.2, MOS-R.3 y MOS-R.4 son transversales y viven en
+`templates/mosdlc/operations/cross-fase/`; las demas viven en la carpeta de la
+fase donde encajan por conexiones, fuente de compatibilidad y uso practico
+(adopcion en Fase 0, ADR/diseno en Fase 2, implementacion/release en Fase 3,
+validacion en Fase 4, despliegue en Fase 5 y mantenimiento/seguridad en Fase
+6). MOS-R.3 clarifica las variables y categorias de decision del procesamiento
+de status.needs_pm_decision y declara el mapeo de variables hacia el template
+36 de compatibilidad. MOS-R.19 a MOS-R.21 son operaciones target-agnostic de
+ciclo de validacion (QA interna, staging/UAT, beta, TestFlight/internal
+testing, playtest, release-candidate trial o pilot rollout segun el tipo de
+target).
 Ninguna operacion recomendada es exclusiva de un proyecto ni asume que todo
 target tiene dogfood, packaging publico, releases de GitHub, adapters, staging
 o entornos de despliegue: cada dependencia de superficie se declara explicita

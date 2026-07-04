@@ -55,9 +55,9 @@ Cada fila del mapa usa esta forma estandar:
 
 La migracion MOSDLC empieza por Fase 0 y continua por Fase 1, Fase 2, Fase 3, Fase 4, Fase 5 y Fase 6,
 documentadas en `docs/MOSDLC_TEMPLATE_STANDARD.md`. Los templates migrados viven en
-`templates/mosdlc/operations/fase-<n>/` y, para el lote transversal de
-operaciones recomendadas aceptadas, en
-`templates/mosdlc/operations/recommended/`; los templates `00`-`37` siguen siendo
+`templates/mosdlc/operations/fase-<n>/`; las operaciones recomendadas aceptadas
+viven en la fase que corresponde, salvo las transversales que viven en
+`templates/mosdlc/operations/cross-fase/`. Los templates `00`-`37` siguen siendo
 el catalogo de compatibilidad vigente, no se eliminan, no se renombran y no se
 renumeran.
 
@@ -161,29 +161,29 @@ renumeran.
 | MOS-6.10 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.10-process-product-improvements.md` | — | MOS-1.8 si toca el roadmap; MOS-3.8. |
 | MOS-6.11 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.11-process-code-improvements.md` | — | MOS-3.5 o MOS-3.3. |
 | MOS-6.12 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-6.12-process-dead-code-cleanup.md` | — | MOS-3.8. |
-| MOS-R.1 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.1-record-adr-decision.md` | `templates/operations/22-record-adr-decision.md` | MOS-3.1. |
-| MOS-R.2 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.2-recommend-next-operation.md` | `templates/operations/35-recommend-next-lifecycle-operation.md` | La operacion recomendada; la invoca el Humano PM. |
-| MOS-R.3 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.3-process-needs-pm-decision.md` | `templates/operations/36-process-needs-pm-decision.md` | Volver a la operacion de origen; MOS-3.5 para correcciones; MOS-3.3 para follow-ups. |
-| MOS-R.4 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.4-review-phase-readiness.md` | `templates/operations/37-review-phase-readiness.md` | La operacion segura de la fase target; MOS-R.3 o MOS-R.2 si falta decision o routing. |
-| MOS-R.5 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.5-audit-target-adoption-batch.md` | `templates/operations/14-audit-target-adapters.md`, `templates/operations/03-verify-target-adoption.md` | MOS-0.4 por target con drift. |
-| MOS-R.6 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.6-create-update-adr-from-design.md` | `templates/operations/22-record-adr-decision.md` | MOS-R.1 por decision extraida. |
-| MOS-R.7 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.7-review-licensing-publication-readiness.md` | `templates/operations/12-analyze-release-or-tag-readiness.md` | MOS-R.22. |
-| MOS-R.8 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.8-process-incident-hotfix.md` | — | MOS-3.4 (hotfix) y MOS-3.3 (postmortem). |
-| MOS-R.9 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.9-audit-docs-product-drift.md` | `templates/operations/05-review-project-state-and-misalignment.md` | MOS-1.8 si el drift es de docs; MOS-3.3 para follow-ups de producto. |
-| MOS-R.10 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.10-update-target-adapters-catalog.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` | MOS-0.5 por target actualizado. |
-| MOS-R.11 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.11-deployment-readiness-review.md` | — | MOS-R.12 si el readiness alcanza; si no, el checklist del entorno correspondiente. |
-| MOS-R.12 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.12-draft-deploy-command-bundle.md` | — | Ejecucion del Humano PM; luego MOS-R.13. Internal-only, pre-release convert. |
-| MOS-R.13 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.13-verify-post-deploy-state.md` | `templates/operations/11-verify-post-merge-state.md` | MOS-R.14. |
-| MOS-R.14 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.14-process-deployment-result.md` | — | MOS-R.15 si fallo y el PM elige rollback; MOS-3.3 para follow-ups. |
-| MOS-R.15 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.15-draft-rollback-commands.md` | — | Ejecucion del Humano PM; luego MOS-R.16. Internal-only, pre-release convert. |
-| MOS-R.16 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.16-process-rollback-result.md` | — | MOS-R.8 o MOS-3.3. |
-| MOS-R.17 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.17-dependency-security-update-audit.md` | — | MOS-3.8 para upgrades priorizados; MOS-3.3. |
-| MOS-R.18 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.18-secret-safe-config-audit.md` | — | MOS-3.3 por riesgo detectado. |
-| MOS-R.19 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.19-plan-validation-cycle.md` | — | MOS-R.20. |
-| MOS-R.20 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.20-review-validation-cycle-readiness.md` | `templates/operations/37-review-phase-readiness.md` | MOS-R.21 al cerrar el ciclo. |
-| MOS-R.21 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.21-process-validation-cycle-findings.md` | — | MOS-3.3 por hallazgo. |
-| MOS-R.22 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.22-public-packaging-safety-review.md` | — | MOS-R.23. |
-| MOS-R.23 | Recommended (transversal) | `templates/mosdlc/operations/recommended/MOS-R.23-convert-internal-operations-before-release.md` | — | MOS-R.7 de re-verificacion. |
+| MOS-R.1 | Design | `templates/mosdlc/operations/fase-2/MOS-R.1-record-adr-decision.md` | `templates/operations/22-record-adr-decision.md` | MOS-3.1. |
+| MOS-R.2 | Cross-phase | `templates/mosdlc/operations/cross-fase/MOS-R.2-recommend-next-operation.md` | `templates/operations/35-recommend-next-lifecycle-operation.md` | La operacion recomendada; la invoca el Humano PM. |
+| MOS-R.3 | Cross-phase | `templates/mosdlc/operations/cross-fase/MOS-R.3-process-needs-pm-decision.md` | `templates/operations/36-process-needs-pm-decision.md` | Volver a la operacion de origen; MOS-3.5 para correcciones; MOS-3.3 para follow-ups. |
+| MOS-R.4 | Cross-phase | `templates/mosdlc/operations/cross-fase/MOS-R.4-review-phase-readiness.md` | `templates/operations/37-review-phase-readiness.md` | La operacion segura de la fase target; MOS-R.3 o MOS-R.2 si falta decision o routing. |
+| MOS-R.5 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-R.5-audit-target-adoption-batch.md` | `templates/operations/14-audit-target-adapters.md`, `templates/operations/03-verify-target-adoption.md` | MOS-0.4 por target con drift. |
+| MOS-R.6 | Design | `templates/mosdlc/operations/fase-2/MOS-R.6-create-update-adr-from-design.md` | `templates/operations/22-record-adr-decision.md` | MOS-R.1 por decision extraida. |
+| MOS-R.7 | Implementation and release traceability | `templates/mosdlc/operations/fase-3/MOS-R.7-review-licensing-publication-readiness.md` | `templates/operations/12-analyze-release-or-tag-readiness.md` | MOS-R.22. |
+| MOS-R.8 | Implementation and release traceability | `templates/mosdlc/operations/fase-3/MOS-R.8-process-incident-hotfix.md` | — | MOS-3.4 (hotfix) y MOS-3.3 (postmortem). |
+| MOS-R.9 | Implementation and release traceability | `templates/mosdlc/operations/fase-3/MOS-R.9-audit-docs-product-drift.md` | `templates/operations/05-review-project-state-and-misalignment.md` | MOS-1.8 si el drift es de docs; MOS-3.3 para follow-ups de producto. |
+| MOS-R.10 | Adaptation | `templates/mosdlc/operations/fase-0/MOS-R.10-update-target-adapters-catalog.md` | `templates/operations/23-upgrade-kernel-adoption-in-target.md` | MOS-0.5 por target actualizado. |
+| MOS-R.11 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-R.11-deployment-readiness-review.md` | — | MOS-R.12 si el readiness alcanza; si no, el checklist del entorno correspondiente. |
+| MOS-R.12 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-R.12-draft-deploy-command-bundle.md` | — | Ejecucion del Humano PM; luego MOS-R.13. Internal-only, pre-release convert. |
+| MOS-R.13 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-R.13-verify-post-deploy-state.md` | `templates/operations/11-verify-post-merge-state.md` | MOS-R.14. |
+| MOS-R.14 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-R.14-process-deployment-result.md` | — | MOS-R.15 si fallo y el PM elige rollback; MOS-3.3 para follow-ups. |
+| MOS-R.15 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-R.15-draft-rollback-commands.md` | — | Ejecucion del Humano PM; luego MOS-R.16. Internal-only, pre-release convert. |
+| MOS-R.16 | Local/staging/production deployment | `templates/mosdlc/operations/fase-5/MOS-R.16-process-rollback-result.md` | — | MOS-R.8 o MOS-3.3. |
+| MOS-R.17 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-R.17-dependency-security-update-audit.md` | — | MOS-3.8 para upgrades priorizados; MOS-3.3. |
+| MOS-R.18 | Maintenance and tooling | `templates/mosdlc/operations/fase-6/MOS-R.18-secret-safe-config-audit.md` | — | MOS-3.3 por riesgo detectado. |
+| MOS-R.19 | Human QA and validation | `templates/mosdlc/operations/fase-4/MOS-R.19-plan-validation-cycle.md` | — | MOS-R.20. |
+| MOS-R.20 | Human QA and validation | `templates/mosdlc/operations/fase-4/MOS-R.20-review-validation-cycle-readiness.md` | `templates/operations/37-review-phase-readiness.md` | MOS-R.21 al cerrar el ciclo. |
+| MOS-R.21 | Human QA and validation | `templates/mosdlc/operations/fase-4/MOS-R.21-process-validation-cycle-findings.md` | — | MOS-3.3 por hallazgo. |
+| MOS-R.22 | Implementation and release traceability | `templates/mosdlc/operations/fase-3/MOS-R.22-public-packaging-safety-review.md` | — | MOS-R.23. |
+| MOS-R.23 | Implementation and release traceability | `templates/mosdlc/operations/fase-3/MOS-R.23-convert-internal-operations-before-release.md` | — | MOS-R.7 de re-verificacion. |
 
 Estas filas son superficie PM-facing de activacion, no un motor de workflow.
 Cada template debe resolver `kernel/manifest.json`, leer estado vivo solo al
@@ -205,8 +205,9 @@ completitud. MOS-6.7 a MOS-6.12 procesan esos resultados en modo draft-only
 hacia correccion, follow-up, roadmap o PM decision, sin autorizar limpieza,
 correccion ni despliegue por si mismos.
 
-Las filas MOS-R son el lote transversal de operaciones recomendadas aceptadas
-(#393): no pertenecen a una fase y conectan las fases entre si. MOS-R.3
+Las filas MOS-R son operaciones recomendadas aceptadas (#393). MOS-R.2,
+MOS-R.3 y MOS-R.4 son transversales y conectan las fases entre si; las demas
+viven en la fase que corresponde por fuente, conexiones y uso practico. MOS-R.3
 procesa status.needs_pm_decision con variables y categorias de decision claras
 (contexto faltante, elegir ruta, aprobar correccion acotada, follow-up,
 stop/no-op, volver a la operacion de origen, pedir mas evidencia) sin

@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 MAP_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_OPERATION_MAP.md"
 STANDARD_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_TEMPLATE_STANDARD.md"
-MOSDLC_RECOMMENDED_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations" / "recommended"
+MOSDLC_OPERATIONS_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations"
 LEGACY_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
 
 HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
@@ -34,6 +34,32 @@ KERNEL_GROWTH_CANDIDATES = {
     )
 }
 RECOMMENDED_IDS = [f"MOS-R.{index}" for index in range(1, 24)]
+RECOMMENDED_PLACEMENT = {
+    "MOS-R.1": "fase-2",
+    "MOS-R.2": "cross-fase",
+    "MOS-R.3": "cross-fase",
+    "MOS-R.4": "cross-fase",
+    "MOS-R.5": "fase-0",
+    "MOS-R.6": "fase-2",
+    "MOS-R.7": "fase-3",
+    "MOS-R.8": "fase-3",
+    "MOS-R.9": "fase-3",
+    "MOS-R.10": "fase-0",
+    "MOS-R.11": "fase-5",
+    "MOS-R.12": "fase-5",
+    "MOS-R.13": "fase-5",
+    "MOS-R.14": "fase-5",
+    "MOS-R.15": "fase-5",
+    "MOS-R.16": "fase-5",
+    "MOS-R.17": "fase-6",
+    "MOS-R.18": "fase-6",
+    "MOS-R.19": "fase-4",
+    "MOS-R.20": "fase-4",
+    "MOS-R.21": "fase-4",
+    "MOS-R.22": "fase-3",
+    "MOS-R.23": "fase-3",
+}
+CROSS_PHASE_RECOMMENDED_IDS = {"MOS-R.2", "MOS-R.3", "MOS-R.4"}
 READ_ONLY_ROWS = {
     "MOS-R.2",
     "MOS-R.4",
@@ -175,11 +201,16 @@ def _mosdlc_sort_key(value: str) -> tuple[int, ...]:
 
 
 def _mosdlc_template_paths() -> list[Path]:
-    return sorted(MOSDLC_RECOMMENDED_DIR.glob("*.md"), key=lambda path: _mosdlc_sort_key(path.stem))
+    paths: list[Path] = []
+    for rid in RECOMMENDED_IDS:
+        matches = sorted((MOSDLC_OPERATIONS_DIR / RECOMMENDED_PLACEMENT[rid]).glob(f"{rid}-*.md"))
+        assert len(matches) == 1, f"{rid} must have exactly one MOSDLC template"
+        paths.append(matches[0])
+    return paths
 
 
 def _template_path(row: dict[str, str]) -> Path:
-    return MOSDLC_RECOMMENDED_DIR / f"{row['ID']}-{row['Operación']}.md"
+    return MOSDLC_OPERATIONS_DIR / RECOMMENDED_PLACEMENT[row["ID"]] / f"{row['ID']}-{row['Operación']}.md"
 
 
 def _legacy_refs(row: dict[str, str]) -> list[str]:
@@ -218,20 +249,41 @@ def test_mosdlc_recommended_templates_are_documented_and_discoverable() -> None:
 
     for fragment in (
         "## Operaciones Recomendadas Migradas",
-        "templates/mosdlc/operations/recommended/",
+        "templates/mosdlc/operations/cross-fase/",
+        "templates/mosdlc/operations/fase-<n>/",
         "El wizard local sigue leyendo `templates/operations/`",
         "Template authority: none",
     ):
         assert fragment in standard
 
-    assert "templates/mosdlc/operations/recommended/" in map_doc
+    assert "templates/mosdlc/operations/cross-fase/" in map_doc
+    assert "templates/mosdlc/operations/recommended/" not in standard
+    assert "templates/mosdlc/operations/recommended/" not in catalog
+    assert "templates/mosdlc/operations/recommended/" not in flows
+    assert "templates/mosdlc/operations/recommended/" not in map_doc
+    assert not (MOSDLC_OPERATIONS_DIR / "recommended").exists()
 
     for rid, row in rows.items():
-        path = f"templates/mosdlc/operations/recommended/{rid}-{row['Operación']}.md"
+        path = _template_path(row).relative_to(REPO_ROOT).as_posix()
         assert rid in standard
         assert path in standard
         assert path in catalog
         assert path in flows
+
+
+def test_recommended_templates_have_phase_or_cross_phase_placement() -> None:
+    rows = _parse_operation_rows()
+    assert set(RECOMMENDED_PLACEMENT) == set(RECOMMENDED_IDS)
+    assert {rid for rid, folder in RECOMMENDED_PLACEMENT.items() if folder == "cross-fase"} == (
+        CROSS_PHASE_RECOMMENDED_IDS
+    )
+    for rid, row in rows.items():
+        path = _template_path(row)
+        assert path.exists()
+        if rid in CROSS_PHASE_RECOMMENDED_IDS:
+            assert path.parent.name == "cross-fase"
+        else:
+            assert re.fullmatch(r"fase-[0-6]", path.parent.name)
 
 
 def test_recommended_map_rows_have_matching_mosdlc_templates() -> None:
@@ -457,15 +509,15 @@ def test_legacy_00_37_templates_remain_usable_and_recommended_sources_are_preser
 def test_mosdlc_recommended_migration_does_not_expand_kernel_or_unrelated_surfaces() -> None:
     changed_files = _changed_files()
     migration_changed = any(
-        path.startswith("templates/mosdlc/operations/recommended/") for path in changed_files
+        path.startswith("templates/mosdlc/operations/cross-fase/")
+        or re.match(r"templates/mosdlc/operations/fase-[0-6]/MOS-R\.", path)
+        for path in changed_files
     )
     if not migration_changed:
         return
     assert not any(path.startswith("kernel/") for path in changed_files)
     assert not any(path.startswith("project-os-es/") for path in changed_files)
-    assert not any(
-        re.match(r"templates/mosdlc/operations/fase-\d", path) for path in changed_files
-    )
+    assert not (MOSDLC_OPERATIONS_DIR / "recommended").exists()
     # Root Operation 36 is the only 00-37 template that #393 may touch, narrowly.
     assert all(
         path == "templates/operations/36-process-needs-pm-decision.md"
@@ -477,9 +529,19 @@ def test_mosdlc_recommended_migration_does_not_expand_kernel_or_unrelated_surfac
             (
                 "docs/",
                 "tests/",
-                "templates/mosdlc/operations/recommended/",
+                "templates/mosdlc/operations/cross-fase/",
+                "templates/mosdlc/operations/fase-0/MOS-R.",
+                "templates/mosdlc/operations/fase-2/MOS-R.",
+                "templates/mosdlc/operations/fase-3/MOS-R.",
+                "templates/mosdlc/operations/fase-4/MOS-R.",
+                "templates/mosdlc/operations/fase-5/MOS-R.",
+                "templates/mosdlc/operations/fase-6/MOS-R.",
                 "templates/operations/36-process-needs-pm-decision.md",
             )
+        )
+        or (
+            path.startswith("templates/mosdlc/operations/recommended/")
+            and not (REPO_ROOT / path).exists()
         )
         for path in changed_files
     )

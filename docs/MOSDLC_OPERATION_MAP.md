@@ -215,9 +215,10 @@ separada.
 
 Operaciones recomendadas en la revisión de segunda opinión y aceptadas por el PM. El enunciado original se preserva en inglés tal como fue aceptado en el issue de mapeo.
 
-Los templates MOSDLC de estas operaciones viven en
-`templates/mosdlc/operations/recommended/` (#393). En #393 se removió wording
-específico de Project OS de las operaciones genéricas: MOS-R.3 clarificó sus
+Los templates MOSDLC de estas operaciones viven bajo
+`templates/mosdlc/operations/fase-<n>/` cuando pertenecen claramente a una fase
+y bajo `templates/mosdlc/operations/cross-fase/` cuando son transversales
+(#393). En #393 se removió wording específico de Project OS de las operaciones genéricas: MOS-R.3 clarificó sus
 variables y categorías de decisión, MOS-R.5 dejó de nombrar targets CodeFusion,
 MOS-R.19–MOS-R.21 se generalizaron como operaciones target-agnostic de ciclo de
 validación (QA interna, staging/UAT, beta, TestFlight/internal testing,

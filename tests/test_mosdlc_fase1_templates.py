@@ -224,7 +224,7 @@ def _mosdlc_metadata(text: str) -> dict[str, str]:
 
 
 def _mosdlc_template_paths() -> list[Path]:
-    return sorted(MOSDLC_FASE1_DIR.glob("*.md"))
+    return sorted(MOSDLC_FASE1_DIR.glob("MOS-1.*.md"))
 
 
 def test_mosdlc_fase1_templates_are_documented_and_discoverable() -> None:
@@ -363,6 +363,7 @@ def test_mosdlc_fase1_migration_does_not_expand_kernel_or_other_phases() -> None
                 "templates/mosdlc/operations/fase-2/",
             )
         )
+        and "/MOS-R." not in path
         for path in changed_files
     )
     if not migration_changed:

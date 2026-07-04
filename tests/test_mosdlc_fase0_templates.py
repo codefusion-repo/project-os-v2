@@ -153,7 +153,7 @@ def _mosdlc_metadata(text: str) -> dict[str, str]:
 
 
 def _mosdlc_template_paths() -> list[Path]:
-    return sorted(MOSDLC_FASE0_DIR.glob("*.md"))
+    return sorted(MOSDLC_FASE0_DIR.glob("MOS-0.*.md"))
 
 
 def test_mosdlc_template_standard_is_documented_and_discoverable() -> None:
@@ -281,13 +281,13 @@ def test_mosdlc_fase0_migration_does_not_expand_kernel_or_unsupported_phases() -
     )
     changed_files = {line for line in changed.stdout.splitlines() if line}
     migration_changed = any(
-        path.startswith("templates/mosdlc/operations/fase-0/") for path in changed_files
+        path.startswith("templates/mosdlc/operations/fase-0/") and "/MOS-R." not in path for path in changed_files
     )
     if not migration_changed:
         return
     assert not any(path.startswith("kernel/") for path in changed_files)
-    assert not any(path.startswith("templates/mosdlc/operations/fase-3/") for path in changed_files)
-    assert not any(path.startswith("templates/mosdlc/operations/fase-4/") for path in changed_files)
-    assert not any(path.startswith("templates/mosdlc/operations/fase-5/") for path in changed_files)
-    assert not any(path.startswith("templates/mosdlc/operations/fase-6/") for path in changed_files)
+    assert not any(path.startswith("templates/mosdlc/operations/fase-3/") and "/MOS-R." not in path for path in changed_files)
+    assert not any(path.startswith("templates/mosdlc/operations/fase-4/") and "/MOS-R." not in path for path in changed_files)
+    assert not any(path.startswith("templates/mosdlc/operations/fase-5/") and "/MOS-R." not in path for path in changed_files)
+    assert not any(path.startswith("templates/mosdlc/operations/fase-6/") and "/MOS-R." not in path for path in changed_files)
     assert not any("/MOS-R." in path for path in changed_files)
