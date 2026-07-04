@@ -1,102 +1,103 @@
-# Empezar: actores, repos y adopción
+# Empezar con Project OS
 
-**Este documento te deja operando en minutos: quién hace qué, qué repos están
-en juego y cómo se adopta Project OS en un proyecto.**
+**Guía breve para arrancar bien: confirma lo externo, elige superficie,
+configura el browser, prepara terminal solo si vas a delegar y abre la primera
+sesión con evidencia real.**
 
-## Los tres actores
+## 1. Requisitos externos
 
-La capacidad viene de la superficie de ejecución, nunca del rol:
+Project OS no controla estos puntos. Tenlos listos antes de operar:
 
-- **Humano PM (tú).** Única autoridad real: merge, cierre de issues, tags,
-  releases, labels, settings, secretos, deployment y toda decisión de alcance.
-  Nada de eso se delega por defecto.
-- **Browser chat.** Tu compañero de análisis y redacción, **siempre
-  draft-only**: revisa PRs, draftea issues, route prompts y bundles de
-  comandos que tú ejecutas. Aunque su superficie pudiera técnicamente mutar
-  GitHub, su frontera sigue siendo solo lectura y borradores.
-- **Terminal agent.** El ejecutor (Claude Code, Codex CLI, Gemini o similar):
-  edita archivos en scope, valida, hace commit/push y abre PRs en draft — solo
-  con un route prompt, el modo de ejecución correcto y aprobación PM exacta
-  (`PM_AUTHORIZATION_STATUS = granted for this exact scope and mode`).
+- **Repo target creado en GitHub.** Es el producto que vas a adoptar,
+  implementar, revisar o auditar.
+- **Cuenta GitHub conectada con acceso al repo target.** El acceso conectado
+  requerido es al target: issues, PRs, diffs y docs según el flujo.
+- **Browser chat con lectura GitHub/repo target en modo read-only.** Recomendado:
+  ChatGPT con GitHub conectado. Otra superficie sirve si permite proyecto/chat
+  con instrucciones y lectura del repo target.
+- **Terminal/local con acceso GitHub al target si delegarás implementación.**
+  Debe poder leer y escribir lo aprobado; si el flujo usa issues o PRs, también
+  necesita acceso a issues/PRs del target.
+- **Repo Project OS readable.** Úsalo como fuente pública o legible de kernel,
+  operaciones, adapters y docs; no lo presentes como requisito privado ligado a
+  una cuenta especial.
+- **Sin secretos para empezar.** No necesitas `.env`, tokens, llaves privadas ni
+  credenciales de producción para activar una sesión.
 
-## Dos repos en juego
+## 2. Superficies
 
-- **Repo Project OS** (`codefusion-repo/project-os-v2`): kernel, adapters,
-  templates, operaciones y docs.
-- **Repo target**: el producto que se adopta, implementa, revisa o audita.
-  En desarrollo del propio Project OS, ambos son el mismo repo.
+La capacidad depende de la superficie, no del rol:
 
-Antes de cualquier operación, ten claro cuál repo cumple cada rol.
+- **Humano PM.** Decide alcance, aprobaciones exactas, merge, cierre de issues,
+  labels, tags, releases, settings, secretos y despliegues.
+- **Browser chat.** Sirve para draft, revision, routing y analisis. Permanece
+  read-only/draft-only aunque la herramienta conectada pudiera escribir.
+- **Terminal agent.** Ejecuta implementación delegada: edita en scope, valida,
+  hace commit/push y abre PR draft solo con evidencia viva, rama correcta y
+  aprobación PM exacta.
 
-## Requisitos mínimos antes de comenzar
+Dos repos aparecen en casi todos los flujos:
 
-No necesitas `.env` ni secretos para empezar; basta esta lista:
+- **Repo Project OS:** kernel, operaciones, adapters y docs.
+- **Repo target:** producto donde se adopta o ejecuta el trabajo. En el
+  desarrollo de Project OS, target y Project OS pueden ser el mismo repo.
 
-- **Cuenta GitHub activa**, con acceso de lectura al repo Project OS
-  (`codefusion-repo/project-os-v2`).
-- **Repo target ya creado** en GitHub (aunque esté vacío), y los roles claros:
-  cuál repo es Project OS y cuál es el target.
-- **Browser chat configurado**: un proyecto/chat (Claude en browser o
-  superficie equivalente) con las instrucciones de Project OS cargadas.
-- **Lectura verificada desde el browser**: el chat puede leer el repo
-  Project OS y el repo target en modo solo lectura.
-- **Para delegar implementación, un terminal agent listo**: checkout local
-  del repo, `gh auth status` correcto, Python disponible y la ruta del kernel
-  conocida (`KERNEL_LOCAL_PATH` del adapter).
-- **Permisos mínimos por superficie**: browser chat lee y draftea; el
-  terminal agent escribe solo en ramas `work/*` y PRs en draft; el Humano PM
-  conserva merge, cierre, settings y secretos.
+Antes de pedir trabajo, nombra cuál repo cumple cada rol.
 
-## Adoptar Project OS en un proyecto
+## 3. Configuración browser
 
-1. **Target existente:** copia `adapters/AGENTS.target.md` al repo target como
-   `AGENTS.md` y completa sus placeholders (`TARGET_REPOSITORY`,
-   `KERNEL_LOCAL_PATH`). Opcional: `CLAUDE.md` / `GEMINI.md` según el agente.
-2. **Proyecto nuevo:** usa la operación de bootstrap
-   ([MOS-0.2](../operaciones/fase-0/MOS-0.2-iniciar-proyecto-nuevo.md)) para
-   draftear la estructura inicial y el roadmap de fundación.
-3. **Verifica:** corre
-   [MOS-0.5](../operaciones/fase-0/MOS-0.5-verificar-adopcion-del-target.md)
-   para confirmar que la adopción es correcta y apunta al kernel actual.
+Haz esto en la superficie browser antes de usarla para draft o revisión:
 
-## Arrancar una sesión
+1. Usa ChatGPT recomendado u otra superficie browser que permita proyecto/chat
+   con instrucciones persistentes.
+2. Carga las instrucciones de Project OS o el adapter del target cuando exista.
+3. Conecta o verifica GitHub en esa superficie.
+4. Confirma que puede leer el repo target; cuando aplique, confirma también que
+   puede leer el repo Project OS.
+5. Si no puede leer una evidencia requerida, debe responder
+   `status.needs_context` con lo que falta. No debe inventar estado de issues,
+   PRs, ramas, diffs, validación ni roadmap.
 
-- **Browser chat (configuración por primera vez):**
-  1. Crea o abre el proyecto/chat en tu superficie de browser y carga las
-     instrucciones de Project OS (el adapter de browser chat del target
-     cuando exista; si no, las instrucciones base del repo Project OS).
-  2. Confirma el conector o acceso GitHub: el chat necesita poder **leer** el
-     repo Project OS y el target (issues, PRs, diffs, docs, kernel).
-  3. Pide al chat activar la sesión con
-     [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md).
-  4. Verifica el fail-closed: si le falta acceso a algo requerido, debe
-     devolver `status.needs_context` nombrando exactamente qué falta — nunca
-     inventar estado. Si inventa estado, la sesión no quedó bien configurada.
-- **Terminal agent:** antes de cualquier implementación delegada confirma el
-  checkout local del repo, el branch preflight (rama, worktree y HEAD) y
-  `gh auth status`. Luego resuelve el kernel; con checkout local y Python, el
-  fast path es:
+## 4. Preparación terminal/local
 
-  ```sh
-  python -m tools.project_os_resolve --actor <actor> --workflow <workflow> \
-    --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH"
-  ```
+Haz esto solo cuando vayas a delegar implementación a un terminal agent:
 
-  La resolución manual de `kernel/manifest.json` es siempre el fallback
-  canónico. La salida del resolver guía; **no autoriza**.
-- **¿Sesión incoherente o agotada?** Empaqueta el contexto con
-  [MOS-0.6](../operaciones/fase-0/MOS-0.6-transferir-contexto-de-sesion.md) y
-  abre una sesión nueva basada solo en el estado de GitHub.
+1. Ten el repo target clonado o el workspace local listo.
+2. Verifica `gh auth status` para el repo target.
+3. Confirma acceso a issues y PRs del target cuando el agente necesite leerlos,
+   comentarlos o abrir PRs.
+4. Ten Python disponible si usaras el resolver.
+5. Conoce `KERNEL_LOCAL_PATH` desde el adapter del target.
+6. Antes de editar, corre branch preflight: rama actual, worktree, HEAD y scope
+   esperado.
+7. El terminal agent solo escribe en ramas `work/*` y PRs draft con aprobación
+   PM exacta para ese scope y modo. La salida del resolver guía; no autoriza.
 
-## Acceso a GitHub
+Fast path del resolver cuando el repo ya está listo:
 
-Todo pasa por `gh` autenticado localmente, con mínimo privilegio por
-superficie: browser chat lee; el terminal agent escribe código, PRs e issues de
-trazabilidad; el Humano PM conserva todas las acciones destructivas. Nunca uses
-una cuenta administradora para edición simple, y prefiere permisos
-repo-a-repo sobre acceso de organización.
+```sh
+python -m tools.project_os_resolve --actor <actor> --workflow <workflow> \
+  --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH"
+```
 
-## Siguiente paso
+La resolución manual de `kernel/manifest.json` sigue siendo el fallback
+canónico.
 
-Con la adopción verificada, lee las reglas que protegen todo el sistema en
-[reglas.md](reglas.md), y luego el ciclo de trabajo en [ritmo.md](ritmo.md).
+## 5. Primera sesión
+
+1. **Elige superficie.** Usa browser chat para draft, revisión y routing;
+   terminal agent para implementación delegada; Humano PM para cierre, merge,
+   settings, secretos y despliegues.
+2. **Activa browser chat con
+   [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md).**
+3. **Verifica adopción cuando haya target con
+   [MOS-0.5](../operaciones/fase-0/MOS-0.5-verificar-adopcion-del-target.md).**
+   Si el target aún no adoptó Project OS, usa
+   [MOS-0.2](../operaciones/fase-0/MOS-0.2-iniciar-proyecto-nuevo.md) para
+   proyecto nuevo o
+   [MOS-0.3](../operaciones/fase-0/MOS-0.3-adoptar-proyecto-existente.md) para
+   proyecto existente.
+4. **Usa
+   [MOS-0.6](../operaciones/fase-0/MOS-0.6-transferir-contexto-de-sesion.md)
+   solo si la sesión está incoherente, agotada o necesita traspaso.**
+5. **Siguiente paso:** lee [reglas.md](reglas.md) y luego [ritmo.md](ritmo.md).
