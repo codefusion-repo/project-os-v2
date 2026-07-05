@@ -67,6 +67,75 @@ alineado al framework y la madurez real del target.
 - Meter todo el estado en un store global para "no pensarlo".
 - Animaciones y estética que esconden que el flujo real está roto.
 
+## Ejemplos de criterio
+
+Contrastes compactos que ilustran el nivel de calidad esperado. Son snippets
+genéricos (estilo React/JSX), no plantillas ni reglas de workflow.
+
+### Todos los estados, no solo el éxito
+
+Problemático — solo carga y éxito; error y vacío quedan en blanco:
+
+```jsx
+function Lista({ items, loading }) {
+  if (loading) return <Spinner />;
+  return <ul>{items.map(i => <li key={i.id}>{i.nombre}</li>)}</ul>;
+}
+```
+
+Mejor — carga, error recuperable, vacío y éxito, cada uno explícito:
+
+```jsx
+function Lista({ items, loading, error, onRetry }) {
+  if (loading) return <Spinner />;
+  if (error) return <Aviso mensaje="No se pudo cargar la lista." accion={onRetry} />;
+  if (items.length === 0) return <Vacio mensaje="Aún no hay elementos." />;
+  return <ul>{items.map(i => <li key={i.id}>{i.nombre}</li>)}</ul>;
+}
+```
+
+### Semántica nativa antes que div clicable
+
+Problemático — invisible para teclado y lectores de pantalla:
+
+```jsx
+<div className="btn" onClick={guardar}>Guardar</div>
+```
+
+Mejor — control nativo con foco, teclado y estado deshabilitado gratis:
+
+```jsx
+<button type="button" onClick={guardar} disabled={enviando}>
+  {enviando ? "Guardando…" : "Guardar"}
+</button>
+```
+
+### Doble submit y acción destructiva
+
+Problemático — permite doble envío y oculta el error:
+
+```jsx
+async function onSubmit() {
+  await api.eliminarCuenta();  // sin confirmación, sin pending, error tragado
+}
+```
+
+Mejor — confirmación, estado pendiente y error visible donde el usuario actúa:
+
+```jsx
+async function onSubmit() {
+  if (!(await confirmar("Esta acción elimina la cuenta y no se puede deshacer."))) return;
+  setEnviando(true);
+  try {
+    await api.eliminarCuenta();
+  } catch {
+    setError("No se pudo eliminar la cuenta. Intenta de nuevo.");
+  } finally {
+    setEnviando(false);  // el botón queda deshabilitado mientras enviando === true
+  }
+}
+```
+
 ## Output esperado de la skill
 
 Juicio técnico accionable dentro del scope: estados y bordes faltantes, riesgos
