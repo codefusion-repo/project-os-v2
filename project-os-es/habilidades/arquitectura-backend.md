@@ -110,7 +110,7 @@ Mejor — verifica actor contra recurso antes de responder, y expone solo lo per
 ```python
 def get_invoice(req):
     invoice = db.invoices.get(req.params["id"])
-    if invoice is None or invoice.owner_id != req.actor.id:
+    if invoice is None or invoice.owner_id != req.actor_id:
         return error("not_found", 404)   # sin filtrar existencia a terceros
     return serialize(invoice, fields=VISIBLE_FOR_OWNER)
 ```
