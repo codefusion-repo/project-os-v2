@@ -3,7 +3,8 @@
 Hidrata el contrato JSON del kernel en espanol (project-os-es/kernel/) por
 (actor, mode, workflow) a partir del manifest activo.
 Evidence, salidas y artefactos hidratan desde el workflow resuelto
-(required_evidence, allowed_outputs); el mode gobierna unicamente acciones
+(required_evidence, allowed_outputs); los skills se exponen solo cuando se
+solicitan explicitamente. El mode gobierna unicamente acciones
 permitidas/prohibidas, fallback y compatibilidad con el actor, y mode_key en
 evidencia/salidas no selecciona registros. Lee el kernel JSON en runtime y no
 duplica data del kernel; no lee estado vivo de GitHub/git y no muta archivos
@@ -15,7 +16,10 @@ resuelto expone manifest, reglas_operativas, actor, limites, mode, workflow y
 estados_permitidos. Los campos required_evidence y allowed_outputs del
 workflow llevan el contenido hidratado, no ids crudos, y ningun registro
 expone workflow_key ni mode_key. Los artefactos exponen referencias de template
-(`required_template`) y nunca contenido de templates.
+(`required_template`) y nunca contenido de templates. Los skills solicitados
+exponen referencias de habilidad (`required_skill`) y nunca contenido markdown;
+viven fuera de workflow como `requested_skills`, separados de artefactos y
+templates.
 
 El output hidratado es guia operativa y nunca concede permisos
 (rule.no_autorizacion, boundary.output_not_permission). Toda falla resuelve
@@ -26,7 +30,7 @@ Importable como funcion o ejecutable como comando desde cualquier cwd:
 
     python /ruta/a/project-os-es/tools/resolver.py \
         --actor actor.browser_chat --mode mode.review_only \
-        --workflow workflow.review_only [--kernel-dir DIR]
+        --workflow workflow.review_only [--kernel-dir DIR] [--skill skill.id]
 
 Exit codes: 0 = status.resolved, 1 = fail-closed estructurado, 2 = error de
 tooling inesperado.
@@ -53,6 +57,7 @@ _ARCHIVOS_KERNEL = {
     "evidencia": ("evidencia.json", "evidence"),
     "salidas": ("salidas.json", "outputs"),
     "artefactos": ("artefactos.json", "artefactos"),
+    "skills": ("skills.json", "skills"),
     "estados": ("estados.json", "statuses"),
 }
 
@@ -76,6 +81,10 @@ _CLAVES_EVIDENCIA = ("key", "satisfied_by", "missing_status", "required", "activ
 _CLAVES_SALIDA = ("key", "use_for", "status_key", "must_include", "active")
 _CLAVES_ARTEFACTO = (
     "key", "output_key", "responsabilidad", "required_template", "active",
+)
+_CLAVES_SKILL = (
+    "key", "nombre", "responsabilidad", "required_skill", "use_for",
+    "non_authorization", "active",
 )
 _CLAVES_ESTADO = ("key", "meaning", "type", "active")
 
@@ -172,6 +181,16 @@ def _template_existe(required_template: str, kernel_dir: Path) -> bool:
     return any(candidate.is_file() for candidate in candidates)
 
 
+def _skill_file_existe(required_skill: str, kernel_dir: Path) -> bool:
+    """Valida referencias .md bajo project-os-es/habilidades/ sin leer contenido."""
+    ruta = Path(required_skill)
+    if ruta.is_absolute() or ruta.parts[:2] != ("project-os-es", "habilidades"):
+        return False
+    if len(ruta.parts) != 3 or ruta.suffix != ".md":
+        return False
+    return (kernel_dir.parent.parent / ruta).is_file()
+
+
 def _artefactos_resueltos(
     workflow: dict[str, Any],
     salidas: dict[str, dict[str, Any]],
@@ -206,18 +225,61 @@ def _artefactos_resueltos(
     return resueltos
 
 
+def _skill_keys_solicitadas(
+    skill: str | list[str] | tuple[str, ...] | None,
+) -> list[str]:
+    if skill is None:
+        return []
+    if isinstance(skill, str):
+        return [skill]
+    return list(skill)
+
+
+def _skills_solicitados(
+    skill_keys: list[str],
+    skills: dict[str, dict[str, Any]],
+    kernel_dir: Path,
+    faltantes: list[str],
+) -> list[dict[str, Any]]:
+    """Hidrata skills pedidos explicitamente y valida su referencia compacta."""
+    resueltos: list[dict[str, Any]] = []
+    vistos: set[str] = set()
+    for key in skill_keys:
+        if key in vistos:
+            continue
+        vistos.add(key)
+        registro = skills.get(key)
+        if registro is None:
+            faltantes.append(f"skill desconocido: {key!r} (conocidos: {sorted(skills)})")
+            continue
+        required_skill = registro.get("required_skill")
+        if not isinstance(required_skill, str) or not required_skill.endswith(".md"):
+            faltantes.append(f"skill sin required_skill .md valido: {key}")
+            continue
+        if not _skill_file_existe(required_skill, kernel_dir):
+            faltantes.append(
+                f"skill requerido no encontrado o fuera de project-os-es/habilidades: "
+                f"{key}: {required_skill}"
+            )
+            continue
+        resueltos.append(_campos(registro, _CLAVES_SKILL))
+    return resueltos
+
+
 def resolver(
     actor: str | None,
     mode: str | None = None,
     workflow: str | None = None,
     kernel_dir: Path | str | None = None,
+    skill: str | list[str] | tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     """Resuelve (actor, mode, workflow) contra el kernel es en runtime.
 
     Devuelve siempre un dict estructurado: estado status.resolved con el
     contrato hidratado y la guia operativa, o fail-closed con estado
     status.blocked y errores explicitos. Mode faltante cae a
-    mode.review_only; mode invalido nunca cae, falla cerrado.
+    mode.review_only; mode invalido nunca cae, falla cerrado. Skill faltante no
+    cambia el output; skill desconocido falla cerrado.
     """
     dir_kernel = Path(kernel_dir) if kernel_dir is not None else _KERNEL_DIR_DEFAULT
     if not dir_kernel.is_dir():
@@ -302,6 +364,9 @@ def resolver(
     artefactos = _artefactos_resueltos(
         registro_workflow, salidas, data["artefactos"], dir_kernel, faltantes
     )
+    requested_skills = _skills_solicitados(
+        _skill_keys_solicitadas(skill), _indexar(data["skills"]), dir_kernel, faltantes
+    )
 
     if faltantes:
         return _fail_closed(faltantes)
@@ -325,21 +390,25 @@ def resolver(
     if faltantes:
         return _fail_closed(faltantes)
 
+    resuelto: dict[str, Any] = {
+        "manifest": _campos(manifest, _CLAVES_MANIFEST),
+        "reglas_operativas": [_campos(regla, _CLAVES_REGLA) for regla in reglas],
+        "actor": _campos(registro_actor, _CLAVES_ACTOR),
+        "limites": [_campos(limite, _CLAVES_LIMITE) for limite in limites],
+        "mode": _campos(registro_mode, _CLAVES_MODE),
+        "workflow": _workflow_resuelto(
+            registro_workflow, evidencia, salidas, artefactos
+        ),
+        "estados_permitidos": [
+            _campos(estado, _CLAVES_ESTADO) for estado in estados.values()
+        ],
+    }
+    if requested_skills:
+        resuelto["requested_skills"] = requested_skills
+
     return {
         "estado": "status.resolved",
-        "resuelto": {
-            "manifest": _campos(manifest, _CLAVES_MANIFEST),
-            "reglas_operativas": [_campos(regla, _CLAVES_REGLA) for regla in reglas],
-            "actor": _campos(registro_actor, _CLAVES_ACTOR),
-            "limites": [_campos(limite, _CLAVES_LIMITE) for limite in limites],
-            "mode": _campos(registro_mode, _CLAVES_MODE),
-            "workflow": _workflow_resuelto(
-                registro_workflow, evidencia, salidas, artefactos
-            ),
-            "estados_permitidos": [
-                _campos(estado, _CLAVES_ESTADO) for estado in estados.values()
-            ],
-        },
+        "resuelto": resuelto,
         "autorizacion": AUTORIZACION,
         "errores": [],
     }
@@ -354,8 +423,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Resolver de la superficie Project OS en espanol: hidrata "
-            "project-os-es/kernel/ por (actor, mode, workflow). El output es "
-            "guia operativa y nunca concede permisos."
+            "project-os-es/kernel/ por (actor, mode, workflow) y puede exponer "
+            "skills opcionales solicitados. El output es guia operativa y "
+            "nunca concede permisos."
         ),
     )
     parser.add_argument("--actor", required=True, help="ej. actor.browser_chat")
@@ -370,11 +440,21 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="directorio del kernel es (default: kernel/ junto a tools/)",
     )
+    parser.add_argument(
+        "--skill",
+        action="append",
+        default=None,
+        help="skill opcional a exponer; se puede repetir. ej. skill.arquitectura_backend",
+    )
     args = parser.parse_args(argv)
 
     try:
         resultado = resolver(
-            args.actor, args.mode, args.workflow, kernel_dir=args.kernel_dir
+            args.actor,
+            args.mode,
+            args.workflow,
+            kernel_dir=args.kernel_dir,
+            skill=args.skill,
         )
     except Exception as exc:
         error = _fail_closed([f"error de tooling inesperado: {exc}"])

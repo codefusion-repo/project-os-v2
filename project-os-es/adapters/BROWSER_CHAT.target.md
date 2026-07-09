@@ -53,6 +53,10 @@ Para draft, usa los artefactos y templates del kernel:
 - command bundles PM: `project-os-es/templates/pm-command-bundle.md`;
 - otros formatos: artefacto resuelto por el kernel con su `required_template`.
 
+Un route prompt puede recomendar un skill opcional de
+`project-os-es/kernel/skills.json` y una familia de terminal agent (Codex,
+Claude o Gemini). Esa recomendacion no autoriza escritura ni obliga al agente.
+
 ## Seguridad y validacion
 
 - No pidas ni expongas secretos; redacta valores sensibles como `[REDACTED]`.

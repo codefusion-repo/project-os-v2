@@ -115,6 +115,8 @@
       "status_key": "status.resolved",
       "must_include": [
         "bloque de variables estandar",
+        "skill opcional recomendado cuando ayude, sin hacerlo obligatorio ni autorizante",
+        "familia de terminal agent recomendada cuando ayude, como Codex, Claude o Gemini, sin hacerla vinculante",
         "instruccion de tarea en terminos del scope",
         "esfuerzo recomendado con rationale",
         "nota de que el agente ejecutor re-resuelve el kernel y el prompt no concede permisos"

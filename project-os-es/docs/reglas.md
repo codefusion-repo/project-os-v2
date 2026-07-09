@@ -42,6 +42,10 @@ Humano PM salvo aprobación separada y exacta. Ante kernel faltante, evidencia
 faltante, autoridad ambigua o validación fallida: detenerse y devolver
 `status.needs_context`, `status.needs_pm_decision` o `status.blocked`.
 
+Los skills opcionales tampoco autorizan. Solo describen una capacidad o metodo
+que el agente puede aplicar si el PM lo pide o un route prompt lo recomienda;
+no cambian workflow, mode, scope, preflight, validacion ni review-before-close.
+
 ## Trazabilidad: todo se puede reconstruir en frío
 
 Cualquier agente debe poder retomar el proyecto solo desde GitHub:

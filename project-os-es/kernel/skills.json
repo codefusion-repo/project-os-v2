@@ -1,0 +1,26 @@
+{
+  "skills": [
+    {
+      "key": "skill.arquitectura_backend",
+      "nombre": "Arquitectura backend",
+      "responsabilidad": "Aplicar criterio backend sobre arquitectura, datos, APIs, seguridad, performance, confiabilidad, migraciones y observabilidad.",
+      "required_skill": "project-os-es/habilidades/arquitectura-backend.md",
+      "use_for": [
+        "Scopes que tocan modelos de datos, APIs, servicios, infraestructura cloud, integraciones, migraciones, performance backend o resiliencia."
+      ],
+      "non_authorization": "Opcional: no concede permisos, no reemplaza scope vivo, aprobacion PM, preflight, validacion, trazabilidad ni review-before-close.",
+      "active": true
+    },
+    {
+      "key": "skill.desarrollo_frontend",
+      "nombre": "Desarrollo frontend",
+      "responsabilidad": "Aplicar criterio frontend sobre UI implementable, accesibilidad, performance web, componentes, estado e integracion con APIs.",
+      "required_skill": "project-os-es/habilidades/desarrollo-frontend.md",
+      "use_for": [
+        "Scopes que tocan interfaces web, componentes, estado cliente, accesibilidad, responsive design, performance frontend o integracion editor/browser."
+      ],
+      "non_authorization": "Opcional: no concede permisos, no reemplaza scope vivo, aprobacion PM, preflight, validacion, trazabilidad ni review-before-close.",
+      "active": true
+    }
+  ]
+}

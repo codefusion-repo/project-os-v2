@@ -4,7 +4,7 @@
       "key": "manifest.kernel_es",
       "version": "1.0.0",
       "language": "es",
-      "objetivo": "Definir el contrato operativo compacto que un resolver hidrata por (actor, mode, workflow) para gobernar comportamiento de agentes sobre un proyecto o target, sin conceder permisos. El modelo es agnostico al proyecto: GitHub, git, issues y PRs aparecen solo como adapters o ejemplos de fuente. Los artefactos son unidades drafteables/creables/trazables/documentables con una responsabilidad y, cuando dependen de template, un required_template .md. Esta superficie opera desde project-os-es/kernel/*.json; el kernel raiz queda como source-basis/compatibilidad historica, no como ruta activa en espanol.",
+      "objetivo": "Definir el contrato operativo compacto que un resolver hidrata por (actor, mode, workflow) para gobernar comportamiento de agentes sobre un proyecto o target, sin conceder permisos. El modelo es agnostico al proyecto: GitHub, git, issues y PRs aparecen solo como adapters o ejemplos de fuente. Los artefactos son unidades drafteables/creables/trazables/documentables con una responsabilidad y, cuando dependen de template, un required_template .md. Los skills son capacidades opcionales que un agente puede aplicar cuando el PM las pide o un route prompt las recomienda; nunca autorizan ni reemplazan gates. Esta superficie opera desde project-os-es/kernel/*.json; el kernel raiz queda como source-basis/compatibilidad historica, no como ruta activa en espanol.",
       "resolution_sequence": [
         "Lee esta resolución completa.",
         "Trátala como tu guía operativa obligatoria.",
@@ -13,6 +13,7 @@
         "Respeta las acciones permitidas y prohibidas de tu modo de ejecución.",
         "Ejecuta exclusivamente el workflow resuelto.",
         "Respeta las evidencias, salidas y artefactos del workflow resuelto.",
+        "Respeta cualquier skill opcional solicitado como referencia de capacidad, no como permiso ni workflow logic.",
         "Respeta los estados resueltos obligatoriamente."
       ],
       "active": true

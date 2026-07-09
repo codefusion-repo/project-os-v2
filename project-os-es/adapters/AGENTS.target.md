@@ -42,12 +42,16 @@ PROJECT_OS_ES_LOCAL_PATH="${KERNEL_LOCAL_PATH%/}"
 PROJECT_OS_ES_LOCAL_PATH="${PROJECT_OS_ES_LOCAL_PATH%/kernel}"
 python "$PROJECT_OS_ES_LOCAL_PATH/tools/resolver.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_LOCAL_PATH"
+  --kernel-dir "$KERNEL_LOCAL_PATH" [--skill skill.<id>]
 ```
 
 La resolucion manual de `project-os-es/kernel/manifest.json` es el fallback
 canonico para esta superficie. La resolucion da forma operativa y nunca concede
 permisos.
+
+`--skill` es opcional y solo expone una referencia de capacidad del agente; no
+autoriza escritura ni reemplaza evidencia, aprobacion PM, preflight,
+validacion, trazabilidad o review-before-close.
 
 ## Outputs y artefactos
 
@@ -55,6 +59,10 @@ Cuando produzcas reportes de ejecucion, cuerpos de PR, paquetes de handoff,
 paquetes de adopcion u otros outputs, usa los artefactos/template references
 resueltos desde `project-os-es` cuando apliquen. Los templates dan forma y nunca
 autorizan.
+
+Cuando el PM pida una capacidad o un route prompt la recomiende, usa el skill
+resuelto como referencia a `project-os-es/habilidades/`. Los skills no son
+artefactos ni templates.
 
 El terminal agent sigue obligado por scope vivo, branch preflight, aprobacion PM
 exacta, validacion proporcional y review-before-close. Ningun artefacto ni
