@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.issue_implementation_manual · mode.review_only · output.manual_implementation_plan
 - Evidencia: evidence.issue_scope, evidence.source_basis, evidence.repo_state
-- Compatibilidad: `templates/operations/33-draft-manual-implementation-plan.md`
+- Compatibilidad: `legacy-project-os/templates/operations/33-draft-manual-implementation-plan.md`
 - Aprobación PM: No (draft-only; el humano aplica y valida)
 
 **Hace:** Draftea el paso a paso humano-ejecutable para implementar un issue sin escribir archivos.

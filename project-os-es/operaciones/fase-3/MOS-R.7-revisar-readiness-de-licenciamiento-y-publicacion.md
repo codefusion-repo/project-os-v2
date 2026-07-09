@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.release_readiness · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state, evidence.source_basis
-- Compatibilidad: `templates/operations/12-analyze-release-or-tag-readiness.md`
+- Compatibilidad: `legacy-project-os/templates/operations/12-analyze-release-or-tag-readiness.md`
 - Aprobación PM: No (review advisory; publicación queda con el PM)
 
 **Hace:** Revisa licenciamiento, soporte, secrets hygiene y calidad documental para publicación.

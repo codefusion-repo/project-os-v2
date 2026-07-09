@@ -45,7 +45,7 @@ from tools.operation_prompt_wizard import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
+OPERATIONS_DIR = REPO_ROOT / "legacy-project-os" / "templates" / "operations"
 
 
 def write_operation(path: Path, title: str, input_block: str = "  (none)") -> None:

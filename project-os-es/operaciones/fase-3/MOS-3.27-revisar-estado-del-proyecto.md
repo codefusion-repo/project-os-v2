@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/05-review-project-state-and-misalignment.md`
+- Compatibilidad: `legacy-project-os/templates/operations/05-review-project-state-and-misalignment.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Revisa estado del proyecto y desalineaciones respecto a la documentación.

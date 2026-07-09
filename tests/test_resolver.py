@@ -11,7 +11,7 @@ import pytest
 from tools.project_os_resolve import main, resolve
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-KERNEL_DIR = REPO_ROOT / "kernel"
+KERNEL_DIR = REPO_ROOT / "legacy-project-os" / "kernel"
 
 
 # ---------------------------------------------------------------------------

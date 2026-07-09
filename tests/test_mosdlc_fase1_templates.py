@@ -8,10 +8,10 @@ import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-MAP_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_OPERATION_MAP.md"
-STANDARD_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_TEMPLATE_STANDARD.md"
-MOSDLC_FASE1_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations" / "fase-1"
-LEGACY_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
+MAP_DOC_PATH = REPO_ROOT / "legacy-project-os" / "docs" / "MOSDLC_OPERATION_MAP.md"
+STANDARD_DOC_PATH = REPO_ROOT / "legacy-project-os" / "docs" / "MOSDLC_TEMPLATE_STANDARD.md"
+MOSDLC_FASE1_DIR = REPO_ROOT / "legacy-project-os" / "templates" / "mosdlc" / "operations" / "fase-1"
+LEGACY_OPERATIONS_DIR = REPO_ROOT / "legacy-project-os" / "templates" / "operations"
 
 HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
 KERNEL_ID_PATTERN = re.compile(
@@ -157,7 +157,7 @@ REQUIRED_BLOCKS = [
 
 def _kernel_ids() -> set[str]:
     ids: set[str] = set()
-    for path in sorted((REPO_ROOT / "kernel").glob("*.json")):
+    for path in sorted((REPO_ROOT / "legacy-project-os" / "kernel").glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(data.get("id"), str):
             ids.add(data["id"])
@@ -229,8 +229,8 @@ def _mosdlc_template_paths() -> list[Path]:
 
 def test_mosdlc_fase1_templates_are_documented_and_discoverable() -> None:
     standard = STANDARD_DOC_PATH.read_text(encoding="utf-8")
-    catalog = (REPO_ROOT / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
-    flows = (REPO_ROOT / "docs" / "OPERATION_FLOWS.md").read_text(encoding="utf-8")
+    catalog = (REPO_ROOT / "legacy-project-os" / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
+    flows = (REPO_ROOT / "legacy-project-os" / "docs" / "OPERATION_FLOWS.md").read_text(encoding="utf-8")
 
     for fragment in (
         "## Fase 1 Migrada",
@@ -343,7 +343,7 @@ def test_legacy_00_37_templates_remain_usable_and_not_renumbered() -> None:
     assert [path.name[:2] for path in legacy_paths] == expected
     for rid, spec in FASE1_ROWS.items():
         for legacy_ref in spec["legacy"]:
-            legacy = REPO_ROOT / legacy_ref
+            legacy = REPO_ROOT / "legacy-project-os" / legacy_ref
             assert legacy.exists(), f"{rid} compatibility source missing: {legacy_ref}"
             assert legacy.read_text(encoding="utf-8").startswith("#")
 

@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state, evidence.validation_output
-- Compatibilidad: `templates/operations/11-verify-post-merge-state.md`
+- Compatibilidad: `legacy-project-os/templates/operations/11-verify-post-merge-state.md`
 - Aprobación PM: No (verificación read-only)
 
 **Hace:** Verifica el estado post-deploy del entorno objetivo.

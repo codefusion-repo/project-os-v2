@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.target_adoption · mode.review_only · output.status_result
 - Evidencia: evidence.target_adoption
-- Compatibilidad: `templates/operations/03-verify-target-adoption.md`
+- Compatibilidad: `legacy-project-os/templates/operations/03-verify-target-adoption.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Audita read-only que la adopción del target existe, es correcta y apunta al kernel actual.

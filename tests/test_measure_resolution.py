@@ -14,7 +14,7 @@ from pathlib import Path
 from tools.measure_resolution import BROWSER_COMPANION_CORE, main, measure
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-KERNEL_DIR = REPO_ROOT / "kernel"
+KERNEL_DIR = REPO_ROOT / "legacy-project-os" / "kernel"
 
 
 class TestMeasureRealKernel:

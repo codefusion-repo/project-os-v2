@@ -5,11 +5,11 @@
 AGENTS.md is the repository-wide terminal-agent adapter and bootloader for
 `codefusion-repo/project-os-v2`.
 
-This file is not the source of truth. The project-os-v2-min kernel is the
-source of truth for generic operating behavior (actors, execution modes,
-boundaries, workflows, evidence, outputs, statuses). This repository's own
-evidence and explicit PM decisions are the authority for all product, domain,
-and implementation facts.
+This file is not the source of truth. The Spanish Project OS kernel under
+`project-os-es/kernel/` is the source of truth for generic operating behavior
+(actores, modos, workflows, limites, evidencia, salidas, estados, artefactos,
+skills). This repository's own evidence and explicit PM decisions are the
+authority for all product, domain, and implementation facts.
 
 This file must stay compact. It must not store issue/PR/branch/validation
 state, review verdicts, roadmap state, planning state, or any live
@@ -29,37 +29,44 @@ DEFAULT_BRANCH = main
 WORK_BRANCH_PATTERN = work/*  
 PM_FACING_LANGUAGE = es  
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2  
-KERNEL_LOCAL_PATH = $HOME/projects/personal/project-os-v2/kernel/ 
+KERNEL_LOCAL_PATH = $HOME/projects/personal/project-os-v2/project-os-es/kernel/ 
 KERNEL_VERSION_ADOPTED = tracks latest 
 
 ## Kernel resolution
 
-Before non-trivial work, resolve behavior from the kernel at
-`KERNEL_LOCAL_PATH` by following `manifest.json`'s `resolution_sequence` exactly.
-`manifest.json` is the single resolution entrypoint and owns surface-aware routing
-through its `resolution_strategy`; this adapter only points to it and defines no
-competing resolution order. On this terminal surface, run the resolver fast path
-from the repository root:
+Before non-trivial work, resolve behavior from the Spanish kernel at
+`KERNEL_LOCAL_PATH` by following the `resolution_sequence` in
+`project-os-es/kernel/manifest.json` exactly. That manifest is the single
+resolution entrypoint for the active surface; this adapter only points to it
+and defines no competing resolution order. On this terminal surface, run the
+Spanish resolver fast path from the repository root:
 
 ```sh
 cd "$REPOSITORY_LOCAL_PATH"
 if [ -d .venv ]; then . .venv/bin/activate; fi
-python -m tools.project_os_resolve --actor <actor> --workflow <workflow> --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH"
+python project-os-es/tools/resolver.py --actor <actor> --workflow <workflow> \
+  --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH" [--skill skill.<id>]
 ```
 
-Manual `manifest.json` resolution remains the canonical fallback.
+Manual resolution of `project-os-es/kernel/manifest.json` remains the
+canonical fallback. Browser/non-terminal surfaces never run repo-local Python;
+they resolve manually from that manifest.
 
 Resolution shapes behavior only and grants no permission
-(`boundary.output_not_permission`). Fail closed per `boundary.fail_closed` if the
-kernel is missing, ambiguous, or conflicting.
+(`boundary.output_not_permission`). Fail closed per `boundary.fail_closed` if
+the kernel is missing, ambiguous, or conflicting.
+
+The pre-migration English surface is archival under `legacy-project-os/` and
+is never an active resolution source; see `legacy-project-os/README.md`.
 
 ## Live state
 
 Reconstruct target project state for `REPOSITORY_NAME` from GitHub and git at
-task time, per `KERNEL_REPOSITORY`'s traceability protocol: current issue,
-linked PRs, the canonical roadmap issue `#274`, and the target
-repo's `docs/decisions/` ADRs when present. Never trust internal memory or
-durable files for live state.
+task time, per `KERNEL_REPOSITORY`'s traceability rules
+(`project-os-es/docs/reglas.md` and
+`project-os-es/kernel/reglas-operativas.json`): current issue, linked PRs, the
+canonical roadmap issue `#274`, and the target repo's `docs/decisions/` ADRs
+when present. Never trust internal memory or durable files for live state.
 
 ## Project-specific notes
 
@@ -84,7 +91,8 @@ Security / project constraints:
 - Keep build commands, protected paths, domain constraints, and validation notes
   here when they are stable and target-owned; never store issue/PR/branch state,
   SHAs, review status, release status, or live validation results.
-- Follow proportional validation from `docs/VALIDATION_POLICY.md`: run scoped
-  required checks, draft PM-run commands when useful validation should remain
-  PM-executed, and do not impose Project OS-specific tests or add tests by
-  default unless the issue risk justifies them.
+- Follow proportional validation from `project-os-es/docs/reglas.md` and
+  `project-os-es/kernel/reglas-operativas.json`: run scoped required checks,
+  draft PM-run commands when useful validation should remain PM-executed, and
+  do not impose Project OS-specific tests or add tests by default unless the
+  issue risk justifies them.

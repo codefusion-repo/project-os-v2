@@ -15,7 +15,7 @@ import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-MAP_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_OPERATION_MAP.md"
+MAP_DOC_PATH = REPO_ROOT / "legacy-project-os" / "docs" / "MOSDLC_OPERATION_MAP.md"
 
 # Verbatim PM-written operations from the MOSDLC roadmap comment on #274.
 # Preservation contract: every wording below must appear unchanged in the map.
@@ -243,7 +243,7 @@ def _doc_text() -> str:
 
 def _kernel_ids() -> set[str]:
     ids: set[str] = set()
-    for path in sorted((REPO_ROOT / "kernel").glob("*.json")):
+    for path in sorted((REPO_ROOT / "legacy-project-os" / "kernel").glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(data.get("id"), str):
             ids.add(data["id"])
@@ -393,7 +393,7 @@ def test_operation_growth_is_distinguished_from_kernel_growth() -> None:
 
 
 def test_template_reuse_references_resolve() -> None:
-    templates_dir = REPO_ROOT / "templates" / "operations"
+    templates_dir = REPO_ROOT / "legacy-project-os" / "templates" / "operations"
     existing_indexes = {path.name[:2] for path in templates_dir.glob("*.md")}
     for row in _all_rows():
         for match in re.finditer(r"(?:reuse|exists)-(\d{2})", row["Kernel/Template"]):

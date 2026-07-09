@@ -5,7 +5,7 @@
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
         "Tratar project-os-es/kernel/*.json como fuente operativa de esta superficie en espanol.",
-        "Tratar el kernel raiz solo como source-basis/compatibilidad historica; no es la ruta activa de project-os-es.",
+        "Tratar el kernel legacy archivado (legacy-project-os/kernel/) solo como source-basis/compatibilidad historica; no es la ruta activa de project-os-es.",
         "Tratar las operaciones compactas como contexto task-specific que nunca reemplaza estas reglas.",
         "Ante conflicto entre fuentes, detenerse sin resolver."
       ],

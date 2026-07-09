@@ -5,12 +5,13 @@ Esta carpeta es la superficie PM-facing en español de las operaciones MOSDLC
 compacto: qué hace, qué variables necesita, qué evidencia exige, qué entrega y
 cuál es la siguiente operación segura.
 
-Fuentes historicas de esta superficie (issue #377): `docs/MOSDLC_OPERATION_MAP.md`
-(mapa canónico) y los templates migrados en `templates/mosdlc/operations/fase-*`.
-Los templates raíz (`templates/mosdlc/operations/` y
-`templates/operations/` 00-37) siguen disponibles como fuente de reemplazo y
-referencia de compatibilidad; no son la ruta operativa de `project-os-es` y
-esta carpeta no los reemplaza ni los renumera.
+Fuentes historicas de esta superficie (issue #377):
+`legacy-project-os/docs/MOSDLC_OPERATION_MAP.md` (mapa histórico) y los
+templates migrados en `legacy-project-os/templates/mosdlc/operations/fase-*`.
+Los templates ingleses archivados (`legacy-project-os/templates/mosdlc/operations/`
+y `legacy-project-os/templates/operations/` 00-37) quedan solo como referencia
+histórica de compatibilidad; no son ruta operativa y esta carpeta no los
+reemplaza ni los renumera.
 
 ## Contrato común
 

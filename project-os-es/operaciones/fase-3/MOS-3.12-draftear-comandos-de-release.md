@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.release_readiness · mode.review_only · output.pm_command_bundle
 - Evidencia: evidence.repo_state, evidence.validation_output
-- Compatibilidad: `templates/operations/24-draft-create-github-release-command.md`
+- Compatibilidad: `legacy-project-os/templates/operations/24-draft-create-github-release-command.md`
 - Aprobación PM: Sí (el Humano PM autoriza y ejecuta el release)
 
 **Hace:** Draftea el bundle de creación del objeto Release de GitHub (notas y tag).

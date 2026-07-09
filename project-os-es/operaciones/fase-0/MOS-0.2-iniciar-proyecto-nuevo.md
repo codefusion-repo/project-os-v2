@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.target_adoption · mode.review_only · output.adoption_packet
 - Evidencia: evidence.target_adoption
-- Compatibilidad: `templates/operations/02-bootstrap-new-project.md`
+- Compatibilidad: `legacy-project-os/templates/operations/02-bootstrap-new-project.md`
 - Aprobación PM: No (draft-only)
 
 **Hace:** Draftea la estructura de adopción inicial y el roadmap fundacional de un repo nuevo.

@@ -19,7 +19,7 @@ def codes(findings) -> set[str]:
 
 @pytest.fixture()
 def kernel_copy(tmp_path: Path) -> Path:
-    shutil.copytree(REPO_ROOT / "kernel", tmp_path / "kernel")
+    shutil.copytree(REPO_ROOT / "legacy-project-os" / "kernel", tmp_path / "kernel")
     return tmp_path
 
 
@@ -31,7 +31,7 @@ def mutate(root: Path, name: str, fn) -> None:
 
 
 def test_real_kernel_passes() -> None:
-    assert validate_kernel(REPO_ROOT) == []
+    assert validate_kernel(REPO_ROOT / "legacy-project-os") == []
 
 
 def test_missing_kernel_dir_fails(tmp_path: Path) -> None:

@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.review_before_close · mode.review_only · output.pm_command_bundle
 - Evidencia: evidence.issue_scope, evidence.pr_diff, evidence.validation_output
-- Compatibilidad: `templates/operations/10-draft-pr-closeout-and-cleanup-command.md`
+- Compatibilidad: `legacy-project-os/templates/operations/10-draft-pr-closeout-and-cleanup-command.md`
 - Aprobación PM: No (draft-only; el Humano PM decide y ejecuta el bundle)
 
 **Hace:** Draftea el paquete de cierre y limpieza de issue/PR según estado vivo.

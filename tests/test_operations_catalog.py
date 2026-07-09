@@ -28,7 +28,7 @@ def assert_unique(values: list[str], context: str) -> None:
     assert len(values) == len(set(values)), f"Duplicated variables in {context}: {values}"
 
 def test_pm_operations_catalog_alignment():
-    with open("docs/PM_OPERATIONS.md") as f:
+    with open("legacy-project-os/docs/PM_OPERATIONS.md") as f:
         docs_content = f.read()
 
     # Find the matrix
@@ -54,7 +54,7 @@ def test_pm_operations_catalog_alignment():
                 "next": parts[4]
             }
 
-    ops_dir = "templates/operations"
+    ops_dir = "legacy-project-os/templates/operations"
     templates = [f for f in sorted(os.listdir(ops_dir)) if f.endswith(".md")]
 
     assert len(templates) == 38

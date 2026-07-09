@@ -178,7 +178,7 @@ TRANSFORMATION_OPERATIONS = {
 
 def _kernel_ids() -> set[str]:
     ids: set[str] = set()
-    for path in sorted((REPO_ROOT / "kernel").glob("*.json")):
+    for path in sorted((REPO_ROOT / "legacy-project-os" / "kernel").glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(data.get("id"), str):
             ids.add(data["id"])
@@ -189,7 +189,7 @@ def _kernel_ids() -> set[str]:
 
 
 def _kernel_entry(file_name: str, entry_id: str) -> dict:
-    data = json.loads((REPO_ROOT / "kernel" / file_name).read_text(encoding="utf-8"))
+    data = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / file_name).read_text(encoding="utf-8"))
     for entry in data["entries"]:
         if entry["id"] == entry_id:
             return entry
@@ -197,11 +197,11 @@ def _kernel_entry(file_name: str, entry_id: str) -> dict:
 
 
 def _operation_text(relative_path: str) -> str:
-    return (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+    return (REPO_ROOT / "legacy-project-os" / relative_path).read_text(encoding="utf-8")
 
 
 def _operation_paths() -> list[Path]:
-    return sorted((REPO_ROOT / "templates" / "operations").glob("*.md"), key=lambda path: path.name)
+    return sorted((REPO_ROOT / "legacy-project-os" / "templates" / "operations").glob("*.md"), key=lambda path: path.name)
 
 
 def _markdown_table(text: str, heading: str) -> list[dict[str, str]]:
@@ -283,10 +283,10 @@ def _variable_names_from_catalog_cell(cell: str) -> list[str]:
 
 def test_implementation_discipline_audit_workflow_and_operation_are_read_only() -> None:
     workflow = _kernel_entry("workflows.json", "workflow.implementation_discipline_audit")
-    template = (REPO_ROOT / "templates" / "operations" / "25-audit-implementation-discipline-gaps.md").read_text(
+    template = (REPO_ROOT / "legacy-project-os" / "templates" / "operations" / "25-audit-implementation-discipline-gaps.md").read_text(
         encoding="utf-8"
     )
-    catalog = (REPO_ROOT / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
+    catalog = (REPO_ROOT / "legacy-project-os" / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
 
     workflow_text = " ".join([workflow["use_for"], *workflow["steps"]]).lower()
     assert workflow["required_evidence_refs"] == ["evidence.repo_state"]
@@ -321,7 +321,7 @@ def test_implementation_discipline_audit_workflow_and_operation_are_read_only() 
 def test_issue_324_transformation_operations_exist_and_use_existing_kernel_ids() -> None:
     kernel_ids = _kernel_ids()
     for operation_name, spec in TRANSFORMATION_OPERATIONS.items():
-        path = REPO_ROOT / spec["path"]
+        path = REPO_ROOT / "legacy-project-os" / spec["path"]
         assert path.exists(), f"{operation_name} operation is missing"
         text = path.read_text(encoding="utf-8")
         for required_ref in spec["required"]:
@@ -376,7 +376,7 @@ def test_issue_324_preserves_design_asset_operation_workflow_and_output() -> Non
 
 def test_issue_324_kernel_entry_ids_are_unchanged() -> None:
     for file_name, expected_ids in CANONICAL_KERNEL_ENTRY_IDS.items():
-        data = json.loads((REPO_ROOT / "kernel" / file_name).read_text(encoding="utf-8"))
+        data = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / file_name).read_text(encoding="utf-8"))
         actual_ids = {entry["id"] for entry in data["entries"]}
         assert actual_ids == expected_ids, f"{file_name} kernel ids changed"
 
@@ -761,8 +761,8 @@ def test_operation_templates_reference_only_valid_kernel_ids_and_no_live_state()
     kernel_ids = _kernel_ids()
     checked_paths = [
         *list(_operation_paths()),
-        REPO_ROOT / "docs" / "PM_OPERATIONS.md",
-        REPO_ROOT / FLOW_DOC_PATH,
+        REPO_ROOT / "legacy-project-os" / "docs" / "PM_OPERATIONS.md",
+        REPO_ROOT / "legacy-project-os" / FLOW_DOC_PATH,
     ]
     offenders: list[str] = []
     for path in checked_paths:
@@ -788,7 +788,7 @@ def test_operation_flow_doc_covers_every_operation_without_renumbering() -> None
     assert actual_ops == expected_ops
     assert [path.name[:2] for path in operation_paths] == sorted(expected_ops)
 
-    expected_templates = {path.name[:2]: f"`{path.relative_to(REPO_ROOT)}`" for path in operation_paths}
+    expected_templates = {path.name[:2]: f"`{path.relative_to(REPO_ROOT / "legacy-project-os")}`" for path in operation_paths}
     for row in rows:
         assert row["Template"] == expected_templates[row["Op"]]
         assert row["Phase"]
@@ -818,7 +818,7 @@ def test_operation_flow_doc_variables_match_templates() -> None:
 def test_operation_flow_doc_uses_valid_kernel_ids_and_template_references() -> None:
     flow_doc = _operation_text(FLOW_DOC_PATH)
     kernel_ids = _kernel_ids()
-    valid_templates = {str(path.relative_to(REPO_ROOT)) for path in _operation_paths()}
+    valid_templates = {str(path.relative_to(REPO_ROOT / "legacy-project-os")) for path in _operation_paths()}
     rows = _markdown_table(flow_doc, "## Phase Flow Map")
     offenders: list[str] = []
 
@@ -849,11 +849,11 @@ def test_pm_operations_catalog_table_covers_templates_variables_and_kernel_refs(
 
     assert len(rows) == len(operation_paths)
     assert set(rows_by_template) == {
-        str(path.relative_to(REPO_ROOT)) for path in operation_paths
+        str(path.relative_to(REPO_ROOT / "legacy-project-os")) for path in operation_paths
     }
 
     for path in operation_paths:
-        row = rows_by_template[str(path.relative_to(REPO_ROOT))]
+        row = rows_by_template[str(path.relative_to(REPO_ROOT / "legacy-project-os"))]
         variables = _input_variables(path.read_text(encoding="utf-8"))
         expected_required = [name for name, required in variables if required]
         expected_optional = [name for name, required in variables if not required]
@@ -877,7 +877,9 @@ def test_pm_operations_catalog_table_covers_templates_variables_and_kernel_refs(
 
 def test_docs_and_templates_do_not_store_concrete_live_state_tokens() -> None:
     offenders: list[str] = []
-    for path in _text_paths_under("docs", "templates"):
+    for path in _text_paths_under(
+        "docs", "legacy-project-os/docs", "legacy-project-os/templates"
+    ):
         rel = path.relative_to(REPO_ROOT)
         text = path.read_text(encoding="utf-8")
         for label, pattern in DURABLE_LIVE_STATE_PATTERNS.items():
@@ -889,7 +891,9 @@ def test_docs_and_templates_do_not_store_concrete_live_state_tokens() -> None:
 
 def test_docs_templates_and_tests_have_no_secret_looking_examples() -> None:
     offenders: list[str] = []
-    for path in _text_paths_under("docs", "templates", "tests"):
+    for path in _text_paths_under(
+        "docs", "legacy-project-os/docs", "legacy-project-os/templates", "tests"
+    ):
         rel = path.relative_to(REPO_ROOT)
         text = path.read_text(encoding="utf-8")
         if SECRET_LOOKING_PATTERN.search(text):
@@ -1044,10 +1048,10 @@ def test_human_context_variables_do_not_replace_authority_or_live_evidence() -> 
 
 def test_legacy_pm_question_token_is_not_an_accepted_variable_anywhere() -> None:
     allowed_fragments = {
-        "docs/PM_OPERATIONS.md": [
+        "legacy-project-os/docs/PM_OPERATIONS.md": [
             "`PM_QUESTION` no es alias ni variable legacy aceptada.",
         ],
-        "docs/PM_VARIABLES.md": [
+        "legacy-project-os/docs/PM_VARIABLES.md": [
             "`PM_QUESTION` es inválida y fue removida.",
         ],
         "tests/test_operations_catalog.py": [
@@ -1062,7 +1066,13 @@ def test_legacy_pm_question_token_is_not_an_accepted_variable_anywhere() -> None
         ],
     }
     offenders: list[str] = []
-    for root in ("templates", "docs", "tests", "tools"):
+    for root in (
+        "legacy-project-os/templates",
+        "legacy-project-os/docs",
+        "docs",
+        "tests",
+        "tools",
+    ):
         for path in sorted((REPO_ROOT / root).rglob("*")):
             if not path.is_file():
                 continue
@@ -1104,9 +1114,9 @@ def test_operation_templates_keep_external_recipients_distinct_from_kernel_actor
 
 def test_issue_336_post_gate_result_variables_have_no_unjustified_aliases() -> None:
     template_paths = [
-        REPO_ROOT / "templates" / "operations" / "30-process-human-qa-results.md",
-        REPO_ROOT / "templates" / "operations" / "31-process-security-review-results.md",
-        REPO_ROOT / "templates" / "operations" / "32-process-design-asset-delivery.md",
+        REPO_ROOT / "legacy-project-os" / "templates" / "operations" / "30-process-human-qa-results.md",
+        REPO_ROOT / "legacy-project-os" / "templates" / "operations" / "31-process-security-review-results.md",
+        REPO_ROOT / "legacy-project-os" / "templates" / "operations" / "32-process-design-asset-delivery.md",
     ]
     forbidden_aliases = {"QA_RESULTS", "SECURITY_RESULTS", "ASSET_FEEDBACK", "DESIGN_FEEDBACK"}
     for path in template_paths:

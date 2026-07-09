@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/00-browser-chat-activation.md`
+- Compatibilidad: `legacy-project-os/templates/operations/00-browser-chat-activation.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Establece la sesión draft-only del PM en browser chat resolviendo el manifest del kernel.

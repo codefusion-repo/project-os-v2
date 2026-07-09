@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → external_recipient
 - Kernel: workflow.design_asset · mode.review_only · output.asset_prompt
 - Evidencia: evidence.repo_state, evidence.source_basis
-- Compatibilidad: `templates/operations/19-request-external-design-assets.md`
+- Compatibilidad: `legacy-project-os/templates/operations/19-request-external-design-assets.md`
 - Aprobación PM: No (el route-prompt no autoriza; la escritura exige aprobación PM exacta)
 
 **Hace:** Draftea el asset prompt para solicitar un asset 2D a un destinatario externo.

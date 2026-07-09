@@ -106,7 +106,7 @@ def measure(
 
     Returns a JSON-serializable report. Reads only; never writes or authorizes.
     """
-    kernel_dir = Path("kernel") if kernel_dir is None else Path(kernel_dir)
+    kernel_dir = Path("legacy-project-os/kernel") if kernel_dir is None else Path(kernel_dir)
 
     manual = _measure_files(kernel_dir, _load_order(kernel_dir))
     companion = _measure_files(kernel_dir, list(BROWSER_COMPANION_CORE))
@@ -231,7 +231,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--actor", default=DEFAULT_ACTOR)
     parser.add_argument("--workflow", default=DEFAULT_WORKFLOW)
     parser.add_argument("--mode", default=DEFAULT_MODE)
-    parser.add_argument("--kernel-dir", default=None, help="Path to kernel/ (default: ./kernel)")
+    parser.add_argument("--kernel-dir", default=None, help="Path to kernel/ (default: ./legacy-project-os/kernel)")
     parser.add_argument(
         "--baseline-bytes",
         type=int,

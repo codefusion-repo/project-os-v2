@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/37-review-phase-readiness.md`
+- Compatibilidad: `legacy-project-os/templates/operations/37-review-phase-readiness.md`
 - Aprobación PM: No (review advisory; el PM inicia o cierra el ciclo)
 
 **Hace:** Revisa readiness para iniciar o cerrar un ciclo de validación del target.

@@ -2,7 +2,7 @@
 
 If prompt_toolkit is importable, the wizard uses an enhanced interactive mode.
 If unavailable, it falls back to a standard line-based flow.
-The wizard reads templates from ``templates/operations`` and only writes local
+The wizard reads templates from ``legacy-project-os/templates/operations`` and only writes local
 Markdown prompt artifacts. It does not execute operations, run commands, or
 call GitHub, git, or network services.
 
@@ -33,9 +33,9 @@ except ImportError:
     HAVE_PROMPT_TOOLKIT = False
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
+DEFAULT_OPERATIONS_DIR = REPO_ROOT / "legacy-project-os" / "templates" / "operations"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / ".local" / "operation-prompts"
-DEFAULT_OPERATION_FLOWS_PATH = REPO_ROOT / "docs" / "OPERATION_FLOWS.md"
+DEFAULT_OPERATION_FLOWS_PATH = REPO_ROOT / "legacy-project-os" / "docs" / "OPERATION_FLOWS.md"
 OUTPUT_DIR_ENV = "PROJECT_OS_OPERATION_PROMPT_OUTPUT_DIR"
 
 BLOCK_HEADER_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*:\s*$")

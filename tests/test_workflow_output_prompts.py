@@ -17,7 +17,7 @@ CANONICAL_ACTOR_IDS = {
 
 
 def _kernel_entry(file_name: str, entry_id: str) -> dict:
-    data = json.loads((REPO_ROOT / "kernel" / file_name).read_text(encoding="utf-8"))
+    data = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / file_name).read_text(encoding="utf-8"))
     for entry in data["entries"]:
         if entry["id"] == entry_id:
             return entry
@@ -29,7 +29,7 @@ def _operation_text(relative_path: str) -> str:
 
 
 def test_browser_activation_uses_kernel_owned_references() -> None:
-    text = (REPO_ROOT / "adapters" / "BROWSER_CHAT.target.md").read_text(encoding="utf-8")
+    text = (REPO_ROOT / "legacy-project-os" / "adapters" / "BROWSER_CHAT.target.md").read_text(encoding="utf-8")
     block = text.split("~~~text", 1)[1].split("~~~", 1)[0]
 
     assert "kernel/manifest.json in REPOSITORY_NAME" not in block
@@ -78,7 +78,7 @@ def test_review_before_close_requires_code_backed_kernel_evidence() -> None:
 
 
 def test_implementation_discipline_boundary_is_compact_and_scoped() -> None:
-    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    actors = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / "actors.json").read_text(encoding="utf-8"))
     boundary = _kernel_entry("boundaries.json", "boundary.implementation_discipline")
     issue_workflow = _kernel_entry("workflows.json", "workflow.issue_implementation")
     review_workflow = _kernel_entry("workflows.json", "workflow.review_before_close")
@@ -138,7 +138,7 @@ def test_implementation_discipline_boundary_is_compact_and_scoped() -> None:
 
 
 def test_primary_path_discipline_boundary_is_compact_and_scoped() -> None:
-    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    actors = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / "actors.json").read_text(encoding="utf-8"))
     boundary = _kernel_entry("boundaries.json", "boundary.primary_path_discipline")
     impl_boundary = _kernel_entry("boundaries.json", "boundary.implementation_discipline")
     issue_workflow = _kernel_entry("workflows.json", "workflow.issue_implementation")
@@ -185,7 +185,7 @@ def test_primary_path_discipline_boundary_is_compact_and_scoped() -> None:
 
 
 def test_validation_discipline_boundary_is_compact_and_scoped() -> None:
-    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    actors = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / "actors.json").read_text(encoding="utf-8"))
     boundary = _kernel_entry("boundaries.json", "boundary.validation_discipline")
     impl_boundary = _kernel_entry("boundaries.json", "boundary.implementation_discipline")
     primary_boundary = _kernel_entry("boundaries.json", "boundary.primary_path_discipline")
@@ -261,7 +261,7 @@ def test_validation_discipline_boundary_is_compact_and_scoped() -> None:
 
 
 def test_review_before_close_route_template_rejects_documentation_only_go() -> None:
-    text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    text = (REPO_ROOT / "legacy-project-os" / "templates" / "route-prompt.md").read_text(encoding="utf-8")
     review_variant = text.split("**Review a PR before merge/close**", 1)[1].split(
         "- **Apply review corrections**", 1
     )[0]
@@ -276,7 +276,7 @@ def test_review_before_close_route_template_rejects_documentation_only_go() -> N
 
 
 def test_design_asset_workflow_routes_to_prompt_without_write_authority() -> None:
-    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    actors = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / "actors.json").read_text(encoding="utf-8"))
     workflow = _kernel_entry("workflows.json", "workflow.design_asset")
     output = _kernel_entry("outputs.json", "output.asset_prompt")
 
@@ -305,7 +305,7 @@ def test_design_asset_workflow_routes_to_prompt_without_write_authority() -> Non
 
 
 def test_security_revision_workflow_routes_to_owasp_prompt_without_secret_exposure() -> None:
-    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    actors = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / "actors.json").read_text(encoding="utf-8"))
     workflow = _kernel_entry("workflows.json", "workflow.security_revision")
     output = _kernel_entry("outputs.json", "output.security_review_prompt")
 
@@ -357,7 +357,7 @@ def test_security_revision_workflow_routes_to_owasp_prompt_without_secret_exposu
 
 
 def test_design_and_security_route_template_variants_are_draft_only() -> None:
-    text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    text = (REPO_ROOT / "legacy-project-os" / "templates" / "route-prompt.md").read_text(encoding="utf-8")
     design_variant = text.split("**Design asset prompt**", 1)[1].split(
         "- **Security review prompt**", 1
     )[0]
@@ -426,7 +426,7 @@ def test_target_adoption_kernel_guards_audit_draft_and_bootstrap_paths() -> None
 
 
 def test_target_adoption_route_template_is_draft_or_adapter_only() -> None:
-    text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    text = (REPO_ROOT / "legacy-project-os" / "templates" / "route-prompt.md").read_text(encoding="utf-8")
     variant = text.split("**Adopt target repository**", 1)[1].split(
         "- **Review a PR before merge/close**", 1
     )[0]
@@ -457,7 +457,7 @@ def test_target_adoption_route_template_is_draft_or_adapter_only() -> None:
 
 
 def test_route_prompt_pm_authorization_status_choices_are_two_option_authority_values() -> None:
-    text = (REPO_ROOT / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    text = (REPO_ROOT / "legacy-project-os" / "templates" / "route-prompt.md").read_text(encoding="utf-8")
     variable_block = text.split("~~~text", 1)[1].split("~~~", 1)[0]
 
     assert (
@@ -483,7 +483,7 @@ def test_route_prompt_pm_authorization_status_choices_are_two_option_authority_v
 
 
 def test_browser_chat_and_terminal_agent_write_gates_are_canonical_kernel_contracts() -> None:
-    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    actors = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / "actors.json").read_text(encoding="utf-8"))
     browser_chat = next(entry for entry in actors["entries"] if entry["id"] == "actor.browser_chat")
     terminal_agent = next(entry for entry in actors["entries"] if entry["id"] == "actor.terminal_agent")
     delegated_pr = _kernel_entry("execution_modes.json", "mode.delegated_commit_pr")
@@ -538,7 +538,7 @@ def test_browser_chat_and_terminal_agent_write_gates_are_canonical_kernel_contra
 
 
 def test_artifact_templates_mark_review_claims_and_closure_precondition() -> None:
-    text = (REPO_ROOT / "templates" / "artifacts.md").read_text(encoding="utf-8")
+    text = (REPO_ROOT / "legacy-project-os" / "templates" / "artifacts.md").read_text(encoding="utf-8")
     pull_request = text.split("## Pull request", 1)[1].split("## Closure comment", 1)[0]
     closure_comment = text.split("## Closure comment", 1)[1].split("~~~markdown", 1)[0]
 

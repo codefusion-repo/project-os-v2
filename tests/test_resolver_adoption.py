@@ -27,7 +27,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 RESOLVER_REF = "tools.project_os_resolve"
 
-MANIFEST = REPO_ROOT / "kernel" / "manifest.json"
+# Active Spanish-surface resolver fast path used by this repo's own adapters.
+RESOLVER_ES_REF = "project-os-es/tools/resolver.py"
+
+MANIFEST = REPO_ROOT / "legacy-project-os" / "kernel" / "manifest.json"
 
 # Durable Project OS materials that mention kernel resolution and must stay
 # free of live implementation state.
@@ -35,15 +38,15 @@ DURABLE_FILES = [
     REPO_ROOT / "AGENTS.md",
     REPO_ROOT / "CLAUDE.md",
     REPO_ROOT / "GEMINI.md",
-    REPO_ROOT / "adapters" / "AGENTS.target.md",
-    REPO_ROOT / "adapters" / "CLAUDE.target.md",
-    REPO_ROOT / "adapters" / "GEMINI.target.md",
-    REPO_ROOT / "adapters" / "BROWSER_CHAT.target.md",
-    REPO_ROOT / "templates" / "route-prompt.md",
-    REPO_ROOT / "docs" / "DESIGN.md",
+    REPO_ROOT / "legacy-project-os" / "adapters" / "AGENTS.target.md",
+    REPO_ROOT / "legacy-project-os" / "adapters" / "CLAUDE.target.md",
+    REPO_ROOT / "legacy-project-os" / "adapters" / "GEMINI.target.md",
+    REPO_ROOT / "legacy-project-os" / "adapters" / "BROWSER_CHAT.target.md",
+    REPO_ROOT / "legacy-project-os" / "templates" / "route-prompt.md",
+    REPO_ROOT / "legacy-project-os" / "docs" / "DESIGN.md",
     REPO_ROOT / "README.md",
-    REPO_ROOT / "docs" / "GETTING_STARTED.md",
-    REPO_ROOT / "docs" / "PUBLIC_USAGE_MODEL.md",
+    REPO_ROOT / "legacy-project-os" / "docs" / "GETTING_STARTED.md",
+    REPO_ROOT / "legacy-project-os" / "docs" / "PUBLIC_USAGE_MODEL.md",
 ]
 
 # Public-facing docs that explain kernel resolution to readers. They must
@@ -51,15 +54,15 @@ DURABLE_FILES = [
 # resolver output non-authorizing, without restating kernel rules.
 PUBLIC_DOCS = [
     REPO_ROOT / "README.md",
-    REPO_ROOT / "docs" / "GETTING_STARTED.md",
-    REPO_ROOT / "docs" / "PUBLIC_USAGE_MODEL.md",
+    REPO_ROOT / "legacy-project-os" / "docs" / "GETTING_STARTED.md",
+    REPO_ROOT / "legacy-project-os" / "docs" / "PUBLIC_USAGE_MODEL.md",
 ]
 
 # Docs whose resolution prose also covers browser/non-terminal surfaces and so
 # must state that those surfaces do not run repo-local Python.
 PUBLIC_DOCS_WITH_BROWSER = [
     REPO_ROOT / "README.md",
-    REPO_ROOT / "docs" / "PUBLIC_USAGE_MODEL.md",
+    REPO_ROOT / "legacy-project-os" / "docs" / "PUBLIC_USAGE_MODEL.md",
 ]
 
 # Either-language phrasings that tie resolver output to "grants no permission".
@@ -75,14 +78,14 @@ TERMINAL_ADAPTERS = [
 # Target-project terminal adapters must run the resolver from the local Project
 # OS checkout, because adopted target repositories may not contain the module.
 TARGET_TERMINAL_ADAPTERS = [
-    REPO_ROOT / "adapters" / "AGENTS.target.md",
-    REPO_ROOT / "adapters" / "CLAUDE.target.md",
-    REPO_ROOT / "adapters" / "GEMINI.target.md",
+    REPO_ROOT / "legacy-project-os" / "adapters" / "AGENTS.target.md",
+    REPO_ROOT / "legacy-project-os" / "adapters" / "CLAUDE.target.md",
+    REPO_ROOT / "legacy-project-os" / "adapters" / "GEMINI.target.md",
 ]
 
 ALL_TERMINAL_ADAPTERS = TERMINAL_ADAPTERS + TARGET_TERMINAL_ADAPTERS
 
-BROWSER_CHAT_ADAPTER = REPO_ROOT / "adapters" / "BROWSER_CHAT.target.md"
+BROWSER_CHAT_ADAPTER = REPO_ROOT / "legacy-project-os" / "adapters" / "BROWSER_CHAT.target.md"
 
 
 def _read(path: Path) -> str:
@@ -108,29 +111,34 @@ class TestManifestRouting:
         assert "resolution_strategy" in " ".join(sequence).lower()
 
     def test_terminal_agents_defer_routing_to_manifest(self) -> None:
-        """AGENTS adapters point to the manifest instead of owning a rival order."""
-        for path in (REPO_ROOT / "AGENTS.md", REPO_ROOT / "adapters" / "AGENTS.target.md"):
-            text = _read(path)
-            assert "resolution_strategy" in text, f"{path.name} should point to the manifest strategy"
-            assert "competing resolution order" in text, (
-                f"{path.name} should state it defines no competing resolution order"
-            )
+        """AGENTS adapters point to their manifest instead of owning a rival order."""
+        active = _read(REPO_ROOT / "AGENTS.md")
+        assert "resolution_sequence" in active, "AGENTS.md should point to the Spanish manifest sequence"
+        assert "competing resolution order" in active
+        legacy = _read(REPO_ROOT / "legacy-project-os" / "adapters" / "AGENTS.target.md")
+        assert "resolution_strategy" in legacy, "archived target adapter keeps the manifest strategy"
+        assert "competing resolution order" in legacy
 
 
 class TestTerminalFastPath:
     """Terminal adapters keep the resolver fast path as the manifest's default."""
 
     def test_terminal_adapters_mention_resolver(self) -> None:
-        for path in ALL_TERMINAL_ADAPTERS:
+        for path in TERMINAL_ADAPTERS:
+            assert RESOLVER_ES_REF in _read(path), f"{path.name} should reference {RESOLVER_ES_REF}"
+        for path in TARGET_TERMINAL_ADAPTERS:
             assert RESOLVER_REF in _read(path), f"{path.name} should reference {RESOLVER_REF}"
 
     def test_full_resolver_command_in_canonical_adapters(self) -> None:
         """The full CLI command lives in the canonical AGENTS adapters."""
-        for path in (REPO_ROOT / "AGENTS.md", REPO_ROOT / "adapters" / "AGENTS.target.md"):
-            text = _read(path)
-            assert ".venv/bin/activate" in text
-            assert "python -m tools.project_os_resolve" in text
-            assert "--kernel-dir \"$KERNEL_LOCAL_PATH\"" in text
+        active = _read(REPO_ROOT / "AGENTS.md")
+        assert ".venv/bin/activate" in active
+        assert "python project-os-es/tools/resolver.py" in active
+        assert "--kernel-dir \"$KERNEL_LOCAL_PATH\"" in active
+        legacy = _read(REPO_ROOT / "legacy-project-os" / "adapters" / "AGENTS.target.md")
+        assert ".venv/bin/activate" in legacy
+        assert "python -m tools.project_os_resolve" in legacy
+        assert "--kernel-dir \"$KERNEL_LOCAL_PATH\"" in legacy
 
     def test_target_adapters_run_resolver_from_project_os_checkout(self) -> None:
         for path in TARGET_TERMINAL_ADAPTERS:
@@ -149,7 +157,7 @@ class TestTerminalFastPath:
             )
 
     def test_target_agents_resolver_not_invoked_from_target_repo_root(self) -> None:
-        text = _read(REPO_ROOT / "adapters" / "AGENTS.target.md")
+        text = _read(REPO_ROOT / "legacy-project-os" / "adapters" / "AGENTS.target.md")
         resolver_line = "python -m tools.project_os_resolve"
         assert "cd \"$PROJECT_OS_LOCAL_PATH\"\nif [ -d .venv ]; then . .venv/bin/activate; fi\n" + resolver_line in text
         assert "cd \"$REPOSITORY_LOCAL_PATH\"\nif [ -d .venv ]; then . .venv/bin/activate; fi\n" + resolver_line not in text
@@ -218,12 +226,12 @@ class TestRoutePrompt:
     """Route prompts route to manifest resolution and never own resolver strategy."""
 
     def test_route_prompt_points_to_manifest(self) -> None:
-        assert "kernel/manifest.json" in _read(REPO_ROOT / "templates" / "route-prompt.md")
+        assert "kernel/manifest.json" in _read(REPO_ROOT / "legacy-project-os" / "templates" / "route-prompt.md")
 
     def test_route_prompt_does_not_own_resolver_strategy(self) -> None:
         # Resolution is the manifest's; the route prompt must not carry the CLI.
         assert "python3 -m tools.project_os_resolve" not in _read(
-            REPO_ROOT / "templates" / "route-prompt.md"
+            REPO_ROOT / "legacy-project-os" / "templates" / "route-prompt.md"
         )
 
 
@@ -231,7 +239,7 @@ class TestDesignDoc:
     """DESIGN.md frames the resolver as a non-authorizing accelerator."""
 
     def test_design_describes_resolver(self) -> None:
-        text = _read(REPO_ROOT / "docs" / "DESIGN.md")
+        text = _read(REPO_ROOT / "legacy-project-os" / "docs" / "DESIGN.md")
         assert "project_os_resolve" in text
         assert "second source of truth" in text
         assert "boundary.output_not_permission" in text
@@ -242,9 +250,8 @@ class TestPublicDocs:
 
     def test_public_docs_mention_resolver_fast_path(self) -> None:
         for path in PUBLIC_DOCS:
-            assert RESOLVER_REF in _read(path), (
-                f"{path.name} should reference the {RESOLVER_REF} fast path"
-            )
+            ref = RESOLVER_ES_REF if path == REPO_ROOT / "README.md" else RESOLVER_REF
+            assert ref in _read(path), f"{path.name} should reference the {ref} fast path"
 
     def test_public_docs_keep_manifest_manual_fallback(self) -> None:
         for path in PUBLIC_DOCS:
@@ -278,8 +285,8 @@ class TestNonAuthorizing:
         # output-not-permission boundary.
         for path in (
             REPO_ROOT / "AGENTS.md",
-            REPO_ROOT / "adapters" / "AGENTS.target.md",
-            REPO_ROOT / "docs" / "DESIGN.md",
+            REPO_ROOT / "legacy-project-os" / "adapters" / "AGENTS.target.md",
+            REPO_ROOT / "legacy-project-os" / "docs" / "DESIGN.md",
         ):
             assert "boundary.output_not_permission" in _read(path)
 

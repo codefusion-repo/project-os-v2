@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.implementation_discipline_audit · mode.review_only · output.review_result (+output.draft_issue)
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/25-audit-implementation-discipline-gaps.md`
+- Compatibilidad: `legacy-project-os/templates/operations/25-audit-implementation-discipline-gaps.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Audita gaps de disciplina de implementación contra boundary.implementation_discipline.

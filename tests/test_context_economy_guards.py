@@ -14,9 +14,9 @@ from pathlib import Path
 from tools.project_os_resolve import resolve
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-KERNEL_DIR = REPO_ROOT / "kernel"
-DOC_PATH = REPO_ROOT / "docs" / "CONTEXT_ECONOMY.md"
-ROUTE_PROMPT_PATH = REPO_ROOT / "templates" / "route-prompt.md"
+KERNEL_DIR = REPO_ROOT / "legacy-project-os" / "kernel"
+DOC_PATH = REPO_ROOT / "legacy-project-os" / "docs" / "CONTEXT_ECONOMY.md"
+ROUTE_PROMPT_PATH = REPO_ROOT / "legacy-project-os" / "templates" / "route-prompt.md"
 
 
 def _kernel_entry(filename: str, entry_id: str) -> dict:

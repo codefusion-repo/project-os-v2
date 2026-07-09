@@ -8,10 +8,10 @@ import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-MAP_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_OPERATION_MAP.md"
-STANDARD_DOC_PATH = REPO_ROOT / "docs" / "MOSDLC_TEMPLATE_STANDARD.md"
-MOSDLC_FASE0_DIR = REPO_ROOT / "templates" / "mosdlc" / "operations" / "fase-0"
-LEGACY_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
+MAP_DOC_PATH = REPO_ROOT / "legacy-project-os" / "docs" / "MOSDLC_OPERATION_MAP.md"
+STANDARD_DOC_PATH = REPO_ROOT / "legacy-project-os" / "docs" / "MOSDLC_TEMPLATE_STANDARD.md"
+MOSDLC_FASE0_DIR = REPO_ROOT / "legacy-project-os" / "templates" / "mosdlc" / "operations" / "fase-0"
+LEGACY_OPERATIONS_DIR = REPO_ROOT / "legacy-project-os" / "templates" / "operations"
 
 HUMAN_CONTEXT_VARIABLES = {"PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"}
 KERNEL_ID_PATTERN = re.compile(
@@ -86,7 +86,7 @@ REQUIRED_BLOCKS = [
 
 def _kernel_ids() -> set[str]:
     ids: set[str] = set()
-    for path in sorted((REPO_ROOT / "kernel").glob("*.json")):
+    for path in sorted((REPO_ROOT / "legacy-project-os" / "kernel").glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(data.get("id"), str):
             ids.add(data["id"])
@@ -158,8 +158,8 @@ def _mosdlc_template_paths() -> list[Path]:
 
 def test_mosdlc_template_standard_is_documented_and_discoverable() -> None:
     standard = STANDARD_DOC_PATH.read_text(encoding="utf-8")
-    catalog = (REPO_ROOT / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
-    flows = (REPO_ROOT / "docs" / "OPERATION_FLOWS.md").read_text(encoding="utf-8")
+    catalog = (REPO_ROOT / "legacy-project-os" / "docs" / "PM_OPERATIONS.md").read_text(encoding="utf-8")
+    flows = (REPO_ROOT / "legacy-project-os" / "docs" / "OPERATION_FLOWS.md").read_text(encoding="utf-8")
 
     for fragment in (
         "templates/mosdlc/operations/fase-<n>/",
@@ -267,7 +267,7 @@ def test_legacy_00_37_templates_remain_usable_and_not_renumbered() -> None:
     legacy_paths = sorted(LEGACY_OPERATIONS_DIR.glob("*.md"))
     assert [path.name[:2] for path in legacy_paths] == expected
     for rid, spec in FASE0_ROWS.items():
-        legacy = REPO_ROOT / spec["legacy"]
+        legacy = REPO_ROOT / "legacy-project-os" / spec["legacy"]
         assert legacy.exists(), f"{rid} compatibility source missing: {spec['legacy']}"
         assert legacy.read_text(encoding="utf-8").startswith("#")
 

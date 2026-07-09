@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → terminal_agent
 - Kernel: workflow.pm_intake · mode.review_only · output.route_prompt
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Compatibilidad: `templates/operations/08-draft-review-correction-route-prompt.md`
+- Compatibilidad: `legacy-project-os/templates/operations/08-draft-review-correction-route-prompt.md`
 - Aprobación PM: No (el route-prompt no autoriza; la escritura exige aprobación PM exacta)
 
 **Hace:** Draftea el prompt de corrección desde resultados de QA.

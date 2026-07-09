@@ -87,9 +87,11 @@ KERNEL_ID_REFERENCE_ALLOWLIST = {
 }
 MARKDOWN_PATH_REFERENCE_ALLOWLIST = {
     ("AGENTS.md", "docs/decisions/"): "target-owned optional ADR directory",
-    ("adapters/AGENTS.target.md", "docs/decisions/"): "target-owned optional ADR directory",
-    ("adapters/BROWSER_CHAT.target.md", "docs/decisions/"): "target-owned optional ADR directory",
-    ("docs/DESIGN.md", "fuentes/"): "historical path recoverable from git history",
+    ("legacy-project-os/adapters/AGENTS.target.md", "docs/decisions/"): "target-owned optional ADR directory",
+    ("legacy-project-os/adapters/BROWSER_CHAT.target.md", "docs/decisions/"): "target-owned optional ADR directory",
+    ("project-os-es/adapters/AGENTS.target.md", "docs/decisions/"): "target-owned optional ADR directory",
+    ("project-os-es/docs/reglas.md", "docs/decisions/"): "target-owned optional ADR directory",
+    ("legacy-project-os/docs/DESIGN.md", "fuentes/"): "historical path recoverable from git history",
 }
 
 
@@ -108,14 +110,23 @@ def _tracked_text_files() -> list[Path]:
 
 
 def _kernel_ids() -> set[str]:
+    """Union of active Spanish kernel keys and archived English kernel ids."""
     ids: set[str] = set()
-    for path in sorted((REPO_ROOT / "kernel").glob("*.json")):
+    for path in sorted((REPO_ROOT / "legacy-project-os" / "kernel").glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(data.get("id"), str):
             ids.add(data["id"])
         for entry in data.get("entries", []):
             if isinstance(entry, dict) and isinstance(entry.get("id"), str):
                 ids.add(entry["id"])
+    for path in sorted((REPO_ROOT / "project-os-es" / "kernel").glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for family in data.values():
+            if not isinstance(family, list):
+                continue
+            for entry in family:
+                if isinstance(entry, dict) and isinstance(entry.get("key"), str):
+                    ids.add(entry["key"])
     return ids
 
 
@@ -173,7 +184,7 @@ def test_no_browser_companion_package_created() -> None:
 
 
 def test_actor_model_is_surface_only() -> None:
-    actors = json.loads((REPO_ROOT / "kernel" / "actors.json").read_text(encoding="utf-8"))
+    actors = json.loads((REPO_ROOT / "legacy-project-os" / "kernel" / "actors.json").read_text(encoding="utf-8"))
     ids = {entry["id"] for entry in actors["entries"]}
     assert ids == CANONICAL_ACTOR_IDS, (
         f"actor set drifted from the four surfaces: {sorted(ids)}. "
@@ -193,10 +204,10 @@ def test_no_unsupported_gh_json_fields() -> None:
 
 
 def test_canonical_command_bundle_source_normalized() -> None:
-    assert (REPO_ROOT / "templates" / "pm-command-bundle.md").exists(), (
+    assert (REPO_ROOT / "legacy-project-os" / "templates" / "pm-command-bundle.md").exists(), (
         "the single canonical command-bundle source must stay at templates/pm-command-bundle.md"
     )
-    assert not (REPO_ROOT / "templates" / "commands").exists(), (
+    assert not (REPO_ROOT / "legacy-project-os" / "templates" / "commands").exists(), (
         "the single-file templates/commands/ folder was flattened; do not reintroduce it"
     )
 
@@ -234,6 +245,11 @@ def test_positive_markdown_paths_resolve_or_are_allowlisted() -> None:
             ref = _normalize_markdown_path_ref(token)
             if ref is None or (rel, ref) in MARKDOWN_PATH_REFERENCE_ALLOWLIST:
                 continue
-            if not _tracked_ref_exists(ref, tracked):
+            candidates = [ref]
+            if rel.startswith(("legacy-project-os/", "docs/decisions/")):
+                # Archived files and decision records keep their historical
+                # pre-migration references; resolve those against the archive.
+                candidates.append(f"legacy-project-os/{ref}")
+            if not any(_tracked_ref_exists(c, tracked) for c in candidates):
                 offenders.append(f"{rel}: {ref}")
     assert offenders == [], f"positive Markdown path references must resolve or be allowlisted: {offenders}"

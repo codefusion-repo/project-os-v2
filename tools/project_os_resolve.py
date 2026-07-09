@@ -275,7 +275,7 @@ def resolve(
     Returns a result dict with 'resolved', 'status', and 'errors' keys.
     """
     if kernel_dir is None:
-        kernel_dir = Path(".") / "kernel"
+        kernel_dir = Path("legacy-project-os") / "kernel"
     else:
         kernel_dir = Path(kernel_dir)
 
@@ -529,7 +529,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--kernel-dir",
         default=None,
-        help="Path to kernel/ directory (default: ./kernel)",
+        help="Path to kernel/ directory (default: ./legacy-project-os/kernel)",
     )
     parser.add_argument(
         "--compact",

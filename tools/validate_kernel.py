@@ -1,5 +1,8 @@
 """Single read-only integrity validator for the project-os-v2-min kernel.
 
+The English kernel is archived under legacy-project-os/ (the active surface is
+project-os-es/); this validator keeps the archived kernel internally coherent.
+
 Checks the kernel/*.json files for:
 - parseability and required envelope fields;
 - manifest load_order parity with the files actually present;
@@ -307,7 +310,11 @@ def validate_kernel(root: Path | str) -> list[Finding]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", default=".", help="repository root containing kernel/ (default: .)")
+    parser.add_argument(
+        "--root",
+        default="legacy-project-os",
+        help="root containing kernel/ (default: legacy-project-os, the archived English kernel)",
+    )
     parser.add_argument("--json", action="store_true", help="emit findings as JSON")
     args = parser.parse_args(argv)
     try:

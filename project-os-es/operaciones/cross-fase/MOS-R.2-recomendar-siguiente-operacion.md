@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/35-recommend-next-lifecycle-operation.md`
+- Compatibilidad: `legacy-project-os/templates/operations/35-recommend-next-lifecycle-operation.md`
 - Aprobación PM: No (solo recomienda; no ejecuta ni autoriza)
 
 **Hace:** Recomienda exactamente una siguiente operación MOSDLC desde trazabilidad viva.

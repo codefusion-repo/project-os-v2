@@ -11,8 +11,9 @@ Tres verdades sostienen todo el sistema:
    chat.
 2. **El kernel español es el comportamiento operativo de esta superficie.**
    `project-os-es/kernel/*.json` define actores, modos, workflows, límites,
-   evidencia y estados para `project-os-es`. El kernel raíz queda como
-   source-basis/compatibilidad histórica, no como ruta activa en español.
+   evidencia y estados para `project-os-es`. El kernel inglés archivado en
+   `legacy-project-os/kernel/` queda como source-basis/compatibilidad
+   histórica, no como ruta activa.
 3. **Ningún texto otorga permisos.** Docs, templates, prompts y salidas de
    resolver solo dan forma al trabajo. Escribir, mergear, cerrar o desplegar
    exige aprobación PM exacta más los gates del kernel.

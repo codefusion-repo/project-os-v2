@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat a terminal_agent
 - Kernel: workflow.pm_intake · mode.review_only · output.route_prompt
 - Evidencia: evidence.source_basis
-- Compatibilidad: `templates/operations/22-record-adr-decision.md`
+- Compatibilidad: `legacy-project-os/templates/operations/22-record-adr-decision.md`
 - Aprobación PM: No para draftear; sí exacta para escribir el ADR
 
 **Hace:** Draftea un ADR para registrar una decisión PM estable y la ruta delegada de escritura.

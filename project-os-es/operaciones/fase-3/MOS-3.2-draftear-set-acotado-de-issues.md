@@ -6,7 +6,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.pm_command_bundle
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Compatibilidad: `templates/operations/29-draft-bounded-roadmap-issues-command.md`
+- Compatibilidad: `legacy-project-os/templates/operations/29-draft-bounded-roadmap-issues-command.md`
 - Aprobación PM: No (draft-only; el Humano PM decide y ejecuta el bundle)
 
 **Hace:** Draftea un conjunto acotado de issues desde trazabilidad viva y roadmap.
