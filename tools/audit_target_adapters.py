@@ -724,7 +724,8 @@ def audit_target_adapters(
     if "GEMINI.md" in head_sources:
         findings.extend(_check_compact_bootloader(head_sources["GEMINI.md"], "GEMINI.md", "GEMINI"))
 
-    roadmap_findings, canonical_anchors = _check_roadmaps(full_sources, expected_repository)
+    terminal_sources = [head_sources["AGENTS.md"]] if "AGENTS.md" in head_sources else []
+    roadmap_findings, canonical_anchors = _check_roadmaps(terminal_sources, expected_repository)
     findings.extend(roadmap_findings)
     for source in list(head_sources.values()) + ([browser_chat] if browser_chat else []):
         findings.extend(_check_live_state(source, expected_repository, canonical_anchors))

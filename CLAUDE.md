@@ -1,15 +1,7 @@
 # CLAUDE.md
 
-CLAUDE.md is the Claude-specific adapter for `codefusion-repo/project-os-v2`. It is a compact bootloader only.
+Shim de Claude para `codefusion-repo/project-os-v2`.
 
-Use `AGENTS.md` for repository-wide terminal-agent behavior; it points to the
-active Spanish kernel manifest resolution, including the principal
-`tools/project_os_resolve.py` terminal fast path. That command runs from
-`REPOSITORY_LOCAL_PATH`, uses `.venv` when present, and passes `--kernel-dir`
-for `KERNEL_LOCAL_PATH`. Resolve generic operating behavior from the kernel
-referenced there, and live project state from GitHub and git at task time.
-The pre-migration surface is available only through git history and is never
-an active resolution source.
-
-CLAUDE.md grants no write permission and stores no live state. Fail closed on
-missing kernel, missing evidence, ambiguous authority, or failed validation.
+Usa `AGENTS.md` como único bootloader terminal del repositorio. Allí están la
+metadata, la resolución del kernel activo `project-os-es` y los punteros a la
+evidencia viva. Este shim no concede permisos ni guarda estado vivo.

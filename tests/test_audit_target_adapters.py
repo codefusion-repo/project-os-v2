@@ -33,6 +33,21 @@ def filled_spanish_adapter(target: Path) -> str:
     return text
 
 
+def filled_browser_adapter(target: Path) -> str:
+    text = (REPO_ROOT / "project-os-es/adapters/BROWSER_CHAT.target.md").read_text(encoding="utf-8")
+    replacements = {
+        "{{PLACEHOLDERS}}": "placeholders",
+        "{{ORG/REPO}}": "example/target",
+        "{{PROJECT_NAME}}": "target",
+        "{{ruta local si existe}}": str(target),
+        "{{ruta a project-os-es/kernel si existe}}": str(REPO_ROOT / "project-os-es/kernel"),
+        '{{version adoptada o "tracks latest"}}': "tracks latest",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return text
+
+
 def test_spanish_template_headings_and_project_os_es_kernel_path_are_accepted(tmp_path: Path) -> None:
     (tmp_path / "AGENTS.md").write_text(filled_spanish_adapter(tmp_path), encoding="utf-8")
     for name in ("CLAUDE.md", "GEMINI.md"):
@@ -44,6 +59,20 @@ def test_spanish_template_headings_and_project_os_es_kernel_path_are_accepted(tm
     assert "TAA-META-KERNEL-PATH" not in codes
     assert "TAA-ROADMAP-MISSING" not in codes
     assert "TAA-ROADMAP-DUPLICATE" not in codes
+
+
+def test_browser_adapter_needs_no_roadmap_anchor_to_pass_the_target_audit(tmp_path: Path) -> None:
+    (tmp_path / "AGENTS.md").write_text(filled_spanish_adapter(tmp_path), encoding="utf-8")
+    for name in ("CLAUDE.md", "GEMINI.md"):
+        (tmp_path / name).write_text("Usa AGENTS.md para comportamiento del repositorio.\n", encoding="utf-8")
+
+    findings = audit_target_adapters(
+        tmp_path,
+        expected_repository="example/target",
+        browser_chat=Source("BROWSER_CHAT.md", filled_browser_adapter(tmp_path)),
+    )
+
+    assert findings == []
 
 
 def test_spanish_roadmap_anchor_wording_is_canonical() -> None:
