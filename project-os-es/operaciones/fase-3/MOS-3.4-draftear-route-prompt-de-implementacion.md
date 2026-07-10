@@ -11,16 +11,16 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea el route-prompt para delegar la implementación de un issue a un terminal agent.
 **Para:** Rutear implementación con scope, modo y evidencia correctos.
-**Cómo:** Bootloader compacto; puede recomendar skill opcional y familia
-Codex/Claude/Gemini cuando ayude; el detalle vive en el issue y nunca autoriza
-por sí mismo.
+**Cómo:** Bootloader compacto; el browser chat puede recomendar un skill opcional
+e infiere `RECOMMENDED_TERMINAL_AGENT_FAMILY` según el trabajo. La recomendación
+es advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
 
 **Variables**
 - Requeridas: — (ninguna)
-- Opcionales: ISSUE_NUMBER, ROADMAP_ISSUE, OPTIONAL_SKILL,
-  RECOMMENDED_TERMINAL_AGENT_FAMILY, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el
-  skill, la familia de agente, el feedback y la pregunta del PM son contexto;
-  nunca autorizan nada)
+- Opcionales: ISSUE_NUMBER, ROADMAP_ISSUE, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO,
+  PM_QUESTION_HUMANO (el skill, el feedback y la pregunta del PM son contexto;
+  nunca autorizan nada). El wizard pide `PM_AUTHORIZATION_STATUS` de forma
+  requerida antes de generar este route-prompt.
 
 **Entrega:** output.route_prompt. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

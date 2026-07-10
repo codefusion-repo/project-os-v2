@@ -11,15 +11,17 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea el route-prompt de corrección de un PR/issue desde feedback accionable.
 **Para:** Corregir sin expandir el scope original.
-**Cómo:** Encapsula findings en una ruta de corrección delegada; puede
-recomendar skill opcional y familia Codex/Claude/Gemini sin hacerlos
-vinculantes.
+**Cómo:** Encapsula findings en una ruta de corrección delegada; el browser chat
+puede recomendar un skill opcional e infiere
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` según el trabajo. La recomendación es
+advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
 
 **Variables**
 - Requeridas: ISSUE_NUMBER
-- Opcionales: PR_NUMBER, OPTIONAL_SKILL, RECOMMENDED_TERMINAL_AGENT_FAMILY,
-  PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el skill, la familia de agente, el
-  feedback y la pregunta del PM son contexto; nunca autorizan nada)
+- Opcionales: PR_NUMBER, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO,
+  PM_QUESTION_HUMANO (el skill, el feedback y la pregunta del PM son contexto;
+  nunca autorizan nada). El wizard pide `PM_AUTHORIZATION_STATUS` de forma
+  requerida antes de generar este route-prompt.
 
 **Entrega:** output.route_prompt. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

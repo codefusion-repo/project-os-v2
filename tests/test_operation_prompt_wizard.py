@@ -9,14 +9,18 @@ from tools.operation_prompt_wizard import (
     DEFAULT_OPERATIONS_DIR,
     InputVariable,
     PM_AUTHORIZATION_GRANTED,
+    PM_AUTHORIZATION_PENDING,
     PM_AUTHORIZATION_STATUS_NAME,
     WIZARD_PROMPT_MARKER,
+    WizardError,
     cleanup_previous_generated_prompts,
     discover_operations,
     display_operations,
     filter_operations,
     generated_filename,
+    load_active_skill_choices,
     load_phase_map,
+    operation_needs_pm_authorization_assistance,
     operation_output_refs,
     parse_input_variables,
     print_phase_groups,
@@ -24,6 +28,7 @@ from tools.operation_prompt_wizard import (
     resolve_operation_selection,
     run_wizard,
     validate_variable_value,
+    wizard_variables,
     write_prompt,
 )
 
@@ -119,30 +124,45 @@ def test_filter_matches_active_spanish_search_surface() -> None:
         assert target in filter_operations(operations, query, phases)
 
 
-def test_spanish_variables_outputs_and_rendered_input_are_functional() -> None:
-    operation = next(operation for operation in discover_operations() if operation.mos_code == "MOS-3.5")
-    variables = parse_input_variables(operation.text)
+def test_active_route_operations_expose_required_authorization_and_no_pm_agent_family() -> None:
+    operations = discover_operations()
+    expected_variables = {
+        "MOS-3.4": [
+            ("ISSUE_NUMBER", False),
+            ("ROADMAP_ISSUE", False),
+            ("OPTIONAL_SKILL", False),
+            ("PM_FEEDBACK_HUMANO", False),
+            ("PM_QUESTION_HUMANO", False),
+        ],
+        "MOS-3.5": [
+            ("ISSUE_NUMBER", True),
+            ("PR_NUMBER", False),
+            ("OPTIONAL_SKILL", False),
+            ("PM_FEEDBACK_HUMANO", False),
+            ("PM_QUESTION_HUMANO", False),
+        ],
+    }
 
-    assert [(variable.name, variable.required) for variable in variables] == [
-        ("ISSUE_NUMBER", True),
-        ("PR_NUMBER", False),
-        ("OPTIONAL_SKILL", False),
-        ("RECOMMENDED_TERMINAL_AGENT_FAMILY", False),
-        ("PM_FEEDBACK_HUMANO", False),
-        ("PM_QUESTION_HUMANO", False),
-    ]
-    assert operation_output_refs(operation) == ("output.route_prompt", "output.status_result")
+    for mos_code, expected in expected_variables.items():
+        operation = next(candidate for candidate in operations if candidate.mos_code == mos_code)
+        assert [(variable.name, variable.required) for variable in operation.variables] == expected
+        assert operation_output_refs(operation) == ("output.route_prompt",)
+        assert operation_needs_pm_authorization_assistance(operation) is True
+        assert [(variable.name, variable.required) for variable in wizard_variables(operation)][-1] == (
+            PM_AUTHORIZATION_STATUS_NAME,
+            True,
+        )
+        assert "RECOMMENDED_TERMINAL_AGENT_FAMILY" not in [variable.name for variable in operation.variables]
 
-    rendered = render_prompt(
-        operation,
-        {"ISSUE_NUMBER": "405", PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED},
-        include_route_prompt_authorization=True,
-    )
-    assert "INPUT:\n  ISSUE_NUMBER=405" in rendered
-    assert f"  {PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in rendered
+        rendered = render_prompt(
+            operation,
+            {"ISSUE_NUMBER": "405", PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED},
+        )
+        assert rendered.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+        assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in rendered
 
 
-def test_line_wizard_groups_selects_by_mos_and_generates_from_spanish_catalog(tmp_path: Path) -> None:
+def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path) -> None:
     stream = StringIO()
     output = run_wizard(
         output_dir=tmp_path,
@@ -150,8 +170,7 @@ def test_line_wizard_groups_selects_by_mos_and_generates_from_spanish_catalog(tm
             "/phases",
             "MOS-3.5",
             "MOS-3.5",
-            "405", "", "", "", "", "",
-            "1", "2",
+            "405", "", "none", "", "", "1",
             "write", "exit",
         ),
         output_stream=stream,
@@ -163,8 +182,56 @@ def test_line_wizard_groups_selects_by_mos_and_generates_from_spanish_catalog(tm
     assert "Operations grouped by SDLC phase:" in transcript
     assert "Fase 3:" in transcript
     assert "ISSUE_NUMBER=405" in content
-    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
+    assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
+    assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode." in transcript
     assert WIZARD_PROMPT_MARKER in content
+
+
+def test_line_wizard_active_mos34_generates_granted_route_prompt(tmp_path: Path) -> None:
+    stream = StringIO()
+    output = run_wizard(
+        output_dir=tmp_path,
+        input_func=answers(
+            "MOS-3.4", "MOS-3.4",
+            "405", "274", "skill.arquitectura_backend", "", "", "2",
+            "write", "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
+    assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
+    assert "OPTIONAL_SKILL=skill.arquitectura_backend" in content
+    assert "OPTIONAL_SKILL choices:" in stream.getvalue()
+
+
+def test_line_wizard_rejects_blank_and_invalid_route_authorization_then_normalizes(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-3" / "MOS-3.5-route.md",
+        "MOS-3.5",
+        "Route",
+        required="ISSUE_NUMBER",
+        delivery="output.route_prompt",
+    )
+    stream = StringIO()
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=answers("MOS-3.5", "MOS-3.5", "405", "", "granted", "2", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
+    assert stream.getvalue().count("Invalid value: PM_AUTHORIZATION_STATUS") == 2
 
 
 def test_same_resets_issue_keeps_roadmap_and_edit_reopens_values(tmp_path: Path) -> None:
@@ -218,6 +285,172 @@ def test_back_and_new_continue_session_and_keep_only_latest_prompt(tmp_path: Pat
     assert output is not None
     assert "MOS-3.1" in output.read_text(encoding="utf-8")
     assert len(list(output_dir.glob("*.md"))) == 1
+
+
+def test_same_reasks_authorization_and_never_carries_a_grant(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-3" / "MOS-3.5-route.md",
+        "MOS-3.5",
+        "Route",
+        required="ISSUE_NUMBER",
+        delivery="output.route_prompt",
+    )
+    stream = StringIO()
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=answers(
+            "MOS-3.5", "MOS-3.5", "100", "2", "write",
+            "same", "200", "1", "write", "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert "ISSUE_NUMBER=200" in content
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
+    assert PM_AUTHORIZATION_GRANTED not in content
+    assert stream.getvalue().count("PM_AUTHORIZATION_STATUS: 1=pending") == 2
+
+
+def test_new_does_not_carry_authorization_into_another_operation(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-3" / "MOS-3.5-route.md",
+        "MOS-3.5",
+        "Route",
+        required="ISSUE_NUMBER",
+        delivery="output.route_prompt",
+    )
+    write_spanish_operation(
+        operations_dir / "fase-4" / "MOS-4.1-status.md",
+        "MOS-4.1",
+        "Status",
+        required="PR_NUMBER",
+    )
+    stream = StringIO()
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=answers(
+            "MOS-3.5", "MOS-3.5", "405", "2", "write",
+            "new", "MOS-4.1", "MOS-4.1", "406", "write", "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    assert PM_AUTHORIZATION_STATUS_NAME not in output.read_text(encoding="utf-8")
+    assert stream.getvalue().count("PM_AUTHORIZATION_STATUS: 1=pending") == 1
+
+
+def test_edit_shows_the_exact_scope_warning_before_reusing_current_status(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-3" / "MOS-3.5-route.md",
+        "MOS-3.5",
+        "Route",
+        required="ISSUE_NUMBER",
+        delivery="output.route_prompt",
+    )
+    stream = StringIO()
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=answers(
+            "MOS-3.5", "MOS-3.5", "405", "2", "write",
+            "edit", "", "", "write", "y", "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in output.read_text(encoding="utf-8")
+    assert stream.getvalue().count("Use 2 only for exact PM-approved scope/mode") == 2
+
+
+def test_multi_output_back_then_non_route_removes_stale_authorization(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-3" / "MOS-3.1-multi.md",
+        "MOS-3.1",
+        "Multi",
+        required="ISSUE_NUMBER",
+        delivery="output.route_prompt, output.status_result",
+    )
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=answers(
+            "MOS-3.1", "MOS-3.1", "405", "1", "2", "edit", "", "2", "write", "exit"
+        ),
+        output_stream=StringIO(),
+    )
+
+    assert output is not None
+    assert PM_AUTHORIZATION_STATUS_NAME not in output.read_text(encoding="utf-8")
+
+
+def test_optional_skill_choices_are_dynamic_and_fail_closed(tmp_path: Path) -> None:
+    assert load_active_skill_choices() == (
+        "skill.arquitectura_backend",
+        "skill.desarrollo_frontend",
+        "none",
+    )
+    variable = InputVariable("OPTIONAL_SKILL", "<OPTIONAL_SKILL>", False, "")
+    assert validate_variable_value(variable, "") is None
+    assert validate_variable_value(variable, "skill.arquitectura_backend") is None
+    assert validate_variable_value(variable, "skill.desarrollo_frontend") is None
+    assert validate_variable_value(variable, "none") is None
+    assert "active skill or none" in (validate_variable_value(variable, "skill.inactiva") or "")
+
+    invalid_catalog = tmp_path / "skills.json"
+    invalid_catalog.write_text('{"skills": [{"key": "skill.incompleta"}]}', encoding="utf-8")
+    try:
+        load_active_skill_choices(invalid_catalog)
+    except WizardError as exc:
+        assert "invalid active skills catalog" in str(exc)
+    else:
+        raise AssertionError("invalid skill catalog must fail closed")
+
+
+def test_line_wizard_shows_dynamic_skill_choices_and_rejects_unknown_value(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-3" / "MOS-3.1-skill.md",
+        "MOS-3.1",
+        "Skill",
+        optional="OPTIONAL_SKILL",
+    )
+    stream = StringIO()
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=answers(
+            "MOS-3.1", "MOS-3.1", "skill.inactiva", "skill.desarrollo_frontend", "write", "exit"
+        ),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    assert "OPTIONAL_SKILL=skill.desarrollo_frontend" in output.read_text(encoding="utf-8")
+    transcript = stream.getvalue()
+    assert "OPTIONAL_SKILL choices: skill.arquitectura_backend, skill.desarrollo_frontend, none" in transcript
+    assert "OPTIONAL_SKILL must be an active skill or none" in transcript
+
+
+def test_route_prompt_template_keeps_ai_advisory_field_without_pm_input() -> None:
+    template = (DEFAULT_OPERATIONS_DIR.parent / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    assert "RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}" in template
+    assert "browser chat infiere" in template
+    assert "feedback explícito\ndel PM puede reemplazar" in template
+
+    for mos_code in ("MOS-3.4", "MOS-3.5"):
+        operation = next(candidate for candidate in discover_operations() if candidate.mos_code == mos_code)
+        assert "RECOMMENDED_TERMINAL_AGENT_FAMILY" not in [variable.name for variable in operation.variables]
+        assert "browser chat" in operation.text
 
 
 def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejected(tmp_path: Path) -> None:

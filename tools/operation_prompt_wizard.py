@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 import re
 import sys
@@ -34,6 +35,7 @@ except ImportError:
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OPERATIONS_DIR = REPO_ROOT / "project-os-es" / "operaciones"
+DEFAULT_SKILLS_CATALOG = REPO_ROOT / "project-os-es" / "kernel" / "skills.json"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / ".local" / "operation-prompts"
 # The active Spanish catalog encodes its phase model in directory names.  An
 # optional table can still override those labels for custom catalogs.
@@ -366,7 +368,11 @@ def _unique_operation(candidates) -> OperationTemplate | None:
     return next(iter(unique.values())) if len(unique) == 1 else None
 
 
-def validate_variable_value(variable: InputVariable, value: str) -> str | None:
+def validate_variable_value(
+    variable: InputVariable,
+    value: str,
+    skill_choices: tuple[str, ...] | None = None,
+) -> str | None:
     """Return a validation error for common variable shapes, or ``None``."""
 
     stripped = value.strip()
@@ -382,6 +388,15 @@ def validate_variable_value(variable: InputVariable, value: str) -> str | None:
             return (
                 f"{variable.name} must be 1, 2, pending, or "
                 "granted for this exact scope and mode."
+            )
+        return None
+
+    if is_optional_skill_variable(variable.name):
+        choices = skill_choices or load_active_skill_choices()
+        if stripped not in choices:
+            return (
+                f"{variable.name} must be an active skill or none: "
+                f"{', '.join(choices)}."
             )
         return None
 
@@ -404,11 +419,17 @@ def validate_variable_value(variable: InputVariable, value: str) -> str | None:
     return None
 
 
-def validation_example(variable: InputVariable) -> str:
+def validation_example(
+    variable: InputVariable,
+    skill_choices: tuple[str, ...] | None = None,
+) -> str:
     """Return a concise example for the common validated variable shapes."""
 
     if is_pm_authorization_status_variable(variable.name):
         return "Choose 1 for pending or 2 for granted for this exact scope and mode."
+    if is_optional_skill_variable(variable.name):
+        choices = skill_choices or load_active_skill_choices()
+        return f"Use an active skill, none, or leave it blank: {', '.join(choices)}."
     choices = placeholder_choices(variable.placeholder)
     if choices is not None:
         return f"Use one of: {', '.join(choices)}."
@@ -462,6 +483,45 @@ def is_pm_authorization_status_variable(name: str) -> bool:
     return name == PM_AUTHORIZATION_STATUS_NAME
 
 
+def is_optional_skill_variable(name: str) -> bool:
+    """Identify the PM-selectable optional skill variable."""
+
+    return name == "OPTIONAL_SKILL"
+
+
+def load_active_skill_choices(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG) -> tuple[str, ...]:
+    """Load active Spanish kernel skills plus the explicit no-skill choice.
+
+    The catalog is authoritative. Invalid or unreadable catalog data stops the
+    wizard rather than falling back to a stale hard-coded skill list.
+    """
+
+    try:
+        content = json.loads(skills_catalog_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise WizardError(f"cannot read active skills catalog {skills_catalog_path}: {exc}") from exc
+    if not isinstance(content, dict) or not isinstance(content.get("skills"), list):
+        raise WizardError(f"invalid active skills catalog {skills_catalog_path}: expected object with skills list")
+
+    choices: list[str] = []
+    for index, entry in enumerate(content["skills"]):
+        if not isinstance(entry, dict):
+            raise WizardError(f"invalid active skills catalog {skills_catalog_path}: skills[{index}] is not an object")
+        key = entry.get("key")
+        active = entry.get("active")
+        if not isinstance(key, str) or not key.startswith("skill.") or not isinstance(active, bool):
+            raise WizardError(
+                f"invalid active skills catalog {skills_catalog_path}: skills[{index}] needs key skill.* and boolean active"
+            )
+        if active:
+            if key in choices:
+                raise WizardError(f"invalid active skills catalog {skills_catalog_path}: duplicate active skill {key}")
+            choices.append(key)
+    if "none" in choices:
+        raise WizardError(f"invalid active skills catalog {skills_catalog_path}: active skill key none is reserved")
+    return tuple((*choices, "none"))
+
+
 def is_carryover_variable(name: str) -> bool:
     """Identify stable context variables safe to offer for carry-over between prompts.
 
@@ -512,12 +572,12 @@ def operation_output_refs(operation: OperationTemplate) -> tuple[str, ...]:
     refs: list[str] = []
     output_lines = named_block_lines(operation.text, "OUTPUT")
     if not output_lines:
-        match = re.search(
-            r"\*\*Entrega:\*\*(.*?)(?=\n\s*\n|\Z)",
+        delivery_match = re.search(
+            r"\*\*Entrega:\*\*\s*(.*?)(?=\.\s|\.$|\n|\Z)",
             operation.text,
-            flags=re.DOTALL | re.IGNORECASE,
+            flags=re.IGNORECASE,
         )
-        output_lines = match.group(1).splitlines() if match else []
+        output_lines = [delivery_match.group(1)] if delivery_match else []
     for line in output_lines:
         for ref in re.findall(r"\boutput\.[A-Za-z0-9_.-]+\b", line):
             if ref not in refs:
@@ -902,11 +962,18 @@ def format_variable_list(variables: list[InputVariable]) -> str:
     return ", ".join(f"{variable.name} {variable.placeholder}" for variable in variables)
 
 
-def display_operation_summary(operation: OperationTemplate, output_stream: TextIO) -> None:
+def display_operation_summary(
+    operation: OperationTemplate,
+    output_stream: TextIO,
+    skill_choices: tuple[str, ...] | None = None,
+) -> None:
     """Print the selected operation and its INPUT variable summary."""
 
     for line in variable_summary_lines(operation):
         print(line, file=output_stream)
+    if any(is_optional_skill_variable(variable.name) for variable in wizard_variables(operation)):
+        choices = skill_choices or load_active_skill_choices()
+        print(f"OPTIONAL_SKILL choices: {', '.join(choices)}; blank is allowed.", file=output_stream)
 
 
 def print_pm_authorization_assistance(output_stream: TextIO) -> None:
@@ -1034,12 +1101,13 @@ def collect_values_with_controls(
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
     initial_values: dict[str, str] | None = None,
+    skill_choices: tuple[str, ...] | None = None,
 ) -> ValueCollectionResult:
     """Prompt for variable values and return navigation decisions."""
 
     values = dict(initial_values or {})
     print_stage("Step 2/3", "Fill INPUT variables", output_stream)
-    display_operation_summary(operation, output_stream)
+    display_operation_summary(operation, output_stream, skill_choices=skill_choices)
     variables = wizard_variables(operation)
     if not variables:
         print("This operation declares no INPUT variables.", file=output_stream)
@@ -1080,7 +1148,7 @@ def collect_values_with_controls(
             value = raw_value.strip()
             if not value and current:
                 value = current
-            error = validate_variable_value(variable, value)
+            error = validate_variable_value(variable, value, skill_choices=skill_choices)
             if error is None:
                 values[variable.name] = normalize_variable_value(variable, value)
                 break
@@ -1367,12 +1435,14 @@ def run_wizard(
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
     operation_flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
+    skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG,
 ) -> Path | None:
     """Run the interactive operation prompt wizard for one or more prompts in one session."""
 
     operations = discover_operations(operations_dir)
     output_directory = resolve_output_dir(output_dir)
     phase_by_operation = load_phase_map(operation_flows_path, operations)
+    skill_choices = load_active_skill_choices(skills_catalog_path)
 
     written_operation: OperationTemplate | None = None
     written_values: dict[str, str] = {}
@@ -1410,6 +1480,7 @@ def run_wizard(
                 input_func=input_func,
                 output_stream=output_stream,
                 initial_values=values,
+                skill_choices=skill_choices,
             )
             if result.action == "cancel":
                 if current_prompt_path is not None:
@@ -1631,10 +1702,15 @@ if HAVE_PROMPT_TOOLKIT:
             if operation is not None:
                 return operation
 
-    def collect_values_with_controls_pt(operation: OperationTemplate, output_stream: TextIO, initial_values: dict[str, str] | None = None) -> ValueCollectionResult:
+    def collect_values_with_controls_pt(
+        operation: OperationTemplate,
+        output_stream: TextIO,
+        initial_values: dict[str, str] | None = None,
+        skill_choices: tuple[str, ...] | None = None,
+    ) -> ValueCollectionResult:
         values = dict(initial_values or {})
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
-        display_operation_summary(operation, output_stream)
+        display_operation_summary(operation, output_stream, skill_choices=skill_choices)
         variables = wizard_variables(operation)
         if not variables:
             print("This operation declares no INPUT variables.", file=output_stream)
@@ -1663,13 +1739,15 @@ if HAVE_PROMPT_TOOLKIT:
                         if variable.required:
                             raise ValidationError(message=f"Required. {validation_example(variable)}", cursor_position=len(document.text))
                         return
-                    error = validate_variable_value(variable, text)
+                    error = validate_variable_value(variable, text, skill_choices=skill_choices)
                     if error is not None:
                         raise ValidationError(message=error, cursor_position=len(document.text))
 
             completer = None
             if is_pm_authorization_status_variable(variable.name):
                 completer = WordCompleter(["1", "2", *PM_AUTHORIZATION_CHOICES], ignore_case=True)
+            elif is_optional_skill_variable(variable.name):
+                completer = WordCompleter(list(skill_choices or load_active_skill_choices()), ignore_case=True)
             else:
                 choices = placeholder_choices(variable.placeholder)
                 if choices:
@@ -1975,10 +2053,12 @@ if HAVE_PROMPT_TOOLKIT:
         output_dir: Path | None = None,
         output_stream: TextIO = sys.stdout,
         operation_flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
+        skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG,
     ) -> Path | None:
         operations = discover_operations(operations_dir)
         output_directory = resolve_output_dir(output_dir)
         phase_by_operation = load_phase_map(operation_flows_path, operations)
+        skill_choices = load_active_skill_choices(skills_catalog_path)
 
         written_operation: OperationTemplate | None = None
         written_values: dict[str, str] = {}
@@ -2012,6 +2092,7 @@ if HAVE_PROMPT_TOOLKIT:
                     operation,
                     output_stream=output_stream,
                     initial_values=values,
+                    skill_choices=skill_choices,
                 )
                 if result.action == "cancel":
                     if current_prompt_path is not None:

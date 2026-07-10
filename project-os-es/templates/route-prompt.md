@@ -28,7 +28,13 @@ recommended_effort: {{medium|high|xhigh}} - {{razon breve}}
 ```
 
 El agente receptor re-resuelve el kernel, lee evidencia viva y falla cerrado si
-falta contexto, autoridad o validacion. `OPTIONAL_SKILL` y
-`RECOMMENDED_TERMINAL_AGENT_FAMILY` son recomendaciones no vinculantes; no
-eligen permisos, no reemplazan aprobacion PM exacta y no fuerzan herramienta.
+falta contexto, autoridad o validacion. El browser chat infiere
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` como consejo no vinculante: Codex para
+implementación de código, tooling Python, migraciones, refactors y tests;
+Claude para síntesis documental, revisión de arquitectura o prosa de contexto
+largo; Gemini para trabajo multimodal o de ecosistema Google con ventaja clara;
+`none` si no hay ventaja significativa o falta evidencia. El feedback explícito
+del PM puede reemplazar esa recomendación. `OPTIONAL_SKILL` y la familia
+recomendada no eligen permisos, no reemplazan aprobacion PM exacta y no fuerzan
+herramienta.
 Este prompt no autoriza escritura.

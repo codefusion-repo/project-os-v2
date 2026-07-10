@@ -29,7 +29,7 @@ DEFAULT_BRANCH = main
 WORK_BRANCH_PATTERN = work/*  
 PM_FACING_LANGUAGE = es  
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2  
-KERNEL_LOCAL_PATH = $HOME/projects/personal/project-os-v2/project-os-es/kernel/ 
+KERNEL_LOCAL_PATH = $HOME/projects/personal/project-os-v2/project-os-es/kernel/
 KERNEL_VERSION_ADOPTED = tracks latest 
 
 ## Kernel resolution
