@@ -35,12 +35,11 @@ KERNEL_VERSION_ADOPTED = {{version adoptada o "tracks latest"}}
 
 Antes de trabajo no trivial, resuelve desde `KERNEL_LOCAL_PATH` siguiendo
 `project-os-es/kernel/manifest.json` exactamente. En terminal usa el resolver
-de la superficie espanola:
+principal del repo Project OS:
 
 ```sh
-PROJECT_OS_ES_LOCAL_PATH="${KERNEL_LOCAL_PATH%/}"
-PROJECT_OS_ES_LOCAL_PATH="${PROJECT_OS_ES_LOCAL_PATH%/kernel}"
-python "$PROJECT_OS_ES_LOCAL_PATH/tools/resolver.py" \
+PROJECT_OS_ROOT="${KERNEL_LOCAL_PATH%/project-os-es/kernel}"
+python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
   --kernel-dir "$KERNEL_LOCAL_PATH" [--skill skill.<id>]
 ```

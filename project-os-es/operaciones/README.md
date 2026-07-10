@@ -24,7 +24,7 @@ a rutas raíz.
    espanol; el resolver emite guia operativa y nunca consulta GitHub/git por ti.
 
    ```sh
-   python project-os-es/tools/resolver.py --actor <actor> --workflow <workflow> \
+   python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
      --mode <mode> --kernel-dir project-os-es/kernel
    ```
 2. **Estado vivo, siempre vivo.** Reconstruye issues, PRs, ramas, commits y

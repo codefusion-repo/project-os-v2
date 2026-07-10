@@ -18,7 +18,7 @@ no copiar el contenido del template.
 - Catalogo de artefactos: `project-os-es/kernel/artefactos.json`.
 - Catalogo de skills opcionales: `project-os-es/kernel/skills.json`.
 - Archivos compactos de skills: `project-os-es/habilidades/`.
-- Hidratador de `required_template`: `project-os-es/tools/resolver.py`.
+- Hidratador de `required_template`: `tools/project_os_resolve.py`.
 
 ## Catalogo
 

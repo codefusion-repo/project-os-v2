@@ -5,11 +5,11 @@ justifies context usage compared with manual manifest/kernel resolution, before
 the manifest model is used as a Browser Companion packaging base (#309).
 
 This module reports the byte / character / approximate-token size of three
-resolution paths against the live kernel:
+resolution paths against the active Spanish kernel:
 
-- ``manual_resolution`` — a cold manual read of ``manifest.json`` plus every
-  file in ``load_order`` (what browser and non-terminal surfaces read, and what
-  the fast path expands);
+- ``manual_resolution`` — a cold manual read of ``manifest.json`` plus the
+  active kernel JSON files (what browser and non-terminal surfaces read, and
+  what the fast path expands);
 - ``resolver_fast_path`` — the deterministic ``tools.project_os_resolve`` output
   for one actor/workflow/mode selector, compact and pretty;
 - ``browser_companion_candidate`` — the projected stable-context package a
@@ -48,10 +48,10 @@ DEFAULT_BASELINE_BYTES = 26624
 # Workflow/evidence/output detail can be read on demand. Projection only.
 BROWSER_COMPANION_CORE = (
     "manifest.json",
-    "statuses.json",
-    "actors.json",
-    "execution_modes.json",
-    "boundaries.json",
+    "reglas-operativas.json",
+    "actores.json",
+    "modos.json",
+    "limites.json",
 )
 
 NON_AUTHORIZATION = (
@@ -76,12 +76,11 @@ def _size(text: str) -> dict[str, int]:
 
 
 def _load_order(kernel_dir: Path) -> list[str]:
-    """Read the manifest load_order, with the manifest itself read first."""
-    manifest = json.loads((kernel_dir / "manifest.json").read_text(encoding="utf-8"))
-    order = manifest.get("load_order", [])
-    if not isinstance(order, list):
-        raise ValueError("manifest load_order is not a list")
-    return ["manifest.json", *order]
+    """Return the active kernel files, with its manifest read first."""
+    files = sorted(path.name for path in kernel_dir.glob("*.json") if path.name != "manifest.json")
+    if not (kernel_dir / "manifest.json").is_file():
+        raise ValueError("manifest.json not found")
+    return ["manifest.json", *files]
 
 
 def _measure_files(kernel_dir: Path, names: list[str]) -> dict[str, Any]:
@@ -106,7 +105,7 @@ def measure(
 
     Returns a JSON-serializable report. Reads only; never writes or authorizes.
     """
-    kernel_dir = Path("legacy-project-os/kernel") if kernel_dir is None else Path(kernel_dir)
+    kernel_dir = Path("project-os-es/kernel") if kernel_dir is None else Path(kernel_dir)
 
     manual = _measure_files(kernel_dir, _load_order(kernel_dir))
     companion = _measure_files(kernel_dir, list(BROWSER_COMPANION_CORE))
@@ -116,8 +115,8 @@ def measure(
     )
 
     result = resolve(actor_id, workflow_id, mode_id, kernel_dir=kernel_dir)
-    if result["status"] != "ok":
-        fast_path: dict[str, Any] = {"status": "error", "errors": result["errors"]}
+    if result["estado"] != "status.resolved":
+        fast_path: dict[str, Any] = {"status": "error", "errors": result["errores"]}
         comparison: dict[str, Any] = {}
         conclusion = (
             f"Selector {actor_id}/{workflow_id}/{mode_id} did not resolve; "
@@ -231,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--actor", default=DEFAULT_ACTOR)
     parser.add_argument("--workflow", default=DEFAULT_WORKFLOW)
     parser.add_argument("--mode", default=DEFAULT_MODE)
-    parser.add_argument("--kernel-dir", default=None, help="Path to kernel/ (default: ./legacy-project-os/kernel)")
+    parser.add_argument("--kernel-dir", default=None, help="Path to kernel/ (default: ./project-os-es/kernel)")
     parser.add_argument(
         "--baseline-bytes",
         type=int,

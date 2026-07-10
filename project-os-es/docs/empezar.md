@@ -77,7 +77,7 @@ Haz esto solo cuando vayas a delegar implementación a un terminal agent:
 Fast path del resolver cuando el repo ya está listo:
 
 ```sh
-python project-os-es/tools/resolver.py --actor <actor> --workflow <workflow> \
+python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
   --mode <mode> --kernel-dir project-os-es/kernel [--skill skill.<id>]
 ```
 

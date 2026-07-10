@@ -26,18 +26,18 @@ La superficie activa es la superficie en español: **`project-os-es/`**.
 | Ruta | Propósito | ¿Activa? |
 | --- | --- | --- |
 | `project-os-es/kernel/*.json` | El kernel operativo activo: actores, modos, workflows, límites, evidencia, salidas, estados, artefactos y skills | **Activa (canónica)** |
-| `project-os-es/tools/resolver.py` | Resolver español: hidrata el contrato por (actor, mode, workflow) sin conceder permisos | **Activa** |
+| `tools/project_os_resolve.py` | Resolver determinista principal: hidrata `project-os-es/kernel` por (actor, mode, workflow) sin conceder permisos | **Activa** |
 | `project-os-es/docs/` | Docs PM-facing: `project-os-es/docs/empezar.md`, `project-os-es/docs/reglas.md`, `project-os-es/docs/ritmo.md` | **Activa** |
 | `project-os-es/operaciones/` | Catálogo MOSDLC compacto en español, por fase | **Activa** |
 | `project-os-es/adapters/` | Adapter templates `*.target.md` para adoptar Project OS en un target | **Activa** |
 | `project-os-es/templates/` + `project-os-es/habilidades/` | Formas de artefactos y skills opcionales referenciados por el kernel | **Activa** |
 | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` | Adapters propios de este repo (corre sobre su propio kernel) | Adapter (self) |
 | `docs/decisions/` | ADRs de este repositorio | Decisiones del repo |
-| `tools/` + `tests/` | Validador del kernel legacy, auditores read-only y suite de tests del repositorio | Infraestructura |
-| `legacy-project-os/` | Superficie inglesa pre-migración: kernel, adapters, templates y docs históricos | **Archivo (no activa)** |
+| `tools/` + `tests/` | Resolver y validador del kernel activo, guards focalizados y diagnósticos read-only secundarios | Infraestructura activa |
+| `legacy-project-os/` | Source-basis histórico, cuando esté disponible explícitamente | **Archivo (no activa)** |
 
-`legacy-project-os/` es archivo histórico y source-basis; ningún flujo activo
-se resuelve desde ahí (ver `legacy-project-os/README.md`).
+`legacy-project-os/` es source-basis histórico cuando se consulta de forma
+explícita; ningún flujo activo se resuelve desde ahí.
 
 ## Cómo resuelve un agente el kernel
 
@@ -48,11 +48,11 @@ exactamente. La resolución devuelve exactamente un estado —
 Ante cualquier faltante o ambigüedad, falla cerrado.
 
 En una superficie terminal con checkout local y Python, el fast path es el
-resolver español (los detalles de adopción viven en
+resolver principal (los detalles de adopción viven en
 `project-os-es/docs/empezar.md`):
 
 ```sh
-python project-os-es/tools/resolver.py --actor <actor> --workflow <workflow> \
+python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
   --mode <mode> --kernel-dir project-os-es/kernel [--skill skill.<id>]
 ```
 
@@ -80,17 +80,16 @@ variables PM y trazabilidad viva en GitHub.
 ## Validación
 
 ```sh
-python3 -m tools.validate_kernel   # valida la integridad del kernel legacy archivado
-python3 -m pytest tests/ -q       # resolver español, guards de forma del repo y auditores
+python3 -m tools.validate_kernel   # valida project-os-es/kernel, el kernel activo
+python3 -m pytest tests/ -q        # resolver principal y guards de rutas activas
 ```
 
-`tests/test_project_os_es_resolver.py` guarda el comportamiento del resolver
-español activo. `tools.validate_kernel` valida `legacy-project-os/kernel/*.json`
-(el kernel inglés archivado que sirve de source-basis).
+`tests/test_active_project_os_resolver.py` guarda la resolución del kernel
+español activo y evita referencias activas al resolver eliminado.
+`tools.validate_kernel` valida `project-os-es/kernel/*.json`.
 
 `tools.audit_target_adapters` y `tools.audit_traceability` siguen siendo
-diagnósticos read-only manuales; `tools.measure_resolution` mide el costo de
-resolución del kernel legacy. CI (`.github/workflows/validate.yml`) ejecuta
+diagnósticos read-only manuales. CI (`.github/workflows/validate.yml`) ejecuta
 solo la validación y la suite de tests: no hace writes y no automatiza ninguna
 autoridad PM.
 

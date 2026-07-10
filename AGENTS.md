@@ -39,12 +39,12 @@ Before non-trivial work, resolve behavior from the Spanish kernel at
 `project-os-es/kernel/manifest.json` exactly. That manifest is the single
 resolution entrypoint for the active surface; this adapter only points to it
 and defines no competing resolution order. On this terminal surface, run the
-Spanish resolver fast path from the repository root:
+principal resolver fast path from the repository root:
 
 ```sh
 cd "$REPOSITORY_LOCAL_PATH"
 if [ -d .venv ]; then . .venv/bin/activate; fi
-python project-os-es/tools/resolver.py --actor <actor> --workflow <workflow> \
+python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
   --mode <mode> --kernel-dir "$KERNEL_LOCAL_PATH" [--skill skill.<id>]
 ```
 
