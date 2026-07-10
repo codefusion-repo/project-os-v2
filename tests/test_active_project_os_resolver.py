@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from tools.project_os_resolve import DEFAULT_KERNEL_DIR, resolve
+from tools.project_os_resolve import AUTHORIZATION_NOTICE, DEFAULT_KERNEL_DIR, resolve
 from tools.validate_kernel import validate_kernel
 
 
@@ -44,6 +44,38 @@ def test_principal_resolver_supports_known_skills_and_fails_closed_for_unknown_s
     assert known["resuelto"]["requested_skills"][0]["key"] == "skill.arquitectura_backend"
     assert unknown["estado"] == "status.blocked"
     assert "skill desconocido" in unknown["errores"][0]
+
+
+def test_explicit_active_kernel_hydrates_artifact_and_template_references() -> None:
+    result = resolve(
+        "actor.terminal_agent",
+        "workflow.issue_implementation",
+        "mode.delegated_commit_pr",
+        kernel_dir=REPO_ROOT / "project-os-es/kernel",
+        skill="skill.desarrollo_frontend",
+    )
+
+    assert result["estado"] == "status.resolved"
+    artifacts = result["resuelto"]["workflow"]["artefactos"]
+    assert artifacts
+    assert all(item["required_template"].startswith("project-os-es/templates/") for item in artifacts)
+    assert result["resuelto"]["requested_skills"][0]["required_skill"].startswith(
+        "project-os-es/habilidades/"
+    )
+    assert result["autorizacion"] == AUTHORIZATION_NOTICE
+    assert "nunca concede permisos" in result["autorizacion"]
+
+
+def test_unknown_actor_workflow_and_mode_each_fail_closed() -> None:
+    selectors = (
+        ("actor.no_existe", "workflow.pm_intake", "mode.review_only", "actor desconocido"),
+        ("actor.browser_chat", "workflow.no_existe", "mode.review_only", "workflow desconocido"),
+        ("actor.browser_chat", "workflow.pm_intake", "mode.no_existe", "mode desconocido"),
+    )
+    for actor, workflow, mode, expected in selectors:
+        result = resolve(actor, workflow, mode)
+        assert result["estado"] == "status.blocked"
+        assert any(expected in error for error in result["errores"])
 
 
 def test_active_kernel_validator_and_resolver_cli_pass() -> None:

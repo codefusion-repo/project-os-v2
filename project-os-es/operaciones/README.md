@@ -74,8 +74,12 @@ indica la operación previa, las siguientes seguras y la recomendada.
 
 Para seleccionar y generar un artefacto local desde el catálogo activo, ejecuta
 `python tools/operation_prompt_wizard.py` desde la raíz del repo. El wizard
-descubre recursivamente estas operaciones por fase; si no hay un mapa de fases
-activo adicional, lista el catálogo sin consultar rutas legacy.
+descubre recursivamente estas operaciones, excluye este README y muestra por
+defecto una lista enumerada con fase y path relativo. Usa `/phases` para ordenar
+el mismo catálogo por `cross-fase` y `fase-*`; filtra por título, filename, stem,
+path relativo, directorio de fase o código MOS. Selecciona por índice mostrado,
+código MOS (por ejemplo `MOS-3.5`), filename, stem o path relativo exacto. El
+wizard no consulta ni reintegra operaciones legacy.
 
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
 también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de

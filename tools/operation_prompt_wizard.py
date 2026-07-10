@@ -35,8 +35,8 @@ except ImportError:
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OPERATIONS_DIR = REPO_ROOT / "project-os-es" / "operaciones"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / ".local" / "operation-prompts"
-# The active Spanish catalog is phase-organized and has no separate flow-map
-# file. The grouping feature therefore falls back safely to an ungrouped list.
+# The active Spanish catalog encodes its phase model in directory names.  An
+# optional table can still override those labels for custom catalogs.
 DEFAULT_OPERATION_FLOWS_PATH: Path | None = None
 OUTPUT_DIR_ENV = "PROJECT_OS_OPERATION_PROMPT_OUTPUT_DIR"
 
@@ -60,6 +60,7 @@ WIZARD_PROMPT_MARKER = "<!-- project-os-operation-prompt-wizard: generated promp
 GENERATED_FILENAME_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?-[0-9a-f]{12}\.md$")
 
 PHASE_TABLE_HEADER_PREFIX = "| Op | Phase"
+MOS_CODE_PATTERN = re.compile(r"^(MOS-(?:\d+\.\d+|R\.\d+))(?=-|$)", re.IGNORECASE)
 
 CANCEL_COMMANDS = {"c", "cancel", "q", "quit", "exit"}
 HELP_COMMANDS = {"?", "h", "help"}
@@ -108,16 +109,44 @@ class OperationTemplate:
     title: str
     text: str
     variables: tuple[InputVariable, ...]
+    catalog_root: Path | None = None
 
     @property
     def filename(self) -> str:
         return self.path.name
 
     @property
-    def file_number(self) -> int | None:
-        match = re.match(r"^(\d+)", self.path.name)
-        return int(match.group(1)) if match else None
+    def mos_code(self) -> str | None:
+        match = MOS_CODE_PATTERN.match(self.path.stem)
+        return match.group(1).upper() if match else None
 
+    @property
+    def relative_path(self) -> str:
+        if self.catalog_root is not None:
+            try:
+                return self.path.relative_to(self.catalog_root).as_posix()
+            except ValueError:
+                pass
+        return self.path.name
+
+    @property
+    def phase_path(self) -> str:
+        parent = Path(self.relative_path).parent.as_posix()
+        return "" if parent == "." else parent
+
+    @property
+    def phase_label(self) -> str:
+        if not self.phase_path:
+            return ""
+        labels = []
+        for part in self.phase_path.split("/"):
+            if part == "cross-fase":
+                labels.append("Cross-fase")
+            elif match := re.fullmatch(r"fase-(\d+)", part):
+                labels.append(f"Fase {match.group(1)}")
+            else:
+                labels.append(part.replace("-", " ").title())
+        return " / ".join(labels)
 
 @dataclass(frozen=True)
 class ValueCollectionResult:
@@ -160,6 +189,7 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 title=extract_title(text, path),
                 text=text,
                 variables=parse_input_variables(text),
+                catalog_root=operations_dir,
             )
         )
     return operations
@@ -178,7 +208,7 @@ def extract_title(text: str, path: Path) -> str:
 
 
 def parse_input_variables(text: str) -> tuple[InputVariable, ...]:
-    """Parse required and optional variables from the template ``INPUT:`` block."""
+    """Parse variables from conventional INPUT or active Spanish Variables blocks."""
 
     variables: list[InputVariable] = []
     for raw_line in input_block_lines(text):
@@ -203,7 +233,44 @@ def parse_input_variables(text: str) -> tuple[InputVariable, ...]:
                 note=tail,
             )
         )
+    if variables:
+        return tuple(variables)
+
+    variables.extend(parse_spanish_variables(text))
     return tuple(variables)
+
+
+def parse_spanish_variables(text: str) -> tuple[InputVariable, ...]:
+    """Parse ``**Variables**`` from the compact active Spanish catalog."""
+
+    marker = "**Variables**"
+    if marker not in text:
+        return ()
+    section = text.split(marker, 1)[1]
+    section = re.split(r"\n\s*\n(?=\*\*)", section, maxsplit=1)[0]
+    parsed: list[InputVariable] = []
+    for label, required in (("Requeridas", True), ("Opcionales", False)):
+        match = re.search(
+            rf"^-\s*{label}:\s*(.*?)(?=^-\s*(?:Requeridas|Opcionales):|\Z)",
+            section,
+            flags=re.MULTILINE | re.DOTALL | re.IGNORECASE,
+        )
+        if not match:
+            continue
+        declaration = match.group(1).split("(", 1)[0]
+        for name in re.findall(r"\b[A-Z][A-Z0-9_]+\b", declaration):
+            if name in {variable.name for variable in parsed}:
+                continue
+            parsed.append(
+                InputVariable(
+                    name=name,
+                    placeholder=f"<{name}>",
+                    required=required,
+                    raw_line="",
+                    note=f"{label.lower()} en catálogo español",
+                )
+            )
+    return tuple(parsed)
 
 
 def input_block_lines(text: str) -> list[str]:
@@ -236,60 +303,67 @@ def filter_operations(
     query: str,
     phase_by_operation: dict[int, str] | None = None,
 ) -> list[OperationTemplate]:
-    """Filter operations by displayed number, filename number, filename, title, or phase."""
+    """Filter by active Spanish identity, relative context, or displayed index."""
 
     normalized = query.strip().lower()
     if not normalized:
         return list(operations)
 
-    numeric_query = int(normalized) if normalized.isdigit() else None
-    prefer_file_number = normalized.startswith("0") and len(normalized) > 1
     matches: list[OperationTemplate] = []
     for operation in operations:
-        if numeric_query is not None:
-            if prefer_file_number and operation.file_number == numeric_query:
+        if normalized.isdigit():
+            if operation.index == int(normalized):
                 matches.append(operation)
-                continue
-            if not prefer_file_number and operation.index == numeric_query:
-                matches.append(operation)
-                continue
-            if not prefer_file_number and operation.file_number == numeric_query:
-                matches.append(operation)
-                continue
-        if normalized in operation.filename.lower() or normalized in operation.title.lower():
-            matches.append(operation)
             continue
-        if phase_by_operation:
-            phase = phase_by_operation.get(operation.file_number, "")
-            if phase and normalized in phase.lower():
-                matches.append(operation)
+        searchable = {
+            operation.filename.lower(),
+            operation.path.stem.lower(),
+            operation.title.lower(),
+            operation.relative_path.lower(),
+            operation.phase_path.lower(),
+            operation.phase_label.lower(),
+            (operation.mos_code or "").lower(),
+        }
+        phase = _operation_phase(operation, phase_by_operation or {})
+        if phase:
+            searchable.add(phase.lower())
+        if any(normalized in value for value in searchable if value):
+            matches.append(operation)
     return matches
 
 
 def resolve_operation_selection(
     operations: list[OperationTemplate], selection: str
 ) -> OperationTemplate | None:
-    """Resolve a selection by displayed number, filename number, filename, or stem."""
+    """Resolve one exact active operation and fail safely on duplicate matches."""
 
     normalized = selection.strip().lower()
     if not normalized:
         return None
 
-    if normalized.isdigit():
-        number = int(normalized)
-        if normalized.startswith("0") and len(normalized) > 1:
-            for operation in operations:
-                if operation.file_number == number:
-                    return operation
-        for operation in operations:
-            if operation.index == number or operation.file_number == number:
-                return operation
+    explicit_index = re.fullmatch(r"(?:index|indice|índice):?(\d+)", normalized)
+    if explicit_index:
+        return _unique_operation(op for op in operations if op.index == int(explicit_index.group(1)))
 
-    for operation in operations:
-        filename = operation.filename.lower()
-        if normalized == filename or normalized == operation.path.stem.lower():
-            return operation
-    return None
+    if normalized.isdigit():
+        index_match = _unique_operation(op for op in operations if op.index == int(normalized))
+        return index_match
+
+    return _unique_operation(
+        operation
+        for operation in operations
+        if normalized in {
+            operation.filename.lower(),
+            operation.path.stem.lower(),
+            operation.relative_path.lower(),
+            (operation.mos_code or "").lower(),
+        }
+    )
+
+
+def _unique_operation(candidates) -> OperationTemplate | None:
+    unique = {operation.path.resolve(): operation for operation in candidates}
+    return next(iter(unique.values())) if len(unique) == 1 else None
 
 
 def validate_variable_value(variable: InputVariable, value: str) -> str | None:
@@ -433,10 +507,18 @@ def operation_produces_route_prompt(operation: OperationTemplate) -> bool:
 
 
 def operation_output_refs(operation: OperationTemplate) -> tuple[str, ...]:
-    """Return distinct output contract refs from the operation's OUTPUT block."""
+    """Return distinct output refs from OUTPUT or active Spanish Entrega blocks."""
 
     refs: list[str] = []
-    for line in named_block_lines(operation.text, "OUTPUT"):
+    output_lines = named_block_lines(operation.text, "OUTPUT")
+    if not output_lines:
+        match = re.search(
+            r"\*\*Entrega:\*\*(.*?)(?=\n\s*\n|\Z)",
+            operation.text,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+        output_lines = match.group(1).splitlines() if match else []
+    for line in output_lines:
         for ref in re.findall(r"\boutput\.[A-Za-z0-9_.-]+\b", line):
             if ref not in refs:
                 refs.append(ref)
@@ -505,7 +587,7 @@ def render_prompt(
     )
     for i, line in enumerate(lines):
         for variable in variables:
-            if line.rstrip() == variable.raw_line:
+            if variable.raw_line and line.rstrip() == variable.raw_line:
                 value = values.get(variable.name, "").strip()
                 if value:
                     lines[i] = f"  {variable.name}={single_line(value)}"
@@ -516,7 +598,13 @@ def render_prompt(
         operation_needs_pm_authorization_assistance(operation)
         or include_route_prompt_authorization
     )
-    if needs_synthetic and not operation_declares_pm_authorization_status(operation):
+    has_input_block = any(line.strip() == "INPUT:" for line in lines)
+    if not has_input_block:
+        lines.extend(["", "INPUT:"])
+        for variable in variables:
+            value = values.get(variable.name, "").strip()
+            lines.append(f"  {variable.name}={single_line(value) if value else ''}")
+    elif needs_synthetic and not operation_declares_pm_authorization_status(operation):
         lines = insert_input_variable_line(
             lines,
             PM_AUTHORIZATION_STATUS_NAME,
@@ -581,37 +669,47 @@ def resolve_output_dir(output_dir: Path | None) -> Path:
     return DEFAULT_OUTPUT_DIR
 
 
-def load_phase_map(flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH) -> dict[int, str]:
-    """Parse an optional active Op -> Phase table, or degrade safely.
+def load_phase_map(
+    flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
+    operations: list[OperationTemplate] | None = None,
+) -> dict[int, str]:
+    """Derive phases from the active catalog, with an optional table override.
 
-    Returns an empty mapping if the doc is missing or unparsable so phase
-    grouping/filtering degrades gracefully instead of failing the wizard.
+    Directory-derived labels keep ``/phases`` useful for the canonical Spanish
+    tree without consulting archived flow documentation.
     """
 
-    if flows_path is None:
-        return {}
-    flows_path = flows_path.expanduser()
-    if not flows_path.is_file():
-        return {}
-
-    phase_by_operation: dict[int, str] = {}
-    in_table = False
-    for line in flows_path.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not in_table:
-            if stripped.startswith(PHASE_TABLE_HEADER_PREFIX):
-                in_table = True
-            continue
-        if not stripped.startswith("|"):
-            break
-        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
-        if len(cells) < 2:
-            continue
-        op_number_text, phase = cells[0], cells[1]
-        if not op_number_text or not op_number_text.isdigit() or not phase:
-            continue
-        phase_by_operation[int(op_number_text)] = phase
+    phase_by_operation = {
+        operation.index: operation.phase_label
+        for operation in operations or []
+        if operation.phase_label
+    }
+    if flows_path is not None:
+        flows_path = flows_path.expanduser()
+        if flows_path.is_file():
+            in_table = False
+            for line in flows_path.read_text(encoding="utf-8").splitlines():
+                stripped = line.strip()
+                if not in_table:
+                    if stripped.startswith(PHASE_TABLE_HEADER_PREFIX):
+                        in_table = True
+                    continue
+                if not stripped.startswith("|"):
+                    break
+                cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+                if len(cells) < 2:
+                    continue
+                op_number_text, phase = cells[0], cells[1]
+                if op_number_text.isdigit() and phase:
+                    phase_by_operation[int(op_number_text)] = phase
     return phase_by_operation
+
+
+def _operation_phase(
+    operation: OperationTemplate,
+    phase_by_operation: dict[int, str],
+) -> str:
+    return phase_by_operation.get(operation.index) or operation.phase_label or "Sin fase"
 
 
 def is_wizard_generated_artifact(path: Path) -> bool:
@@ -679,13 +777,15 @@ def cleanup_previous_generated_prompts(output_dir: Path, keep_path: Path) -> lis
 
 
 def display_operations(operations: list[OperationTemplate], output_stream: TextIO) -> None:
-    """Print an ordered numbered operation list."""
+    """Print active identity plus enough relative context to disambiguate."""
 
     print("", file=output_stream)
     print("Available operations:", file=output_stream)
     for operation in operations:
+        context = operation.phase_label or operation.phase_path or "Catálogo"
         print(
-            f"  {operation.index:>2}. {operation.filename} - {operation.title}",
+            f"  {operation.index:>3}. [{context}] {operation.relative_path}"
+            f" ({operation.mos_code or operation.path.stem}) - {operation.title}",
             file=output_stream,
         )
 
@@ -707,7 +807,7 @@ def print_phase_groups(
     grouped: dict[str, list[OperationTemplate]] = {}
     ordered_phases: list[str] = []
     for operation in operations:
-        phase = phase_by_operation.get(operation.file_number, "Unmapped")
+        phase = _operation_phase(operation, phase_by_operation)
         if phase not in grouped:
             grouped[phase] = []
             ordered_phases.append(phase)
@@ -717,7 +817,8 @@ def print_phase_groups(
         print(f"  {phase}:", file=output_stream)
         for operation in grouped[phase]:
             print(
-                f"    {operation.index:>2}. {operation.filename} - {operation.title}",
+                f"    {operation.index:>3}. {operation.relative_path}"
+                f" ({operation.mos_code or operation.path.stem}) - {operation.title}",
                 file=output_stream,
             )
 
@@ -765,11 +866,18 @@ def print_selection_help(output_stream: TextIO) -> None:
 
     print("", file=output_stream)
     print("Selection help:", file=output_stream)
-    print("  Type text to filter by title, filename, or SDLC phase.", file=output_stream)
-    print("  Type a displayed number, filename number, filename, or stem to select.", file=output_stream)
     print(
-        "  Use / to reset the filtered list, s to search again, /phases to group by "
-        "SDLC phase, or cancel to exit.",
+        "  Filter by title, filename, stem, relative path, phase directory, MOS code, "
+        "or displayed index.",
+        file=output_stream,
+    )
+    print(
+        "  Select by displayed index, exact filename/stem/path, or MOS code.",
+        file=output_stream,
+    )
+    print(
+        "  Use / to reset the enumerated list, s to search again, /phases to group "
+        "the same catalog by phase, or cancel to exit.",
         file=output_stream,
     )
 
@@ -852,13 +960,13 @@ def select_operation(
     filtered = list(operations)
     print_stage("Step 1/3", "Search and select an operation", output_stream)
     print(
-        "Commands: / reset, s search again, /phases group by SDLC phase, ? help, cancel exit.",
+        "Commands: / enumerated list, s search again, /phases group by phase, ? help, cancel exit.",
         file=output_stream,
     )
     while True:
         display_operations(filtered, output_stream)
         query = input_func(
-            "\nSearch by number, filename, title, or phase "
+            "\nSearch by index, MOS code, filename, title, relative path, or phase "
             "(Enter to keep list, / reset, /phases, ? help, cancel): "
         ).strip()
         if is_cancel_command(query):
@@ -880,7 +988,7 @@ def select_operation(
             matches = filter_operations(operations, query, phase_by_operation)
             if not matches:
                 print(
-                    "No matching operations. Try a different title word, filename, phase, or number.",
+                    "No matching operations. Try a title, MOS code, filename, relative path, phase, or index.",
                     file=output_stream,
                 )
                 continue
@@ -888,7 +996,7 @@ def select_operation(
             display_operations(filtered, output_stream)
 
         selection = input_func(
-            "Select operation by number or filename (s search again, ? help, cancel): "
+            "Select by displayed index, MOS code, exact filename/stem/path (s search again, ? help, cancel): "
         ).strip()
         if is_search_command(selection):
             continue
@@ -901,7 +1009,7 @@ def select_operation(
         if operation is not None:
             return operation
         print(
-            "Invalid selection. Use a listed number, filename number, filename, or stem.",
+            "Invalid or ambiguous selection. Use a displayed index, MOS code, or exact filename/stem/path.",
             file=output_stream,
         )
 
@@ -1264,7 +1372,7 @@ def run_wizard(
 
     operations = discover_operations(operations_dir)
     output_directory = resolve_output_dir(output_dir)
-    phase_by_operation = load_phase_map(operation_flows_path)
+    phase_by_operation = load_phase_map(operation_flows_path, operations)
 
     written_operation: OperationTemplate | None = None
     written_values: dict[str, str] = {}
@@ -1429,15 +1537,26 @@ if HAVE_PROMPT_TOOLKIT:
         def get_completions(self, document, complete_event):
             text = document.text.lower()
             for op in self.operations:
-                phase = self.phase_by_operation.get(op.file_number, "")
+                phase = _operation_phase(op, self.phase_by_operation)
                 if (
                     text in op.filename.lower()
+                    or text in op.path.stem.lower()
                     or text in op.title.lower()
+                    or text in op.relative_path.lower()
+                    or text in op.phase_path.lower()
+                    or text in (op.mos_code or "").lower()
                     or text == str(op.index)
                     or (phase and text in phase.lower())
                 ):
-                    display_text = f"{op.index:>2}. {op.filename} - {op.title}"
-                    yield Completion(op.filename, start_position=-len(document.text), display=display_text)
+                    display_text = (
+                        f"{op.index:>3}. [{phase}] {op.relative_path} "
+                        f"({op.mos_code or op.path.stem}) - {op.title}"
+                    )
+                    yield Completion(
+                        op.mos_code or op.relative_path,
+                        start_position=-len(document.text),
+                        display=display_text,
+                    )
 
     class OperationValidator(Validator):
         def __init__(self, operations):
@@ -1457,7 +1576,10 @@ if HAVE_PROMPT_TOOLKIT:
                 return
             if resolve_operation_selection(self.operations, text) is None:
                 raise ValidationError(
-                    message="Invalid selection. Use a listed number, filename, or cancel.",
+                    message=(
+                        "Invalid or ambiguous selection. Use a displayed index, MOS code, "
+                        "exact filename/stem/path, or cancel."
+                    ),
                     cursor_position=len(document.text)
                 )
 
@@ -1474,7 +1596,7 @@ if HAVE_PROMPT_TOOLKIT:
         })
         def bottom_toolbar():
             return HTML(
-                ' <b>Commands</b>: type to search/select, /phases to group, '
+                ' <b>Commands</b>: index/MOS/path to select, / enumerated, /phases grouped, '
                 'enter to confirm, cancel to exit, ? for help.'
             )
 
@@ -1856,7 +1978,7 @@ if HAVE_PROMPT_TOOLKIT:
     ) -> Path | None:
         operations = discover_operations(operations_dir)
         output_directory = resolve_output_dir(output_dir)
-        phase_by_operation = load_phase_map(operation_flows_path)
+        phase_by_operation = load_phase_map(operation_flows_path, operations)
 
         written_operation: OperationTemplate | None = None
         written_values: dict[str, str] = {}

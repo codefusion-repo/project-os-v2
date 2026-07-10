@@ -78,8 +78,11 @@ variables PM y trazabilidad viva en GitHub.
    `project-os-es/docs/reglas.md`.
 4. **Genera un prompt local opcionalmente**: ejecuta
    `python tools/operation_prompt_wizard.py`. El wizard lista de forma
-   recursiva las operaciones activas bajo `project-os-es/operaciones/` y solo
-   escribe el artefacto local que confirmes.
+   recursiva las operaciones activas bajo `project-os-es/operaciones/`. Puedes
+   mantener la lista enumerada, usar `/phases` para agruparla por `cross-fase`
+   y `fase-*`, filtrar por título/path/fase, o seleccionar por índice, código
+   MOS (`MOS-3.5`), filename, stem o path relativo. Solo escribe el artefacto
+   local que confirmes.
 
 ## Validación
 

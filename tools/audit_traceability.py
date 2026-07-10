@@ -44,6 +44,7 @@ CLOSURE_SECTION_LABELS = {
 CLOSURE_SECTION_ALIASES = {
     "completion_evidence": (
         "Completion evidence",
+        "Evidencia de completitud",
         "Evidencia de finalización",
         "Evidencia de cierre",
     ),
@@ -92,7 +93,13 @@ EXCEPTION_CONTEXT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-CLOSING_DIRECTIVE_PATTERN = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\b", re.IGNORECASE)
+CLOSING_DIRECTIVE_PATTERN = re.compile(
+    r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|"
+    r"cerr(?:ar|ado|ada|ados|adas)|cierr(?:a|an|e|en)|"
+    r"resolv(?:io|ió|ido|ida)|resuelv(?:e|en|a|an)|"
+    r"correg(?:ir|ido|ida|idos|idas|e))\b",
+    re.IGNORECASE,
+)
 ISSUE_REF_PATTERN = re.compile(
     r"(?:https://github\.com/[^/\s]+/[^/\s]+/issues/|(?<![A-Za-z0-9/])#)(\d+)\b",
     re.IGNORECASE,
@@ -117,6 +124,12 @@ PATH_TOKEN_PATTERN = re.compile(
 )
 
 PROTECTED_PREFIXES = (
+    "project-os-es/kernel/",
+    "project-os-es/operaciones/",
+    "project-os-es/templates/",
+    "project-os-es/adapters/",
+    "project-os-es/docs/",
+    "project-os-es/habilidades/",
     "kernel/",
     "adapters/",
     ".github/workflows/",
@@ -549,7 +562,20 @@ def _issue_refs(text: str) -> set[int]:
 
 
 def linked_issue_numbers(pr: PullRequest) -> set[int]:
-    return _issue_refs(f"{pr.title}\n{pr.body}")
+    # Prefer the conventional issue reference in the title. Body prose often
+    # names roadmap/follow-up issues and the PR itself, which are context rather
+    # than the scope-bearing linked issue.
+    title_refs = _issue_refs(pr.title) - {pr.number}
+    if title_refs:
+        return title_refs
+    closing_refs: set[int] = set()
+    for line in pr.body.splitlines():
+        if CLOSING_DIRECTIVE_PATTERN.search(line):
+            closing_refs.update(_issue_refs(line))
+    if closing_refs:
+        return closing_refs - {pr.number}
+    body_refs = _issue_refs(pr.body) - {pr.number}
+    return body_refs if len(body_refs) <= 1 else set()
 
 
 def _multi_outcome_finding(repository: str, pr: PullRequest) -> Finding | None:
