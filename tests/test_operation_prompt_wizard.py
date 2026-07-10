@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from io import StringIO
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from tools.operation_prompt_wizard import (
     filter_operations,
     generated_filename,
     load_active_skill_choices,
+    load_active_skill_options,
     load_phase_map,
     operation_needs_pm_authorization_assistance,
     operation_output_refs,
@@ -29,6 +31,7 @@ from tools.operation_prompt_wizard import (
     render_prompt,
     resolve_operation_selection,
     run_wizard,
+    select_operation,
     validate_variable_value,
     wizard_variables,
     write_prompt,
@@ -57,6 +60,11 @@ def write_spanish_operation(
         f"**Entrega:** {delivery}.\n",
         encoding="utf-8",
     )
+
+
+def write_skill_catalog(path: Path, entries: list[dict[str, object]]) -> Path:
+    path.write_text(json.dumps({"skills": entries}), encoding="utf-8")
+    return path
 
 
 def test_active_catalog_is_recursive_excludes_readme_and_derives_phase_context() -> None:
@@ -107,6 +115,45 @@ def test_selection_supports_index_filename_stem_mos_code_and_relative_path() -> 
     assert resolve_operation_selection(operations, target.path.stem) == target
     assert resolve_operation_selection(operations, "mos-3.5") == target
     assert resolve_operation_selection(operations, target.relative_path) == target
+
+
+def test_line_view_commands_render_confirmation_and_allow_direct_selection() -> None:
+    operations = discover_operations()
+    phases = load_phase_map(operations=operations)
+    target = next(operation for operation in operations if operation.mos_code == "MOS-3.5")
+
+    for command in ("/enumerated", "/enumerator", "/"):
+        stream = StringIO()
+        selected = select_operation(
+            operations,
+            input_func=answers(command, str(target.index)),
+            output_stream=stream,
+            phase_by_operation=phases,
+        )
+        assert selected == target
+        assert stream.getvalue().count("View: enumerated operations") >= 2
+
+    for command in ("/phases", "/phase"):
+        stream = StringIO()
+        selected = select_operation(
+            operations,
+            input_func=answers(command, "MOS-3.5"),
+            output_stream=stream,
+            phase_by_operation=phases,
+        )
+        assert selected == target
+        transcript = stream.getvalue()
+        assert "View: operations grouped by phase" in transcript
+        assert "Operations grouped by SDLC phase:" in transcript
+
+
+def test_selection_help_announces_only_supported_view_commands() -> None:
+    operations = discover_operations()
+    stream = StringIO()
+    assert select_operation(operations, input_func=answers("?", "cancel"), output_stream=stream) is None
+    transcript = stream.getvalue()
+    for command in ("/enumerated", "/enumerator", "/phases", "/phase"):
+        assert command in transcript
 
 
 def test_duplicate_filename_or_stem_fails_safely_but_relative_path_selects(tmp_path: Path) -> None:
@@ -193,7 +240,6 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
         input_func=answers(
             "/phases",
             "MOS-3.5",
-            "MOS-3.5",
             "405", "", "none", "", "", "1",
             "write", "exit",
         ),
@@ -218,7 +264,7 @@ def test_line_wizard_active_mos34_generates_granted_route_prompt(tmp_path: Path)
     output = run_wizard(
         output_dir=tmp_path,
         input_func=answers(
-            "MOS-3.4", "MOS-3.4",
+            "MOS-3.4",
             "405", "274", "skill.arquitectura_backend", "", "", "2",
             "write", "exit",
         ),
@@ -231,7 +277,9 @@ def test_line_wizard_active_mos34_generates_granted_route_prompt(tmp_path: Path)
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     assert "OPTIONAL_SKILL=skill.arquitectura_backend" in content
-    assert "OPTIONAL_SKILL choices:" in stream.getvalue()
+    transcript = stream.getvalue()
+    assert "OPTIONAL_SKILL (optional)" in transcript
+    assert "skill.arquitectura_backend — Arquitectura backend" in transcript
 
 
 def test_line_wizard_rejects_blank_and_invalid_route_authorization_then_normalizes(tmp_path: Path) -> None:
@@ -247,7 +295,7 @@ def test_line_wizard_rejects_blank_and_invalid_route_authorization_then_normaliz
     output = run_wizard(
         operations_dir=operations_dir,
         output_dir=tmp_path / "out",
-        input_func=answers("MOS-3.5", "MOS-3.5", "405", "", "granted", "2", "write", "exit"),
+        input_func=answers("MOS-3.5", "405", "", "granted", "2", "write", "exit"),
         output_stream=stream,
     )
 
@@ -272,7 +320,7 @@ def test_same_resets_issue_keeps_roadmap_and_edit_reopens_values(tmp_path: Path)
         operations_dir=operations_dir,
         output_dir=output_dir,
         input_func=answers(
-            "MOS-3.4", "MOS-3.4", "100", "274", "write",
+            "MOS-3.4", "100", "274", "write",
             "same", "200", "", "write",
             "edit", "300", "", "write", "exit",
         ),
@@ -299,9 +347,9 @@ def test_back_and_new_continue_session_and_keep_only_latest_prompt(tmp_path: Pat
         operations_dir=operations_dir,
         output_dir=output_dir,
         input_func=answers(
-            "MOS-3.1", "MOS-3.1", "back",
-            "MOS-4.1", "MOS-4.1", "406", "write",
-            "new", "MOS-3.1", "MOS-3.1", "405", "write", "exit",
+            "MOS-3.1", "back",
+            "MOS-4.1", "406", "write",
+            "new", "MOS-3.1", "405", "write", "exit",
         ),
         output_stream=StringIO(),
     )
@@ -325,7 +373,7 @@ def test_same_reasks_authorization_and_never_carries_a_grant(tmp_path: Path) -> 
         operations_dir=operations_dir,
         output_dir=tmp_path / "out",
         input_func=answers(
-            "MOS-3.5", "MOS-3.5", "100", "2", "write",
+            "MOS-3.5", "100", "2", "write",
             "same", "200", "1", "write", "exit",
         ),
         output_stream=stream,
@@ -359,8 +407,8 @@ def test_new_does_not_carry_authorization_into_another_operation(tmp_path: Path)
         operations_dir=operations_dir,
         output_dir=tmp_path / "out",
         input_func=answers(
-            "MOS-3.5", "MOS-3.5", "405", "2", "write",
-            "new", "MOS-4.1", "MOS-4.1", "406", "write", "exit",
+            "MOS-3.5", "405", "2", "write",
+            "new", "MOS-4.1", "406", "write", "exit",
         ),
         output_stream=stream,
     )
@@ -384,7 +432,7 @@ def test_edit_shows_the_exact_scope_warning_before_reusing_current_status(tmp_pa
         operations_dir=operations_dir,
         output_dir=tmp_path / "out",
         input_func=answers(
-            "MOS-3.5", "MOS-3.5", "405", "2", "write",
+            "MOS-3.5", "405", "2", "write",
             "edit", "", "", "write", "y", "exit",
         ),
         output_stream=stream,
@@ -408,7 +456,7 @@ def test_multi_output_back_then_non_route_removes_stale_authorization(tmp_path: 
         operations_dir=operations_dir,
         output_dir=tmp_path / "out",
         input_func=answers(
-            "MOS-3.1", "MOS-3.1", "405", "1", "2", "edit", "", "2", "write", "exit"
+            "MOS-3.1", "405", "1", "2", "edit", "", "2", "write", "exit"
         ),
         output_stream=StringIO(),
     )
@@ -440,7 +488,18 @@ def test_optional_skill_choices_are_dynamic_and_fail_closed(tmp_path: Path) -> N
         raise AssertionError("invalid skill catalog must fail closed")
 
 
-def test_line_wizard_shows_dynamic_skill_choices_and_rejects_unknown_value(tmp_path: Path) -> None:
+def test_modified_skill_catalog_controls_visible_options_and_validation(tmp_path: Path) -> None:
+    catalog = write_skill_catalog(
+        tmp_path / "skills.json",
+        [
+            {"key": "skill.nueva", "nombre": "Skill nueva", "active": True},
+            {"key": "skill.inactiva", "nombre": "Skill inactiva", "active": False},
+        ],
+    )
+    options = load_active_skill_options(catalog)
+    assert [(option.key, option.name) for option in options] == [("skill.nueva", "Skill nueva")]
+    assert load_active_skill_choices(catalog) == ("skill.nueva", "none")
+
     operations_dir = tmp_path / "operations"
     write_spanish_operation(
         operations_dir / "fase-3" / "MOS-3.1-skill.md",
@@ -452,17 +511,71 @@ def test_line_wizard_shows_dynamic_skill_choices_and_rejects_unknown_value(tmp_p
     output = run_wizard(
         operations_dir=operations_dir,
         output_dir=tmp_path / "out",
-        input_func=answers(
-            "MOS-3.1", "MOS-3.1", "skill.inactiva", "skill.desarrollo_frontend", "write", "exit"
-        ),
+        skills_catalog_path=catalog,
+        input_func=answers("MOS-3.1", "skill.inactiva", "skill.nueva", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    assert "OPTIONAL_SKILL=skill.nueva" in output.read_text(encoding="utf-8")
+    transcript = stream.getvalue()
+    assert "skill.nueva — Skill nueva" in transcript
+    assert "skill.inactiva — Skill inactiva" not in transcript
+    assert "OPTIONAL_SKILL must be an active skill or none" in transcript
+
+
+def test_operation_without_optional_skill_does_not_show_skill_menu(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-4" / "MOS-4.1-status.md",
+        "MOS-4.1",
+        "Status",
+        required="PR_NUMBER",
+    )
+    stream = StringIO()
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=answers("MOS-4.1", "406", "write", "exit"),
+        output_stream=stream,
+    )
+    assert output is not None
+    assert "OPTIONAL_SKILL (optional)" not in stream.getvalue()
+
+
+def test_line_wizard_shows_dynamic_skill_choices_and_rejects_unknown_value(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-3" / "MOS-3.1-skill.md",
+        "MOS-3.1",
+        "Skill",
+        optional="OPTIONAL_SKILL",
+    )
+    stream = StringIO()
+    supplied = iter(("MOS-3.1", "skill.inactiva", "skill.desarrollo_frontend", "write", "exit"))
+    prompts: list[str] = []
+
+    def recording_input(prompt: str) -> str:
+        prompts.append(prompt)
+        return next(supplied)
+
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=recording_input,
         output_stream=stream,
     )
 
     assert output is not None
     assert "OPTIONAL_SKILL=skill.desarrollo_frontend" in output.read_text(encoding="utf-8")
     transcript = stream.getvalue()
-    assert "OPTIONAL_SKILL choices: skill.arquitectura_backend, skill.desarrollo_frontend, none" in transcript
+    assert "OPTIONAL_SKILL (optional)" in transcript
+    assert "skill.arquitectura_backend — Arquitectura backend" in transcript
+    assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
+    assert "none — Sin skill opcional" in transcript
+    assert "Enter — Dejar vacío" in transcript
     assert "OPTIONAL_SKILL must be an active skill or none" in transcript
+    assert prompts.count("Select OPTIONAL_SKILL: ") == 2
 
 
 def test_route_prompt_template_keeps_ai_advisory_field_without_pm_input() -> None:

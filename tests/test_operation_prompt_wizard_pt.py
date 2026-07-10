@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import shlex
+import shutil
+import subprocess
+import sys
 from io import StringIO
 from pathlib import Path
 
@@ -19,6 +23,7 @@ if not HAVE_PROMPT_TOOLKIT:
     pytest.skip("prompt_toolkit not installed; enhanced wizard path unavailable", allow_module_level=True)
 
 from tools.operation_prompt_wizard import run_wizard_pt
+from prompt_toolkit.formatted_text import fragment_list_to_text, to_formatted_text
 
 
 def write_operation(
@@ -70,6 +75,38 @@ def test_full_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert result is not None
     assert "TARGET_REPOSITORY=codefusion-repo/project-os-v2" in result.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("command", "confirmation"),
+    [
+        ("/enumerated", "View: enumerated operations"),
+        ("/enumerator", "View: enumerated operations"),
+        ("/", "View: enumerated operations"),
+        ("/phases", "View: operations grouped by phase"),
+        ("/phase", "View: operations grouped by phase"),
+    ],
+)
+def test_prompt_toolkit_view_commands_render_and_allow_direct_selection(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    command: str,
+    confirmation: str,
+) -> None:
+    operations = setup_catalog(tmp_path)
+    stream = StringIO()
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([command, "MOS-3.5", "codefusion-repo/project-os-v2", "write", "exit"]),
+    )
+    result = run_wizard_pt(
+        operations_dir=operations,
+        output_dir=tmp_path / "out",
+        output_stream=stream,
+    )
+
+    assert result is not None
+    assert confirmation in stream.getvalue()
 
 
 def test_cancel_at_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -251,11 +288,19 @@ def test_prompt_toolkit_skill_completion_uses_active_catalog(
         "OPTIONAL_SKILL",
     )
     completers = []
+    toolbars = []
+    skill_completion_is_live = []
 
     def recording_prompt(*_args, **kwargs):
         completer = kwargs.get("completer")
         if completer is not None:
             completers.append(completer)
+            if kwargs.get("complete_while_typing"):
+                skill_completion_is_live.append(True)
+        toolbar = kwargs.get("bottom_toolbar")
+        if toolbar is not None:
+            rendered = toolbar() if callable(toolbar) else toolbar
+            toolbars.append(fragment_list_to_text(to_formatted_text(rendered)))
         inputs = recording_prompt.inputs
         if not inputs:
             raise EOFError
@@ -263,7 +308,12 @@ def test_prompt_toolkit_skill_completion_uses_active_catalog(
 
     recording_prompt.inputs = ["MOS-3.1", "skill.desarrollo_frontend", "write", "exit"]
     monkeypatch.setattr("tools.operation_prompt_wizard.prompt", recording_prompt)
-    result = run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out")
+    stream = StringIO()
+    result = run_wizard_pt(
+        operations_dir=operations,
+        output_dir=tmp_path / "out",
+        output_stream=stream,
+    )
 
     assert result is not None
     assert "OPTIONAL_SKILL=skill.desarrollo_frontend" in result.read_text(encoding="utf-8")
@@ -272,3 +322,42 @@ def test_prompt_toolkit_skill_completion_uses_active_catalog(
         <= set(getattr(completer, "words", []))
         for completer in completers
     )
+    assert skill_completion_is_live == [True]
+    transcript = stream.getvalue()
+    assert "OPTIONAL_SKILL (optional)" in transcript
+    assert "skill.arquitectura_backend — Arquitectura backend" in transcript
+    assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
+    assert "none — Sin skill opcional" in transcript
+    selection_toolbar = next(text for text in toolbars if "/enumerated" in text)
+    for command in ("/enumerated", "/enumerator", "/phases", "/phase"):
+        assert command in selection_toolbar
+
+
+def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_path: Path) -> None:
+    script = shutil.which("script")
+    if script is None:
+        pytest.skip("script utility is required for the pseudo-TTY black-box")
+
+    output_dir = tmp_path / "out"
+    command = (
+        f"{shlex.quote(sys.executable)} -m tools.operation_prompt_wizard "
+        f"--output-dir {shlex.quote(str(output_dir))}"
+    )
+    completed = subprocess.run(
+        [script, "-qec", command, "/dev/null"],
+        cwd=Path(__file__).resolve().parents[1],
+        input="/enumerator\n/phases\nMOS-3.4\n405\n274\ncancel\n",
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+
+    transcript = completed.stdout
+    assert "View: enumerated operations" in transcript
+    assert "View: operations grouped by phase" in transcript
+    assert "OPTIONAL_SKILL (optional)" in transcript
+    assert "skill.arquitectura_backend — Arquitectura backend" in transcript
+    assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
+    assert "Select OPTIONAL_SKILL:" in transcript
+    assert not list(output_dir.glob("*.md"))

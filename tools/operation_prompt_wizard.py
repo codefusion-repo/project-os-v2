@@ -76,6 +76,7 @@ CLEAR_COMMANDS = {"/clear"}
 # filename contains "phase") still filters normally instead of being
 # swallowed as a grouping command.
 PHASE_LIST_COMMANDS = {"/phase", "/phases"}
+ENUMERATED_LIST_COMMANDS = {"/", "/enumerated", "/enumerator"}
 
 POST_WRITE_NEW_COMMANDS = {"n", "new"}
 POST_WRITE_SAME_COMMANDS = {"r", "reuse", "same"}
@@ -100,6 +101,14 @@ class InputVariable:
     required: bool
     raw_line: str
     note: str = ""
+
+
+@dataclass(frozen=True)
+class SkillOption:
+    """One active skill value and its catalog-owned display name."""
+
+    key: str
+    name: str
 
 
 @dataclass(frozen=True)
@@ -503,11 +512,11 @@ def is_optional_skill_variable(name: str) -> bool:
     return name == "OPTIONAL_SKILL"
 
 
-def load_active_skill_choices(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG) -> tuple[str, ...]:
-    """Load active Spanish kernel skills plus the explicit no-skill choice.
+def load_active_skill_options(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG) -> tuple[SkillOption, ...]:
+    """Load active skill keys and display names from the canonical catalog.
 
     The catalog is authoritative. Invalid or unreadable catalog data stops the
-    wizard rather than falling back to a stale hard-coded skill list.
+    wizard rather than falling back to stale hard-coded values or labels.
     """
 
     try:
@@ -517,23 +526,43 @@ def load_active_skill_choices(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG
     if not isinstance(content, dict) or not isinstance(content.get("skills"), list):
         raise WizardError(f"invalid active skills catalog {skills_catalog_path}: expected object with skills list")
 
-    choices: list[str] = []
+    options: list[SkillOption] = []
     for index, entry in enumerate(content["skills"]):
         if not isinstance(entry, dict):
             raise WizardError(f"invalid active skills catalog {skills_catalog_path}: skills[{index}] is not an object")
         key = entry.get("key")
+        name = entry.get("nombre")
         active = entry.get("active")
-        if not isinstance(key, str) or not key.startswith("skill.") or not isinstance(active, bool):
+        if (
+            not isinstance(key, str)
+            or not key.startswith("skill.")
+            or not isinstance(name, str)
+            or not name.strip()
+            or not isinstance(active, bool)
+        ):
             raise WizardError(
-                f"invalid active skills catalog {skills_catalog_path}: skills[{index}] needs key skill.* and boolean active"
+                f"invalid active skills catalog {skills_catalog_path}: skills[{index}] needs "
+                "key skill.*, non-empty nombre, and boolean active"
             )
         if active:
-            if key in choices:
+            if key in {option.key for option in options}:
                 raise WizardError(f"invalid active skills catalog {skills_catalog_path}: duplicate active skill {key}")
-            choices.append(key)
-    if "none" in choices:
+            options.append(SkillOption(key=key, name=name.strip()))
+    if "none" in {option.key for option in options}:
         raise WizardError(f"invalid active skills catalog {skills_catalog_path}: active skill key none is reserved")
-    return tuple((*choices, "none"))
+    return tuple(options)
+
+
+def skill_choice_keys(skill_options: tuple[SkillOption, ...]) -> tuple[str, ...]:
+    """Return accepted stored values for active options plus explicit ``none``."""
+
+    return tuple((*[option.key for option in skill_options], "none"))
+
+
+def load_active_skill_choices(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG) -> tuple[str, ...]:
+    """Load accepted OPTIONAL_SKILL values from the canonical catalog."""
+
+    return skill_choice_keys(load_active_skill_options(skills_catalog_path))
 
 
 def is_carryover_variable(name: str) -> bool:
@@ -859,6 +888,14 @@ def display_operations(operations: list[OperationTemplate], output_stream: TextI
         print(f"  {operation_display_line(operation)}", file=output_stream)
 
 
+def print_enumerated_view(operations: list[OperationTemplate], output_stream: TextIO) -> None:
+    """Confirm and render the compact enumerated operation view."""
+
+    print("", file=output_stream)
+    print("View: enumerated operations", file=output_stream)
+    display_operations(operations, output_stream)
+
+
 def operation_display_line(operation: OperationTemplate, include_phase: bool = True) -> str:
     """Build the shared compact list/completion representation."""
 
@@ -876,6 +913,7 @@ def print_phase_groups(
     """Print operations grouped by an optional active phase map."""
 
     print("", file=output_stream)
+    print("View: operations grouped by phase", file=output_stream)
     if not phase_by_operation:
         print("Phase information is unavailable; showing the ungrouped operation list.", file=output_stream)
         display_operations(operations, output_stream)
@@ -935,6 +973,14 @@ def is_clear_command(value: str) -> bool:
     return value.strip().lower() in CLEAR_COMMANDS
 
 
+def is_enumerated_view_command(value: str) -> bool:
+    return value.strip().lower() in ENUMERATED_LIST_COMMANDS
+
+
+def is_phase_view_command(value: str) -> bool:
+    return value.strip().lower() in PHASE_LIST_COMMANDS
+
+
 def print_selection_help(output_stream: TextIO) -> None:
     """Print operation-selection help without leaving the current flow."""
 
@@ -955,8 +1001,8 @@ def print_selection_help(output_stream: TextIO) -> None:
         file=output_stream,
     )
     print(
-        "  Use / to reset the enumerated list, s to search again, /phases to group "
-        "the same catalog by phase, or cancel to exit.",
+        "  Use /enumerated (aliases: /enumerator, /) for the enumerated view; "
+        "/phases (alias: /phase) for the grouped view; s to search again; or cancel to exit.",
         file=output_stream,
     )
 
@@ -985,15 +1031,26 @@ def format_variable_list(variables: list[InputVariable]) -> str:
 def display_operation_summary(
     operation: OperationTemplate,
     output_stream: TextIO,
-    skill_choices: tuple[str, ...] | None = None,
 ) -> None:
     """Print the selected operation and its INPUT variable summary."""
 
     for line in variable_summary_lines(operation):
         print(line, file=output_stream)
-    if any(is_optional_skill_variable(variable.name) for variable in wizard_variables(operation)):
-        choices = skill_choices or load_active_skill_choices()
-        print(f"OPTIONAL_SKILL choices: {', '.join(choices)}; blank is allowed.", file=output_stream)
+
+
+def print_optional_skill_options(
+    output_stream: TextIO,
+    skill_options: tuple[SkillOption, ...] | None = None,
+) -> None:
+    """Show every accepted OPTIONAL_SKILL choice immediately before its prompt."""
+
+    options = skill_options if skill_options is not None else load_active_skill_options()
+    print("", file=output_stream)
+    print("OPTIONAL_SKILL (optional)", file=output_stream)
+    for option in options:
+        print(f"  - {option.key} — {option.name}", file=output_stream)
+    print("  - none — Sin skill opcional", file=output_stream)
+    print("  - Enter — Dejar vacío", file=output_stream)
 
 
 def print_pm_authorization_assistance(output_stream: TextIO) -> None:
@@ -1047,33 +1104,37 @@ def select_operation(
     filtered = list(operations)
     print_stage("Step 1/3", "Search and select an operation", output_stream)
     print(
-        "Commands: / enumerated list, s search again, /phases group by phase, ? help, cancel exit.",
+        "Commands: /enumerated (aliases /enumerator, /), /phases (alias /phase), "
+        "s search, ? help, cancel exit.",
         file=output_stream,
     )
-    display_operations(filtered, output_stream)
+    print_enumerated_view(filtered, output_stream)
     while True:
         query = input_func(
             "\nSearch by index, MOS code, filename, title, relative path, or phase "
-            "(Enter to keep list, / reset, /phases, ? help, cancel): "
+            "(Enter keeps view; /enumerated; /phases; ? help; cancel): "
         ).strip()
         if is_cancel_command(query):
             return None
         if is_help_command(query):
             print_selection_help(output_stream)
             continue
-        if query.lower() in PHASE_LIST_COMMANDS:
+        if is_phase_view_command(query):
+            filtered = list(operations)
             print_phase_groups(operations, phase_by_operation, output_stream)
             continue
-        if query == "/":
+        if is_enumerated_view_command(query):
             filtered = list(operations)
-            print("Search reset.", file=output_stream)
-            display_operations(filtered, output_stream)
+            print_enumerated_view(filtered, output_stream)
             continue
         if is_search_command(query):
             filtered = list(operations)
-            display_operations(filtered, output_stream)
+            print_enumerated_view(filtered, output_stream)
             continue
         if query:
+            operation = resolve_operation_selection(filtered, query)
+            if operation is not None:
+                return operation
             matches = filter_operations(operations, query, phase_by_operation)
             if not matches:
                 print(
@@ -1089,6 +1150,14 @@ def select_operation(
         ).strip()
         if is_search_command(selection):
             display_operations(filtered, output_stream)
+            continue
+        if is_phase_view_command(selection):
+            filtered = list(operations)
+            print_phase_groups(operations, phase_by_operation, output_stream)
+            continue
+        if is_enumerated_view_command(selection):
+            filtered = list(operations)
+            print_enumerated_view(filtered, output_stream)
             continue
         if is_help_command(selection):
             print_selection_help(output_stream)
@@ -1125,12 +1194,13 @@ def collect_values_with_controls(
     output_stream: TextIO = sys.stdout,
     initial_values: dict[str, str] | None = None,
     skill_choices: tuple[str, ...] | None = None,
+    skill_options: tuple[SkillOption, ...] | None = None,
 ) -> ValueCollectionResult:
     """Prompt for variable values and return navigation decisions."""
 
     values = dict(initial_values or {})
     print_stage("Step 2/3", "Fill INPUT variables", output_stream)
-    display_operation_summary(operation, output_stream, skill_choices=skill_choices)
+    display_operation_summary(operation, output_stream)
     variables = wizard_variables(operation)
     if not variables:
         print("This operation declares no INPUT variables.", file=output_stream)
@@ -1144,13 +1214,18 @@ def collect_values_with_controls(
     for variable in variables:
         if is_pm_authorization_status_variable(variable.name):
             print_pm_authorization_assistance(output_stream)
+        if is_optional_skill_variable(variable.name):
+            print_optional_skill_options(output_stream, skill_options=skill_options)
         label = "required" if variable.required else "optional"
         while True:
             current = values.get(variable.name, "")
             current_hint = f", current: {single_line(current)}" if current else ""
-            raw_value = input_func(
-                f"{variable.name} ({label}, {variable.placeholder}{current_hint}): "
+            prompt_label = (
+                f"Select OPTIONAL_SKILL{current_hint}: "
+                if is_optional_skill_variable(variable.name)
+                else f"{variable.name} ({label}, {variable.placeholder}{current_hint}): "
             )
+            raw_value = input_func(prompt_label)
             if is_help_command(raw_value):
                 print_value_help(output_stream)
                 continue
@@ -1466,7 +1541,8 @@ def run_wizard(
     operations = discover_operations(operations_dir)
     output_directory = resolve_output_dir(output_dir)
     phase_by_operation = load_phase_map(operation_flows_path, operations)
-    skill_choices = load_active_skill_choices(skills_catalog_path)
+    skill_options = load_active_skill_options(skills_catalog_path)
+    skill_choices = skill_choice_keys(skill_options)
 
     written_operation: OperationTemplate | None = None
     written_values: dict[str, str] = {}
@@ -1505,6 +1581,7 @@ def run_wizard(
                 output_stream=output_stream,
                 initial_values=values,
                 skill_choices=skill_choices,
+                skill_options=skill_options,
             )
             if result.action == "cancel":
                 if current_prompt_path is not None:
@@ -1663,8 +1740,8 @@ if HAVE_PROMPT_TOOLKIT:
                 is_cancel_command(text)
                 or is_search_command(text)
                 or is_help_command(text)
-                or text == "/"
-                or text in PHASE_LIST_COMMANDS
+                or is_enumerated_view_command(text)
+                or is_phase_view_command(text)
             ):
                 return
             if resolve_operation_selection(self.operations, text) is None:
@@ -1683,14 +1760,14 @@ if HAVE_PROMPT_TOOLKIT:
     ) -> OperationTemplate | None:
         phase_by_operation = phase_by_operation or {}
         print_stage("Step 1/3", "Search and select an operation", output_stream)
-        display_operations(operations, output_stream)
+        print_enumerated_view(operations, output_stream)
         style = Style.from_dict({
             'bottom-toolbar': 'bg:#333333 #ffffff',
         })
         def bottom_toolbar():
             return HTML(
-                ' <b>Commands</b>: index/MOS/path to select, / enumerated, /phases grouped, '
-                'enter to confirm, cancel to exit, ? for help.'
+                ' <b>Commands</b>: index/MOS/path, /enumerated (/enumerator, /), '
+                '/phases (/phase), cancel, ? help.'
             )
 
         completer = OperationCompleter(operations, phase_by_operation)
@@ -1713,11 +1790,11 @@ if HAVE_PROMPT_TOOLKIT:
             if is_help_command(selection):
                 print_selection_help(output_stream)
                 continue
-            if selection.lower() in PHASE_LIST_COMMANDS:
+            if is_phase_view_command(selection):
                 print_phase_groups(operations, phase_by_operation, output_stream)
                 continue
-            if selection == "/" or is_search_command(selection):
-                display_operations(operations, output_stream)
+            if is_enumerated_view_command(selection) or is_search_command(selection):
+                print_enumerated_view(operations, output_stream)
                 continue
 
             operation = resolve_operation_selection(operations, selection)
@@ -1729,10 +1806,11 @@ if HAVE_PROMPT_TOOLKIT:
         output_stream: TextIO,
         initial_values: dict[str, str] | None = None,
         skill_choices: tuple[str, ...] | None = None,
+        skill_options: tuple[SkillOption, ...] | None = None,
     ) -> ValueCollectionResult:
         values = dict(initial_values or {})
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
-        display_operation_summary(operation, output_stream, skill_choices=skill_choices)
+        display_operation_summary(operation, output_stream)
         variables = wizard_variables(operation)
         if not variables:
             print("This operation declares no INPUT variables.", file=output_stream)
@@ -1747,6 +1825,8 @@ if HAVE_PROMPT_TOOLKIT:
         for variable in variables:
             if is_pm_authorization_status_variable(variable.name):
                 print_pm_authorization_assistance(output_stream)
+            if is_optional_skill_variable(variable.name):
+                print_optional_skill_options(output_stream, skill_options=skill_options)
             label = "required" if variable.required else "optional"
 
             def bottom_toolbar():
@@ -1778,11 +1858,17 @@ if HAVE_PROMPT_TOOLKIT:
             while True:
                 current = values.get(variable.name, "")
                 try:
+                    prompt_label = (
+                        "Select OPTIONAL_SKILL: "
+                        if is_optional_skill_variable(variable.name)
+                        else f"{variable.name} ({label}, {variable.placeholder}): "
+                    )
                     raw_value = prompt(
-                        f"{variable.name} ({label}, {variable.placeholder}): ",
+                        prompt_label,
                         default=current,
                         validator=VariableValidator(),
                         completer=completer,
+                        complete_while_typing=is_optional_skill_variable(variable.name),
                         style=style,
                         bottom_toolbar=bottom_toolbar
                     )
@@ -2080,7 +2166,8 @@ if HAVE_PROMPT_TOOLKIT:
         operations = discover_operations(operations_dir)
         output_directory = resolve_output_dir(output_dir)
         phase_by_operation = load_phase_map(operation_flows_path, operations)
-        skill_choices = load_active_skill_choices(skills_catalog_path)
+        skill_options = load_active_skill_options(skills_catalog_path)
+        skill_choices = skill_choice_keys(skill_options)
 
         written_operation: OperationTemplate | None = None
         written_values: dict[str, str] = {}
@@ -2115,6 +2202,7 @@ if HAVE_PROMPT_TOOLKIT:
                     output_stream=output_stream,
                     initial_values=values,
                     skill_choices=skill_choices,
+                    skill_options=skill_options,
                 )
                 if result.action == "cancel":
                     if current_prompt_path is not None:
