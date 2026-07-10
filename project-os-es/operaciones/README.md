@@ -72,6 +72,11 @@ ejecútalo en la superficie que indica (`browser_chat`, `terminal_agent`,
 `human_pm` o destinatario externo). El bloque **Conexiones** de cada operación
 indica la operación previa, las siguientes seguras y la recomendada.
 
+Para seleccionar y generar un artefacto local desde el catálogo activo, ejecuta
+`python tools/operation_prompt_wizard.py` desde la raíz del repo. El wizard
+descubre recursivamente estas operaciones por fase; si no hay un mapa de fases
+activo adicional, lista el catálogo sin consultar rutas legacy.
+
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
 también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de
 vida: `project-os-es/operaciones/cross-fase/`,

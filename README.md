@@ -76,6 +76,10 @@ variables PM y trazabilidad viva en GitHub.
    `project-os-es/operaciones/README.md`; el ciclo día a día en
    `project-os-es/docs/ritmo.md`; las reglas no negociables en
    `project-os-es/docs/reglas.md`.
+4. **Genera un prompt local opcionalmente**: ejecuta
+   `python tools/operation_prompt_wizard.py`. El wizard lista de forma
+   recursiva las operaciones activas bajo `project-os-es/operaciones/` y solo
+   escribe el artefacto local que confirmes.
 
 ## Validación
 

@@ -2,9 +2,9 @@
 
 If prompt_toolkit is importable, the wizard uses an enhanced interactive mode.
 If unavailable, it falls back to a standard line-based flow.
-The wizard reads templates from ``legacy-project-os/templates/operations`` and only writes local
-Markdown prompt artifacts. It does not execute operations, run commands, or
-call GitHub, git, or network services.
+The wizard reads the active operation catalog from ``project-os-es/operaciones``
+and only writes local Markdown prompt artifacts. It does not execute
+operations, run commands, or call GitHub, git, or network services.
 
 The wizard stays open across multiple generated prompts in one session until
 the PM explicitly exits, and keeps only the single latest wizard-generated
@@ -33,9 +33,11 @@ except ImportError:
     HAVE_PROMPT_TOOLKIT = False
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_OPERATIONS_DIR = REPO_ROOT / "legacy-project-os" / "templates" / "operations"
+DEFAULT_OPERATIONS_DIR = REPO_ROOT / "project-os-es" / "operaciones"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / ".local" / "operation-prompts"
-DEFAULT_OPERATION_FLOWS_PATH = REPO_ROOT / "legacy-project-os" / "docs" / "OPERATION_FLOWS.md"
+# The active Spanish catalog is phase-organized and has no separate flow-map
+# file. The grouping feature therefore falls back safely to an ungrouped list.
+DEFAULT_OPERATION_FLOWS_PATH: Path | None = None
 OUTPUT_DIR_ENV = "PROJECT_OS_OPERATION_PROMPT_OUTPUT_DIR"
 
 BLOCK_HEADER_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*:\s*$")
@@ -135,13 +137,16 @@ class RoutePromptPathResult:
 
 
 def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[OperationTemplate]:
-    """Discover Markdown operation templates in deterministic filename order."""
+    """Discover active operation Markdown files recursively and deterministically."""
 
     operations_dir = operations_dir.expanduser()
     if not operations_dir.is_dir():
         raise WizardError(f"operations directory not found: {operations_dir}")
 
-    paths = sorted(operations_dir.glob("*.md"), key=lambda path: path.name)
+    paths = sorted(
+        (path for path in operations_dir.rglob("*.md") if path.name != "README.md"),
+        key=lambda path: path.relative_to(operations_dir).as_posix(),
+    )
     if not paths:
         raise WizardError(f"no .md operation templates found in: {operations_dir}")
 
@@ -576,13 +581,15 @@ def resolve_output_dir(output_dir: Path | None) -> Path:
     return DEFAULT_OUTPUT_DIR
 
 
-def load_phase_map(flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH) -> dict[int, str]:
-    """Parse Op -> Phase from the Phase Flow Map table in docs/OPERATION_FLOWS.md.
+def load_phase_map(flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH) -> dict[int, str]:
+    """Parse an optional active Op -> Phase table, or degrade safely.
 
     Returns an empty mapping if the doc is missing or unparsable so phase
     grouping/filtering degrades gracefully instead of failing the wizard.
     """
 
+    if flows_path is None:
+        return {}
     flows_path = flows_path.expanduser()
     if not flows_path.is_file():
         return {}
@@ -688,7 +695,7 @@ def print_phase_groups(
     phase_by_operation: dict[int, str],
     output_stream: TextIO,
 ) -> None:
-    """Print operations grouped by SDLC phase from docs/OPERATION_FLOWS.md."""
+    """Print operations grouped by an optional active phase map."""
 
     print("", file=output_stream)
     if not phase_by_operation:
@@ -1251,7 +1258,7 @@ def run_wizard(
     output_dir: Path | None = None,
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
-    operation_flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH,
+    operation_flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
 ) -> Path | None:
     """Run the interactive operation prompt wizard for one or more prompts in one session."""
 
@@ -1845,7 +1852,7 @@ if HAVE_PROMPT_TOOLKIT:
         operations_dir: Path = DEFAULT_OPERATIONS_DIR,
         output_dir: Path | None = None,
         output_stream: TextIO = sys.stdout,
-        operation_flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH,
+        operation_flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
     ) -> Path | None:
         operations = discover_operations(operations_dir)
         output_directory = resolve_output_dir(output_dir)
@@ -2003,7 +2010,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--operations-dir",
         type=Path,
         default=DEFAULT_OPERATIONS_DIR,
-        help="Directory containing operation .md templates.",
+        help="Active operation catalog directory; Markdown files are discovered recursively.",
     )
     parser.add_argument(
         "--output-dir",
