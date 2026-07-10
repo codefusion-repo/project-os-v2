@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_before_close · mode.review_only · output.review_result (+output.pm_command_bundle)
 - Evidencia: evidence.issue_scope, evidence.pr_diff, evidence.validation_output
-- Compatibilidad: `templates/operations/09-review-pr-before-close-and-draft-package.md`
 - Aprobación PM: No (no mergea ni cierra; draftea cierre solo si el review resuelve)
 
 **Hace:** Revisa el PR contra el issue vinculado antes de draftear cierre y limpieza.

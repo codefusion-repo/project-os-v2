@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat a human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.status_result (+output.route_prompt, output.pm_command_bundle, output.draft_issue)
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Compatibilidad: `templates/operations/36-process-needs-pm-decision.md`
 - Aprobación PM: No (clasifica la decisión; no ejecuta ni autoaprueba)
 
 **Hace:** Procesa un `status.needs_pm_decision` de una operación origen hacia una salida segura.

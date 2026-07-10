@@ -13,7 +13,7 @@ CLAUDE.md es un bootloader compacto para Claude en `{{ORG/REPO}}`.
 Usa el adapter terminal basado en `project-os-es/adapters/AGENTS.target.md`
 como bootloader principal del target. Alli estan la identidad del repo,
 `KERNEL_LOCAL_PATH` apuntando a `project-os-es/kernel`, el fast path con
-`project-os-es/tools/resolver.py` y las reglas de estado vivo. Resuelve
+`tools/project_os_resolve.py` y las reglas de estado vivo. Resuelve
 comportamiento desde la superficie espanola y estado del target desde
 GitHub/git al momento de la tarea.
 

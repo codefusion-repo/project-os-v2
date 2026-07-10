@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -33,19 +34,42 @@ REQUIRED_METADATA = (
 CANONICAL_HEADINGS = {
     "AGENTS.md": {
         "Contract",
+        "Contrato",
         "Repository identity",
+        "Identidad del repositorio",
         "Kernel resolution",
+        "Resolucion del kernel",
+        "Resolución del kernel",
+        "Outputs y artefactos",
         "Live state",
+        "Estado vivo",
+        "Seguridad y validacion",
+        "Seguridad y validación",
         "Project-specific notes",
+        "Notas especificas del proyecto",
+        "Notas específicas del proyecto",
     },
     "BROWSER_CHAT.md": {
         "Contract",
+        "Contrato",
         "Repository identity",
+        "Identidad del repositorio",
         "Kernel resolution",
+        "Resolucion del kernel",
+        "Resolución del kernel",
+        "Outputs y artefactos",
         "Live state",
+        "Estado vivo",
         "Drafting interface",
+        "Interfaz de drafting",
+        "Seguridad y validacion",
+        "Seguridad y validación",
         "Project-specific notes",
+        "Notas especificas del proyecto",
+        "Notas específicas del proyecto",
         "First-message activation",
+        "Activacion del primer mensaje",
+        "Activación del primer mensaje",
     },
     "CLAUDE.md": set(),
     "GEMINI.md": set(),
@@ -92,6 +116,11 @@ PROHIBITION_MARKERS = (
 )
 
 PROTECTED_NOTES_HEADING = "Project-specific notes"
+PROTECTED_NOTES_HEADINGS = {
+    PROTECTED_NOTES_HEADING,
+    "Notas especificas del proyecto",
+    "Notas específicas del proyecto",
+}
 
 
 @dataclass(frozen=True)
@@ -389,10 +418,28 @@ def _all_roadmap_anchors(expected_repo: str, line: str) -> list[str]:
     return anchors
 
 
+def _normalized_words(value: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", value)
+    return "".join(char for char in decomposed if not unicodedata.combining(char)).lower()
+
+
+def _is_canonical_roadmap_label(line: str) -> bool:
+    normalized = _normalized_words(line)
+    return any(
+        label in normalized
+        for label in (
+            "canonical roadmap issue",
+            "roadmap canonico",
+            "issue de roadmap canonico",
+            "issue canonico de roadmap",
+        )
+    )
+
+
 def _canonical_roadmap_lines(source: Source, expected_repo: str) -> list[tuple[int, str, list[str]]]:
     anchors: list[tuple[int, str, list[str]]] = []
     for line_no, line in enumerate(source.lines, start=1):
-        if "canonical roadmap issue" not in line.lower():
+        if not _is_canonical_roadmap_label(line):
             continue
         normalized = _all_roadmap_anchors(expected_repo, line)
         if normalized:
@@ -464,7 +511,7 @@ def _is_prohibition(line: str) -> bool:
 
 
 def _is_canonical_roadmap_line(line: str, expected_repo: str, canonical_anchors: set[str]) -> bool:
-    if "canonical roadmap issue" not in line.lower():
+    if not _is_canonical_roadmap_label(line):
         return False
     anchor = _normalize_roadmap_anchor(expected_repo, line)
     return anchor in canonical_anchors if anchor else False
@@ -474,9 +521,16 @@ def _check_live_state(source: Source, expected_repo: str, canonical_anchors: set
     findings: list[Finding] = []
     metadata = _parse_metadata(source)
     version_line = _line_for(metadata, "KERNEL_VERSION_ADOPTED")
+    prohibition_paragraph = False
     for line_no, line in enumerate(source.lines, start=1):
         stripped = line.strip()
-        if not stripped or _is_prohibition(stripped):
+        if not stripped:
+            prohibition_paragraph = False
+            continue
+        if _is_prohibition(stripped):
+            prohibition_paragraph = True
+            continue
+        if prohibition_paragraph:
             continue
         canonical_roadmap = _is_canonical_roadmap_line(stripped, expected_repo, canonical_anchors)
         if line_no != version_line and SHA_PATTERN.search(stripped):
@@ -605,7 +659,7 @@ def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
     canonical = CANONICAL_HEADINGS.get(base.name, set())
 
     for heading, section in sorted(base_sections.items(), key=lambda item: item[1].line):
-        protected = heading not in canonical or heading == PROTECTED_NOTES_HEADING
+        protected = heading not in canonical or heading in PROTECTED_NOTES_HEADINGS
         if not protected:
             continue
         base_lines = _significant_lines(section)

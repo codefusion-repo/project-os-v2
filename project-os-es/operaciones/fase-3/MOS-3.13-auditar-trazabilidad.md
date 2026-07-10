@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/15-audit-issue-pr-traceability.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Audita issue/PR y trazabilidad viva en GitHub.

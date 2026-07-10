@@ -1,210 +1,363 @@
-import io
+"""Enhanced prompt_toolkit parity tests over MOS-style Spanish catalogs."""
 
-import pytest
+from __future__ import annotations
+
+import shlex
+import shutil
+import subprocess
+import sys
+from io import StringIO
 from pathlib import Path
 
+import pytest
+
 from tools.operation_prompt_wizard import (
+    DEFAULT_OPERATIONS_DIR,
     HAVE_PROMPT_TOOLKIT,
     PM_AUTHORIZATION_GRANTED,
+    PM_AUTHORIZATION_PENDING,
     PM_AUTHORIZATION_STATUS_NAME,
 )
 
 if not HAVE_PROMPT_TOOLKIT:
-    pytest.skip("prompt_toolkit not installed, skipping enhanced interaction tests", allow_module_level=True)
+    pytest.skip("prompt_toolkit not installed; enhanced wizard path unavailable", allow_module_level=True)
 
 from tools.operation_prompt_wizard import run_wizard_pt
+from prompt_toolkit.formatted_text import fragment_list_to_text, to_formatted_text
 
 
-def setup_mock_operations(tmp_path: Path):
-    ops_dir = tmp_path / "operations"
-    ops_dir.mkdir()
-    (ops_dir / "01-test-op.md").write_text("# Test Operation\n\nINPUT:\n  TARGET_REPOSITORY=<owner/repo>\n\ncontent here")
-    return ops_dir
+def write_operation(
+    path: Path,
+    code: str,
+    title: str,
+    required: str,
+    optional: str = "— (ninguna)",
+    delivery: str = "output.status_result",
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"# {code} — {title}\n\n"
+        "**Variables**\n"
+        f"- Requeridas: {required}\n"
+        f"- Opcionales: {optional}\n\n"
+        f"**Entrega:** {delivery}.\n",
+        encoding="utf-8",
+    )
 
 
-def make_mock_prompt(inputs):
-    """Return a prompt() replacement that raises EOFError once inputs run out."""
+def setup_catalog(tmp_path: Path) -> Path:
+    operations = tmp_path / "operaciones"
+    write_operation(
+        operations / "fase-3" / "MOS-3.5-correccion.md",
+        "MOS-3.5",
+        "Corrección",
+        "TARGET_REPOSITORY",
+    )
+    return operations
 
-    def mock_prompt(*args, **kwargs):
+
+def mock_prompt(inputs: list[str]):
+    def replacement(*_args, **_kwargs):
         if not inputs:
             raise EOFError
         return inputs.pop(0)
 
-    return mock_prompt
+    return replacement
 
 
-def test_run_wizard_pt_full_flow(tmp_path: Path, monkeypatch):
-    ops_dir = setup_mock_operations(tmp_path)
-    out_dir = tmp_path / "out"
-
-    inputs = [
-        "01",  # select operation
-        "codefusion-repo/project-os-v2",  # variable TARGET_REPOSITORY
-        "write",  # write preview action
-        "exit",  # end the session
-    ]
-
-    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
-
-    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir)
-    assert result is not None
-    assert result.exists()
-    assert "TARGET_REPOSITORY=codefusion-repo/project-os-v2" in result.read_text()
-
-
-def test_run_wizard_pt_cancel_selection(tmp_path: Path, monkeypatch):
-    ops_dir = setup_mock_operations(tmp_path)
-    out_dir = tmp_path / "out"
-
-    inputs = ["cancel"]
-
-    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
-
-    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir)
-    assert result is None
-
-
-def test_run_wizard_pt_cancel_variable_entry(tmp_path: Path, monkeypatch):
-    ops_dir = setup_mock_operations(tmp_path)
-    out_dir = tmp_path / "out"
-
-    inputs = [
-        "01",  # select operation
-        "cancel",  # variable TARGET_REPOSITORY
-    ]
-
-    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
-
-    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir)
-    assert result is None
-
-
-def test_run_wizard_pt_edit_flow(tmp_path: Path, monkeypatch):
-    ops_dir = setup_mock_operations(tmp_path)
-    out_dir = tmp_path / "out"
-
-    inputs = [
-        "01",  # select operation
-        "codefusion-repo/project-os-v2",  # variable TARGET_REPOSITORY
-        "edit",  # choose edit
-        "codefusion-repo/other-repo",  # edit TARGET_REPOSITORY
-        "write",  # choose write
-        "exit",
-    ]
-
-    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
-
-    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir)
-    assert result is not None
-    assert "TARGET_REPOSITORY=codefusion-repo/other-repo" in result.read_text()
-
-
-def test_run_wizard_pt_back_flow(tmp_path: Path, monkeypatch):
-    ops_dir = setup_mock_operations(tmp_path)
-    (ops_dir / "02-test-op.md").write_text("# Second Operation\n\nINPUT:\n  OTHER_VAR=<foo>\n\ncontent here")
-    out_dir = tmp_path / "out"
-
-    inputs = [
-        "01",  # select operation
-        "back",  # variable TARGET_REPOSITORY -> returns 'operation'
-        "02",  # select second operation
-        "myval",  # variable OTHER_VAR
-        "write",  # choose write
-        "exit",
-    ]
-
-    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
-
-    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir)
-    assert result is not None
-    text = result.read_text()
-    assert "OTHER_VAR=myval" in text
-    assert "Second Operation" in text
-
-
-def test_run_wizard_pt_session_continues_with_new_action_for_multiple_prompts(tmp_path: Path, monkeypatch):
-    ops_dir = setup_mock_operations(tmp_path)
-    (ops_dir / "02-second-op.md").write_text("# Second Operation\n\nINPUT:\n  OTHER_VAR=<foo>\n\ncontent here")
-    out_dir = tmp_path / "out"
-
-    inputs = [
-        "01", "codefusion-repo/project-os-v2", "write",  # first prompt
-        "new",  # post-write: start another prompt in the same session
-        "02", "myval", "write",  # second prompt
-        "exit",
-    ]
-
-    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
-
-    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir)
-
-    assert result is not None
-    assert "Second Operation" in result.read_text()
-
-    md_files = list(out_dir.glob("*.md"))
-    assert len(md_files) == 1
-    assert md_files[0] == result
-
-
-def test_run_wizard_pt_same_action_resets_issue_number_but_keeps_roadmap_issue(tmp_path: Path, monkeypatch):
-    ops_dir = tmp_path / "operations"
-    ops_dir.mkdir()
-    (ops_dir / "07-route.md").write_text(
-        "# Route\n\nINPUT:\n  ISSUE_NUMBER=<ISSUE_NUMBER>\n  ROADMAP_ISSUE=<ROADMAP_ISSUE> optional\n\ncontent here"
+def test_full_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    operations = setup_catalog(tmp_path)
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt(["MOS-3.5", "codefusion-repo/project-os-v2", "write", "exit"]),
     )
-    out_dir = tmp_path / "out"
-
-    inputs = [
-        "07", "100", "274", "write",  # first prompt
-        "same",
-        # ISSUE_NUMBER has no carried-over default (reset); ROADMAP_ISSUE's
-        # prompt_toolkit default is the carried-over value, resubmitted here
-        # since the mocked prompt() does not render defaults itself.
-        "200", "274",
-        "write",
-        "exit",
-    ]
-
-    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
-
-    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir)
+    result = run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out")
 
     assert result is not None
-    text = result.read_text()
-    assert "ISSUE_NUMBER=200" in text
-    assert "ROADMAP_ISSUE=274" in text
-
-    md_files = list(out_dir.glob("*.md"))
-    assert len(md_files) == 1
+    assert "TARGET_REPOSITORY=codefusion-repo/project-os-v2" in result.read_text(encoding="utf-8")
 
 
-def test_run_wizard_pt_route_prompt_auth_status_granted(tmp_path: Path, monkeypatch):
-    ops_dir = tmp_path / "operations"
-    ops_dir.mkdir()
-    (ops_dir / "07-route.md").write_text(
-        "# Route\n\n"
-        "INPUT:\n"
-        "  ISSUE_NUMBER=<ISSUE_NUMBER>\n\n"
-        "OUTPUT:\n"
-        "  output.route_prompt per templates/route-prompt.md.\n",
-        encoding="utf-8",
+@pytest.mark.parametrize(
+    ("command", "confirmation"),
+    [
+        ("/enumerated", "View: enumerated operations"),
+        ("/enumerator", "View: enumerated operations"),
+        ("/", "View: enumerated operations"),
+        ("/phases", "View: operations grouped by phase"),
+        ("/phase", "View: operations grouped by phase"),
+    ],
+)
+def test_prompt_toolkit_view_commands_render_and_allow_direct_selection(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    command: str,
+    confirmation: str,
+) -> None:
+    operations = setup_catalog(tmp_path)
+    stream = StringIO()
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([command, "MOS-3.5", "codefusion-repo/project-os-v2", "write", "exit"]),
     )
-    out_dir = tmp_path / "out"
-    stream = io.StringIO()
-
-    inputs = [
-        "07",
-        "349",
-        "2",
-        "write",
-        "exit",
-    ]
-
-    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", make_mock_prompt(inputs))
-
-    result = run_wizard_pt(operations_dir=ops_dir, output_dir=out_dir, output_stream=stream)
+    result = run_wizard_pt(
+        operations_dir=operations,
+        output_dir=tmp_path / "out",
+        output_stream=stream,
+    )
 
     assert result is not None
-    text = result.read_text(encoding="utf-8")
-    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in text
-    assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode." in stream.getvalue()
+    assert confirmation in stream.getvalue()
+
+
+def test_cancel_at_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    operations = setup_catalog(tmp_path)
+    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", mock_prompt(["cancel"]))
+    assert run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out") is None
+
+
+def test_cancel_during_value_entry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    operations = setup_catalog(tmp_path)
+    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", mock_prompt(["MOS-3.5", "cancel"]))
+    assert run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out") is None
+
+
+def test_edit_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    operations = setup_catalog(tmp_path)
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([
+            "MOS-3.5", "codefusion-repo/project-os-v2", "edit",
+            "codefusion-repo/otro", "write", "exit",
+        ]),
+    )
+    result = run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out")
+
+    assert result is not None
+    assert "TARGET_REPOSITORY=codefusion-repo/otro" in result.read_text(encoding="utf-8")
+
+
+def test_back_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    operations = setup_catalog(tmp_path)
+    write_operation(
+        operations / "fase-4" / "MOS-4.1-qa.md", "MOS-4.1", "QA", "PR_NUMBER"
+    )
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt(["MOS-3.5", "back", "MOS-4.1", "406", "write", "exit"]),
+    )
+    result = run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out")
+
+    assert result is not None
+    assert "PR_NUMBER=406" in result.read_text(encoding="utf-8")
+
+
+def test_session_new_keeps_only_latest_prompt(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    operations = setup_catalog(tmp_path)
+    write_operation(
+        operations / "fase-4" / "MOS-4.1-qa.md", "MOS-4.1", "QA", "PR_NUMBER"
+    )
+    output_dir = tmp_path / "out"
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([
+            "MOS-3.5", "codefusion-repo/project-os-v2", "write", "new",
+            "MOS-4.1", "406", "write", "exit",
+        ]),
+    )
+    result = run_wizard_pt(operations_dir=operations, output_dir=output_dir)
+
+    assert result is not None
+    assert "MOS-4.1" in result.read_text(encoding="utf-8")
+    assert list(output_dir.glob("*.md")) == [result]
+
+
+def test_same_resets_issue_and_keeps_roadmap(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    operations = tmp_path / "operaciones"
+    write_operation(
+        operations / "fase-3" / "MOS-3.4-route.md",
+        "MOS-3.4",
+        "Route",
+        "ISSUE_NUMBER",
+        "ROADMAP_ISSUE",
+    )
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([
+            "MOS-3.4", "100", "274", "write", "same",
+            "200", "274", "write", "exit",
+        ]),
+    )
+    result = run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out")
+
+    assert result is not None
+    content = result.read_text(encoding="utf-8")
+    assert "ISSUE_NUMBER=200" in content
+    assert "ROADMAP_ISSUE=274" in content
+
+
+def test_route_prompt_authorization_granted(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    operations = tmp_path / "operaciones"
+    write_operation(
+        operations / "fase-3" / "MOS-3.5-route.md",
+        "MOS-3.5",
+        "Route",
+        "ISSUE_NUMBER",
+        delivery="output.route_prompt",
+    )
+    stream = StringIO()
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt(["MOS-3.5", "405", "2", "write", "exit"]),
+    )
+    result = run_wizard_pt(
+        operations_dir=operations,
+        output_dir=tmp_path / "out",
+        output_stream=stream,
+    )
+
+    assert result is not None
+    content = result.read_text(encoding="utf-8")
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
+    assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted" in stream.getvalue()
+
+
+def test_active_mos35_collects_authorization_and_never_requests_agent_family(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    stream = StringIO()
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([
+            "MOS-3.5", "405", "", "none", "", "", "1", "write", "exit",
+        ]),
+    )
+    result = run_wizard_pt(
+        operations_dir=DEFAULT_OPERATIONS_DIR,
+        output_dir=tmp_path / "out",
+        output_stream=stream,
+    )
+
+    assert result is not None
+    content = result.read_text(encoding="utf-8")
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
+    assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
+    transcript = stream.getvalue()
+    assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted" in transcript
+    assert "Optional (4): PR_NUMBER <PR_NUMBER>, OPTIONAL_SKILL <OPTIONAL_SKILL>, PM_FEEDBACK_HUMANO <PM_FEEDBACK_HUMANO>, PM_QUESTION_HUMANO <PM_QUESTION_HUMANO>" in transcript
+    assert "RECOMMENDED_TERMINAL_AGENT_FAMILY (" not in transcript
+
+
+def test_active_mos34_collects_authorization_in_prompt_toolkit_mode(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    stream = StringIO()
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([
+            "MOS-3.4", "405", "274", "skill.arquitectura_backend", "", "", "2", "write", "exit",
+        ]),
+    )
+    result = run_wizard_pt(
+        operations_dir=DEFAULT_OPERATIONS_DIR,
+        output_dir=tmp_path / "out",
+        output_stream=stream,
+    )
+
+    assert result is not None
+    content = result.read_text(encoding="utf-8")
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
+    assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
+    assert "OPTIONAL_SKILL=skill.arquitectura_backend" in content
+    assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted" in stream.getvalue()
+
+
+def test_prompt_toolkit_skill_completion_uses_active_catalog(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    operations = tmp_path / "operaciones"
+    write_operation(
+        operations / "fase-3" / "MOS-3.1-skill.md",
+        "MOS-3.1",
+        "Skill",
+        "— (ninguna)",
+        "OPTIONAL_SKILL",
+    )
+    completers = []
+    toolbars = []
+    skill_completion_is_live = []
+
+    def recording_prompt(*_args, **kwargs):
+        completer = kwargs.get("completer")
+        if completer is not None:
+            completers.append(completer)
+            if kwargs.get("complete_while_typing"):
+                skill_completion_is_live.append(True)
+        toolbar = kwargs.get("bottom_toolbar")
+        if toolbar is not None:
+            rendered = toolbar() if callable(toolbar) else toolbar
+            toolbars.append(fragment_list_to_text(to_formatted_text(rendered)))
+        inputs = recording_prompt.inputs
+        if not inputs:
+            raise EOFError
+        return inputs.pop(0)
+
+    recording_prompt.inputs = ["MOS-3.1", "skill.desarrollo_frontend", "write", "exit"]
+    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", recording_prompt)
+    stream = StringIO()
+    result = run_wizard_pt(
+        operations_dir=operations,
+        output_dir=tmp_path / "out",
+        output_stream=stream,
+    )
+
+    assert result is not None
+    assert "OPTIONAL_SKILL=skill.desarrollo_frontend" in result.read_text(encoding="utf-8")
+    assert any(
+        {"skill.arquitectura_backend", "skill.desarrollo_frontend", "none"}
+        <= set(getattr(completer, "words", []))
+        for completer in completers
+    )
+    assert skill_completion_is_live == [True]
+    transcript = stream.getvalue()
+    assert "OPTIONAL_SKILL (optional)" in transcript
+    assert "skill.arquitectura_backend — Arquitectura backend" in transcript
+    assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
+    assert "none — Sin skill opcional" in transcript
+    selection_toolbar = next(text for text in toolbars if "/enumerated" in text)
+    for command in ("/enumerated", "/enumerator", "/phases", "/phase"):
+        assert command in selection_toolbar
+
+
+def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_path: Path) -> None:
+    script = shutil.which("script")
+    if script is None:
+        pytest.skip("script utility is required for the pseudo-TTY black-box")
+
+    output_dir = tmp_path / "out"
+    command = (
+        f"{shlex.quote(sys.executable)} -m tools.operation_prompt_wizard "
+        f"--output-dir {shlex.quote(str(output_dir))}"
+    )
+    completed = subprocess.run(
+        [script, "-qec", command, "/dev/null"],
+        cwd=Path(__file__).resolve().parents[1],
+        input="/enumerator\n/phases\nMOS-3.4\n405\n274\ncancel\n",
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+
+    transcript = completed.stdout
+    assert "View: enumerated operations" in transcript
+    assert "View: operations grouped by phase" in transcript
+    assert "OPTIONAL_SKILL (optional)" in transcript
+    assert "skill.arquitectura_backend — Arquitectura backend" in transcript
+    assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
+    assert "Select OPTIONAL_SKILL:" in transcript
+    assert not list(output_dir.glob("*.md"))

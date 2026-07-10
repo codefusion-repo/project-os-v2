@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.handoff · mode.review_only · output.handoff_packet
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/17-draft-handoff-package-for-new-session.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Empaqueta contexto vivo y decisiones PM para transferir a una sesión nueva.

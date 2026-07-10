@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.status_result (+output.route_prompt, output.pm_command_bundle)
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Compatibilidad: `templates/operations/32-process-design-asset-delivery.md`
 - Aprobación PM: No (draft-only)
 
 **Hace:** Procesa la entrega de un asset 3D y la mapea a tareas técnicas o drafts.

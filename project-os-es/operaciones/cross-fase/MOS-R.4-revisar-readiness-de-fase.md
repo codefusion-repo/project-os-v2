@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/37-review-phase-readiness.md`
 - Aprobación PM: No (review advisory; no cambia de fase)
 
 **Hace:** Revisa readiness advisory antes de mover trabajo entre fases MOSDLC.

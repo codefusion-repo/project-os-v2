@@ -2,9 +2,9 @@
 
 If prompt_toolkit is importable, the wizard uses an enhanced interactive mode.
 If unavailable, it falls back to a standard line-based flow.
-The wizard reads templates from ``templates/operations`` and only writes local
-Markdown prompt artifacts. It does not execute operations, run commands, or
-call GitHub, git, or network services.
+The wizard reads the active operation catalog from ``project-os-es/operaciones``
+and only writes local Markdown prompt artifacts. It does not execute
+operations, run commands, or call GitHub, git, or network services.
 
 The wizard stays open across multiple generated prompts in one session until
 the PM explicitly exits, and keeps only the single latest wizard-generated
@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 import re
 import sys
@@ -33,9 +34,12 @@ except ImportError:
     HAVE_PROMPT_TOOLKIT = False
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_OPERATIONS_DIR = REPO_ROOT / "templates" / "operations"
+DEFAULT_OPERATIONS_DIR = REPO_ROOT / "project-os-es" / "operaciones"
+DEFAULT_SKILLS_CATALOG = REPO_ROOT / "project-os-es" / "kernel" / "skills.json"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / ".local" / "operation-prompts"
-DEFAULT_OPERATION_FLOWS_PATH = REPO_ROOT / "docs" / "OPERATION_FLOWS.md"
+# The active Spanish catalog encodes its phase model in directory names.  An
+# optional table can still override those labels for custom catalogs.
+DEFAULT_OPERATION_FLOWS_PATH: Path | None = None
 OUTPUT_DIR_ENV = "PROJECT_OS_OPERATION_PROMPT_OUTPUT_DIR"
 
 BLOCK_HEADER_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*:\s*$")
@@ -58,6 +62,7 @@ WIZARD_PROMPT_MARKER = "<!-- project-os-operation-prompt-wizard: generated promp
 GENERATED_FILENAME_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?-[0-9a-f]{12}\.md$")
 
 PHASE_TABLE_HEADER_PREFIX = "| Op | Phase"
+MOS_CODE_PATTERN = re.compile(r"^(MOS-(?:\d+\.\d+|R\.\d+))(?=-|$)", re.IGNORECASE)
 
 CANCEL_COMMANDS = {"c", "cancel", "q", "quit", "exit"}
 HELP_COMMANDS = {"?", "h", "help"}
@@ -71,6 +76,7 @@ CLEAR_COMMANDS = {"/clear"}
 # filename contains "phase") still filters normally instead of being
 # swallowed as a grouping command.
 PHASE_LIST_COMMANDS = {"/phase", "/phases"}
+ENUMERATED_LIST_COMMANDS = {"/", "/enumerated", "/enumerator"}
 
 POST_WRITE_NEW_COMMANDS = {"n", "new"}
 POST_WRITE_SAME_COMMANDS = {"r", "reuse", "same"}
@@ -98,24 +104,61 @@ class InputVariable:
 
 
 @dataclass(frozen=True)
+class SkillOption:
+    """One active skill value and its catalog-owned display name."""
+
+    key: str
+    name: str
+
+
+@dataclass(frozen=True)
 class OperationTemplate:
     """A discovered operation template and parsed metadata."""
 
     index: int
     path: Path
     title: str
+    description: str
     text: str
     variables: tuple[InputVariable, ...]
+    catalog_root: Path | None = None
 
     @property
     def filename(self) -> str:
         return self.path.name
 
     @property
-    def file_number(self) -> int | None:
-        match = re.match(r"^(\d+)", self.path.name)
-        return int(match.group(1)) if match else None
+    def mos_code(self) -> str | None:
+        match = MOS_CODE_PATTERN.match(self.path.stem)
+        return match.group(1).upper() if match else None
 
+    @property
+    def relative_path(self) -> str:
+        if self.catalog_root is not None:
+            try:
+                return self.path.relative_to(self.catalog_root).as_posix()
+            except ValueError:
+                pass
+        return self.path.name
+
+    @property
+    def phase_path(self) -> str:
+        parent = Path(self.relative_path).parent.as_posix()
+        return "" if parent == "." else parent
+
+    @property
+    def phase_label(self) -> str:
+        if not self.phase_path:
+            return ""
+        labels = []
+        for part in self.phase_path.split("/"):
+            if part == "cross-fase":
+                labels.append("Cross-fase")
+            elif match := re.fullmatch(r"fase-(\d+)", part):
+                labels.append(f"Fase {match.group(1)}")
+            else:
+                labels.append(part.replace("-", " ").title())
+        return " / ".join(labels)
 
 @dataclass(frozen=True)
 class ValueCollectionResult:
@@ -135,13 +178,16 @@ class RoutePromptPathResult:
 
 
 def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[OperationTemplate]:
-    """Discover Markdown operation templates in deterministic filename order."""
+    """Discover active operation Markdown files recursively and deterministically."""
 
     operations_dir = operations_dir.expanduser()
     if not operations_dir.is_dir():
         raise WizardError(f"operations directory not found: {operations_dir}")
 
-    paths = sorted(operations_dir.glob("*.md"), key=lambda path: path.name)
+    paths = sorted(
+        (path for path in operations_dir.rglob("*.md") if path.name != "README.md"),
+        key=lambda path: path.relative_to(operations_dir).as_posix(),
+    )
     if not paths:
         raise WizardError(f"no .md operation templates found in: {operations_dir}")
 
@@ -153,8 +199,10 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 index=index,
                 path=path,
                 title=extract_title(text, path),
+                description=extract_description(text, path),
                 text=text,
                 variables=parse_input_variables(text),
+                catalog_root=operations_dir,
             )
         )
     return operations
@@ -172,8 +220,19 @@ def extract_title(text: str, path: Path) -> str:
     return path.stem
 
 
+def extract_description(text: str, path: Path) -> str:
+    """Return concise catalog metadata for presentation, with a safe fallback."""
+
+    match = re.search(r"^\*\*Hace:\*\*\s*(.+?)\s*$", text, flags=re.MULTILINE)
+    if match:
+        return match.group(1)
+
+    title = extract_title(text, path)
+    return re.sub(r"^MOS-(?:\d+\.\d+|R\.\d+)\s*[—-]\s*", "", title, flags=re.IGNORECASE)
+
+
 def parse_input_variables(text: str) -> tuple[InputVariable, ...]:
-    """Parse required and optional variables from the template ``INPUT:`` block."""
+    """Parse variables from conventional INPUT or active Spanish Variables blocks."""
 
     variables: list[InputVariable] = []
     for raw_line in input_block_lines(text):
@@ -198,7 +257,44 @@ def parse_input_variables(text: str) -> tuple[InputVariable, ...]:
                 note=tail,
             )
         )
+    if variables:
+        return tuple(variables)
+
+    variables.extend(parse_spanish_variables(text))
     return tuple(variables)
+
+
+def parse_spanish_variables(text: str) -> tuple[InputVariable, ...]:
+    """Parse ``**Variables**`` from the compact active Spanish catalog."""
+
+    marker = "**Variables**"
+    if marker not in text:
+        return ()
+    section = text.split(marker, 1)[1]
+    section = re.split(r"\n\s*\n(?=\*\*)", section, maxsplit=1)[0]
+    parsed: list[InputVariable] = []
+    for label, required in (("Requeridas", True), ("Opcionales", False)):
+        match = re.search(
+            rf"^-\s*{label}:\s*(.*?)(?=^-\s*(?:Requeridas|Opcionales):|\Z)",
+            section,
+            flags=re.MULTILINE | re.DOTALL | re.IGNORECASE,
+        )
+        if not match:
+            continue
+        declaration = match.group(1).split("(", 1)[0]
+        for name in re.findall(r"\b[A-Z][A-Z0-9_]+\b", declaration):
+            if name in {variable.name for variable in parsed}:
+                continue
+            parsed.append(
+                InputVariable(
+                    name=name,
+                    placeholder=f"<{name}>",
+                    required=required,
+                    raw_line="",
+                    note=f"{label.lower()} en catálogo español",
+                )
+            )
+    return tuple(parsed)
 
 
 def input_block_lines(text: str) -> list[str]:
@@ -231,63 +327,75 @@ def filter_operations(
     query: str,
     phase_by_operation: dict[int, str] | None = None,
 ) -> list[OperationTemplate]:
-    """Filter operations by displayed number, filename number, filename, title, or phase."""
+    """Filter by active Spanish identity, relative context, or displayed index."""
 
     normalized = query.strip().lower()
     if not normalized:
         return list(operations)
 
-    numeric_query = int(normalized) if normalized.isdigit() else None
-    prefer_file_number = normalized.startswith("0") and len(normalized) > 1
     matches: list[OperationTemplate] = []
     for operation in operations:
-        if numeric_query is not None:
-            if prefer_file_number and operation.file_number == numeric_query:
+        if normalized.isdigit():
+            if operation.index == int(normalized):
                 matches.append(operation)
-                continue
-            if not prefer_file_number and operation.index == numeric_query:
-                matches.append(operation)
-                continue
-            if not prefer_file_number and operation.file_number == numeric_query:
-                matches.append(operation)
-                continue
-        if normalized in operation.filename.lower() or normalized in operation.title.lower():
-            matches.append(operation)
             continue
-        if phase_by_operation:
-            phase = phase_by_operation.get(operation.file_number, "")
-            if phase and normalized in phase.lower():
-                matches.append(operation)
+        searchable = {
+            operation.filename.lower(),
+            operation.path.stem.lower(),
+            operation.title.lower(),
+            operation.description.lower(),
+            operation.relative_path.lower(),
+            operation.phase_path.lower(),
+            operation.phase_label.lower(),
+            (operation.mos_code or "").lower(),
+        }
+        phase = _operation_phase(operation, phase_by_operation or {})
+        if phase:
+            searchable.add(phase.lower())
+        if any(normalized in value for value in searchable if value):
+            matches.append(operation)
     return matches
 
 
 def resolve_operation_selection(
     operations: list[OperationTemplate], selection: str
 ) -> OperationTemplate | None:
-    """Resolve a selection by displayed number, filename number, filename, or stem."""
+    """Resolve one exact active operation and fail safely on duplicate matches."""
 
     normalized = selection.strip().lower()
     if not normalized:
         return None
 
+    explicit_index = re.fullmatch(r"(?:index|indice|índice):?(\d+)", normalized)
+    if explicit_index:
+        return _unique_operation(op for op in operations if op.index == int(explicit_index.group(1)))
+
     if normalized.isdigit():
-        number = int(normalized)
-        if normalized.startswith("0") and len(normalized) > 1:
-            for operation in operations:
-                if operation.file_number == number:
-                    return operation
-        for operation in operations:
-            if operation.index == number or operation.file_number == number:
-                return operation
+        index_match = _unique_operation(op for op in operations if op.index == int(normalized))
+        return index_match
 
-    for operation in operations:
-        filename = operation.filename.lower()
-        if normalized == filename or normalized == operation.path.stem.lower():
-            return operation
-    return None
+    return _unique_operation(
+        operation
+        for operation in operations
+        if normalized in {
+            operation.filename.lower(),
+            operation.path.stem.lower(),
+            operation.relative_path.lower(),
+            (operation.mos_code or "").lower(),
+        }
+    )
 
 
-def validate_variable_value(variable: InputVariable, value: str) -> str | None:
+def _unique_operation(candidates) -> OperationTemplate | None:
+    unique = {operation.path.resolve(): operation for operation in candidates}
+    return next(iter(unique.values())) if len(unique) == 1 else None
+
+
+def validate_variable_value(
+    variable: InputVariable,
+    value: str,
+    skill_choices: tuple[str, ...] | None = None,
+) -> str | None:
     """Return a validation error for common variable shapes, or ``None``."""
 
     stripped = value.strip()
@@ -303,6 +411,15 @@ def validate_variable_value(variable: InputVariable, value: str) -> str | None:
             return (
                 f"{variable.name} must be 1, 2, pending, or "
                 "granted for this exact scope and mode."
+            )
+        return None
+
+    if is_optional_skill_variable(variable.name):
+        choices = skill_choices or load_active_skill_choices()
+        if stripped not in choices:
+            return (
+                f"{variable.name} must be an active skill or none: "
+                f"{', '.join(choices)}."
             )
         return None
 
@@ -325,11 +442,17 @@ def validate_variable_value(variable: InputVariable, value: str) -> str | None:
     return None
 
 
-def validation_example(variable: InputVariable) -> str:
+def validation_example(
+    variable: InputVariable,
+    skill_choices: tuple[str, ...] | None = None,
+) -> str:
     """Return a concise example for the common validated variable shapes."""
 
     if is_pm_authorization_status_variable(variable.name):
         return "Choose 1 for pending or 2 for granted for this exact scope and mode."
+    if is_optional_skill_variable(variable.name):
+        choices = skill_choices or load_active_skill_choices()
+        return f"Use an active skill, none, or leave it blank: {', '.join(choices)}."
     choices = placeholder_choices(variable.placeholder)
     if choices is not None:
         return f"Use one of: {', '.join(choices)}."
@@ -383,6 +506,65 @@ def is_pm_authorization_status_variable(name: str) -> bool:
     return name == PM_AUTHORIZATION_STATUS_NAME
 
 
+def is_optional_skill_variable(name: str) -> bool:
+    """Identify the PM-selectable optional skill variable."""
+
+    return name == "OPTIONAL_SKILL"
+
+
+def load_active_skill_options(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG) -> tuple[SkillOption, ...]:
+    """Load active skill keys and display names from the canonical catalog.
+
+    The catalog is authoritative. Invalid or unreadable catalog data stops the
+    wizard rather than falling back to stale hard-coded values or labels.
+    """
+
+    try:
+        content = json.loads(skills_catalog_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise WizardError(f"cannot read active skills catalog {skills_catalog_path}: {exc}") from exc
+    if not isinstance(content, dict) or not isinstance(content.get("skills"), list):
+        raise WizardError(f"invalid active skills catalog {skills_catalog_path}: expected object with skills list")
+
+    options: list[SkillOption] = []
+    for index, entry in enumerate(content["skills"]):
+        if not isinstance(entry, dict):
+            raise WizardError(f"invalid active skills catalog {skills_catalog_path}: skills[{index}] is not an object")
+        key = entry.get("key")
+        name = entry.get("nombre")
+        active = entry.get("active")
+        if (
+            not isinstance(key, str)
+            or not key.startswith("skill.")
+            or not isinstance(name, str)
+            or not name.strip()
+            or not isinstance(active, bool)
+        ):
+            raise WizardError(
+                f"invalid active skills catalog {skills_catalog_path}: skills[{index}] needs "
+                "key skill.*, non-empty nombre, and boolean active"
+            )
+        if active:
+            if key in {option.key for option in options}:
+                raise WizardError(f"invalid active skills catalog {skills_catalog_path}: duplicate active skill {key}")
+            options.append(SkillOption(key=key, name=name.strip()))
+    if "none" in {option.key for option in options}:
+        raise WizardError(f"invalid active skills catalog {skills_catalog_path}: active skill key none is reserved")
+    return tuple(options)
+
+
+def skill_choice_keys(skill_options: tuple[SkillOption, ...]) -> tuple[str, ...]:
+    """Return accepted stored values for active options plus explicit ``none``."""
+
+    return tuple((*[option.key for option in skill_options], "none"))
+
+
+def load_active_skill_choices(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG) -> tuple[str, ...]:
+    """Load accepted OPTIONAL_SKILL values from the canonical catalog."""
+
+    return skill_choice_keys(load_active_skill_options(skills_catalog_path))
+
+
 def is_carryover_variable(name: str) -> bool:
     """Identify stable context variables safe to offer for carry-over between prompts.
 
@@ -428,10 +610,18 @@ def operation_produces_route_prompt(operation: OperationTemplate) -> bool:
 
 
 def operation_output_refs(operation: OperationTemplate) -> tuple[str, ...]:
-    """Return distinct output contract refs from the operation's OUTPUT block."""
+    """Return distinct output refs from OUTPUT or active Spanish Entrega blocks."""
 
     refs: list[str] = []
-    for line in named_block_lines(operation.text, "OUTPUT"):
+    output_lines = named_block_lines(operation.text, "OUTPUT")
+    if not output_lines:
+        delivery_match = re.search(
+            r"\*\*Entrega:\*\*\s*(.*?)(?=\.\s|\.$|\n|\Z)",
+            operation.text,
+            flags=re.IGNORECASE,
+        )
+        output_lines = [delivery_match.group(1)] if delivery_match else []
+    for line in output_lines:
         for ref in re.findall(r"\boutput\.[A-Za-z0-9_.-]+\b", line):
             if ref not in refs:
                 refs.append(ref)
@@ -500,7 +690,7 @@ def render_prompt(
     )
     for i, line in enumerate(lines):
         for variable in variables:
-            if line.rstrip() == variable.raw_line:
+            if variable.raw_line and line.rstrip() == variable.raw_line:
                 value = values.get(variable.name, "").strip()
                 if value:
                     lines[i] = f"  {variable.name}={single_line(value)}"
@@ -511,7 +701,13 @@ def render_prompt(
         operation_needs_pm_authorization_assistance(operation)
         or include_route_prompt_authorization
     )
-    if needs_synthetic and not operation_declares_pm_authorization_status(operation):
+    has_input_block = any(line.strip() == "INPUT:" for line in lines)
+    if not has_input_block:
+        lines.extend(["", "INPUT:"])
+        for variable in variables:
+            value = values.get(variable.name, "").strip()
+            lines.append(f"  {variable.name}={single_line(value) if value else ''}")
+    elif needs_synthetic and not operation_declares_pm_authorization_status(operation):
         lines = insert_input_variable_line(
             lines,
             PM_AUTHORIZATION_STATUS_NAME,
@@ -576,35 +772,47 @@ def resolve_output_dir(output_dir: Path | None) -> Path:
     return DEFAULT_OUTPUT_DIR
 
 
-def load_phase_map(flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH) -> dict[int, str]:
-    """Parse Op -> Phase from the Phase Flow Map table in docs/OPERATION_FLOWS.md.
+def load_phase_map(
+    flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
+    operations: list[OperationTemplate] | None = None,
+) -> dict[int, str]:
+    """Derive phases from the active catalog, with an optional table override.
 
-    Returns an empty mapping if the doc is missing or unparsable so phase
-    grouping/filtering degrades gracefully instead of failing the wizard.
+    Directory-derived labels keep ``/phases`` useful for the canonical Spanish
+    tree without consulting historical flow documentation.
     """
 
-    flows_path = flows_path.expanduser()
-    if not flows_path.is_file():
-        return {}
-
-    phase_by_operation: dict[int, str] = {}
-    in_table = False
-    for line in flows_path.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not in_table:
-            if stripped.startswith(PHASE_TABLE_HEADER_PREFIX):
-                in_table = True
-            continue
-        if not stripped.startswith("|"):
-            break
-        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
-        if len(cells) < 2:
-            continue
-        op_number_text, phase = cells[0], cells[1]
-        if not op_number_text or not op_number_text.isdigit() or not phase:
-            continue
-        phase_by_operation[int(op_number_text)] = phase
+    phase_by_operation = {
+        operation.index: operation.phase_label
+        for operation in operations or []
+        if operation.phase_label
+    }
+    if flows_path is not None:
+        flows_path = flows_path.expanduser()
+        if flows_path.is_file():
+            in_table = False
+            for line in flows_path.read_text(encoding="utf-8").splitlines():
+                stripped = line.strip()
+                if not in_table:
+                    if stripped.startswith(PHASE_TABLE_HEADER_PREFIX):
+                        in_table = True
+                    continue
+                if not stripped.startswith("|"):
+                    break
+                cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+                if len(cells) < 2:
+                    continue
+                op_number_text, phase = cells[0], cells[1]
+                if op_number_text.isdigit() and phase:
+                    phase_by_operation[int(op_number_text)] = phase
     return phase_by_operation
+
+
+def _operation_phase(
+    operation: OperationTemplate,
+    phase_by_operation: dict[int, str],
+) -> str:
+    return phase_by_operation.get(operation.index) or operation.phase_label or "Sin fase"
 
 
 def is_wizard_generated_artifact(path: Path) -> bool:
@@ -672,15 +880,29 @@ def cleanup_previous_generated_prompts(output_dir: Path, keep_path: Path) -> lis
 
 
 def display_operations(operations: list[OperationTemplate], output_stream: TextIO) -> None:
-    """Print an ordered numbered operation list."""
+    """Print one compact, non-duplicative line for each operation."""
 
     print("", file=output_stream)
     print("Available operations:", file=output_stream)
     for operation in operations:
-        print(
-            f"  {operation.index:>2}. {operation.filename} - {operation.title}",
-            file=output_stream,
-        )
+        print(f"  {operation_display_line(operation)}", file=output_stream)
+
+
+def print_enumerated_view(operations: list[OperationTemplate], output_stream: TextIO) -> None:
+    """Confirm and render the compact enumerated operation view."""
+
+    print("", file=output_stream)
+    print("View: enumerated operations", file=output_stream)
+    display_operations(operations, output_stream)
+
+
+def operation_display_line(operation: OperationTemplate, include_phase: bool = True) -> str:
+    """Build the shared compact list/completion representation."""
+
+    phase = operation.phase_label or operation.phase_path or "Catálogo"
+    phase_part = f"[{phase}] " if include_phase else ""
+    identity = operation.mos_code or operation.path.stem
+    return f"{operation.index:>3}. {phase_part}{identity} — {operation.description}"
 
 
 def print_phase_groups(
@@ -688,9 +910,10 @@ def print_phase_groups(
     phase_by_operation: dict[int, str],
     output_stream: TextIO,
 ) -> None:
-    """Print operations grouped by SDLC phase from docs/OPERATION_FLOWS.md."""
+    """Print operations grouped by an optional active phase map."""
 
     print("", file=output_stream)
+    print("View: operations grouped by phase", file=output_stream)
     if not phase_by_operation:
         print("Phase information is unavailable; showing the ungrouped operation list.", file=output_stream)
         display_operations(operations, output_stream)
@@ -700,7 +923,7 @@ def print_phase_groups(
     grouped: dict[str, list[OperationTemplate]] = {}
     ordered_phases: list[str] = []
     for operation in operations:
-        phase = phase_by_operation.get(operation.file_number, "Unmapped")
+        phase = _operation_phase(operation, phase_by_operation)
         if phase not in grouped:
             grouped[phase] = []
             ordered_phases.append(phase)
@@ -709,10 +932,7 @@ def print_phase_groups(
     for phase in ordered_phases:
         print(f"  {phase}:", file=output_stream)
         for operation in grouped[phase]:
-            print(
-                f"    {operation.index:>2}. {operation.filename} - {operation.title}",
-                file=output_stream,
-            )
+            print(f"    {operation_display_line(operation, include_phase=False)}", file=output_stream)
 
 
 def print_stage(label: str, title: str, output_stream: TextIO) -> None:
@@ -753,16 +973,36 @@ def is_clear_command(value: str) -> bool:
     return value.strip().lower() in CLEAR_COMMANDS
 
 
+def is_enumerated_view_command(value: str) -> bool:
+    return value.strip().lower() in ENUMERATED_LIST_COMMANDS
+
+
+def is_phase_view_command(value: str) -> bool:
+    return value.strip().lower() in PHASE_LIST_COMMANDS
+
+
 def print_selection_help(output_stream: TextIO) -> None:
     """Print operation-selection help without leaving the current flow."""
 
     print("", file=output_stream)
     print("Selection help:", file=output_stream)
-    print("  Type text to filter by title, filename, or SDLC phase.", file=output_stream)
-    print("  Type a displayed number, filename number, filename, or stem to select.", file=output_stream)
     print(
-        "  Use / to reset the filtered list, s to search again, /phases to group by "
-        "SDLC phase, or cancel to exit.",
+        "  Filter by title, filename, stem, relative path, phase directory, MOS code, "
+        "or displayed index.",
+        file=output_stream,
+    )
+    print(
+        "  Select by displayed index, exact filename/stem/path, or MOS code.",
+        file=output_stream,
+    )
+    print(
+        "  Compact list lines show phase, MOS code, and purpose. The exact relative path "
+        "appears after selection and remains searchable.",
+        file=output_stream,
+    )
+    print(
+        "  Use /enumerated (aliases: /enumerator, /) for the enumerated view; "
+        "/phases (alias: /phase) for the grouped view; s to search again; or cancel to exit.",
         file=output_stream,
     )
 
@@ -770,7 +1010,8 @@ def print_selection_help(output_stream: TextIO) -> None:
 def variable_summary_lines(operation: OperationTemplate) -> list[str]:
     """Return a compact selected-operation summary for variable entry."""
 
-    lines = [f"Selected: {operation.filename} - {operation.title}"]
+    lines = [f"Selected: {operation_display_line(operation).strip()}"]
+    lines.append(f"Path: {operation.relative_path}")
     variables = wizard_variables(operation)
     required = [variable for variable in variables if variable.required]
     optional = [variable for variable in variables if not variable.required]
@@ -787,11 +1028,29 @@ def format_variable_list(variables: list[InputVariable]) -> str:
     return ", ".join(f"{variable.name} {variable.placeholder}" for variable in variables)
 
 
-def display_operation_summary(operation: OperationTemplate, output_stream: TextIO) -> None:
+def display_operation_summary(
+    operation: OperationTemplate,
+    output_stream: TextIO,
+) -> None:
     """Print the selected operation and its INPUT variable summary."""
 
     for line in variable_summary_lines(operation):
         print(line, file=output_stream)
+
+
+def print_optional_skill_options(
+    output_stream: TextIO,
+    skill_options: tuple[SkillOption, ...] | None = None,
+) -> None:
+    """Show every accepted OPTIONAL_SKILL choice immediately before its prompt."""
+
+    options = skill_options if skill_options is not None else load_active_skill_options()
+    print("", file=output_stream)
+    print("OPTIONAL_SKILL (optional)", file=output_stream)
+    for option in options:
+        print(f"  - {option.key} — {option.name}", file=output_stream)
+    print("  - none — Sin skill opcional", file=output_stream)
+    print("  - Enter — Dejar vacío", file=output_stream)
 
 
 def print_pm_authorization_assistance(output_stream: TextIO) -> None:
@@ -845,35 +1104,41 @@ def select_operation(
     filtered = list(operations)
     print_stage("Step 1/3", "Search and select an operation", output_stream)
     print(
-        "Commands: / reset, s search again, /phases group by SDLC phase, ? help, cancel exit.",
+        "Commands: /enumerated (aliases /enumerator, /), /phases (alias /phase), "
+        "s search, ? help, cancel exit.",
         file=output_stream,
     )
+    print_enumerated_view(filtered, output_stream)
     while True:
-        display_operations(filtered, output_stream)
         query = input_func(
-            "\nSearch by number, filename, title, or phase "
-            "(Enter to keep list, / reset, /phases, ? help, cancel): "
+            "\nSearch by index, MOS code, filename, title, relative path, or phase "
+            "(Enter keeps view; /enumerated; /phases; ? help; cancel): "
         ).strip()
         if is_cancel_command(query):
             return None
         if is_help_command(query):
             print_selection_help(output_stream)
             continue
-        if query.lower() in PHASE_LIST_COMMANDS:
+        if is_phase_view_command(query):
+            filtered = list(operations)
             print_phase_groups(operations, phase_by_operation, output_stream)
             continue
-        if query == "/":
+        if is_enumerated_view_command(query):
             filtered = list(operations)
-            print("Search reset.", file=output_stream)
+            print_enumerated_view(filtered, output_stream)
             continue
         if is_search_command(query):
             filtered = list(operations)
+            print_enumerated_view(filtered, output_stream)
             continue
         if query:
+            operation = resolve_operation_selection(filtered, query)
+            if operation is not None:
+                return operation
             matches = filter_operations(operations, query, phase_by_operation)
             if not matches:
                 print(
-                    "No matching operations. Try a different title word, filename, phase, or number.",
+                    "No matching operations. Try a title, MOS code, filename, relative path, phase, or index.",
                     file=output_stream,
                 )
                 continue
@@ -881,9 +1146,18 @@ def select_operation(
             display_operations(filtered, output_stream)
 
         selection = input_func(
-            "Select operation by number or filename (s search again, ? help, cancel): "
+            "Select by displayed index, MOS code, exact filename/stem/path (s search again, ? help, cancel): "
         ).strip()
         if is_search_command(selection):
+            display_operations(filtered, output_stream)
+            continue
+        if is_phase_view_command(selection):
+            filtered = list(operations)
+            print_phase_groups(operations, phase_by_operation, output_stream)
+            continue
+        if is_enumerated_view_command(selection):
+            filtered = list(operations)
+            print_enumerated_view(filtered, output_stream)
             continue
         if is_help_command(selection):
             print_selection_help(output_stream)
@@ -894,7 +1168,7 @@ def select_operation(
         if operation is not None:
             return operation
         print(
-            "Invalid selection. Use a listed number, filename number, filename, or stem.",
+            "Invalid or ambiguous selection. Use a displayed index, MOS code, or exact filename/stem/path.",
             file=output_stream,
         )
 
@@ -919,6 +1193,8 @@ def collect_values_with_controls(
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
     initial_values: dict[str, str] | None = None,
+    skill_choices: tuple[str, ...] | None = None,
+    skill_options: tuple[SkillOption, ...] | None = None,
 ) -> ValueCollectionResult:
     """Prompt for variable values and return navigation decisions."""
 
@@ -938,13 +1214,18 @@ def collect_values_with_controls(
     for variable in variables:
         if is_pm_authorization_status_variable(variable.name):
             print_pm_authorization_assistance(output_stream)
+        if is_optional_skill_variable(variable.name):
+            print_optional_skill_options(output_stream, skill_options=skill_options)
         label = "required" if variable.required else "optional"
         while True:
             current = values.get(variable.name, "")
             current_hint = f", current: {single_line(current)}" if current else ""
-            raw_value = input_func(
-                f"{variable.name} ({label}, {variable.placeholder}{current_hint}): "
+            prompt_label = (
+                f"Select OPTIONAL_SKILL{current_hint}: "
+                if is_optional_skill_variable(variable.name)
+                else f"{variable.name} ({label}, {variable.placeholder}{current_hint}): "
             )
+            raw_value = input_func(prompt_label)
             if is_help_command(raw_value):
                 print_value_help(output_stream)
                 continue
@@ -965,7 +1246,7 @@ def collect_values_with_controls(
             value = raw_value.strip()
             if not value and current:
                 value = current
-            error = validate_variable_value(variable, value)
+            error = validate_variable_value(variable, value, skill_choices=skill_choices)
             if error is None:
                 values[variable.name] = normalize_variable_value(variable, value)
                 break
@@ -1077,7 +1358,8 @@ def print_pre_write_summary(
 
     print("", file=output_stream)
     print("Ready to write:", file=output_stream)
-    print(f"  Operation: {operation.filename} - {operation.title}", file=output_stream)
+    print(f"  Operation: {operation_display_line(operation).strip()}", file=output_stream)
+    print(f"  Source: {operation.relative_path}", file=output_stream)
     variables = wizard_variables(
         operation,
         include_route_prompt_authorization=include_route_prompt_authorization,
@@ -1251,13 +1533,16 @@ def run_wizard(
     output_dir: Path | None = None,
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
-    operation_flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH,
+    operation_flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
+    skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG,
 ) -> Path | None:
     """Run the interactive operation prompt wizard for one or more prompts in one session."""
 
     operations = discover_operations(operations_dir)
     output_directory = resolve_output_dir(output_dir)
-    phase_by_operation = load_phase_map(operation_flows_path)
+    phase_by_operation = load_phase_map(operation_flows_path, operations)
+    skill_options = load_active_skill_options(skills_catalog_path)
+    skill_choices = skill_choice_keys(skill_options)
 
     written_operation: OperationTemplate | None = None
     written_values: dict[str, str] = {}
@@ -1295,6 +1580,8 @@ def run_wizard(
                 input_func=input_func,
                 output_stream=output_stream,
                 initial_values=values,
+                skill_choices=skill_choices,
+                skill_options=skill_options,
             )
             if result.action == "cancel":
                 if current_prompt_path is not None:
@@ -1422,15 +1709,24 @@ if HAVE_PROMPT_TOOLKIT:
         def get_completions(self, document, complete_event):
             text = document.text.lower()
             for op in self.operations:
-                phase = self.phase_by_operation.get(op.file_number, "")
+                phase = _operation_phase(op, self.phase_by_operation)
                 if (
                     text in op.filename.lower()
+                    or text in op.path.stem.lower()
                     or text in op.title.lower()
+                    or text in op.description.lower()
+                    or text in op.relative_path.lower()
+                    or text in op.phase_path.lower()
+                    or text in (op.mos_code or "").lower()
                     or text == str(op.index)
                     or (phase and text in phase.lower())
                 ):
-                    display_text = f"{op.index:>2}. {op.filename} - {op.title}"
-                    yield Completion(op.filename, start_position=-len(document.text), display=display_text)
+                    display_text = operation_display_line(op)
+                    yield Completion(
+                        op.mos_code or op.relative_path,
+                        start_position=-len(document.text),
+                        display=display_text,
+                    )
 
     class OperationValidator(Validator):
         def __init__(self, operations):
@@ -1444,13 +1740,16 @@ if HAVE_PROMPT_TOOLKIT:
                 is_cancel_command(text)
                 or is_search_command(text)
                 or is_help_command(text)
-                or text == "/"
-                or text in PHASE_LIST_COMMANDS
+                or is_enumerated_view_command(text)
+                or is_phase_view_command(text)
             ):
                 return
             if resolve_operation_selection(self.operations, text) is None:
                 raise ValidationError(
-                    message="Invalid selection. Use a listed number, filename, or cancel.",
+                    message=(
+                        "Invalid or ambiguous selection. Use a displayed index, MOS code, "
+                        "exact filename/stem/path, or cancel."
+                    ),
                     cursor_position=len(document.text)
                 )
 
@@ -1461,14 +1760,14 @@ if HAVE_PROMPT_TOOLKIT:
     ) -> OperationTemplate | None:
         phase_by_operation = phase_by_operation or {}
         print_stage("Step 1/3", "Search and select an operation", output_stream)
-        display_operations(operations, output_stream)
+        print_enumerated_view(operations, output_stream)
         style = Style.from_dict({
             'bottom-toolbar': 'bg:#333333 #ffffff',
         })
         def bottom_toolbar():
             return HTML(
-                ' <b>Commands</b>: type to search/select, /phases to group, '
-                'enter to confirm, cancel to exit, ? for help.'
+                ' <b>Commands</b>: index/MOS/path, /enumerated (/enumerator, /), '
+                '/phases (/phase), cancel, ? help.'
             )
 
         completer = OperationCompleter(operations, phase_by_operation)
@@ -1491,18 +1790,24 @@ if HAVE_PROMPT_TOOLKIT:
             if is_help_command(selection):
                 print_selection_help(output_stream)
                 continue
-            if selection.lower() in PHASE_LIST_COMMANDS:
+            if is_phase_view_command(selection):
                 print_phase_groups(operations, phase_by_operation, output_stream)
                 continue
-            if selection == "/" or is_search_command(selection):
-                display_operations(operations, output_stream)
+            if is_enumerated_view_command(selection) or is_search_command(selection):
+                print_enumerated_view(operations, output_stream)
                 continue
 
             operation = resolve_operation_selection(operations, selection)
             if operation is not None:
                 return operation
 
-    def collect_values_with_controls_pt(operation: OperationTemplate, output_stream: TextIO, initial_values: dict[str, str] | None = None) -> ValueCollectionResult:
+    def collect_values_with_controls_pt(
+        operation: OperationTemplate,
+        output_stream: TextIO,
+        initial_values: dict[str, str] | None = None,
+        skill_choices: tuple[str, ...] | None = None,
+        skill_options: tuple[SkillOption, ...] | None = None,
+    ) -> ValueCollectionResult:
         values = dict(initial_values or {})
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
         display_operation_summary(operation, output_stream)
@@ -1520,6 +1825,8 @@ if HAVE_PROMPT_TOOLKIT:
         for variable in variables:
             if is_pm_authorization_status_variable(variable.name):
                 print_pm_authorization_assistance(output_stream)
+            if is_optional_skill_variable(variable.name):
+                print_optional_skill_options(output_stream, skill_options=skill_options)
             label = "required" if variable.required else "optional"
 
             def bottom_toolbar():
@@ -1534,13 +1841,15 @@ if HAVE_PROMPT_TOOLKIT:
                         if variable.required:
                             raise ValidationError(message=f"Required. {validation_example(variable)}", cursor_position=len(document.text))
                         return
-                    error = validate_variable_value(variable, text)
+                    error = validate_variable_value(variable, text, skill_choices=skill_choices)
                     if error is not None:
                         raise ValidationError(message=error, cursor_position=len(document.text))
 
             completer = None
             if is_pm_authorization_status_variable(variable.name):
                 completer = WordCompleter(["1", "2", *PM_AUTHORIZATION_CHOICES], ignore_case=True)
+            elif is_optional_skill_variable(variable.name):
+                completer = WordCompleter(list(skill_choices or load_active_skill_choices()), ignore_case=True)
             else:
                 choices = placeholder_choices(variable.placeholder)
                 if choices:
@@ -1549,11 +1858,17 @@ if HAVE_PROMPT_TOOLKIT:
             while True:
                 current = values.get(variable.name, "")
                 try:
+                    prompt_label = (
+                        "Select OPTIONAL_SKILL: "
+                        if is_optional_skill_variable(variable.name)
+                        else f"{variable.name} ({label}, {variable.placeholder}): "
+                    )
                     raw_value = prompt(
-                        f"{variable.name} ({label}, {variable.placeholder}): ",
+                        prompt_label,
                         default=current,
                         validator=VariableValidator(),
                         completer=completer,
+                        complete_while_typing=is_optional_skill_variable(variable.name),
                         style=style,
                         bottom_toolbar=bottom_toolbar
                     )
@@ -1845,11 +2160,14 @@ if HAVE_PROMPT_TOOLKIT:
         operations_dir: Path = DEFAULT_OPERATIONS_DIR,
         output_dir: Path | None = None,
         output_stream: TextIO = sys.stdout,
-        operation_flows_path: Path = DEFAULT_OPERATION_FLOWS_PATH,
+        operation_flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
+        skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG,
     ) -> Path | None:
         operations = discover_operations(operations_dir)
         output_directory = resolve_output_dir(output_dir)
-        phase_by_operation = load_phase_map(operation_flows_path)
+        phase_by_operation = load_phase_map(operation_flows_path, operations)
+        skill_options = load_active_skill_options(skills_catalog_path)
+        skill_choices = skill_choice_keys(skill_options)
 
         written_operation: OperationTemplate | None = None
         written_values: dict[str, str] = {}
@@ -1883,6 +2201,8 @@ if HAVE_PROMPT_TOOLKIT:
                     operation,
                     output_stream=output_stream,
                     initial_values=values,
+                    skill_choices=skill_choices,
+                    skill_options=skill_options,
                 )
                 if result.action == "cancel":
                     if current_prompt_path is not None:
@@ -2003,7 +2323,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--operations-dir",
         type=Path,
         default=DEFAULT_OPERATIONS_DIR,
-        help="Directory containing operation .md templates.",
+        help="Active operation catalog directory; Markdown files are discovered recursively.",
     )
     parser.add_argument(
         "--output-dir",

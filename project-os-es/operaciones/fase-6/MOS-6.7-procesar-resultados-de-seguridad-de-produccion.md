@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.status_result (+output.route_prompt, output.pm_command_bundle)
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Compatibilidad: `templates/operations/31-process-security-review-results.md`
 - Aprobación PM: No (draft-only)
 
 **Hace:** Procesa los resultados de seguridad para production readiness.

@@ -4,11 +4,13 @@ GEMINI.md is the Gemini-specific adapter for `codefusion-repo/project-os-v2`.
 It is a compact bootloader only.
 
 Use `AGENTS.md` for repository-wide terminal-agent behavior; it points to the
-kernel manifest's surface-aware resolution, including the
-`tools.project_os_resolve` terminal fast path. That command runs from
+active Spanish kernel manifest resolution, including the principal
+`tools/project_os_resolve.py` terminal fast path. That command runs from
 `REPOSITORY_LOCAL_PATH`, uses `.venv` when present, and passes `--kernel-dir`
 for `KERNEL_LOCAL_PATH`. Resolve generic operating behavior from the kernel
 referenced there, and live project state from GitHub and git at task time.
+The pre-migration surface is available only through git history and is never
+an active resolution source.
 
 GEMINI.md grants no write permission and stores no live state. Fail closed on
 missing kernel, missing evidence, ambiguous authority, or failed validation.

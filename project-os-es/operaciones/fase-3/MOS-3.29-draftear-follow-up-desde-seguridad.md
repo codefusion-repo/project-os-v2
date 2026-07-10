@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.pm_command_bundle
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Compatibilidad: `templates/operations/21-draft-create-follow-up-from-review-command.md`
 - Aprobación PM: No (draft-only; el Humano PM decide y ejecuta el bundle)
 
 **Hace:** Draftea follow-up desde la revisión de seguridad.

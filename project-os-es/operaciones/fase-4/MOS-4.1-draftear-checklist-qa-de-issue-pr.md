@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state
-- Compatibilidad: `templates/operations/18-draft-human-qa-checklist.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Draftea el checklist humano de QA enfocado en un issue/PR.

@@ -115,7 +115,7 @@
     {
       "key": "boundary.copy_safe_commands",
       "actor_key": null,
-      "rule": "Los command bundles PM-facing deben ser copy-safe: targets exactos, campos soportados, sin patrones que corten o corrompan la sesion.",
+      "rule": "Los command bundles PM-facing deben ser copy-safe: el render preserva shell valido, con targets exactos, campos soportados y sin patrones que corten o corrompan la sesion.",
       "on_violation": "status.needs_pm_decision",
       "blocking": false,
       "active": true

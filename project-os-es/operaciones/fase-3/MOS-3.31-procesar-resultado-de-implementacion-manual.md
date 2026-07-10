@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.status_result (+output.route_prompt, output.pm_command_bundle)
 - Evidencia: evidence.issue_scope, evidence.source_basis, evidence.repo_state
-- Compatibilidad: `templates/operations/34-process-manual-implementation-result.md`
 - Aprobación PM: No (draft-only)
 
 **Hace:** Procesa el resultado de la implementación manual aplicada por el humano.

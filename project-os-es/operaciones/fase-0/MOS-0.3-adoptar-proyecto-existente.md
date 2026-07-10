@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → terminal_agent
 - Kernel: workflow.target_adoption · mode.delegated_commit_pr · output.adoption_packet (+output.route_prompt)
 - Evidencia: evidence.target_adoption, evidence.branch_preflight, evidence.pm_approval, evidence.validation_output
-- Compatibilidad: `templates/operations/01-adopt-project-os-in-existing-target.md`
 - Aprobación PM: Sí (exacta para escritura en el target)
 
 **Hace:** Prepara un repositorio existente para operar con Project OS (adapters y checklist).
