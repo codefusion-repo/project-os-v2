@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state, evidence.target_adoption
-- Compatibilidad: `legacy-project-os/templates/operations/14-audit-target-adapters.md`, `legacy-project-os/templates/operations/03-verify-target-adoption.md`
 - Aprobación PM: No (auditoría read-only)
 
 **Hace:** Audita la adopción de varios repositorios target en una sola pasada.

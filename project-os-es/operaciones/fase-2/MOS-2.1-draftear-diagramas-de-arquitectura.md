@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → terminal_agent
 - Kernel: workflow.pm_intake · mode.review_only · output.route_prompt (+output.draft_issue, output.status_result)
 - Evidencia: evidence.source_basis
-- Compatibilidad: `legacy-project-os/templates/operations/26-draft-docs-from-conversation.md, legacy-project-os/templates/operations/28-draft-docs-from-description.md`
 - Aprobación PM: Sí (exacta solo para la escritura del archivo)
 
 **Hace:** Draftea diagramas de arquitectura (por ejemplo Mermaid en docs) desde los requisitos de la Fase 1.

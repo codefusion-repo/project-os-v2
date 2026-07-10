@@ -56,8 +56,8 @@ Resolution shapes behavior only and grants no permission
 (`boundary.output_not_permission`). Fail closed per `boundary.fail_closed` if
 the kernel is missing, ambiguous, or conflicting.
 
-The pre-migration English surface is archival under `legacy-project-os/` and
-is never an active resolution source; see `legacy-project-os/README.md`.
+The pre-migration English surface is absent from the current tree and is
+recoverable only from git history; it is never an active resolution source.
 
 ## Live state
 

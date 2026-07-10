@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.draft_issue (+output.pm_command_bundle)
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Compatibilidad: `legacy-project-os/templates/operations/27-draft-roadmap-from-docs.md`
 - Aprobación PM: Sí (solo el GitHub write del bundle, ejecutado por el Humano PM)
 
 **Hace:** Planifica el roadmap general del proyecto desde la documentación estable.

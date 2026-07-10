@@ -109,6 +109,7 @@ class OperationTemplate:
     index: int
     path: Path
     title: str
+    description: str
     text: str
     variables: tuple[InputVariable, ...]
     catalog_root: Path | None = None
@@ -189,6 +190,7 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 index=index,
                 path=path,
                 title=extract_title(text, path),
+                description=extract_description(text, path),
                 text=text,
                 variables=parse_input_variables(text),
                 catalog_root=operations_dir,
@@ -207,6 +209,17 @@ def extract_title(text: str, path: Path) -> str:
             if title:
                 return title
     return path.stem
+
+
+def extract_description(text: str, path: Path) -> str:
+    """Return concise catalog metadata for presentation, with a safe fallback."""
+
+    match = re.search(r"^\*\*Hace:\*\*\s*(.+?)\s*$", text, flags=re.MULTILINE)
+    if match:
+        return match.group(1)
+
+    title = extract_title(text, path)
+    return re.sub(r"^MOS-(?:\d+\.\d+|R\.\d+)\s*[—-]\s*", "", title, flags=re.IGNORECASE)
 
 
 def parse_input_variables(text: str) -> tuple[InputVariable, ...]:
@@ -321,6 +334,7 @@ def filter_operations(
             operation.filename.lower(),
             operation.path.stem.lower(),
             operation.title.lower(),
+            operation.description.lower(),
             operation.relative_path.lower(),
             operation.phase_path.lower(),
             operation.phase_label.lower(),
@@ -736,7 +750,7 @@ def load_phase_map(
     """Derive phases from the active catalog, with an optional table override.
 
     Directory-derived labels keep ``/phases`` useful for the canonical Spanish
-    tree without consulting archived flow documentation.
+    tree without consulting historical flow documentation.
     """
 
     phase_by_operation = {
@@ -837,17 +851,21 @@ def cleanup_previous_generated_prompts(output_dir: Path, keep_path: Path) -> lis
 
 
 def display_operations(operations: list[OperationTemplate], output_stream: TextIO) -> None:
-    """Print active identity plus enough relative context to disambiguate."""
+    """Print one compact, non-duplicative line for each operation."""
 
     print("", file=output_stream)
     print("Available operations:", file=output_stream)
     for operation in operations:
-        context = operation.phase_label or operation.phase_path or "Catálogo"
-        print(
-            f"  {operation.index:>3}. [{context}] {operation.relative_path}"
-            f" ({operation.mos_code or operation.path.stem}) - {operation.title}",
-            file=output_stream,
-        )
+        print(f"  {operation_display_line(operation)}", file=output_stream)
+
+
+def operation_display_line(operation: OperationTemplate, include_phase: bool = True) -> str:
+    """Build the shared compact list/completion representation."""
+
+    phase = operation.phase_label or operation.phase_path or "Catálogo"
+    phase_part = f"[{phase}] " if include_phase else ""
+    identity = operation.mos_code or operation.path.stem
+    return f"{operation.index:>3}. {phase_part}{identity} — {operation.description}"
 
 
 def print_phase_groups(
@@ -876,11 +894,7 @@ def print_phase_groups(
     for phase in ordered_phases:
         print(f"  {phase}:", file=output_stream)
         for operation in grouped[phase]:
-            print(
-                f"    {operation.index:>3}. {operation.relative_path}"
-                f" ({operation.mos_code or operation.path.stem}) - {operation.title}",
-                file=output_stream,
-            )
+            print(f"    {operation_display_line(operation, include_phase=False)}", file=output_stream)
 
 
 def print_stage(label: str, title: str, output_stream: TextIO) -> None:
@@ -936,6 +950,11 @@ def print_selection_help(output_stream: TextIO) -> None:
         file=output_stream,
     )
     print(
+        "  Compact list lines show phase, MOS code, and purpose. The exact relative path "
+        "appears after selection and remains searchable.",
+        file=output_stream,
+    )
+    print(
         "  Use / to reset the enumerated list, s to search again, /phases to group "
         "the same catalog by phase, or cancel to exit.",
         file=output_stream,
@@ -945,7 +964,8 @@ def print_selection_help(output_stream: TextIO) -> None:
 def variable_summary_lines(operation: OperationTemplate) -> list[str]:
     """Return a compact selected-operation summary for variable entry."""
 
-    lines = [f"Selected: {operation.filename} - {operation.title}"]
+    lines = [f"Selected: {operation_display_line(operation).strip()}"]
+    lines.append(f"Path: {operation.relative_path}")
     variables = wizard_variables(operation)
     required = [variable for variable in variables if variable.required]
     optional = [variable for variable in variables if not variable.required]
@@ -1030,8 +1050,8 @@ def select_operation(
         "Commands: / enumerated list, s search again, /phases group by phase, ? help, cancel exit.",
         file=output_stream,
     )
+    display_operations(filtered, output_stream)
     while True:
-        display_operations(filtered, output_stream)
         query = input_func(
             "\nSearch by index, MOS code, filename, title, relative path, or phase "
             "(Enter to keep list, / reset, /phases, ? help, cancel): "
@@ -1047,9 +1067,11 @@ def select_operation(
         if query == "/":
             filtered = list(operations)
             print("Search reset.", file=output_stream)
+            display_operations(filtered, output_stream)
             continue
         if is_search_command(query):
             filtered = list(operations)
+            display_operations(filtered, output_stream)
             continue
         if query:
             matches = filter_operations(operations, query, phase_by_operation)
@@ -1066,6 +1088,7 @@ def select_operation(
             "Select by displayed index, MOS code, exact filename/stem/path (s search again, ? help, cancel): "
         ).strip()
         if is_search_command(selection):
+            display_operations(filtered, output_stream)
             continue
         if is_help_command(selection):
             print_selection_help(output_stream)
@@ -1260,7 +1283,8 @@ def print_pre_write_summary(
 
     print("", file=output_stream)
     print("Ready to write:", file=output_stream)
-    print(f"  Operation: {operation.filename} - {operation.title}", file=output_stream)
+    print(f"  Operation: {operation_display_line(operation).strip()}", file=output_stream)
+    print(f"  Source: {operation.relative_path}", file=output_stream)
     variables = wizard_variables(
         operation,
         include_route_prompt_authorization=include_route_prompt_authorization,
@@ -1613,16 +1637,14 @@ if HAVE_PROMPT_TOOLKIT:
                     text in op.filename.lower()
                     or text in op.path.stem.lower()
                     or text in op.title.lower()
+                    or text in op.description.lower()
                     or text in op.relative_path.lower()
                     or text in op.phase_path.lower()
                     or text in (op.mos_code or "").lower()
                     or text == str(op.index)
                     or (phase and text in phase.lower())
                 ):
-                    display_text = (
-                        f"{op.index:>3}. [{phase}] {op.relative_path} "
-                        f"({op.mos_code or op.path.stem}) - {op.title}"
-                    )
+                    display_text = operation_display_line(op)
                     yield Completion(
                         op.mos_code or op.relative_path,
                         start_position=-len(document.text),

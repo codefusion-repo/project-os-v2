@@ -97,7 +97,7 @@ def test_active_kernel_validator_and_resolver_cli_pass() -> None:
 
 
 def test_active_adapters_and_docs_do_not_name_the_removed_resolver() -> None:
-    removed_resolver = "project-os-es/tools/" + "resolver.py"
+    removed_resolver = "project-os-es/" + "tools/resolver.py"
     active_paths = [
         REPO_ROOT / "AGENTS.md",
         REPO_ROOT / "CLAUDE.md",

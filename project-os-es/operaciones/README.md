@@ -5,13 +5,10 @@ Esta carpeta es la superficie PM-facing en español de las operaciones MOSDLC
 compacto: qué hace, qué variables necesita, qué evidencia exige, qué entrega y
 cuál es la siguiente operación segura.
 
-Fuentes historicas de esta superficie (issue #377):
-`legacy-project-os/docs/MOSDLC_OPERATION_MAP.md` (mapa histórico) y los
-templates migrados en `legacy-project-os/templates/mosdlc/operations/fase-*`.
-Los templates ingleses archivados (`legacy-project-os/templates/mosdlc/operations/`
-y `legacy-project-os/templates/operations/` 00-37) quedan solo como referencia
-histórica de compatibilidad; no son ruta operativa y esta carpeta no los
-reemplaza ni los renumera.
+La evolución anterior de esta superficie (issue #377) permanece recuperable en
+el historial git. No existe un catálogo alternativo dentro del árbol actual:
+esta carpeta es la única fuente operativa de operaciones y conserva sus códigos
+MOS estables.
 
 ## Contrato común
 
@@ -41,9 +38,8 @@ a rutas raíz.
    PM exacta.
 5. **Formas PM-facing.** Los outputs drafteables usan los artefactos resueltos
    desde `project-os-es/kernel/artefactos.json`: cada artefacto apunta a un
-   `required_template` en `project-os-es/templates/`. Los templates raíz quedan
-   como fuente de compatibilidad cuando haga falta; los outputs siguen siendo
-   no autorizantes.
+   `required_template` en `project-os-es/templates/`. No existe otra ruta de
+   templates activa; los outputs siguen siendo no autorizantes.
 6. **Skills opcionales.** `project-os-es/kernel/skills.json` referencia
    archivos compactos en `project-os-es/habilidades/` que un agente puede usar
    cuando el PM los pide o un route prompt los recomienda. No son artefactos, no
@@ -75,11 +71,12 @@ indica la operación previa, las siguientes seguras y la recomendada.
 Para seleccionar y generar un artefacto local desde el catálogo activo, ejecuta
 `python tools/operation_prompt_wizard.py` desde la raíz del repo. El wizard
 descubre recursivamente estas operaciones, excluye este README y muestra por
-defecto una lista enumerada con fase y path relativo. Usa `/phases` para ordenar
-el mismo catálogo por `cross-fase` y `fase-*`; filtra por título, filename, stem,
-path relativo, directorio de fase o código MOS. Selecciona por índice mostrado,
-código MOS (por ejemplo `MOS-3.5`), filename, stem o path relativo exacto. El
-wizard no consulta ni reintegra operaciones legacy.
+defecto una lista compacta con índice, fase, código MOS y propósito extraído de
+`**Hace:**`. Usa `/phases` para agrupar el mismo catálogo por `cross-fase` y
+`fase-*`; filtra por propósito, título, filename, stem, path relativo,
+directorio de fase o código MOS. Selecciona por índice mostrado, código MOS
+(por ejemplo `MOS-3.5`), filename, stem o path relativo exacto. Tras seleccionar,
+el wizard muestra el path relativo para confirmar o desambiguar.
 
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
 también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de

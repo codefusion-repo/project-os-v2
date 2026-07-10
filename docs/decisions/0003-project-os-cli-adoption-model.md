@@ -1,15 +1,17 @@
 # ADR 0003 - Project OS CLI deferral and primary Spanish kernel sequencing
 
 - Status: deferred by PM sequencing; not accepted for CLI implementation.
+- Supersession note: the later PM migration decision keeps only
+  `project-os-es` in the tracked tree. Pre-migration content is recoverable
+  from git history and must not be restored as a directory.
 - Date: 2026-07-09
 - Scope: issue #369 and PR #404; design-only decision for a future
   `project-os-cli` adoption model after required Project OS surface
   consolidation.
 - Source basis: roadmap #274; issue #369; PR #404 review correction; downstream
-  public-presentation issue #394; `docs/DESIGN.md`;
-  `docs/GETTING_STARTED.md`; `docs/GITHUB_ACCESS.md`;
-  `docs/PUBLIC_USAGE_MODEL.md`; current `AGENTS.md`, `CLAUDE.md`,
-  `GEMINI.md`, `adapters/*.target.md`, and MOSDLC operation templates.
+  public-presentation issue #394; the pre-migration docs, adapters and operation
+  templates as recorded in git history; current `AGENTS.md`, `CLAUDE.md`,
+  `GEMINI.md`; and the canonical `project-os-es` surface.
 - Non-authorization: this ADR grants no permission to implement a CLI, migrate
   project surfaces, move legacy files, rewrite adapters, translate Project OS,
   package Project OS, mutate target repositories, create API/bridge/OAuth/GitHub
@@ -23,8 +25,8 @@ installation and onboarding model. The first PR #404 draft accepted an internal,
 dogfood-first CLI direction too early. PM validation rejected that sequencing.
 
 The PM sequencing decision is now stricter: Project OS must first consolidate
-around `project-os-es` as the primary connected kernel surface, move legacy/root
-surfaces aside, compact adapters on that new base, and only then translate the
+around `project-os-es` as the primary connected kernel surface, retire prior
+root surfaces from tracking, compact adapters on that new base, and only then translate the
 compact connected version to English. CLI design and implementation come after
 those prerequisites, and #394 public presentation/packaging comes after the CLI
 question is re-evaluated from that cleaner base.
@@ -42,8 +44,8 @@ The durable decision is:
   `project-os-es` primary surface;
 - make `project-os-es` completeness, connectivity, and resolver correctness the
   immediate prerequisite work;
-- move legacy/root Project OS surfaces aside only in a later scoped migration
-  issue, not in this PR;
+- retire prior root Project OS surfaces only in a later scoped migration issue,
+  not in this PR; git history remains the historical source;
 - compact adapters after the `project-os-es`-derived base exists, using that
   base as the source for active adapter behavior;
 - translate the compact connected surface to English before CLI/public
@@ -64,8 +66,8 @@ The required sequence is exactly:
 
 1. Audit whether project-os-es is complete and connected enough to become the primary kernel surface.
 2. Test the Spanish resolver and confirm it resolves current workflows/entities correctly.
-3. Migrate all legacy/root Project OS surfaces to a `legacy-project-os` folder.
-4. Leave active root/new-version structure derived from what is currently inside project-os-es.
+3. Retire prior root Project OS surfaces from tracking; use git history for recovery.
+4. Keep `project-os-es` as the only active, canonical tree.
 5. Create a follow-up issue to compact adapters using project-os-es as the base.
 6. Translate the compact connected version to English.
 7. Later design/implement CLI with language selection and CRUD for editable Project OS entities.
@@ -97,32 +99,32 @@ needed to boot an agent on a specific surface:
   useful;
 - Project OS reference: `KERNEL_REPOSITORY`, `KERNEL_LOCAL_PATH`, and a
   version/adoption policy field;
-- kernel-resolution instruction: follow `kernel/manifest.json` and, for terminal
-  surfaces, use the resolver fast path when available;
+- kernel-resolution instruction: follow `project-os-es/kernel/manifest.json`
+  and, for terminal surfaces, use `tools/project_os_resolve.py` when available;
 - live-state instruction: read GitHub and git at task time, not memory or
   durable notes;
 - short target-owned notes: stable build commands, validation commands,
   protected paths, domain constraints, security constraints, PM-facing language,
   and target-specific escalation notes.
 
-Adapter compaction should happen after the active root/new-version structure is
-derived from `project-os-es`, and before or alongside later English/CLI work. It
+Adapter compaction should happen after the active structure is consolidated
+exclusively under `project-os-es`, and before or alongside later English/CLI work. It
 should not be coupled to a first CLI prototype.
 
 ### Kernel, Resolver, Docs, And Templates
 
 These layers continue to own generic behavior and reusable shape:
 
-- `kernel/*.json`: actors, workflows, execution modes, evidence, outputs,
+- `project-os-es/kernel/*.json`: actors, workflows, execution modes, evidence, outputs,
   boundaries, statuses, resolution strategy, and non-authorization rules;
 - resolver tooling: deterministic acceleration of manifest resolution, never a
   source of truth and never a permission grant;
 - traceability, validation, and context-economy docs: detailed generic policies;
 - templates: canonical route, command-bundle, operation, and adapter shapes.
 
-The immediate prerequisite is to prove that the Spanish resolver and
+The immediate prerequisite is to prove that the principal resolver and
 `project-os-es` surface resolve current workflows/entities correctly before
-moving root surfaces or redesigning adoption tooling.
+retiring prior root surfaces or redesigning adoption tooling.
 
 ### Never Duplicate In Adapters
 
@@ -258,7 +260,7 @@ Deferred to future API/bridge or #394:
    surface.
 2. Validate Spanish resolver completeness and current workflow/entity
    resolution.
-3. Migrate legacy/root Project OS surfaces to `legacy-project-os`.
+3. Retire prior root Project OS surfaces from tracking while preserving recovery through git history.
 4. Compact adapters on the new `project-os-es`-derived base.
 5. Translate the compact connected surface to English.
 6. Design CLI v2 with language selection and CRUD for editable Project OS
@@ -270,8 +272,8 @@ Deferred to future API/bridge or #394:
 - Whether the audit proves `project-os-es` is complete and connected enough to
   become the primary kernel surface.
 - What Spanish resolver validation is sufficient before root migration.
-- Exact migration scope and rollback plan for moving legacy/root surfaces aside.
-- Final active root/new-version structure derived from `project-os-es`.
+- Exact migration scope and rollback plan for retiring prior root surfaces.
+- Final active structure contained exclusively in `project-os-es`.
 - Adapter compaction standard on the new base.
 - English translation acceptance criteria.
 - Future CLI implementation language, distribution shape, language-selection

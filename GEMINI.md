@@ -9,7 +9,8 @@ active Spanish kernel manifest resolution, including the principal
 `REPOSITORY_LOCAL_PATH`, uses `.venv` when present, and passes `--kernel-dir`
 for `KERNEL_LOCAL_PATH`. Resolve generic operating behavior from the kernel
 referenced there, and live project state from GitHub and git at task time.
-`legacy-project-os/` is archival and never an active resolution source.
+The pre-migration surface is available only through git history and is never
+an active resolution source.
 
 GEMINI.md grants no write permission and stores no live state. Fail closed on
 missing kernel, missing evidence, ambiguous authority, or failed validation.

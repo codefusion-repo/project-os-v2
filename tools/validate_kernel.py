@@ -2,7 +2,7 @@
 
 The validator checks the active Spanish kernel's JSON shape, active ids,
 cross-references, template/skill paths, and durable-content safety.  It does
-not validate the deleted legacy surface as an active route and grants no
+does not validate removed historical surfaces as active routes and grants no
 permission.
 """
 

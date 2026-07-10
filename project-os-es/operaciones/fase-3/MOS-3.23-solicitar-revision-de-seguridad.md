@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → external_recipient
 - Kernel: workflow.security_revision · mode.review_only · output.security_review_prompt
 - Evidencia: evidence.repo_state, evidence.source_basis
-- Compatibilidad: `legacy-project-os/templates/operations/20-request-owasp-security-review.md`
 - Aprobación PM: No (el route-prompt no autoriza; la escritura exige aprobación PM exacta)
 
 **Hace:** Draftea el prompt de revisión de seguridad OWASP y de los 8 dominios donde corresponda.

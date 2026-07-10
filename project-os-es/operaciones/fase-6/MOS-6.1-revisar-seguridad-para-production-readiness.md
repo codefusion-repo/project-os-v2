@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state
-- Compatibilidad: `legacy-project-os/templates/operations/20-request-owasp-security-review.md, legacy-project-os/templates/operations/25-audit-implementation-discipline-gaps.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Revisa la seguridad del proyecto para production readiness.

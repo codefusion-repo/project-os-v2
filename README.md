@@ -34,10 +34,9 @@ La superficie activa es la superficie en español: **`project-os-es/`**.
 | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` | Adapters propios de este repo (corre sobre su propio kernel) | Adapter (self) |
 | `docs/decisions/` | ADRs de este repositorio | Decisiones del repo |
 | `tools/` + `tests/` | Resolver y validador del kernel activo, guards focalizados y diagnósticos read-only secundarios | Infraestructura activa |
-| `legacy-project-os/` | Source-basis histórico, cuando esté disponible explícitamente | **Archivo (no activa)** |
-
-`legacy-project-os/` es source-basis histórico cuando se consulta de forma
-explícita; ningún flujo activo se resuelve desde ahí.
+La superficie anterior no forma parte del árbol actual. Cuando una auditoría
+histórica la necesite, se recupera exclusivamente desde el historial git; no
+es una ruta operativa ni una fuente activa.
 
 ## Cómo resuelve un agente el kernel
 
@@ -106,6 +105,6 @@ Este repo sostuvo antes una arquitectura de contract-graph (781 contratos),
 reducida al kernel mínimo inglés tras una auditoría de uso real en 2026-06, y
 luego consolidada en la superficie en español `project-os-es` como base
 primaria (ADR 0003, `docs/decisions/0003-project-os-cli-adoption-model.md`).
-La historia y el racional del kernel mínimo viven en
-`legacy-project-os/docs/DESIGN.md`; el árbol anterior es recuperable desde el
-historial de git.
+La historia y el racional de las superficies anteriores son recuperables desde
+el historial git. El árbol actual conserva exclusivamente la superficie
+canónica en español.

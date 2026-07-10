@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.repo_state, evidence.source_basis
-- Compatibilidad: `legacy-project-os/templates/operations/05-review-project-state-and-misalignment.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Identifica gaps de la documentación existente respecto a la Fase 1.

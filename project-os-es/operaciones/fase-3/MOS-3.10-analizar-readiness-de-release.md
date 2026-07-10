@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.release_readiness · mode.review_only · output.status_result (+output.pm_command_bundle)
 - Evidencia: evidence.repo_state, evidence.validation_output
-- Compatibilidad: `legacy-project-os/templates/operations/12-analyze-release-or-tag-readiness.md, legacy-project-os/templates/operations/13-draft-create-release-tag-command.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Analiza readiness de release-on-tag y draftea los comandos de creación si está listo.

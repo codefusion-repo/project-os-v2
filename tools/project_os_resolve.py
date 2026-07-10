@@ -2,9 +2,8 @@
 
 The resolver reads ``project-os-es/kernel`` at runtime and hydrates one
 ``(actor, mode, workflow)`` selection.  It is deliberately a repository tool,
-not a multilingual abstraction: the active Spanish kernel is its default and
-the archived legacy surface is available only when a caller explicitly passes
-its own compatible ``--kernel-dir``.
+not a multilingual abstraction: the canonical Spanish kernel is the only
+repository surface it resolves by default or by explicit ``--kernel-dir``.
 
 The resulting JSON is operative guidance only.  It never reads GitHub or git,
 mutates files, grants permission, or replaces exact PM approval and the

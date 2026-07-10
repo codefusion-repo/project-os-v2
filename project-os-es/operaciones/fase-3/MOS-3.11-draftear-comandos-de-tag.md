@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.release_readiness · mode.review_only · output.pm_command_bundle
 - Evidencia: evidence.repo_state, evidence.validation_output
-- Compatibilidad: `legacy-project-os/templates/operations/13-draft-create-release-tag-command.md`
 - Aprobación PM: Sí (el Humano PM autoriza y ejecuta el tag)
 
 **Hace:** Draftea el bundle de creación de tag git para GitHub.

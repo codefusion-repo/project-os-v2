@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat a terminal_agent
 - Kernel: workflow.target_adoption · mode.delegated_commit_pr · output.adoption_packet (+output.route_prompt)
 - Evidencia: evidence.target_adoption, evidence.branch_preflight, evidence.pm_approval, evidence.validation_output
-- Compatibilidad: `legacy-project-os/templates/operations/23-upgrade-kernel-adoption-in-target.md`
 - Aprobación PM: Sí (exacta para escribir en el target)
 
 **Hace:** Actualiza adapters de un target a una nueva versión de catálogo/kernel.

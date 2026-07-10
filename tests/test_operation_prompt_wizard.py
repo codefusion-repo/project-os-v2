@@ -15,7 +15,9 @@ from tools.operation_prompt_wizard import (
     WizardError,
     cleanup_previous_generated_prompts,
     discover_operations,
+    display_operation_summary,
     display_operations,
+    extract_description,
     filter_operations,
     generated_filename,
     load_active_skill_choices,
@@ -72,7 +74,7 @@ def test_active_catalog_is_recursive_excludes_readme_and_derives_phase_context()
     assert phases[correction.index] == "Fase 3"
 
 
-def test_display_and_phase_grouping_show_relative_spanish_context() -> None:
+def test_display_and_phase_grouping_are_compact_and_keep_distinct_descriptions() -> None:
     operations = discover_operations()
     stream = StringIO()
     display_operations(operations[:2], stream)
@@ -80,10 +82,20 @@ def test_display_and_phase_grouping_show_relative_spanish_context() -> None:
     transcript = stream.getvalue()
 
     assert "Available operations:" in transcript
-    assert "cross-fase/MOS-R.2-recomendar-siguiente-operacion.md" in transcript
+    first = operations[0]
+    assert first.description in transcript
+    assert first.relative_path not in transcript
+    assert transcript.count(f" {first.mos_code} —") == 2
     assert "Operations grouped by SDLC phase:" in transcript
     assert "Cross-fase:" in transcript
     assert "Fase 3:" in transcript
+
+
+def test_description_comes_from_hace_with_title_fallback(tmp_path: Path) -> None:
+    path = tmp_path / "MOS-9.1-ejemplo.md"
+    text = "# MOS-9.1 — Título repetido\n\n**Hace:** Explica un resultado útil y distinto.\n"
+    assert extract_description(text, path) == "Explica un resultado útil y distinto."
+    assert extract_description("# MOS-9.1 — Título repetido\n", path) == "Título repetido"
 
 
 def test_selection_supports_index_filename_stem_mos_code_and_relative_path() -> None:
@@ -120,8 +132,20 @@ def test_filter_matches_active_spanish_search_surface() -> None:
         "fase-3/MOS-3.5",
         "Fase 3",
         "corrección",
+        target.description,
     ):
         assert target in filter_operations(operations, query, phases)
+
+
+def test_selected_summary_exposes_relative_path_without_repeating_it_in_main_list() -> None:
+    stream = StringIO()
+    operation = next(op for op in discover_operations() if op.mos_code == "MOS-6.9")
+    display_operation_summary(operation, stream)
+
+    transcript = stream.getvalue()
+    compact = "MOS-6.9 — Procesa las mejoras de rendimiento recomendadas."
+    assert compact in transcript
+    assert "Path: fase-6/MOS-6.9-procesar-mejoras-de-rendimiento.md" in transcript
 
 
 def test_active_route_operations_expose_required_authorization_and_no_pm_agent_family() -> None:

@@ -35,13 +35,26 @@ def active_files() -> list[Path]:
 
 def test_single_active_resolver_and_nonoperative_future_english_surface() -> None:
     assert (REPO_ROOT / "tools/project_os_resolve.py").is_file()
-    assert not (REPO_ROOT / "project-os-es/tools/resolver.py").exists()
+    removed_resolver = REPO_ROOT / "project-os-es" / "tools" / "resolver.py"
+    assert not removed_resolver.exists()
     assert not list((REPO_ROOT / "project-os-en").glob("*"))
 
     tool_sources = "\n".join(path.read_text(encoding="utf-8") for path in (REPO_ROOT / "tools").glob("*.py"))
     assert "DEFAULT_KERNEL_DIR = REPO_ROOT / \"project-os-es\" / \"kernel\"" in tool_sources
     assert "DEFAULT_OPERATIONS_DIR = REPO_ROOT / \"project-os-es\" / \"operaciones\"" in tool_sources
-    assert "DEFAULT_KERNEL_DIR = REPO_ROOT / \"legacy-project-os\"" not in tool_sources
+
+
+def test_removed_surface_references_cannot_reappear_in_active_files() -> None:
+    removed_tree = "legacy-" + "project-os"
+    removed_resolver = "project-os-es/" + "tools/resolver.py"
+    hits: list[str] = []
+    for path in active_files():
+        if path.suffix not in {".md", ".py", ".json", ".yml", ".yaml"}:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if removed_tree in text or removed_resolver in text:
+            hits.append(str(path.relative_to(REPO_ROOT)))
+    assert hits == []
 
 
 def test_active_markdown_relative_links_resolve() -> None:

@@ -6,7 +6,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Compatibilidad: `legacy-project-os/templates/operations/16-review-idea-as-system-feature.md`
 - Aprobación PM: No (read-only)
 
 **Hace:** Evalúa viabilidad técnica y de alcance de los requisitos identificados.

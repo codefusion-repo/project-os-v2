@@ -23,7 +23,8 @@ def test_all_active_project_os_es_surfaces_are_protected() -> None:
     ):
         assert _is_protected_file(path), path
 
-    assert not _is_protected_file("legacy-project-os/kernel/manifest.json")
+    removed_historical_path = "removed-historical-surface/kernel/manifest.json"
+    assert not _is_protected_file(removed_historical_path)
 
 
 def test_spanish_closure_template_aliases_parse_completely() -> None:
