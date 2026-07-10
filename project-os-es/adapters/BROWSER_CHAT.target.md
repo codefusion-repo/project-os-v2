@@ -50,7 +50,8 @@ del target cuando apliquen. Reportes previos son claims hasta verificarlos.
 Para draft, usa los artefactos y templates del kernel:
 
 - route prompts: `project-os-es/templates/route-prompt.md`;
-- command bundles PM: `project-os-es/templates/pm-command-bundle.md`;
+- command bundles PM: `project-os-es/templates/pm-command-bundle.md`, única
+  fuente canónica de forma y estilo copy-safe;
 - otros formatos: artefacto resuelto por el kernel con su `required_template`.
 
 Un route prompt puede recomendar un skill opcional de

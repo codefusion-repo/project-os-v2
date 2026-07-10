@@ -93,3 +93,20 @@ def test_wizard_has_no_legacy_catalog_or_number_aliases() -> None:
     assert "LEGACY_OPERATION_ALIASES" not in source
     assert "legacy:" not in source
     assert "project-os-es\" / \"operaciones" in source
+
+
+def test_active_pm_command_bundle_preserves_copy_safe_shell_contract() -> None:
+    template_path = REPO_ROOT / "project-os-es/templates/pm-command-bundle.md"
+    template = template_path.read_text(encoding="utf-8")
+
+    assert "única fuente canónica" in template
+    assert "secuencia corta, lineal" in template
+    assert "```sh" in template or "```bash" in template
+    assert "--body-file" in template
+    assert "<<'PR_COMMENT_END'" in template
+    assert "--match-head-commit <reviewed-head-sha>" in template
+    assert "writing blocks" in template
+    assert "Cadenas extensas unidas con `&&` o `||`" in template
+    assert "Verificación final read-only" in template
+    assert "gh pr view <pr-number> --repo <owner/repo> --json state,mergedAt,headRefOid" in template
+    assert not (REPO_ROOT / "templates/pm-command-bundle.md").exists()

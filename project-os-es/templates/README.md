@@ -25,7 +25,8 @@ no copiar el contenido del template.
 - `project-os-es/templates/route-prompt.md`: ruteo scoped hacia otra superficie;
   puede recomendar un skill opcional y una familia de terminal agent sin
   hacerlos vinculantes.
-- `project-os-es/templates/pm-command-bundle.md`: comandos PM copy-safe.
+- `project-os-es/templates/pm-command-bundle.md`: única fuente canónica para
+  la forma y estilo de comandos PM copy-safe.
 - `project-os-es/templates/issue.md`: cuerpo de issue.
 - `project-os-es/templates/pull-request.md`: cuerpo de PR.
 - `project-os-es/templates/comentario-cierre.md`: comentario de cierre/reconstruccion.
