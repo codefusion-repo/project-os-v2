@@ -29,7 +29,7 @@ BRANCH_NAME = work/{{issue}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{brief reason}}
 
-{{One concrete instruction: implement, review, audit, or draft only the scoped work.}}
+{{One concrete instruction: re-resolve the kernel, read the required live evidence, and, without assuming authorization because this prompt does not authorize writing, implement, review, audit, or draft only the scoped work.}}
 ```
 
 When drafting, read the live issue or PR and its comments, then reference that

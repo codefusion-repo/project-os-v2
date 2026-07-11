@@ -174,6 +174,7 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
         "template_clauses",
         "operation_clauses",
         "instruction_prefix",
+        "instruction_clauses",
     ),
     (
         (
@@ -201,6 +202,11 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
                 "issue largo con comentarios extensos",
             ),
             "{{Una unica instruccion concreta:",
+            (
+                "re-resuelve el kernel",
+                "lee la evidencia viva requerida",
+                "este prompt no autoriza escritura",
+            ),
         ),
         (
             "project-os-en/kernel/outputs.json",
@@ -227,6 +233,11 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
                 "Use a long issue with extensive comments",
             ),
             "{{One concrete instruction:",
+            (
+                "re-resolve the kernel",
+                "read the required live evidence",
+                "this prompt does not authorize writing",
+            ),
         ),
     ),
 )
@@ -238,6 +249,7 @@ def test_route_prompt_contract_template_and_mos_3_4_keep_compact_issue_referenti
     template_clauses: tuple[str, ...],
     operation_clauses: tuple[str, ...],
     instruction_prefix: str,
+    instruction_clauses: tuple[str, ...],
 ) -> None:
     """Guard durable shape; generated chat output still requires manual QA."""
     outputs = json.loads((REPO_ROOT / kernel_path).read_text(encoding="utf-8"))["outputs"]
@@ -255,6 +267,8 @@ def test_route_prompt_contract_template_and_mos_3_4_keep_compact_issue_referenti
     prompt_lines = [line for line in prompt_block.group("body").splitlines() if line]
     assert sum(line.startswith("SCOPE =") for line in prompt_lines) == 1
     assert prompt_lines[-1].startswith(instruction_prefix)
+    for clause in instruction_clauses:
+        assert clause in prompt_lines[-1]
     assert sum(line.startswith("{{") for line in prompt_lines) == 1
     assert all(
         " = " in line or line.startswith("recommended_effort:")

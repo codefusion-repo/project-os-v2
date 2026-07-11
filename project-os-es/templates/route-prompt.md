@@ -29,7 +29,7 @@ BRANCH_NAME = work/{{issue}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{razon breve}}
 
-{{Una unica instruccion concreta: implementar, revisar, auditar o draftear solo el scope.}}
+{{Una unica instruccion concreta: re-resuelve el kernel, lee la evidencia viva requerida y, sin asumir autorizacion porque este prompt no autoriza escritura, implementa, revisa, audita o draftea solo el scope.}}
 ```
 
 Al draftear, lee el issue o PR vivo y sus comentarios, y referencia ese detalle
