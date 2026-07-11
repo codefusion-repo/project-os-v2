@@ -8,13 +8,11 @@ from tools.audit_target_adapters import (
     Source,
     _canonical_roadmap_lines,
     _check_overlay_removals,
-    _load_repo_sources,
     audit_target_adapters,
 )
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PR_BASE_REF = "625899846c33cd79060bfd58f63657155cd6f7df"
 
 LEGACY_GENERIC_POLICY = """Security / project constraints:
 - Follow target-specific security practices; for web/API/user-facing changes,
@@ -218,17 +216,27 @@ def test_target_owned_units_normalize_bullet_markers_and_whitespace() -> None:
     assert _check_overlay_removals(base, head) == []
 
 
-def test_real_pr_base_to_head_transition_preserves_all_target_owned_overlays() -> None:
-    base_sources = _load_repo_sources(REPO_ROOT, ref=PR_BASE_REF)
-    head_sources = _load_repo_sources(REPO_ROOT, ref="HEAD")
+def test_hermetic_compaction_preserves_target_owned_overlays_with_heading_aliases() -> None:
+    base = Source(
+        "AGENTS.md",
+        "## Project-specific notes\n"
+        f"{LEGACY_GENERIC_POLICY}"
+        "- Run `bin/verify-customer-ledger` before releasing ledger changes.\n"
+        "- Keep `config/ledger-policy.yml` as a protected path.\n"
+        "- Payment exports require dual approval before production release.\n"
+        "- Customer-ledger entries must remain immutable after settlement.\n",
+    )
+    head = Source(
+        "AGENTS.md",
+        "## Notas propias del repositorio\n"
+        "La política completa vive en `project-os-es/docs/reglas.md`.\n"
+        "*   Run `bin/verify-customer-ledger` before releasing ledger changes.\n"
+        "*   Keep `config/ledger-policy.yml` as a protected path.\n"
+        "*   Payment exports require dual approval before production release.\n"
+        "*   Customer-ledger entries must remain immutable after settlement.\n",
+    )
 
-    findings = [
-        finding
-        for name, base_source in base_sources.items()
-        for finding in _check_overlay_removals(base_source, head_sources[name])
-    ]
-
-    assert findings == []
+    assert _check_overlay_removals(base, head) == []
 
 
 def test_compact_target_notes_report_an_individual_removed_constraint() -> None:
