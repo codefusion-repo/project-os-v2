@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Evaluate technical and scope feasibility of identified requirements before documentation or roadmap planning.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Compare each requirement against known constraints, dependencies, existing architecture, and issue or roadmap evidence.
+**Does:** Evaluates technical feasibility and scope of the identified requirements.
+**For:** Avoid documenting or planning unfeasible requirements.
+**How:** Contrast requirements against evidence from the repo and known restrictions.
 
 **Variables**
 - Required: — (none)
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-1.2. Next: MOS-1.4. Recommended: MOS-1.4.

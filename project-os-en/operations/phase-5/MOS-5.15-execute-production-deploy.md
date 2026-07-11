@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.validation_output, evidence.repo_state
 - PM approval: Yes (exact for target, environment, and action; never implicit)
 
-**Does:** Represent production deployment execution as a resolved decision: production is not executed by a terminal agent under the current kernel and stays with the Human PM by default.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Report the candidate status for production, the missing stricter-path prerequisite, required target-owned command evidence, secret-safety posture, and the safe Human PM route.
+**Does:** Execute the deployment in production by terminal agent only if the target supports it.
+**For:** Cover the internal case where the PM explicitly delegates production.
+**How:** Execute only target-owned commands under exact approval and report redacted; By default production remains with the Human PM.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -22,6 +22,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Strict security posture: describe sensitive surfaces only by variable name, command, path, or risk type; never expose secrets, `.env` values, tokens, or credentials.
 - Internal-only (CodeFusion use): remove, hide, disable, or convert this operation before any public Project OS release.
 
-**Deliver:** output.execution_report. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.execution_report. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-5.14. Next: MOS-R.13. Recommended: MOS-R.13.

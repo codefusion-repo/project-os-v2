@@ -1,27 +1,38 @@
-# Asset prompt
+# asset prompt
+
+Responsibility: request an asset from a real design recipient without turning
+that recipient into a Project OS actor.
 
 ```markdown
-## Live context read
-{{Issue, repository, and product evidence.}}
+## Live-read context
+
+{{Issue/repo/product evidence.}}
 
 ## Asset objective
-{{Use and expected outcome.}}
+
+{{Use and expected result.}}
 
 ## Recipient
-{{Receiving person, team, or tool; not a kernel actor.}}
+
+{{Receiving person/equipment/tool; not kernel actor.}}
 
 ## Type, format, and delivery
-{{2D/3D/audio/video, dimensions, format, quantity, and naming.}}
+
+{{2D/3D/audio/video, dimensions, format, quantity and naming.}}
 
 ## Product and brand constraints
-{{Target-owned or PM-provided source.}}
+
+{{Source in target or PM evidence.}}
 
 ## Accessibility
-{{Contrast, legibility, alternatives, and safe motion/audio.}}
+
+{{Contrast, readability, alternatives, motion/audio safe.}}
 
 ## Acceptance criteria
-- [ ] {{Verifiable criterion.}}
+
+- {{Observable criteria.}}
 
 ## Out of scope and authority
-{{No target edits or Project OS asset creation without separate scope.}}
+
+{{Do not edit target, do not create assets from Project OS except separate scope.}}
 ```

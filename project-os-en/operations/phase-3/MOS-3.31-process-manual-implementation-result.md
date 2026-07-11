@@ -1,4 +1,4 @@
-# MOS-3.31 — PRocess manual implementation result
+# MOS-3.31 — Process manual implementation result
 
 MOSDLC operation `process-manual-implementation-result` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.issue_scope, evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Classify the result of human-applied manual implementation without claiming browser-chat execution.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Classify MANUAL_IMPLEMENTATION_RESULT into PR review, correction route, follow-up issue, PM decision, readiness review, or no-op.
+**Does:** Processes the result of the manual implementation applied by the human.
+**For:** Classify the safe route after applying a manual plan.
+**How:** Refers to PR review when PR exists; never duplicate that review.
 
 **Variables**
 - Required: ISSUE_NUMBER, MANUAL_IMPLEMENTATION_RESULT
 - Optional: MANUAL_IMPLEMENTATION_PLAN, PR_NUMBER, TARGET_REPOSITORY, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.30. Next: MOS-3.7, MOS-3.5, MOS-3.3. Recommended: MOS-3.7.
+**Connections:** Previous: MOS-3.30. Next: MOS-3.7 if there is PR; MOS-3.5 or MOS-3.3 if not. Recommended: MOS-3.7 if there is PR.

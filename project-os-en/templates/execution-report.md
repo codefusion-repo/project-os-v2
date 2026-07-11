@@ -1,32 +1,44 @@
 # Execution report
 
+Responsibility: report executed work, evidence and validation without asking
+merge/close.
+
 ```markdown
 ## Issue or PR
-{{Work unit.}}
+
+{{Unit of work.}}
 
 ## Repository
-{{Target repository.}}
+
+{{Repo target.}}
 
 ## Branch
+
 {{Work branch.}}
 
 ## Evidence reviewed
-- {{Live source.}}
+
+- {{Issue/PR/roadmap/ADR/diff/comments read live.}}
 
 ## Files changed
-- {{Path — responsibility.}}
+
+- {{Exact routes.}}
 
 ## Validation
-- Agent-run: `{{command}}` — {{real result}}
-- Not run: {{Check and reason, or none.}}
-- Manual PM: {{Required review.}}
+
+- `{{command}}` - {{actual result}}
+- Not executed: {{reason if applicable}}
+- Manual PM required: {{clarity/copy/UX/product if applicable}}
 
 ## Risks and limitations
-{{Residual risks, respected out-of-scope, and accepted exceptions.}}
+
+{{Remaining risks, out-of-scope respected and exceptions accepted.}}
 
 ## Commit or PR
-{{Reference when applicable.}}
+
+{{Reference if applicable.}}
 
 ## Remaining work
+
 {{Follow-ups or none.}}
 ```

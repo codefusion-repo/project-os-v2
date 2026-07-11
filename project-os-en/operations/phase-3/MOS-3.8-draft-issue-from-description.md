@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
-**Does:** Draft a new issue from PM description while checking roadmap and documentation impact.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Turn DESCRIPTION into one scoped issue draft with source basis, scope, out-of-scope, acceptance criteria, validation, risk, and rollback.
+**Does:** Draft an issue from a description and verify that it does not affect the roadmap or documentation.
+**For:** Capture new work without breaking current planning.
+**How:** Convert the description into a bundle and check impact against roadmap and docs.
 
 **Variables**
 - Required: DESCRIPTION
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.pm_command_bundle. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.pm_command_bundle. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-1.7. Next: MOS-3.4. Recommended: MOS-3.4.

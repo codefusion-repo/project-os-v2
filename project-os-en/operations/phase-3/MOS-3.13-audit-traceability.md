@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Audit live issue and PR traceability to confirm the implementation cycle is reconstructible from evidence.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Check whether issue, PRs, commits, comments, review, validation, and closure evidence reconstruct the work accurately.
+**Does:** Audit issue/PR and live traceability on GitHub.
+**For:** Verify that the cycle is reconstructable from evidence.
+**How:** Read-only audit of links, evidence of closure and status.
 
 **Variables**
 - Required: ISSUE_NUMBER
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: none. Next: MOS-3.14. Recommended: MOS-3.14.
+**Connections:** Previous: any phase. Next: MOS-3.14. Recommended: MOS-3.14.

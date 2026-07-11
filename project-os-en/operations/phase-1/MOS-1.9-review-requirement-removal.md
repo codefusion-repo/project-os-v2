@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Review the impact of removing a requirement before docs, roadmap, or implementation work changes.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Identify affected docs, roadmap outcomes, issues, dependencies, acceptance criteria, and risks.
+**Does:** Review the impact of removing a requirement from the project.
+**For:** Avoid removals that break roadmap, docs or dependencies.
+**How:** Analyzes impact and returns decision to the PM; fail-closed to status.needs_pm_decision.
 
 **Variables**
 - Required: DESCRIPTION
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-1.7. Next: MOS-1.8. Recommended: MOS-1.8.
+**Connections:** Previous: MOS-1.7. Next: MOS-1.8 if PM confirms. Recommended: MOS-1.8 if PM confirms removal.

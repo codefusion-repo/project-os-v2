@@ -95,6 +95,173 @@ PHASE_EQUIVALENCE = {
     "fase-6": "phase-6",
 }
 
+ENGLISH_PHASE_LABELS = {
+    "cross-phase": "Cross-phase",
+    "phase-0": "Phase 0 — Adoption",
+    "phase-1": "Phase 1 — Requirements, planning, and feasibility",
+    "phase-2": "Phase 2 — Design",
+    "phase-3": "Phase 3 — Implementation",
+    "phase-4": "Phase 4 — QA and human verification",
+    "phase-5": "Phase 5 — Local, staging, and production deployment",
+    "phase-6": "Phase 6 — Maintenance and improvements",
+}
+
+SURFACE_EQUIVALENCE = {
+    "browser_chat a human_pm": "browser_chat → human_pm",
+}
+
+GENERIC_OPERATION_PURPOSE = (
+    "Complete this lifecycle outcome through the selected workflow "
+    "with explicit evidence and boundaries."
+)
+
+TEMPLATE_PAIRS = {
+    "README.md": "README.md",
+    "adr.md": "adr.md",
+    "comentario-cierre.md": "closure-comment.md",
+    "issue.md": "issue.md",
+    "paquete-adopcion.md": "adoption-packet.md",
+    "paquete-handoff.md": "handoff-packet.md",
+    "plan-implementacion-manual.md": "manual-implementation-plan.md",
+    "pm-command-bundle.md": "pm-command-bundle.md",
+    "prompt-asset.md": "asset-prompt.md",
+    "prompt-revision-seguridad.md": "security-review-prompt.md",
+    "pull-request.md": "pull-request.md",
+    "reporte-ejecucion.md": "execution-report.md",
+    "resultado-estado.md": "status-result.md",
+    "resultado-revision.md": "review-result.md",
+    "roadmap.md": "roadmap.md",
+    "route-prompt.md": "route-prompt.md",
+}
+
+TEMPLATE_REQUIRED_HEADINGS = {
+    "README.md": ("Operating bridge", "Catalog"),
+    "adr.md": ("Context", "Decision", "Consequences"),
+    "closure-comment.md": (
+        "Evidence of completeness",
+        "Validation evidence",
+        "Accepted exceptions",
+        "Preserved boundaries",
+        "Friction note",
+        "References",
+    ),
+    "issue.md": (
+        "Why it exists",
+        "Objective",
+        "Source basis",
+        "Scope",
+        "Out of scope",
+        "Included decisions",
+        "Acceptance criteria",
+        "Validation",
+        "Risk and rollback",
+    ),
+    "adoption-packet.md": (
+        "Target",
+        "Adopted kernel version",
+        "Adoption status",
+        "Findings",
+        "Adapter diff or draft",
+        "Exact write scope",
+        "Adoption checklist",
+        "Target-owned",
+        "Rollback",
+    ),
+    "handoff-packet.md": (
+        "Current status",
+        "Verified vs assumed",
+        "Next steps",
+        "Open PM decisions",
+        "Active boundaries",
+    ),
+    "manual-implementation-plan.md": (
+        "Objective",
+        "Files to inspect",
+        "Files to modify",
+        "Change plan",
+        "Validation",
+        "Manual QA",
+        "Risks and rollback",
+        "Recommended next operation",
+        "No-write statement",
+    ),
+    "pm-command-bundle.md": ("Default shape", "Prohibited by default", "Compact examples"),
+    "asset-prompt.md": (
+        "Live-read context",
+        "Asset objective",
+        "Recipient",
+        "Type, format, and delivery",
+        "Product and brand constraints",
+        "Accessibility",
+        "Acceptance criteria",
+        "Out of scope and authority",
+    ),
+    "security-review-prompt.md": (
+        "Live-read context",
+        "Review objective",
+        "Recipient",
+        "Sensitive surfaces",
+        "Secret-safety requirements",
+        "Evidence to review",
+        "Finding format",
+        "Out of scope",
+    ),
+    "pull-request.md": ("Summary", "Scope / Boundaries", "Validation", "Security / Privacy"),
+    "execution-report.md": (
+        "Issue or PR",
+        "Repository",
+        "Branch",
+        "Evidence reviewed",
+        "Files changed",
+        "Validation",
+        "Risks and limitations",
+        "Commit or PR",
+        "Remaining work",
+    ),
+    "status-result.md": ("Status", "Missing item, conflict, or blocker", "Required source or decision", "Safe next step"),
+    "review-result.md": (
+        "Reviewed scope",
+        "Evidence reviewed",
+        "Scope comparison",
+        "Findings",
+        "Verdict or recommendation",
+        "Risks",
+        "Not reviewed",
+    ),
+    "roadmap.md": ("Purpose", "Phases", "Kill criteria", "Not now / out of scope", "Non-authorization"),
+}
+
+CRITICAL_OPERATION_TERMS = {
+    "MOS-3.4": (
+        "recommended_terminal_agent_family",
+        "advisory",
+        "pm_authorization_status",
+        "explicit pm feedback",
+    ),
+    "MOS-3.7": ("quality gate", "diff", "validation", "scope", "evidence leads", "if there are findings"),
+    "MOS-R.3": (
+        "missing context",
+        "route selection",
+        "correction approval",
+        "follow-up creation",
+        "stop/no-op",
+        "return to the source",
+        "more evidence",
+        "decision_source",
+    ),
+    "MOS-R.7": ("licensing", "publication", "secrets"),
+    "MOS-R.22": ("public packaging", "internal-only", "secrets"),
+    "MOS-R.23": ("internal-only", "remove", "hide", "disable", "convert"),
+    "MOS-R.15": ("rollback", "target-owned", "warnings", "exact approval"),
+    "MOS-R.16": ("rollback_result", "restored", "partial", "failed", "status.blocked", "redact"),
+    "MOS-3.23": ("security", "owasp", "never expose secrets"),
+    "MOS-3.25": ("security", "blockers", "non-blockers"),
+    "MOS-6.1": ("security", "production readiness", "owasp"),
+    "MOS-6.7": ("security", "blockers", "deferrables"),
+    "MOS-R.17": ("dependency", "advisories", "manifest"),
+    "MOS-R.18": ("secret", "read-only", "status.blocked"),
+}
+
 OPERATION_ID_PATTERN = re.compile(r"(?:Operación MOSDLC|MOSDLC operation) `([^`]+)`")
 RISK_PATTERN = re.compile(r"(?:Riesgo|Risk):\s*([a-z]+)", re.IGNORECASE)
 MOS_REF_PATTERN = re.compile(r"\bMOS-(?:\d+\.\d+|R\.\d+)\b", re.IGNORECASE)
@@ -205,7 +372,7 @@ def _mapped_contract(contract: OperationContract) -> dict[str, Any]:
         "operation_id": contract.operation_id,
         "phase": PHASE_EQUIVALENCE.get(contract.phase, contract.phase),
         "risk": contract.risk,
-        "surface": contract.surface,
+        "surface": SURFACE_EQUIVALENCE.get(contract.surface, contract.surface),
         "kernel": contract.kernel,
         "evidence": contract.evidence,
         "approval": contract.approval,
@@ -213,6 +380,152 @@ def _mapped_contract(contract: OperationContract) -> dict[str, Any]:
         "outputs": contract.outputs,
         "connections": contract.connections,
     }
+
+
+def _semantic_section(text: str, label: str) -> str | None:
+    match = re.search(rf"^\*\*{re.escape(label)}:\*\*\s*(.+)$", text, re.MULTILINE)
+    return match.group(1).strip() if match and match.group(1).strip() else None
+
+
+def _safeguard_item_count(text: str, heading: str) -> int:
+    match = re.search(
+        rf"^\*\*{re.escape(heading)}\*\*\s*$\n(?P<body>.*?)(?=^\*\*[^\n]+\*\*)",
+        text,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return 0
+    return len(re.findall(r"^-\s+\S", match.group("body"), re.MULTILINE))
+
+
+def _operation_semantic_findings(
+    es_operations: dict[str, OperationTemplate],
+    en_operations: dict[str, OperationTemplate],
+) -> list[str]:
+    findings: list[str] = []
+    residue = re.compile(r"\b(?:PRocess|Review pr)\b")
+    for code in sorted(set(es_operations) & set(en_operations)):
+        spanish, english = es_operations[code].text, en_operations[code].text
+        for label in ("Does", "For", "How", "Deliver"):
+            if _semantic_section(english, label) is None:
+                findings.append(f"operation semantic section missing or empty: {code}.{label}")
+        if GENERIC_OPERATION_PURPOSE in english:
+            findings.append(f"operation generic purpose boilerplate: {code}")
+        if ("**Cuida**" in spanish) != ("**Safeguards**" in english):
+            findings.append(f"operation safeguards mismatch: {code}")
+        elif "**Cuida**" in spanish and _safeguard_item_count(
+            spanish, "Cuida"
+        ) != _safeguard_item_count(english, "Safeguards"):
+            findings.append(f"operation safeguard item mismatch: {code}")
+        title = english.splitlines()[0] if english.splitlines() else ""
+        if residue.search(title):
+            findings.append(f"operation title residue: {code}")
+        phase_label = ENGLISH_PHASE_LABELS[en_operations[code].phase_path]
+        if f" · {phase_label} · Risk:" not in english:
+            findings.append(f"operation phase label mismatch: {code}")
+
+    for code, terms in CRITICAL_OPERATION_TERMS.items():
+        text = en_operations[code].text.lower()
+        for term in terms:
+            if term not in text:
+                findings.append(f"critical operation invariant missing: {code}: {term}")
+    return findings
+
+
+def _template_semantic_findings(es_root: Path, en_root: Path) -> list[str]:
+    findings: list[str] = []
+    if set(path.name for path in es_root.glob("*.md")) != set(TEMPLATE_PAIRS):
+        findings.append("Spanish template mapping is incomplete")
+    if set(path.name for path in en_root.glob("*.md")) != set(TEMPLATE_PAIRS.values()):
+        findings.append("English template mapping is incomplete")
+
+    for en_name, required_headings in TEMPLATE_REQUIRED_HEADINGS.items():
+        text = (en_root / en_name).read_text(encoding="utf-8")
+        if en_name not in {"README.md", "pm-command-bundle.md"} and not re.search(
+            r"^Responsibility:\s*\S", text, re.MULTILINE
+        ):
+            findings.append(f"template responsibility missing: {en_name}")
+        headings = set(re.findall(r"^##\s+(.+)$", text, re.MULTILINE))
+        for heading in required_headings:
+            if heading not in headings:
+                findings.append(f"template section missing: {en_name}: {heading}")
+
+    route = (en_root / "route-prompt.md").read_text(encoding="utf-8")
+    route_fields = (
+        "PROJECT_NAME",
+        "REPOSITORY_NAME",
+        "TARGET_REPOSITORY",
+        "KERNEL_REPOSITORY",
+        "KERNEL_LOCAL_PATH",
+        "ISSUE_OR_PR",
+        "TARGET_ACTOR_TYPE",
+        "WORKFLOW",
+        "EXECUTION_MODE",
+        "OUTPUT_CONTRACT",
+        "OPTIONAL_SKILL",
+        "RECOMMENDED_TERMINAL_AGENT_FAMILY",
+        "SCOPE",
+        "OUT_OF_SCOPE",
+        "EVIDENCE_REQUIRED",
+        "VALIDATION_REQUIRED",
+        "BRANCH_NAME",
+        "PM_AUTHORIZATION_STATUS",
+        "recommended_effort",
+    )
+    for field in route_fields:
+        separator = ":" if field == "recommended_effort" else "="
+        if not re.search(rf"^{re.escape(field)}\s*{separator}", route, re.MULTILINE):
+            findings.append(f"route prompt field missing: {field}")
+    for clause in (
+        "re-resolves the kernel",
+        "reads live evidence",
+        "fails closed",
+        "Codex",
+        "Claude",
+        "Gemini",
+        "`none`",
+        "do not grant permission",
+        "replace exact PM approval",
+        "does not authorize writing",
+    ):
+        if clause not in route:
+            findings.append(f"route prompt clause missing: {clause}")
+
+    bundle = (en_root / "pm-command-bundle.md").read_text(encoding="utf-8")
+    for clause in (
+        "short linear sequence",
+        "Writing blocks",
+        "blockquotes",
+        "indented lists",
+        "inline text",
+        "heredocs",
+        "--body-file",
+        "exact reviewed targets",
+        "&&",
+        "||",
+        "exit",
+        "set -e",
+        "set -u",
+        "set -o pipefail",
+        "Large `if` or `case` blocks",
+        "loops",
+        "shell functions",
+        "workflow.review_before_close",
+        "gh pr ready",
+        "--merge --delete-branch",
+        "--match-head-commit",
+        "gh issue close",
+        "git -C <local-path> branch -D <work-branch>",
+        "Final read-only verification",
+        "gh pr view",
+        "gh issue view",
+        "git -C <local-path> status --short --branch",
+    ):
+        if clause not in bundle:
+            findings.append(f"PM command bundle clause missing: {clause}")
+    if "--squash" in bundle:
+        findings.append("PM command bundle uses a non-canonical squash merge")
+    return findings
 
 
 def _path_findings(surface: ProjectOSSurface, kernel: dict[str, list[dict[str, Any]]]) -> list[str]:
@@ -231,41 +544,56 @@ def _path_findings(surface: ProjectOSSurface, kernel: dict[str, list[dict[str, A
 def build_report() -> dict[str, Any]:
     es_surface, en_surface = SURFACES
     es_kernel, en_kernel = load_kernel(es_surface), load_kernel(en_surface)
-    findings: list[str] = []
+    structural_findings: list[str] = []
 
     for family in STABLE_FIELDS:
         es_projection = stable_projection(es_kernel, family)
         en_projection = stable_projection(en_kernel, family)
         if es_projection != en_projection:
-            findings.append(f"kernel stable-contract mismatch: {family}")
+            structural_findings.append(f"kernel stable-contract mismatch: {family}")
 
     for family, fields in STRUCTURAL_LIST_FIELDS.items():
         es_items, en_items = keyed(es_kernel, family), keyed(en_kernel, family)
         for key in sorted(es_items):
             for field in fields:
                 if len(es_items[key].get(field, [])) != len(en_items[key].get(field, [])):
-                    findings.append(f"kernel structural-list mismatch: {key}.{field}")
+                    structural_findings.append(f"kernel structural-list mismatch: {key}.{field}")
 
     if reference_graph(es_kernel) != reference_graph(en_kernel):
-        findings.append("kernel reference graph mismatch")
+        structural_findings.append("kernel reference graph mismatch")
 
     for key, es_mode in keyed(es_kernel, "modes").items():
         en_mode = keyed(en_kernel, "modes")[key]
         for field in ("allowed_actions", "prohibited_actions"):
             translated = [ACTION_EQUIVALENCE[action] for action in es_mode[field]]
             if translated != en_mode[field]:
-                findings.append(f"mode action mismatch: {key}.{field}")
+                structural_findings.append(f"mode action mismatch: {key}.{field}")
 
-    findings.extend(_path_findings(es_surface, es_kernel))
-    findings.extend(_path_findings(en_surface, en_kernel))
+    structural_findings.extend(_path_findings(es_surface, es_kernel))
+    structural_findings.extend(_path_findings(en_surface, en_kernel))
 
-    es_operations = operation_inventory(es_surface.root / "operaciones")
-    en_operations = operation_inventory(en_surface.root / "operations")
+    es_templates = {
+        item.mos_code: item for item in discover_operations(es_surface.root / "operaciones")
+    }
+    en_templates = {
+        item.mos_code: item for item in discover_operations(en_surface.root / "operations")
+    }
+    es_operations = {code: operation_contract(item) for code, item in es_templates.items()}
+    en_operations = {code: operation_contract(item) for code, item in en_templates.items()}
     if set(es_operations) != set(en_operations):
-        findings.append("MOS code set mismatch")
+        structural_findings.append("MOS code set mismatch")
     for code in sorted(set(es_operations) & set(en_operations)):
         if _mapped_contract(es_operations[code]) != _mapped_contract(en_operations[code]):
-            findings.append(f"operation contract mismatch: {code}")
+            structural_findings.append(f"operation contract mismatch: {code}")
+
+    semantic_findings = _operation_semantic_findings(es_templates, en_templates)
+    semantic_findings.extend(
+        _template_semantic_findings(
+            es_surface.root / "templates",
+            en_surface.root / "templates",
+        )
+    )
+    findings = structural_findings + semantic_findings
 
     return {
         "surfaces": {
@@ -288,6 +616,12 @@ def build_report() -> dict[str, Any]:
                 for code in sorted(es_operations)
             ],
         },
+        "structural_findings": structural_findings,
+        "semantic_invariant_findings": semantic_findings,
+        "manual_review_required": [
+            "natural PM-facing English across all operation and template pairs",
+            "full semantic fidelity beyond automated critical invariants",
+        ],
         "findings": findings,
     }
 
@@ -304,6 +638,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"reference edges: {report['reference_edges']}")
         print(f"MOS codes: {report['operations']['mos_codes']}")
         print(f"variables: {len(report['operations']['variables'])}")
+        print(f"structural findings: {len(report['structural_findings'])}")
+        print(f"semantic invariant findings: {len(report['semantic_invariant_findings'])}")
+        print("manual review: required for linguistic naturalness and full semantic fidelity")
         print(f"parity findings: {len(report['findings'])}")
         for finding in report["findings"]:
             print(f"- {finding}")

@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: Yes (only the bundled GitHub write, run by the Human PM)
 
-**Does:** Draft the general project roadmap from stable requirements documentation and live repository context.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Convert stable requirements into a roadmap issue body with phases, outcomes, not-now scope, risks, and validation expectations.
+**Does:** Plan the general roadmap of the project from stable documentation.
+**For:** Organize work by phases and outcomes.
+**How:** Draft the issue body roadmap or creation bundle for the Human PM.
 
 **Variables**
 - Required: SOURCE_DOCS
 - Optional: TARGET_REPOSITORY, ROADMAP_ACTION, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.draft_issue (+output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.draft_issue (+output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-1.5. Next: MOS-3.1, MOS-3.2. Recommended: MOS-3.1.
+**Connections:** Previous: MOS-1.5. Next: MOS-3.1 or MOS-3.2. Recommended: MOS-3.1.

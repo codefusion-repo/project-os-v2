@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis
 - PM approval: No (draft-only)
 
-**Does:** Summarize and structure identified requirements into a PM-verifiable basis before documentation or planning.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Group requirements into functional, non-functional, constraints, assumptions, dependencies, and open questions.
+**Does:** Summarizes and structures the requirements identified in the interview.
+**For:** Have a stable foundation before documenting.
+**How:** Synthesizes the conversation into a list verifiable by the PM.
 
 **Variables**
 - Required: — (none)
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-1.1. Next: MOS-1.3. Recommended: MOS-1.3.

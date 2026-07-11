@@ -48,6 +48,75 @@ def test_kernel_and_operation_contracts_have_no_parity_findings() -> None:
     assert report["reference_edges"] > 0
     assert report["operations"]["mos_codes"] == 121
     assert report["operations"]["path_matrix"]
+    assert report["structural_findings"] == []
+    assert report["semantic_invariant_findings"] == []
+    assert report["manual_review_required"] == [
+        "natural PM-facing English across all operation and template pairs",
+        "full semantic fidelity beyond automated critical invariants",
+    ]
+
+
+def test_english_operations_keep_semantic_sections_safeguards_and_natural_titles() -> None:
+    spanish = {
+        item.mos_code: item
+        for item in discover_operations(REPO_ROOT / "project-os-es/operaciones")
+    }
+    english = {
+        item.mos_code: item
+        for item in discover_operations(REPO_ROOT / "project-os-en/operations")
+    }
+    boilerplate = (
+        "Complete this lifecycle outcome through the selected workflow "
+        "with explicit evidence and boundaries."
+    )
+
+    assert set(spanish) == set(english)
+    for code, operation in english.items():
+        for label in ("Does", "For", "How", "Deliver"):
+            match = re.search(rf"^\*\*{label}:\*\*\s*(.+)$", operation.text, re.MULTILINE)
+            assert match and match.group(1).strip(), f"{code} has an empty {label} section"
+        assert boilerplate not in operation.text
+        assert ("**Cuida**" in spanish[code].text) == ("**Safeguards**" in operation.text)
+        assert "PRocess" not in operation.text.splitlines()[0]
+        assert "Review pr" not in operation.text.splitlines()[0]
+
+
+def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> None:
+    templates = REPO_ROOT / "project-os-en/templates"
+    route = (templates / "route-prompt.md").read_text(encoding="utf-8")
+    bundle = (templates / "pm-command-bundle.md").read_text(encoding="utf-8")
+
+    for field in (
+        "OPTIONAL_SKILL",
+        "RECOMMENDED_TERMINAL_AGENT_FAMILY",
+        "PM_AUTHORIZATION_STATUS",
+        "recommended_effort",
+    ):
+        assert field in route
+    for clause in ("re-resolves the kernel", "reads live evidence", "fails closed"):
+        assert clause in route
+    assert "do not grant permission" in route
+    assert "replace exact PM approval" in route
+    assert "does not authorize writing" in route
+
+    for clause in (
+        "Writing blocks",
+        "blockquotes",
+        "indented lists",
+        "heredocs",
+        "--body-file",
+        "set -e",
+        "set -u",
+        "set -o pipefail",
+        "gh pr ready",
+        "--merge --delete-branch",
+        "--match-head-commit",
+        "gh issue close",
+        "git -C <local-path> branch -D <work-branch>",
+        "Final read-only verification",
+    ):
+        assert clause in bundle
+    assert "--squash" not in bundle
 
 
 def test_both_kernels_validate_and_default_remains_spanish() -> None:

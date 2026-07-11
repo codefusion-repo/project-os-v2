@@ -1,4 +1,4 @@
-# MOS-R.6 — Create update adr from design
+# MOS-R.6 — Create or update an ADR from design
 
 MOSDLC operation `create-update-adr-from-design` · Phase 2 — Design · Risk: medium.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis
 - PM approval: No for drafting; exact approval is required to write or update ADRs
 
-**Does:** Create or update ADRs from design or requirements documentation, drafting the delegated write route per decision.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Extract stable, issue-surviving decisions from SOURCE_DOCS and draft one ADR (new or update) per decision, following the target repository's ADR conventions when present.
+**Does:** Extract stable decisions from design or requirements documentation and draft ADRs.
+**For:** Bring to ADR the decisions that must survive documents and issues.
+**How:** Reads SOURCE_DOCS, identifies candidate decisions, and derives a delegated path per decision.
 
 **Variables**
 - Required: SOURCE_DOCS
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.route_prompt. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.route_prompt. In case of unreadable docs, absence of stable decisions or conflict with existing ADR, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-2.6. Next: MOS-R.1. Recommended: MOS-R.1.
+**Connections:** Previous: MOS-2.6 or design update. Next: MOS-R.1 by extracted decision. Recommended: MOS-R.1.

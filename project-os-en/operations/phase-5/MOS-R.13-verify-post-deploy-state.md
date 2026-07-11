@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.validation_output
 - PM approval: No (read-only verification)
 
-**Does:** Verify the post-deploy state of the target environment, read-only, and report redacted health evidence.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Read-only health and smoke verification for TARGET_ENVIRONMENT using only target-owned checks from Project-specific notes or repository documentation.
+**Does:** Checks the post-deploy status of the target environment.
+**For:** Confirm that the deployment was healthy with evidence of health or smoke.
+**How:** Use only target-owned checks and report redacted evidence.
 
 **Variables**
 - Required: TARGET_ENVIRONMENT
@@ -21,6 +21,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Report endpoints by name plus check names and results; never environment values, tokens, or connection strings.
 - Do not redeploy, restart services, edit configuration, or run corrections.
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. For unreadable checks, return `status.needs_context`; if the deployment is unhealthy, return `status.blocked`.
 
-**Connections:** Previous: MOS-5.11, MOS-5.13, MOS-R.12. Next: MOS-R.14. Recommended: MOS-R.14.
+**Connections:** Previously: MOS-5.11, MOS-5.13, PM run of MOS-R.12 or approved deployment. Next: MOS-R.14. Recommended: MOS-R.14.

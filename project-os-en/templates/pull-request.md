@@ -1,17 +1,27 @@
 # Pull request
 
+Responsibility: document claims, scope and validation of a PR draft. It is not
+completeness test until review against diff/final files.
+
 ```markdown
 ## Summary
-- {{Outcome and motivation.}}
+
+- {{What changes in terms of behavior.}}
 
 ## Scope / Boundaries
-- {{Included work.}}
-- {{Preserved exclusions and limits.}}
+
+- {{Touched surfaces.}}
+- {{Out of scope preserved.}}
+- Merge and closure are not requested by this PR.
 
 ## Validation
-- `{{command}}` — {{real result}}
-- Manual PM: {{required review or none}}
+
+- `{{command}}` - {{actual result}}
+- {{manual PM validation or exception accepted if applicable.}}
 
 ## Security / Privacy
-- {{OWASP-relevant impact, secret-safety note, or not applicable.}}
+
+- {{Handling sensitive data or "no sensitive surfaces touched."}}
+
+Closes #{{issue}} (on PM merge decision).
 ```

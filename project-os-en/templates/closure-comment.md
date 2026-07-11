@@ -1,21 +1,35 @@
-# Closure comment
+# Closing comment
+
+Responsibility: leave a reconstruction package after review with
+evidence of code/diff/validation.
 
 ```markdown
-## Completion evidence
-- {{What now exists, linked to code or live evidence.}}
+## Evidence of completeness
+
+- {{Which exists now, with reference to the PR.}}
 
 ## Validation evidence
-- {{Commands and real results.}}
+
+- `{{command}}` - {{actual result}}
+- {{PM-run/manual/exception accepted if applicable.}}
 
 ## Accepted exceptions
-- {{Scoped PM-accepted exceptions or none.}}
 
-## Boundaries preserved
-- {{What was deliberately not done.}}
+- {{None or exception PM scoped.}}
+
+## Preserved boundaries
+
+- {{Which was not done nor should it be assumed.}}
 
 ## Friction note
-{{One concise line.}}
+
+{{A concise line.}}
 
 ## References
-- {{Issue, PR, and relevant live references.}}
+
+- PR #{{n}}.
+- Follow-ups: {{#n or none}}.
 ```
+
+Do not close from claims: compare issue, diff, relevant final files,
+validation and risks before drafting.

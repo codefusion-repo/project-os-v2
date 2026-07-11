@@ -1,30 +1,41 @@
 # Manual implementation plan
 
+Responsibility: draft human-executable instructions without claiming edits.
+
 ```markdown
 ## Objective
+
 {{Expected result.}}
 
 ## Files to inspect
-- {{Path and reason.}}
+
+- {{Route and reason.}}
 
 ## Files to modify
-- {{Path and change responsibility.}}
+
+- {{Verifiable route and anchor.}}
 
 ## Change plan
-1. {{Human-executable anchored change.}}
+
+1. {{Change per file/anchor}}
 
 ## Validation
-Command: `{{Target-owned read/validation command.}}`
+
+- `{{command}}` - {{which you should try}}
 
 ## Manual QA
-- [ ] {{Human check.}}
+
+- {{Human check.}}
 
 ## Risks and rollback
-{{Risks and reversal path.}}
+
+{{Risks and how to reverse.}}
 
 ## Recommended next operation
-{{Project OS operation.}}
+
+{{Operation Project OS.}}
 
 ## No-write statement
-No code, files, git state, or GitHub state was changed by this plan.
+
+This plan did not edit code, did not run validation and did not grant permissions.
 ```

@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
-**Does:** Infer the next single implementation issue from live traceability and roadmap evidence, then draft a Human PM command bundle.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Identify the single next outcome that is best supported by roadmap and traceability evidence.
+**Does:** Infer the next real outcome from live traceability and roadmap and draft its creation.
+**For:** Create the next unique issue without losing track of the roadmap.
+**How:** Read live state and draft the issue-creation bundle for the Human PM.
 
 **Variables**
 - Required: — (none)
 - Optional: ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.pm_command_bundle. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.pm_command_bundle. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-1.6, MOS-3.9. Next: MOS-3.4. Recommended: MOS-3.4.
+**Connections:** Previous: MOS-1.6 or MOS-3.9. Next: MOS-3.4. Recommended: MOS-3.4.

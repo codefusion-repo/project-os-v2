@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.validation_output
 - PM approval: No (read-only)
 
-**Does:** Analyze tag or release readiness from merged evidence and validation, and draft command bundles only when ready.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Assess whether merged scope, validation, known risks, notes, and version/tag intent support a tag or release.
+**Does:** Analyze release-on-tag readiness and draft build commands if ready.
+**For:** Decide tag/release with merged evidence and validation.
+**How:** Evaluate readiness and chain the draft of the bundle only if appropriate.
 
 **Variables**
 - Required: — (none)
 - Optional: TAG_NAME, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result (+output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result (+output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.9. Next: MOS-3.11, MOS-3.12. Recommended: MOS-3.11.
+**Connections:** Previous: MOS-3.9. Next: MOS-3.11 or MOS-3.12. Recommended: MOS-3.11.

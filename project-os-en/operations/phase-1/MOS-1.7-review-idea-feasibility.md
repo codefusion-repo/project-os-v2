@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Review a new idea as a potential project requirement and recommend whether it should enter the roadmap.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Evaluate whether the idea fits current requirements, roadmap, constraints, architecture, and known PM decisions.
+**Does:** Evaluate a new idea as a possible project requirement.
+**For:** Decide if the idea fits into the roadmap.
+**How:** Analyzes the idea against live status and documentation and recommends route.
 
 **Variables**
 - Required: IDEA
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: none. Next: MOS-1.8. Recommended: MOS-1.8.
+**Connections:** Previous: any phase. Next: MOS-1.8 if applicable. Recommended: MOS-1.8.

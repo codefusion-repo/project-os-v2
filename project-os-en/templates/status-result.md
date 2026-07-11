@@ -1,15 +1,22 @@
 # Status result
 
+Responsibility: return an unresolved status without padding it with repeated
+rules.
+
 ```markdown
 ## Status
+
 {{status.needs_context | status.needs_pm_decision | status.blocked}}
 
-## Missing, conflicting, or blocked
-{{Exact missing source or blocking gate.}}
+## Missing item, conflict, or blocker
+
+{{What exactly is missing or blocked.}}
 
 ## Required source or decision
-{{Where it must come from or who decides.}}
+
+{{Where it should come from or who decides.}}
 
 ## Safe next step
-{{Smallest step that preserves the limits.}}
+
+{{Minimum step that preserves limits.}}
 ```

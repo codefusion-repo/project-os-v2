@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.target_adoption, evidence.source_basis
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
-**Does:** Draft a Human PM-facing production deployment checklist that names required production variables, approvals, verification steps, rollback awareness, and human steps without exposing values.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Draft production human steps for approval confirmation, change-window readiness, environment and variable-name checks, host/DNS/provider awareness, smoke checks, monitoring checks, rollback awareness, and post-deploy verification routing when target-owned notes support them.
+**Does:** Draft the human production deployment checklist naming variables and steps, never secret values.
+**For:** Guide the human steps of production deployment.
+**How:** Copy-safe checklist for the Human PM; secrets only as variable names.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -20,6 +20,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Strict security posture: describe sensitive surfaces only by variable name, command, path, or risk type; never expose secrets, `.env` values, tokens, or credentials.
 - Depend on the target adapter's `Project-specific notes`: use only target-owned commands and paths documented there; fail closed if they are missing or ambiguous.
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-5.7. Next: MOS-5.9. Recommended: MOS-5.9.

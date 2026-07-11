@@ -1,4 +1,4 @@
-# MOS-5.3 — PRocess local deploy checklist
+# MOS-5.3 — Process local deploy checklist
 
 MOSDLC operation `process-local-deploy-checklist` · Phase 5 — Local, staging, and production deployment · Risk: medium.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Classify Human PM local deployment checklist results into continue, correction, follow-up, no-op, or PM decision paths without mutating repository, GitHub, or environment state.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Classify CHECKLIST_RESULT as continue, correction, follow-up, no-op, or PM decision only when evidence supports that route.
+**Does:** Processes the result of the human steps of local deployment.
+**For:** Confirm readiness or derive gaps before continuing.
+**How:** Sorts the CHECKLIST_RESULT toward continue, correct, or stop.
 
 **Variables**
 - Required: CHECKLIST_RESULT
@@ -20,6 +20,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Strict security posture: describe sensitive surfaces only by variable name, command, path, or risk type; never expose secrets, `.env` values, tokens, or credentials.
 - Depend on the target adapter's `Project-specific notes`: use only target-owned commands and paths documented there; fail closed if they are missing or ambiguous.
 
-**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-5.2. Next: MOS-5.10, MOS-R.13. Recommended: MOS-5.10.
+**Connections:** Previous: MOS-5.2. Next: MOS-5.10 or MOS-R.13. Recommended: MOS-5.10.

@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.target_adoption, evidence.source_basis
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
-**Does:** Draft a production deployment command bundle for Human PM execution only, using strictly target-owned production deploy commands.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Draft only commands that already exist in target-owned notes or repository deploy documentation; preserve exact command names and production targets from evidence.
+**Does:** Draft the production deployment command bundle from the target-owned commands in Project-specific notes.
+**For:** Prepare the execution of the production deployment without inventing commands.
+**How:** Bundle copy-safe only from target-owned commands; never prints secrets.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -21,6 +21,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Depend on the target adapter's `Project-specific notes`: use only target-owned commands and paths documented there; fail closed if they are missing or ambiguous.
 - Internal-only (CodeFusion use): remove, hide, disable, or convert this operation before any public Project OS release.
 
-**Deliver:** output.pm_command_bundle. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.pm_command_bundle. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-5.9. Next: MOS-5.15. Recommended: none.
+**Connections:** Previous: MOS-5.9. Next: MOS-5.15 or execution of the Human PM. Recommended: running the Human PM by default.

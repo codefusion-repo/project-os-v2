@@ -3,14 +3,14 @@
 MOSDLC operation `plan-validation-cycle` · Phase 4 — QA and human verification · Risk: medium.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
 
-- Surface: browser_chat a human_pm
+- Surface: browser_chat → human_pm
 - Kernel: workflow.pm_intake · mode.review_only · output.draft_issue (+output.pm_command_bundle)
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (planning only; the PM starts the cycle)
 
-**Does:** Plan a real validation cycle for the target project, drafting the plan and its bounded issues for Human PM execution.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Draft the validation-cycle plan for the applicable surface: goals, entry criteria, bounded scope, participants or evidence sources, exit criteria, and how findings will be captured.
+**Does:** Plan a real validation cycle for the target according to its type.
+**For:** Test end-to-end with evidence before expanding or publishing.
+**How:** Draft plan and limited issues for QA, UAT, beta, TestFlight, playtest, integration, pilot or other applicable surface.
 
 **Variables**
 - Required: — (none)
@@ -20,6 +20,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Keep the wording target-agnostic: web, mobile, games, libraries/tools, and internal products may use different cycles.
 - Fail closed if the target has no applicable validation surface or the PM must choose between surfaces.
 
-**Deliver:** output.draft_issue (+output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.draft_issue (+output.pm_command_bundle). If validation surface is missing or PM choice is required, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-4.1, MOS-4.2. Next: MOS-R.20. Recommended: MOS-R.20.
+**Connections:** Previous: MOS-4.1, MOS-4.2 or validation preparation. Next: MOS-R.20. Recommended: MOS-R.20.

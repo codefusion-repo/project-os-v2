@@ -1,4 +1,4 @@
-# MOS-3.20 — PRocess 3d asset delivery
+# MOS-3.20 — Process a 3D asset delivery
 
 MOSDLC operation `process-3d-asset-delivery` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Process delivered asset material or feedback into implementation, correction, or follow-up routing.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Classify DESIGN_DELIVERY into implementation route, correction route, follow-up issue, or no-op based on live product context.
+**Does:** Processes the delivery of a 3D asset and maps it to technical tasks or drafts.
+**For:** Integrate assets received into the development cycle.
+**How:** Classify the delivery into an issue, correction, or follow-up.
 
 **Variables**
 - Required: DESIGN_DELIVERY
 - Optional: ISSUE_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.16. Next: MOS-3.4, MOS-3.5, MOS-3.3. Recommended: MOS-3.4.
+**Connections:** Previous: MOS-3.16. Next: MOS-3.4, MOS-3.5 or MOS-3.3. Recommended: MOS-3.4.

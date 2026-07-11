@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
-**Does:** Draft a bounded set of implementation issues from live traceability and roadmap evidence with an explicit PM-provided limit.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Use the explicit ROADMAP_ISSUE plus ISSUE_COUNT_LIMIT or SCOPE_LIMIT to split only bounded outcomes.
+**Does:** Draft a limited set of issues from live traceability and roadmap.
+**For:** Plan work lots with explicit limit.
+**How:** Demand a limit and draft one bundle per outcome.
 
 **Variables**
 - Required: ROADMAP_ISSUE
 - Optional: ISSUE_COUNT_LIMIT, SCOPE_LIMIT, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.pm_command_bundle. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.pm_command_bundle. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-1.6. Next: MOS-3.4. Recommended: MOS-3.4.
+**Connections:** Previous: MOS-1.6. Next: MOS-3.4 for each approved issue. Recommended: MOS-3.4.

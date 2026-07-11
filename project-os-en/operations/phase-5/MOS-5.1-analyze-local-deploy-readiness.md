@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.target_adoption, evidence.source_basis
 - PM approval: No (read-only)
 
-**Does:** Analyze local deployment readiness from target-owned notes and repository evidence without configuring or deploying anything.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Identify local-only prerequisites, missing target-owned notes, dependency/service assumptions, database or seed-data readiness, local validation expectations, and secret/config risk types.
+**Does:** Analyzes readiness and necessary configuration of the local deployment.
+**For:** Prepare a secure and reproducible local deployment.
+**How:** Perform a read-only review of target notes and the repository; every configuration write goes through an approved delegated route.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -20,6 +20,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Strict security posture: describe sensitive surfaces only by variable name, command, path, or risk type; never expose secrets, `.env` values, tokens, or credentials.
 - Depend on the target adapter's `Project-specific notes`: use only target-owned commands and paths documented there; fail closed if they are missing or ambiguous.
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-4.6. Next: MOS-5.2, MOS-5.10. Recommended: MOS-5.2.

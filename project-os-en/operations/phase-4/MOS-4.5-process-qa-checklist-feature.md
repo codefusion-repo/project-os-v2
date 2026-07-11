@@ -1,4 +1,4 @@
-# MOS-4.5 — PRocess qa checklist feature
+# MOS-4.5 — Process QA checklist feature
 
 MOSDLC operation `process-qa-checklist-feature` · Phase 4 — QA and human verification · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Classify human QA checklist results for a described feature into issue creation, correction, follow-up, no-op, implementation, or PM decision paths.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Classify QA_RESULT findings as blocking correction, non-blocking follow-up, new issue, no-op, implementation, or PM decision only when evidence supports that route.
+**Does:** Processes the result of the human description/feature checklist.
+**For:** Close the features QA loop without anchor issue.
+**How:** Classify findings into a new issue, correction, or no-op.
 
 **Variables**
 - Required: QA_RESULT
 - Optional: DESCRIPTION, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-4.2. Next: MOS-3.8, MOS-4.7. Recommended: MOS-3.8.
+**Connections:** Previous: MOS-4.2. Next: MOS-3.8 or MOS-4.7. Recommended: MOS-3.8 if new work is created.

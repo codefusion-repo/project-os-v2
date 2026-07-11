@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis
 - PM approval: No for drafting; exact approval is required to convert, hide, remove, or disable
 
-**Does:** Draft the removal, hiding, disabling, or conversion of the target's internal-only surfaces before a public release, as a delegated route.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Draft, per internal-only surface, the decision to remove, hide, disable, or convert it before the public release, with the evidence for each choice.
+**Does:** Draft internal-only surface conversion before public release.
+**For:** Publish without exposing internal capabilities of the target.
+**How:** Uses the target's exposure inventory and produces a non-authorizing delegate route.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -21,6 +21,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Do not implement conversions or change packaging; this operation only drafts the route.
 - Redact secrets and do not copy sensitive internal details outside their context.
 
-**Deliver:** output.route_prompt (+output.draft_issue). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.route_prompt (+output.draft_issue). In case of unreadable inventory, ambiguous disposition or missing approval for writing, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-R.22. Next: MOS-R.7. Recommended: MOS-R.7.
+**Connections:** Previous: MOS-R.22. Next: MOS-R.7 to re-verify publication. Recommended: MOS-R.7.

@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Establish the PM browser-chat session context as draft-only and prepare safe MOSDLC routing.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Confirm kernel resolution and browser-chat draft-only posture.
+**Does:** Establishes the PM draft-only session in browser chat by resolving the kernel manifest.
+**For:** Start any MOSDLC cycle with correct boundaries and context.
+**How:** Resolves the kernel, reads minimum alive state and outputs the initial status.
 
 **Variables**
 - Required: — (none)
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: none. Next: MOS-0.2, MOS-0.3, MOS-0.5. Recommended: MOS-0.5, MOS-0.2, MOS-0.3.
+**Connections:** Previous: -. Next: MOS-0.2, MOS-0.3, MOS-0.5. Recommended: MOS-0.5 if there is a target adopted; MOS-0.2 or MOS-0.3 if not.

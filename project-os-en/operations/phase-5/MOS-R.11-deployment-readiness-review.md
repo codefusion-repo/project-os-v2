@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.target_adoption, evidence.source_basis
 - PM approval: No (read-only readiness review)
 
-**Does:** Review deployment readiness for one environment selected by TARGET_ENVIRONMENT, read-only and parameterized.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Read-only readiness review for TARGET_ENVIRONMENT: configuration presence, target-owned deploy commands, pending checklist items, and unresolved blockers, without collapsing the per-environment PM-facing operations.
+**Does:** Check deployment readiness for a `TARGET_ENVIRONMENT`.
+**For:** Unify local analysis/staging/production without deleting PM-facing operations per environment.
+**How:** Verify configuration, target-owned commands, pending checklist and environment blockers.
 
 **Variables**
 - Required: TARGET_REPOSITORY, TARGET_ENVIRONMENT
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. For missing evidence, nonexistent environment or PM decision required, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-5.1, MOS-5.4, MOS-5.7. Next: MOS-R.12. Recommended: MOS-R.12.
+**Connections:** Previous: MOS-5.1, MOS-5.4 or MOS-5.7. Next: MOS-R.12 if there is readiness; If not, checklist of the corresponding environment. Recommended: MOS-R.12 when readiness is sufficient.

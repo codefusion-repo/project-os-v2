@@ -1,19 +1,28 @@
-# Handoff packet
+# Handoff package
+
+Responsibility: transfer context pointing to living evidence, do not save
+durable state.
 
 ```markdown
-## Current state
-{{Live issue/PR/branch/check references; include a SHA only when live output requires it.}}
+## Current status
+
+{{Live references to issue/PR/branch/checks; no SHAs unless the live output
+required for the immediate task.}}
 
 ## Verified vs assumed
-- Verified: {{Evidence.}}
-- Assumed: {{Explicit assumption.}}
+
+- Verified: {{evidence read live.}}
+- Assumed: {{unverified claims or none.}}
 
 ## Next steps
-1. {{Step with source basis.}}
+
+- {{Step with source basis.}}
 
 ## Open PM decisions
-- {{Decision or none.}}
 
-## Active limits
-- {{Resolved boundary.}}
+- {{Decision and options if applicable.}}
+
+## Active boundaries
+
+- {{No-live-state, no-authorization, secret safety, validation, etc.}}
 ```

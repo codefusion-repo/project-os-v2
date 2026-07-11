@@ -1,19 +1,31 @@
-# Canonical roadmap
+# Canonical Roadmap
+
+Responsibility: explain what is next and why, without saving living status.
 
 ```markdown
 ## Purpose
-{{Project direction in 2–4 sentences.}}
+
+{{Project direction in 2-4 sentences.}}
 
 ## Phases
-### {{PHASE-ID}} — {{Name}}
-{{Objective in 1–2 sentences.}}
+
+### {{PHASE-ID}} - {{Name}}
+
+{{Goal in 1-2 sentences.}}
+
+Exit criteria:
+- {{Observable criterion.}}
 
 ## Kill criteria
-- {{Condition that stops or redirects the initiative.}}
+
+- {{Conditions to abandon or re-scope.}}
 
 ## Not now / out of scope
-- {{Deferred work.}}
+
+- {{Deferred until new evidence or approval.}}
 
 ## Non-authorization
-This roadmap records direction and never grants execution authority.
+
+This roadmap does not authorize writes by itself; each mutable action requires its
+own scope, evidence and exact PM approval.
 ```

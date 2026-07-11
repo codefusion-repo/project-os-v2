@@ -1,4 +1,4 @@
-# MOS-4.4 — PRocess qa checklist issue pr
+# MOS-4.4 — Process an issue/PR QA checklist
 
 MOSDLC operation `process-qa-checklist-issue-pr` · Phase 4 — QA and human verification · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Classify human QA checklist results for an issue or PR into correction, follow-up, no-op, review-before-close, implementation, or PM decision paths.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Classify QA_RESULT findings as blocking correction, non-blocking follow-up, no-op, review-before-close, implementation, or PM decision only when evidence supports that route.
+**Does:** Processes the result of the issue/PR human checklist.
+**For:** Convert human QA into correction, follow-up or advancement.
+**How:** Classifies blockers and non-blockers without executing anything.
 
 **Variables**
 - Required: QA_RESULT
 - Optional: ISSUE_NUMBER, PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-4.1. Next: MOS-4.8, MOS-4.7, MOS-3.7. Recommended: MOS-4.8.
+**Connections:** Previous: MOS-4.1. Next: MOS-4.8, MOS-4.7 or MOS-3.7. Recommended: MOS-4.8 for blockers.

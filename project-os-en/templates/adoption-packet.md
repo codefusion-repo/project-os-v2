@@ -1,30 +1,42 @@
-# Adoption packet
+# Adoption package
+
+Responsibility: report an audit or bootstrap of a target's adapters.
 
 ```markdown
 ## Target
+
 {{Repository and PM-facing language.}}
 
 ## Adopted kernel version
-{{Declared version or tracks latest.}}
 
-## Adoption state
-{{Reconstructed live state.}}
+{{Declared version or latest tracks.}}
+
+## Adoption status
+
+- Present: {{adapters found.}}
+- Missing: {{missing adapters.}}
 
 ## Findings
-- {{Evidence-backed finding.}}
+
+- {{Drift, risk or target-owned note.}}
 
 ## Adapter diff or draft
-{{Paths and summary; no secrets or durable live state.}}
+
+{{Routes and summary; don't paste secrets or live status.}}
 
 ## Exact write scope
-{{Approved adapter-only scope, if applicable.}}
+
+{{Approved adapters only, if applicable.}}
 
 ## Adoption checklist
-- [ ] {{Check.}}
+
+- {{PM/agent validation and verification}}
 
 ## Target-owned
-{{Product/domain truth, build, validation, and constraints retained by the target.}}
+
+{{Product, domain, build, validation and constraints that remain in the target.}}
 
 ## Rollback
-{{Restore prior adapters or revert the PR.}}
+
+{{Restore previous adapters or revert PR.}}
 ```

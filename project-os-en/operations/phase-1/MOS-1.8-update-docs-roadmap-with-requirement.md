@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: Yes (exact approval for the file write only)
 
-**Does:** Draft documentation and roadmap updates for an accepted new requirement while keeping writes behind exact approval gates.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Draft the documentation update needed for the accepted requirement and identify DOC_TARGET when evidence supports it.
+**Does:** Update documentation and roadmap with an accepted requirement.
+**For:** Maintain docs and roadmap as the only truth of scope.
+**How:** Draft changes to docs and roadmap bundles; writing with exact approval.
 
 **Variables**
 - Required: DESCRIPTION
 - Optional: ROADMAP_ISSUE, DOC_TARGET, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.route_prompt (+output.pm_command_bundle). If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.route_prompt (+output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-1.7. Next: MOS-3.1. Recommended: MOS-3.1.

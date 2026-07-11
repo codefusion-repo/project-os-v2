@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.target_adoption
 - PM approval: No (read-only)
 
-**Does:** Inventory existing design documentation in an adopted target project before creating or updating Phase 2 docs.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Identify existing architecture, UI/UX, data/algorithm, coding standards, and security design docs.
+**Does:** Identifies the existing design documentation in a project.
+**For:** Know what design already exists before creating or updating.
+**How:** Read-only inventory of design docs and their status.
 
 **Variables**
 - Required: TARGET_REPOSITORY
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-1.12. Next: MOS-2.8. Recommended: MOS-2.8.

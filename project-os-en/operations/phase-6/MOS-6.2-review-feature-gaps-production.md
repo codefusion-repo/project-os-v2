@@ -1,6 +1,6 @@
 # MOS-6.2 — Review feature gaps production
 
-MOSDLC operation `review-feature-gaps-production` · Phase 6 — Production readiness and maintenance · Risk: low.
+MOSDLC operation `review-feature-gaps-production` · Phase 6 — Maintenance and improvements · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
 
 - Surface: browser_chat
@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.source_basis
 - PM approval: No (read-only)
 
-**Does:** Review functional feature gaps for production readiness.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Contrast documented requirements, use cases, and user stories against the code's observable behavior.
+**Does:** Review functionality gaps for production readiness.
+**For:** Know what is missing functionally before production.
+**How:** Contrast real features against docs and requirements.
 
 **Variables**
 - Required: TARGET_REPOSITORY
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-4.6. Next: MOS-6.8. Recommended: MOS-6.8.

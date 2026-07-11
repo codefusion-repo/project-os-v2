@@ -1,14 +1,24 @@
 # ADR
 
+Responsibility: record a durable decision that survives the issue.
+
 ```markdown
 # ADR-NNNN: {{Title}}
 
+- Status: accepted | superseded by ADR-NNNN
+- Date: {{YYYY-MM-DD}}
+
 ## Context
-{{Forces and evidence that require the decision.}}
+
+{{Forces and evidence that make the decision necessary.}}
 
 ## Decision
-{{Durable rule future work can follow.}}
+
+{{Rule which future work can follow.}}
 
 ## Consequences
-{{What this enables, prohibits, and the accepted tradeoffs.}}
+
+{{What enables, what prohibits and accepted tradeoffs.}}
 ```
+
+An ADR documents a decision; it does not authorize writing or store live state.

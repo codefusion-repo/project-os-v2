@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Validate requirements documentation against identified requirements before roadmap planning.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Check coverage, contradictions, missing non-functional requirements, unclear use cases, missing user stories, and unresolved PM decisions.
+**Does:** Validates created documentation against identified requirements.
+**For:** Detect gaps or contradictions before planning.
+**How:** Review read-only doc against requirements with actionable findings.
 
 **Variables**
 - Required: — (none)
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-1.4. Next: MOS-1.6. Recommended: MOS-1.6.

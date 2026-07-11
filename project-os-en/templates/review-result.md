@@ -1,24 +1,33 @@
 # Review result
 
+Responsibility: report findings or verdict supported by evidence.
+
 ```markdown
-## Scope reviewed
-{{Issue, PR, or surface.}}
+## Reviewed scope
+
+{{Issue/PR/surface.}}
 
 ## Evidence reviewed
-- {{Diff, final file, validation, or live source.}}
 
-## Comparison against scope
-{{Objective/scope/out-of-scope/acceptance mapped to evidence.}}
+- {{Diff, final files, comments, validation, docs}}
+
+## Scope comparison
+
+{{Short map of objective/scope/out-of-scope/acceptance versus evidence.}}
 
 ## Findings
-- {{Severity · path:line · evidence · impact.}}
+
+- {{severity}} - {{file:line or reference}} - {{finding}}
 
 ## Verdict or recommendation
-{{GO, NO-GO, needs_context, follow-up, or recommendation.}}
+
+{{GO, NO-GO, needs_context, follow-up or recommendation.}}
 
 ## Risks
+
 {{Residual risks.}}
 
 ## Not reviewed
+
 {{Explicit gaps.}}
 ```

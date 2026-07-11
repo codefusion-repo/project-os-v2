@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.source_basis
 - PM approval: No (the route prompt does not authorize; writing requires exact PM approval)
 
-**Does:** Draft an external-recipient security review prompt with strict secret-redaction posture.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Draft output.security_review_prompt with review objective, sensitive surfaces, OWASP areas, the eight security domains where relevant, evidence to inspect, findings format, and redaction rules.
+**Does:** Draft the OWASP security review prompt and the 8 domains where appropriate.
+**For:** Obtain an external security gate with mandatory redaction.
+**How:** Prompt with sensitive surface described without exposing secrets.
 
 **Variables**
 - Required: PR_NUMBER
@@ -19,6 +19,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 **Safeguards**
 - Strict security posture: describe sensitive surfaces only by variable name, command, path, or risk type; never expose secrets, `.env` values, tokens, or credentials.
 
-**Deliver:** output.security_review_prompt. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.security_review_prompt. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.7, MOS-6.1. Next: MOS-3.25. Recommended: MOS-3.25.
+**Connections:** Previous: MOS-3.7 or MOS-6.1. Next: MOS-3.25 when the result arrives. Recommended: MOS-3.25.

@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.issue_scope, evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only; a human applies and validates)
 
-**Does:** Draft a human-executable implementation plan for one scoped issue without editing files.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Draft output.manual_implementation_plan with objective, files to inspect, files to modify, anchored change plan, reasoning, validation commands, manual QA, risks, rollback, and next operation.
+**Does:** Draft a human-executable, step-by-step plan to implement an issue without writing files.
+**For:** Deploy when no terminal agent is available or appropriate.
+**How:** Detailed plan by file and anchors; he never claims to have edited code.
 
 **Variables**
 - Required: ISSUE_NUMBER
 - Optional: TARGET_REPOSITORY, PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.manual_implementation_plan. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.manual_implementation_plan. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.1, MOS-3.4. Next: MOS-3.31. Recommended: MOS-3.31.
+**Connections:** Previous: MOS-3.1 or MOS-3.4 not available. Next: MOS-3.31. Recommended: MOS-3.31.

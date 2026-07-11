@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis
 - PM approval: No (draft-only)
 
-**Does:** Conduct a guided PM interview to elicit functional and non-functional requirements without writing repository files.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Ask focused questions that separate functional requirements, non-functional requirements, constraints, assumptions, and open PM decisions.
+**Does:** Conduct a guided interview with the PM to elicit requirements.
+**For:** Capture functional and non-functional requirements from the PM's knowledge.
+**How:** Ask iterative questions in chat and synthesize the findings without writing files.
 
 **Variables**
 - Required: — (none)
 - Optional: TARGET_REPOSITORY, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-0.5. Next: MOS-1.2. Recommended: MOS-1.2.

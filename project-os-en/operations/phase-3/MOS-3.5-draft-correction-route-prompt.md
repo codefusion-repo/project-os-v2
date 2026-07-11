@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (the route prompt does not authorize; writing requires exact PM approval)
 
-**Does:** Draft a non-authorizing correction route prompt from actionable PR or issue feedback without expanding scope.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Summarize actionable findings and map each one to the original issue or PR evidence.
+**Does:** Draft the correction route-prompt of a PR/issue from actionable feedback.
+**For:** Correct without expanding the original scope.
+**How:** Encapsulate findings in a delegated correction route. Browser chat may recommend an optional skill and infer `RECOMMENDED_TERMINAL_AGENT_FAMILY` from the work. The recommendation is advisory, authorizes nothing, and may be overridden by explicit PM feedback.
 
 **Variables**
 - Required: ISSUE_NUMBER
-- Optional: PR_NUMBER, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Optional: PR_NUMBER, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the skill, PM feedback, and PM questions are context only and never authorize an action). The wizard requires `PM_AUTHORIZATION_STATUS` before generating this route prompt.
 
-**Deliver:** output.route_prompt. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.route_prompt. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.7, MOS-3.25, MOS-4.4. Next: MOS-3.7. Recommended: MOS-3.7.
+**Connections:** Previous: MOS-3.7, MOS-3.25 or MOS-4.4. Next: MOS-3.7. Recommended: MOS-3.7.

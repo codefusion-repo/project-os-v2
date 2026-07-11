@@ -1,6 +1,6 @@
 # MOS-R.18 — Secret safe config audit
 
-MOSDLC operation `secret-safe-config-audit` · Phase 6 — Production readiness and maintenance · Risk: high.
+MOSDLC operation `secret-safe-config-audit` · Phase 6 — Maintenance and improvements · Risk: high.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
 
 - Surface: browser_chat / terminal_agent
@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only and redacted audit by design)
 
-**Does:** Audit environment and configuration risk for the target project reporting only file paths, variable names, and risk types, never values.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Read-only, redacted-by-design scan of environment and configuration risk: committed secrets, secret-looking values, unsafe defaults, missing env templates, and overexposed configuration.
+**Does:** Audit environment/config risks without exposing secrets.
+**For:** Detect insecure configuration, risky defaults or compromised secrets without copying values.
+**How:** Review repo configuration surfaces and report only path, variable name and risk type.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -21,6 +21,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Do not run `env`, `printenv`, `set`, framework dumps, or CI secret contexts.
 - Do not rotate keys, edit configuration, mutate secret stores, or touch deployment secrets.
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. For unreadable surfaces, return `status.needs_context`; if a live secret is exposed, return `status.blocked`.
 
-**Connections:** Previous: MOS-6.1. Next: MOS-3.3. Recommended: MOS-3.3.
+**Connections:** Previous: MOS-6.1 or maintenance audit. Next: MOS-3.3 for detected risk. Recommended: MOS-3.3.

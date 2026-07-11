@@ -1,30 +1,43 @@
 # Issue
 
+Responsibility: draft a verifiable unit of work with one outcome per issue.
+
 ```markdown
-## Why this exists
-{{1–3 sentences describing the real problem.}}
+## Why it exists
+
+{{1-3 sentences of the real problem.}}
 
 ## Objective
-{{Observable outcome at closure.}}
+
+{{Observable result upon closing.}}
 
 ## Source basis
-- {{Live sources and durable decisions.}}
+
+- {{Roadmap, issues, PRs, ADRs or source decisions.}}
 
 ## Scope
-- {{Included work.}}
+
+- {{Included. Maximum practical and verifiable.}}
 
 ## Out of scope
-- {{Excluded work.}}
+
+- {{Only plausible errors that the agent could try.}}
 
 ## Included decisions
-{{Binding PM decisions, if any; omit when not applicable.}}
+
+{{Binding PM decisions if they exist; skip if not applicable.}}
 
 ## Acceptance criteria
-- [ ] {{Verifiable result.}}
+
+- {{Observable criteria.}}
 
 ## Validation
-- {{Agent-run, PM-run, manual PM, or justified none.}}
+
+- {{Agent-run, PM-run, manual PM or no automated with reason.}}
 
 ## Risk and rollback
+
 {{Brief risk. Rollback: revert the PR when applicable.}}
 ```
+
+Do not keep live status or secret values.

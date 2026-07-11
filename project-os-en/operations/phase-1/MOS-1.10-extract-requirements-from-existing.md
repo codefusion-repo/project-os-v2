@@ -8,14 +8,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.target_adoption
 - PM approval: No (read-only)
 
-**Does:** Identify observable requirements from an existing adopted project that lacks formal Phase 1 documentation.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Extract functional requirements, non-functional requirements, constraints, user roles, workflows, and open questions from observable project evidence.
+**Does:** Identify real requirements from the code and docs of an existing project.
+**For:** Adopt projects that never had formal Phase 1.
+**How:** Read the repo target and reconstruct observable requirements.
 
 **Variables**
 - Required: TARGET_REPOSITORY
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
-**Deliver:** output.status_result. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-0.3. Next: MOS-1.11. Recommended: MOS-1.11.

@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.deployment_readiness, evidence.validation_output, evidence.repo_state
 - PM approval: Yes (exact for target, environment, and action; never implicit)
 
-**Does:** Execute an internal staging deployment through workflow.deployment and mode.delegated_deploy_execution, running only target-owned commands for the one approved staging environment and failing closed otherwise.
-**For:** Complete this lifecycle outcome through the selected workflow with explicit evidence and boundaries.
-**How:** Fail closed to status.blocked when target-owned commands, exact environment-scoped approval, deployment readiness, adoption, source basis, validation, or secret-safety is missing or ambiguous.
+**Does:** Execute the deployment in staging by terminal agent only if the target supports it.
+**For:** Deploy frictionless internal staging when safe.
+**How:** Execute only target-owned commands under exact approval and report redacted.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -23,6 +23,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Strict security posture: describe sensitive surfaces only by variable name, command, path, or risk type; never expose secrets, `.env` values, tokens, or credentials.
 - Internal-only (CodeFusion use): remove, hide, disable, or convert this operation before any public Project OS release.
 
-**Deliver:** output.execution_report. If required evidence, scope, or approval is missing or ambiguous, fail closed with `output.status_result` and return the decision to the PM.
+**Deliver:** output.execution_report. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
 **Connections:** Previous: MOS-5.12. Next: MOS-R.13. Recommended: MOS-R.13.
