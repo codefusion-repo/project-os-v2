@@ -1,25 +1,20 @@
 # AGENTS.md (adapter terminal para target)
 
-Copia este archivo al repo target como `AGENTS.md`, reemplaza
-`{{PLACEHOLDERS}}` y elimina este bloque inicial.
+Copia el bloque siguiente como `AGENTS.md` en el target, reemplaza los
+`{{PLACEHOLDERS}}` y elimina estas instrucciones de copia.
 
 ---
 
 # AGENTS.md
 
-## Contrato
-
-AGENTS.md es el bootloader terminal de `{{ORG/REPO}}`.
-
-No es fuente de verdad. El kernel Project OS define comportamiento generico
-(actores, modos, workflows, limites, evidencia, salidas y estados). La verdad
-de producto, dominio, runtime, validacion y decisiones PM vive en el target y
-en su evidencia viva.
-
-Debe permanecer compacto. No guarda estado vivo: issues, PRs, ramas, commits,
-reviews, validacion, roadmap activo ni readiness.
+AGENTS.md es el bootloader terminal de `{{ORG/REPO}}`. No es fuente de verdad
+ni concede permisos: el comportamiento genérico vive en `project-os-es/kernel/`
+y los hechos del target se reconstruyen desde su evidencia viva.
 
 ## Identidad del repositorio
+
+Estas rutas y la versión adoptada son configuración de máquina/adopción, no
+estado vivo. Conserva estos campos y orden.
 
 PROJECT_NAME = {{PROJECT_NAME}}
 REPOSITORY_NAME = {{ORG/REPO}}
@@ -31,60 +26,34 @@ KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = {{ruta absoluta a project-os-v2/project-os-es/kernel}}
 KERNEL_VERSION_ADOPTED = {{version adoptada o "tracks latest"}}
 
-## Resolucion del kernel
+## Resolución del kernel
 
-Antes de trabajo no trivial, resuelve desde `KERNEL_LOCAL_PATH` siguiendo
-`project-os-es/kernel/manifest.json` exactamente. En terminal usa el resolver
-principal del repo Project OS:
+Antes de trabajo no trivial, lee `project-os-es/kernel/manifest.json` y sigue
+su `resolution_sequence`. En terminal, cuando el checkout del kernel esté
+disponible, usa este fast path:
 
 ```sh
-PROJECT_OS_ROOT="${KERNEL_LOCAL_PATH%/project-os-es/kernel}"
+KERNEL_DIR="{{ruta absoluta a project-os-v2/project-os-es/kernel}}"
+PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_LOCAL_PATH" [--skill skill.<id>]
+  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
 ```
 
-La resolucion manual de `project-os-es/kernel/manifest.json` es el fallback
-canonico para esta superficie. La resolucion da forma operativa y nunca concede
-permisos.
+El resolver acelera la resolución; el manifest sigue siendo canónico. Ambos
+solo dan forma y nunca autorizan una acción. Consulta artefactos, templates y
+skills desde las referencias resueltas, sin copiar sus contratos aquí.
 
-`--skill` es opcional y solo expone una referencia de capacidad del agente; no
-autoriza escritura ni reemplaza evidencia, aprobacion PM, preflight,
-validacion, trazabilidad o review-before-close.
+## Evidencia viva
 
-## Outputs y artefactos
+Reconstruye el estado desde GitHub, git, el roadmap canónico `{{#ROADMAP_ISSUE}}`
+y los ADRs del target cuando apliquen. No lo guardes en este archivo. Ante
+kernel, evidencia, autoridad o validación requerida faltantes o ambiguos, falla
+cerrado según el kernel resuelto.
 
-Cuando produzcas reportes de ejecucion, cuerpos de PR, paquetes de handoff,
-paquetes de adopcion u otros outputs, usa los artefactos/template references
-resueltos desde `project-os-es` cuando apliquen. Los templates dan forma y nunca
-autorizan.
+## Notas propias del target
 
-Cuando el PM pida una capacidad o un route prompt la recomiende, usa el skill
-resuelto como referencia a `project-os-es/habilidades/`. Los skills no son
-artefactos ni templates.
-
-El terminal agent sigue obligado por scope vivo, branch preflight, aprobacion PM
-exacta, validacion proporcional y review-before-close. Ningun artefacto ni
-template reemplaza esos gates.
-
-## Estado vivo
-
-Reconstruye estado para `REPOSITORY_NAME` desde GitHub y git al momento de la
-tarea: issue actual, PRs vinculados, roadmap canonico `{{#ROADMAP_ISSUE}}` y
-ADRs del target en `docs/decisions/` cuando existan. Si falta evidencia,
-devuelve el estado no resuelto correspondiente; no inventes.
-
-## Seguridad y validacion
-
-- No imprimas, pegues, commitees ni resumas `.env`, tokens, credenciales,
-  cookies, JWTs, URLs de base de datos, llaves privadas, secretos CI ni valores
-  con pinta de secreto; redacta como `[REDACTED]`.
-- No cambies secretos, settings, credenciales, produccion, pagos ni despliegues
-  sin aprobacion PM exacta separada.
-- Para web/API/user-facing, considera auth, autorizacion, sesiones, input
-  validation, uploads, redirects, dependencias y superficies admin.
-- Valida proporcionalmente segun `project-os-es/docs/reglas.md` y las reglas
-  resueltas desde `project-os-es/kernel/`:
-  comandos agent-run cuando el riesgo lo exige, comandos PM-run cuando
-  corresponda, validacion manual PM para claridad/UX/copy, o ausencia
-  justificada.
+Añade únicamente comandos estables de build/validación, paths protegidos,
+restricciones de dominio o seguridad, idioma PM-facing y escalaciones
+específicas. La política genérica de seguridad, trazabilidad y validación sigue
+en `project-os-es/docs/reglas.md` y el kernel resuelto.

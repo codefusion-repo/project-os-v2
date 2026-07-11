@@ -43,11 +43,14 @@ CANONICAL_HEADINGS = {
         "Outputs y artefactos",
         "Live state",
         "Estado vivo",
+        "Evidencia viva",
         "Seguridad y validacion",
         "Seguridad y validación",
         "Project-specific notes",
         "Notas especificas del proyecto",
         "Notas específicas del proyecto",
+        "Notas propias del target",
+        "Notas propias del repositorio",
     },
     "BROWSER_CHAT.md": {
         "Contract",
@@ -70,6 +73,8 @@ CANONICAL_HEADINGS = {
         "First-message activation",
         "Activacion del primer mensaje",
         "Activación del primer mensaje",
+        "Resolución y evidencia",
+        "Notas propias del target",
     },
     "CLAUDE.md": set(),
     "GEMINI.md": set(),
@@ -120,7 +125,66 @@ PROTECTED_NOTES_HEADINGS = {
     PROTECTED_NOTES_HEADING,
     "Notas especificas del proyecto",
     "Notas específicas del proyecto",
+    "Notas propias del target",
+    "Notas propias del repositorio",
 }
+
+# These patterns identify complete, known legacy copies of cross-project policy,
+# not fragments of otherwise target-owned content. Patterns are matched against
+# normalized comparison units in their entirety. Anything added to, combined
+# with, or otherwise differing from one of these units remains target-owned and
+# is compared base-to-head.
+GENERIC_POLICY_PATTERNS = (
+    re.compile(r"security / (?:project|target) constraints:?", re.I),
+    re.compile(
+        r"follow target-specific security practices; for web/api/user-facing changes, "
+        r"consider owasp secure-coding risks such as auth, authorization, sessions, "
+        r"input validation, file uploads, redirects, dependency risk, and admin surfaces\.?",
+        re.I,
+    ),
+    re.compile(
+        r"never print, paste, commit, upload, summarize, quote, or expose `?\.env`?, "
+        r"`?\.env\.\*`?, private keys, api tokens, oauth/client secrets, database urls, "
+        r"cookies, session tokens, jwts, production credentials, payment-provider keys, "
+        r"ssh/gpg keys, ci secrets, or secret-looking values\.?",
+        re.I,
+    ),
+    re.compile(
+        r"treat sensitive values as unsafe even in tests, logs, screenshots, shell output, "
+        r"github comments, pr bodies, validation reports, and copied command output\.?",
+        re.I,
+    ),
+    re.compile(
+        r"redact sensitive values as `?\[redacted\]`?; report only file paths, variable names, "
+        r"and risk type\.?",
+        re.I,
+    ),
+    re.compile(
+        r"do not run broad environment/config dumps such as `?env`?, `?printenv`?, `?set`?, "
+        r"framework config dumps, or ci secret-context dumps unless the pm explicitly scopes "
+        r"a safe redacted diagnostic\.?",
+        re.I,
+    ),
+    re.compile(
+        r"do not modify secret stores, rotate keys, change production credentials, edit "
+        r"deployment secrets, or touch payment/auth production settings without separate "
+        r"exact pm approval\.?",
+        re.I,
+    ),
+    re.compile(
+        r"keep build commands, protected paths, domain constraints, and validation notes here "
+        r"when they are stable and target-owned; never store issue/pr/branch state, shas, review "
+        r"status, release status, or live validation results\.?",
+        re.I,
+    ),
+    re.compile(
+        r"follow proportional validation from `?project-os-es/docs/reglas\.md`? and "
+        r"`?project-os-es/kernel/reglas-operativas\.json`?: run scoped required checks, draft "
+        r"pm-run commands when useful validation should remain pm-executed, and do not impose "
+        r"project os-specific tests or add tests by default unless the issue risk justifies them\.?",
+        re.I,
+    ),
+)
 
 
 @dataclass(frozen=True)
@@ -640,32 +704,91 @@ def _parse_sections(source: Source) -> dict[str, Section]:
     return sections
 
 
-def _significant_lines(section: Section | None) -> list[tuple[int, str]]:
+def _content_units(section: Section | None) -> list[tuple[int, str]]:
+    """Return paragraphs and list items as comparison units.
+
+    A legacy policy bullet can wrap across several physical lines. Comparing the
+    complete unit avoids treating its continuation lines as separate
+    target-owned constraints while keeping each real constraint independently
+    removable.
+    """
+
     if section is None:
         return []
-    lines: list[tuple[int, str]] = []
+
+    units: list[tuple[int, str]] = []
+    current_line: int | None = None
+    current_parts: list[str] = []
+
+    def flush() -> None:
+        nonlocal current_line, current_parts
+        if current_line is not None:
+            units.append((current_line, " ".join(current_parts)))
+        current_line = None
+        current_parts = []
+
     for line_no, line in section.body:
         stripped = line.strip()
-        if not stripped or PLACEHOLDER_PATTERN.search(stripped):
+        if not stripped:
+            flush()
             continue
-        lines.append((line_no, stripped))
-    return lines
+        if PLACEHOLDER_PATTERN.search(stripped):
+            continue
+        if re.match(r"(?:[-*+]\s+|\d+[.)]\s+)", stripped):
+            flush()
+            current_line = line_no
+            current_parts = [stripped]
+            continue
+        if current_line is not None and re.match(r"(?:[-*+]\s+|\d+[.)]\s+)", current_parts[0]):
+            current_parts.append(stripped)
+            continue
+        flush()
+        current_line = line_no
+        current_parts = [stripped]
+    flush()
+    return units
+
+
+def _is_generic_policy_unit(unit: str) -> bool:
+    normalized = _normalized_content(unit)
+    return any(pattern.fullmatch(normalized) for pattern in GENERIC_POLICY_PATTERNS)
+
+
+def _target_owned_content(section: Section | None) -> list[tuple[int, str]]:
+    return [
+        (line_no, unit)
+        for line_no, unit in _content_units(section)
+        if not _is_generic_policy_unit(unit)
+    ]
+
+
+def _normalized_content(unit: str) -> str:
+    return " ".join(re.sub(r"^(?:[-*+]\s+|\d+[.)]\s+)", "", unit).split())
+
+
+def _section_identity(heading: str) -> str:
+    if heading in PROTECTED_NOTES_HEADINGS:
+        return PROTECTED_NOTES_HEADING
+    return heading
 
 
 def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
     findings: list[Finding] = []
     base_sections = _parse_sections(base)
     head_sections = _parse_sections(head)
+    head_sections_by_identity = {
+        _section_identity(heading): section for heading, section in head_sections.items()
+    }
     canonical = CANONICAL_HEADINGS.get(base.name, set())
 
     for heading, section in sorted(base_sections.items(), key=lambda item: item[1].line):
         protected = heading not in canonical or heading in PROTECTED_NOTES_HEADINGS
         if not protected:
             continue
-        base_lines = _significant_lines(section)
-        if not base_lines:
+        base_content = _target_owned_content(section)
+        if not base_content:
             continue
-        head_section = head_sections.get(heading)
+        head_section = head_sections_by_identity.get(_section_identity(heading))
         if head_section is None:
             findings.append(
                 Finding(
@@ -678,9 +801,11 @@ def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
                 )
             )
             continue
-        head_text = "\n".join(line for _, line in _significant_lines(head_section))
-        for line_no, protected_line in base_lines:
-            if protected_line not in head_text:
+        head_content = {
+            _normalized_content(unit) for _, unit in _target_owned_content(head_section)
+        }
+        for line_no, protected_line in base_content:
+            if _normalized_content(protected_line) not in head_content:
                 findings.append(
                     Finding(
                         "TAA-OVERLAY-CONTENT-REMOVED",
@@ -724,7 +849,8 @@ def audit_target_adapters(
     if "GEMINI.md" in head_sources:
         findings.extend(_check_compact_bootloader(head_sources["GEMINI.md"], "GEMINI.md", "GEMINI"))
 
-    roadmap_findings, canonical_anchors = _check_roadmaps(full_sources, expected_repository)
+    terminal_sources = [head_sources["AGENTS.md"]] if "AGENTS.md" in head_sources else []
+    roadmap_findings, canonical_anchors = _check_roadmaps(terminal_sources, expected_repository)
     findings.extend(roadmap_findings)
     for source in list(head_sources.values()) + ([browser_chat] if browser_chat else []):
         findings.extend(_check_live_state(source, expected_repository, canonical_anchors))

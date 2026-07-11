@@ -1,19 +1,19 @@
 # Adapters compactos en español
 
-Estos archivos son bootloaders para adoptar Project OS en repos target. Su
-responsabilidad es apuntar al kernel, a la evidencia viva y a las constraints
-del target; no duplican comportamiento del kernel ni guardan estado vivo.
-Despues de resolver workflow/kernel, los artefactos y templates dan forma a los
-outputs de esa superficie. Los skills opcionales, cuando se piden o recomiendan,
-dan guia de metodo al agente y permanecen separados de artefactos/templates.
+Los adapters son bootloaders copiables: conservan metadata de adopción,
+punteros al kernel y constraints estables del target. El kernel, resolver, docs
+y templates son dueños del comportamiento genérico; un adapter nunca autoriza
+una acción ni guarda estado vivo.
 
-- `project-os-es/adapters/AGENTS.target.md`: adapter terminal/repo-wide.
-- `project-os-es/adapters/BROWSER_CHAT.target.md`: adapter draft-only para browser chat.
-- `project-os-es/adapters/CLAUDE.target.md`: puntero compacto al adapter
-  terminal espanol para Claude.
-- `project-os-es/adapters/GEMINI.target.md`: puntero compacto al adapter
-  terminal espanol para Gemini.
+- `AGENTS.target.md` es el único bootloader terminal completo.
+- `CLAUDE.target.md` y `GEMINI.target.md` son shims hacia `AGENTS.md`.
+- `BROWSER_CHAT.target.md` es el bootloader separado de `actor.browser_chat`:
+  read-only, draft-only y sin fast path local.
 
-Todo permiso de escritura exige aprobacion PM exacta, evidencia viva, preflight
-cuando aplique y validacion proporcional. Estos adapters nunca autorizan por si
-solos.
+Para adoptar un target, copia el adapter de la superficie, reemplaza los
+placeholders y conserva el bloque estándar de metadata en el mismo orden. Usa
+`Notas propias del target` solo para comandos estables, paths protegidos,
+restricciones de dominio o seguridad, idioma PM-facing y escalaciones. No
+copies contratos de actores, modos, workflows, límites, evidencia, outputs,
+estados o políticas completas: el manifest y sus referencias canónicas los
+resuelven cuando se necesitan.
