@@ -129,6 +129,22 @@ PROTECTED_NOTES_HEADINGS = {
     "Notas propias del repositorio",
 }
 
+# These patterns identify legacy copies of cross-project policy, not allowed
+# target content. Anything in a protected notes section that does not match one
+# of these policy shapes remains target-owned and is compared base-to-head.
+GENERIC_POLICY_PATTERNS = (
+    re.compile(r"\bsecurity / (?:project|target) constraints\b", re.I),
+    re.compile(r"\btarget-specific security practices\b", re.I),
+    re.compile(r"\bOWASP secure-coding risks?\b", re.I),
+    re.compile(r"\b(?:never print|never expose).+\bsecret-looking values?\b", re.I),
+    re.compile(r"\btreat sensitive values as unsafe\b", re.I),
+    re.compile(r"\bredact sensitive values as `?\[REDACTED\]`?", re.I),
+    re.compile(r"\bbroad environment/config dumps?\b", re.I),
+    re.compile(r"\bdo not modify secret stores\b", re.I),
+    re.compile(r"\bkeep build commands, protected paths, domain constraints, and validation notes\b", re.I),
+    re.compile(r"\bfollow proportional validation\b", re.I),
+)
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -647,16 +663,65 @@ def _parse_sections(source: Source) -> dict[str, Section]:
     return sections
 
 
-def _significant_lines(section: Section | None) -> list[tuple[int, str]]:
+def _content_units(section: Section | None) -> list[tuple[int, str]]:
+    """Return paragraphs and list items as comparison units.
+
+    A legacy policy bullet can wrap across several physical lines. Comparing the
+    complete unit avoids treating its continuation lines as separate
+    target-owned constraints while keeping each real constraint independently
+    removable.
+    """
+
     if section is None:
         return []
-    lines: list[tuple[int, str]] = []
+
+    units: list[tuple[int, str]] = []
+    current_line: int | None = None
+    current_parts: list[str] = []
+
+    def flush() -> None:
+        nonlocal current_line, current_parts
+        if current_line is not None:
+            units.append((current_line, " ".join(current_parts)))
+        current_line = None
+        current_parts = []
+
     for line_no, line in section.body:
         stripped = line.strip()
-        if not stripped or PLACEHOLDER_PATTERN.search(stripped):
+        if not stripped:
+            flush()
             continue
-        lines.append((line_no, stripped))
-    return lines
+        if PLACEHOLDER_PATTERN.search(stripped):
+            continue
+        if re.match(r"(?:[-*+]\s+|\d+[.)]\s+)", stripped):
+            flush()
+            current_line = line_no
+            current_parts = [stripped]
+            continue
+        if current_line is not None and re.match(r"(?:[-*+]\s+|\d+[.)]\s+)", current_parts[0]):
+            current_parts.append(stripped)
+            continue
+        flush()
+        current_line = line_no
+        current_parts = [stripped]
+    flush()
+    return units
+
+
+def _is_generic_policy_unit(unit: str) -> bool:
+    return any(pattern.search(unit) for pattern in GENERIC_POLICY_PATTERNS)
+
+
+def _target_owned_content(section: Section | None) -> list[tuple[int, str]]:
+    return [
+        (line_no, unit)
+        for line_no, unit in _content_units(section)
+        if not _is_generic_policy_unit(unit)
+    ]
+
+
+def _normalized_content(unit: str) -> str:
+    return " ".join(re.sub(r"^(?:[-*+]\s+|\d+[.)]\s+)", "", unit).split())
 
 
 def _section_identity(heading: str) -> str:
@@ -678,8 +743,8 @@ def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
         protected = heading not in canonical or heading in PROTECTED_NOTES_HEADINGS
         if not protected:
             continue
-        base_lines = _significant_lines(section)
-        if not base_lines:
+        base_content = _target_owned_content(section)
+        if not base_content:
             continue
         head_section = head_sections_by_identity.get(_section_identity(heading))
         if head_section is None:
@@ -694,9 +759,11 @@ def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
                 )
             )
             continue
-        head_text = "\n".join(line for _, line in _significant_lines(head_section))
-        for line_no, protected_line in base_lines:
-            if protected_line not in head_text:
+        head_content = {
+            _normalized_content(unit) for _, unit in _target_owned_content(head_section)
+        }
+        for line_no, protected_line in base_content:
+            if _normalized_content(protected_line) not in head_content:
                 findings.append(
                     Finding(
                         "TAA-OVERLAY-CONTENT-REMOVED",

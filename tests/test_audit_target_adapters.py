@@ -14,6 +14,34 @@ from tools.audit_target_adapters import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+LEGACY_GENERIC_POLICY = """Security / project constraints:
+- Follow target-specific security practices; for web/API/user-facing changes,
+  consider OWASP secure-coding risks such as auth, authorization, sessions,
+  input validation, file uploads, redirects, dependency risk, and admin surfaces.
+- Never print, paste, commit, upload, summarize, quote, or expose `.env`,
+  `.env.*`, private keys, API tokens, OAuth/client secrets, database URLs,
+  cookies, session tokens, JWTs, production credentials, payment-provider keys,
+  SSH/GPG keys, CI secrets, or secret-looking values.
+- Treat sensitive values as unsafe even in tests, logs, screenshots, shell output,
+  GitHub comments, PR bodies, validation reports, and copied command output.
+- Redact sensitive values as `[REDACTED]`; report only file paths, variable names,
+  and risk type.
+- Do not run broad environment/config dumps such as `env`, `printenv`, `set`,
+  framework config dumps, or CI secret-context dumps unless the PM explicitly
+  scopes a safe redacted diagnostic.
+- Do not modify secret stores, rotate keys, change production credentials, edit
+  deployment secrets, or touch payment/auth production settings without separate
+  exact PM approval.
+- Keep build commands, protected paths, domain constraints, and validation notes
+  here when they are stable and target-owned; never store issue/PR/branch state,
+  SHAs, review status, release status, or live validation results.
+- Follow proportional validation from `project-os-es/docs/reglas.md` and
+  `project-os-es/kernel/reglas-operativas.json`: run scoped required checks,
+  draft PM-run commands when useful validation should remain PM-executed, and
+  do not impose Project OS-specific tests or add tests by default unless the
+  issue risk justifies them.
+"""
+
 
 def filled_spanish_adapter(target: Path) -> str:
     text = (REPO_ROOT / "project-os-es/adapters/AGENTS.target.md").read_text(encoding="utf-8")
@@ -123,6 +151,25 @@ def test_compact_headings_allow_canonical_changes_while_preserving_target_notes(
     assert _check_overlay_removals(base, head) == []
 
 
+def test_real_compaction_discards_generic_policy_but_preserves_target_constraints() -> None:
+    base = Source(
+        "AGENTS.md",
+        "## Project-specific notes\n"
+        f"{LEGACY_GENERIC_POLICY}"
+        "- Run `bin/verify-customer-ledger` before releasing ledger changes.\n"
+        "- Keep `config/ledger-policy.yml` as a protected path.\n",
+    )
+    head = Source(
+        "AGENTS.md",
+        "## Notas propias del repositorio\n"
+        "La política completa vive en `project-os-es/docs/reglas.md`.\n"
+        "- Run `bin/verify-customer-ledger` before releasing ledger changes.\n"
+        "- Keep `config/ledger-policy.yml` as a protected path.\n",
+    )
+
+    assert _check_overlay_removals(base, head) == []
+
+
 def test_compact_target_notes_report_an_individual_removed_constraint() -> None:
     base = Source(
         "AGENTS.md",
@@ -139,6 +186,24 @@ def test_compact_target_notes_report_an_individual_removed_constraint() -> None:
 
     assert [finding.code for finding in findings] == ["TAA-OVERLAY-CONTENT-REMOVED"]
     assert findings[0].evidence == "Mantener esta restricción de dominio."
+
+
+def test_compact_target_notes_do_not_silence_a_removed_stable_command() -> None:
+    base = Source(
+        "AGENTS.md",
+        "## Notas propias del target\n"
+        "- Ejecuta `bin/verify-customer-ledger` antes de publicar cambios de ledger.\n"
+        "- Mantener esta restricción de dominio.\n",
+    )
+    head = Source(
+        "AGENTS.md",
+        "## Notas propias del target\nMantener esta restricción de dominio.\n",
+    )
+
+    findings = _check_overlay_removals(base, head)
+
+    assert [finding.code for finding in findings] == ["TAA-OVERLAY-CONTENT-REMOVED"]
+    assert findings[0].evidence == "- Ejecuta `bin/verify-customer-ledger` antes de publicar cambios de ledger."
 
 
 def test_compact_target_notes_remain_protected_in_a_base_to_head_audit() -> None:
