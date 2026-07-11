@@ -111,13 +111,15 @@
         "workflow.pm_intake"
       ],
       "mode_key": [],
-      "use_for": "route scoped work to another surface; scope and shape only, with authorization carried as exact PM approval",
+      "use_for": "route scoped work to another surface as a compact, issue-referential bootloader; the live issue or PR and its comments retain implementation detail, with authorization carried as exact PM approval",
       "status_key": "status.resolved",
       "must_include": [
         "standard variable block",
         "recommended optional skill when useful, without making it mandatory or authorizing",
         "recommended terminal-agent family when useful, such as Codex, Claude, or Gemini, without making it binding",
-        "task instruction in terms of scope",
+        "reference to the live issue or PR as the source of implementation detail",
+        "1-3 line scope that does not restate the issue, PR, bodies, comments, acceptance criteria, source basis, or checklists",
+        "one standard variable block followed by one concrete instruction, with no additional section, checklist, or implementation plan",
         "recommended effort with rationale",
         "note that the executing agent re-resolves the kernel and the prompt grants no permission"
       ],

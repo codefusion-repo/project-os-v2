@@ -165,6 +165,107 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
     assert "--squash" not in bundle
 
 
+@pytest.mark.parametrize(
+    (
+        "kernel_path",
+        "template_path",
+        "operation_path",
+        "contract_clauses",
+        "template_clauses",
+        "operation_clauses",
+        "instruction_prefix",
+    ),
+    (
+        (
+            "project-os-es/kernel/salidas.json",
+            "project-os-es/templates/route-prompt.md",
+            "project-os-es/operaciones/fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md",
+            (
+                "bootloader compacto e issue-referential",
+                "issue o PR vivo como fuente del detalle de implementacion",
+                "scope de 1-3 lineas que no restata",
+                "un unico bloque estandar de variables seguido por una unica instruccion concreta",
+            ),
+            (
+                "El bloque siguiente es el route prompt completo",
+                "issue o PR vivo y sus comentarios",
+                "No agregues encabezados, secciones, listas, checklists ni",
+            ),
+            (
+                "**Comprobación de conformidad:**",
+                "compara la salida con",
+                "Comprímela si repite detalle",
+                "`SCOPE` de 1-3",
+                "falla cerrado con `output.status_result`",
+                "**QA manual reproducible:**",
+                "issue largo con comentarios extensos",
+            ),
+            "{{Una unica instruccion concreta:",
+        ),
+        (
+            "project-os-en/kernel/outputs.json",
+            "project-os-en/templates/route-prompt.md",
+            "project-os-en/operations/phase-3/MOS-3.4-draft-implementation-route-prompt.md",
+            (
+                "compact, issue-referential bootloader",
+                "live issue or PR as the source of implementation detail",
+                "1-3 line scope that does not restate",
+                "one standard variable block followed by one concrete instruction",
+            ),
+            (
+                "The following block is the complete route prompt",
+                "live issue or PR and its comments",
+                "Do not add headings, sections, lists, checklists,",
+            ),
+            (
+                "**Conformance check:**",
+                "compare the output with",
+                "Compress it when it repeats",
+                "a 1-3 line `SCOPE`",
+                "fail closed with\n`output.status_result`",
+                "**Reproducible manual QA:**",
+                "Use a long issue with extensive comments",
+            ),
+            "{{One concrete instruction:",
+        ),
+    ),
+)
+def test_route_prompt_contract_template_and_mos_3_4_keep_compact_issue_referential_shape(
+    kernel_path: str,
+    template_path: str,
+    operation_path: str,
+    contract_clauses: tuple[str, ...],
+    template_clauses: tuple[str, ...],
+    operation_clauses: tuple[str, ...],
+    instruction_prefix: str,
+) -> None:
+    """Guard durable shape; generated chat output still requires manual QA."""
+    outputs = json.loads((REPO_ROOT / kernel_path).read_text(encoding="utf-8"))["outputs"]
+    route_prompt = next(output for output in outputs if output["key"] == "output.route_prompt")
+    contract = " ".join((route_prompt["use_for"], *route_prompt["must_include"]))
+    for clause in contract_clauses:
+        assert clause in contract
+
+    template = (REPO_ROOT / template_path).read_text(encoding="utf-8")
+    for clause in template_clauses:
+        assert clause in template
+    assert template.count("```text") == 1
+    prompt_block = re.search(r"```text\n(?P<body>.*?)\n```", template, re.DOTALL)
+    assert prompt_block
+    prompt_lines = [line for line in prompt_block.group("body").splitlines() if line]
+    assert sum(line.startswith("SCOPE =") for line in prompt_lines) == 1
+    assert prompt_lines[-1].startswith(instruction_prefix)
+    assert sum(line.startswith("{{") for line in prompt_lines) == 1
+    assert all(
+        " = " in line or line.startswith("recommended_effort:")
+        for line in prompt_lines[:-1]
+    )
+
+    operation = (REPO_ROOT / operation_path).read_text(encoding="utf-8")
+    for clause in operation_clauses:
+        assert clause in operation
+
+
 def test_both_kernels_validate_and_default_remains_spanish() -> None:
     assert DEFAULT_KERNEL_DIR == ES_KERNEL
     assert validate_kernel(ES_KERNEL) == []

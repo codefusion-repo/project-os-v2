@@ -1,7 +1,11 @@
 # Route prompt
 
-Responsibility: route scoped work to another surface without pasting the full
-issue or granting permission.
+Responsibility: route scoped work to another surface as a compact,
+issue-referential bootloader, without pasting the full issue, PR, or comments
+and without granting permission. Implementation detail remains in live evidence.
+
+The following block is the complete route prompt: it contains one standard
+variable block and one concrete instruction at the end.
 
 ```text
 PROJECT_NAME = {{name}}
@@ -17,7 +21,7 @@ OUTPUT_CONTRACT = {{output id}}
 OPTIONAL_SKILL = {{skill.<id> | none}}
 HYDRATION_LEVEL = {{minimal | compact | full/debug}}
 RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}
-SCOPE = {{1-3 lines, not the full issue body}}
+SCOPE = {{1-3 lines; do not restate the issue, PR, bodies, comments, acceptance criteria, source basis, or checklists}}
 OUT_OF_SCOPE = {{plausible mistakes to avoid}}
 EVIDENCE_REQUIRED = {{required evidence ids}}
 VALIDATION_REQUIRED = {{agent-run | PM-run | manual PM | none with reason}}
@@ -25,11 +29,15 @@ BRANCH_NAME = work/{{issue}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{brief reason}}
 
-{{Concrete instruction: implement, review, audit, or draft only the scoped work.}}
+{{One concrete instruction: implement, review, audit, or draft only the scoped work.}}
 ```
 
-The receiving agent re-resolves the kernel, reads live evidence, and fails closed
-when context, authority, or validation is missing. Browser chat infers
+When drafting, read the live issue or PR and its comments, then reference that
+detail instead of copying it. Do not add headings, sections, lists, checklists,
+or implementation plans before or after the block: outside the variables, the
+single final concrete instruction is the only permitted content. The receiving
+agent re-resolves the kernel, reads live evidence, and fails closed when context,
+authority, or validation is missing. Browser chat infers
 `RECOMMENDED_TERMINAL_AGENT_FAMILY` as non-binding advice: Codex for code
 implementation, Python tooling, migrations, refactors, and tests; Claude for
 document synthesis, architecture review, or long-context prose; Gemini for
