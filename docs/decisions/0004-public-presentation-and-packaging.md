@@ -1,7 +1,8 @@
 # ADR 0004 - Project OS public presentation and packaging path
 
-- Status: accepted as a design/decision artifact; pending PM review for
-  positioning, completeness, sources, language and absence of overclaiming.
+- Status: proposed; pending PM review for positioning, completeness, sources,
+  language and absence of overclaiming. It becomes accepted only by explicit
+  PM decision.
 - Date: 2026-07-11
 - Scope: issue #394; design-only decision on how Project OS should be
   presented, packaged and eventually published. No packaging, CLI, API,
@@ -55,8 +56,10 @@ reference with GitHub-native operating-layer positioning** (options 2 + 3
 below, with option 1 as the publishing mechanism and option 4 as the existing
 copy-based adoption mechanism). Everything execution-shaped — CLI, API/bridge,
 GPT/MCP/action packaging — stays deferred. "Internal-only" is the correct
-*current* state but is rejected as the end state: the repository stays private
-until the Stage 0 gate below passes.
+*current* state but is not recommended as the end state: the repository stays
+private until the Stage 0 gate below passes **and** the PM approves publication
+exactly. Passing the gate does not itself publish anything, and the PM may
+still decide against publication at that point.
 
 ### Stages
 
@@ -70,8 +73,10 @@ until the Stage 0 gate below passes.
   bilingual README, the messaging in this ADR, an improved quick
   start/tutorial building on `project-os-es/docs/empezar.md`, approved images
   where they reduce real friction, and the reproducible context benchmark
-  published with dates and tooling declared. No installer, no API, no tag
-  required to be public (a first tag is a separate release-readiness issue).
+  published with dates and tooling declared. No installer, no API, no new tag
+  required to be public. Internal tags already exist (the `project-os-lab-v*`
+  series, latest `project-os-lab-v0.3.0`, plus dogfood baseline tags); the
+  first *public release* tag is a separate release-readiness issue.
 - **Stage 2 — Validate with users, then reconsider tooling.** Only after
   Stage 1 evidence (adoption friction reports, questions, dogfood on real
   targets) reopen, in this order and each as its own design issue: CLI
@@ -214,9 +219,20 @@ under Project OS discipline. Sources consulted 2026-07-11.
 | Layer | Process/operating layer over GitHub | Agent runtime ("agentic AI apps… very few abstractions") | Low-level orchestration runtime / "batteries-included agent harness" on top of it | Multi-agent framework (AgentChat/Core/Studio) |
 | Core primitives | Actors, modes, workflows, boundaries, evidence, outputs, statuses, operations | Agents, handoffs, guardrails, sessions, tracing | Graphs, state, durable execution, human-in-the-loop; Deep Agents adds planning, subagents, virtual filesystem | Conversational agents, event-driven core, extensions |
 | Executes code / runs agents | **No** — humans and existing agent tools execute | Yes | Yes | Yes |
-| Source of truth for project state | GitHub (issues, PRs, reviews, commits) | App-managed sessions/state | Framework-managed persisted state | Framework-managed state |
+| Project source of truth | GitHub (issues, PRs, reviews, commits) | Not defined by the SDK; Sessions persist conversation/run history (runtime state) | Not defined by the framework; checkpointers persist thread-scoped graph state (runtime state) | Not defined by the framework; save/load persists agent/team model context (runtime state) |
 | Authorization model | Exact PM approval, fail-closed gates, non-authorization of outputs | Guardrails (validation, not authority) | Human-in-the-loop interrupts/permissions | Human-in-the-loop patterns |
 | Status | Active, internal dogfood | Active (OpenAI) | Active (LangChain) | Maintenance mode; successor is Microsoft Agent Framework |
+
+What these frameworks persist is **runtime/session state** — conversation or
+run history ([OpenAI Agents SDK sessions](https://openai.github.io/openai-agents-python/sessions/):
+"Sessions stores conversation history for a specific session"), thread-scoped
+graph checkpoints ([LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence):
+"short-term, thread-scoped memory"), or agent/team model context
+([AutoGen state management](https://microsoft.github.io/autogen/stable/user-guide/agentchat-user-guide/tutorial/state.html)).
+None of them defines where the *project's* durable state — scope, decisions,
+evidence, validation — lives; that is left to the application. Project OS
+fixes that project source of truth in GitHub, which is a different layer, not
+a competing feature.
 
 Official sources: [OpenAI Agents SDK docs](https://openai.github.io/openai-agents-python/),
 [LangGraph overview](https://docs.langchain.com/oss/python/langgraph/overview)
@@ -292,9 +308,10 @@ values, signed URLs or production data in any capture.
    tutorial, reproducible context benchmark with declared tokenizer and date,
    approved images, language/accessibility/secret-safety review.
 3. `release: revisar readiness y crear el primer tag` — depends on 1 and 2:
-   security and licensing re-check, version definition, changelog/release
-   notes, final validation, rollback, and exact PM approval for tag and
-   release.
+   security and licensing re-check, version definition (taking into account
+   the existing internal tags, latest `project-os-lab-v0.3.0`, so "primer tag"
+   means the first public release tag), changelog/release notes, final
+   validation, rollback, and exact PM approval for tag and release.
 4. (Stage 2, evidence-gated) reopen CLI onboarding design under ADR 0003
    constraints; then read-only API/bridge; then GPT/MCP/action packaging —
    each only with adoption evidence and its own PM decision.
@@ -304,8 +321,10 @@ values, signed URLs or production data in any capture.
 Project OS gets a single public story — a human-directed, GitHub-native
 operating layer for AI-assisted development — that matches what the code
 actually does today, with a concrete two-issue path (readiness review, then
-presentation docs) to a public repository and no premature commitment to
-CLI/API/packaging. It prohibits publishing before the Stage 0 gate, bare
+presentation docs) toward a possible public repository — publication itself
+stays conditional on the Stage 0 outcome and an exact PM approval — and no
+premature commitment to CLI/API/packaging. It prohibits publishing before the
+Stage 0 gate, bare
 "harness" claims, autonomy claims, unverified savings/price claims, and any
 tag/release inside the docs work. Accepted tradeoffs: activation may be
 modest without an installer (Stage 2 exists to measure exactly that), and the
