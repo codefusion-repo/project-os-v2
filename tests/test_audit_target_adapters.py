@@ -102,3 +102,36 @@ def test_spanish_canonical_sections_are_not_misclassified_as_target_overlay() ->
     )
 
     assert _check_overlay_removals(base, head) == []
+
+
+def test_compact_headings_allow_canonical_changes_while_preserving_target_notes() -> None:
+    base = Source(
+        "AGENTS.md",
+        "## Identidad del repositorio\nMetadata anterior.\n\n"
+        "## Resolución del kernel\nRuta anterior.\n\n"
+        "## Evidencia viva\nEvidencia anterior.\n\n"
+        "## Project-specific notes\nConservar este comando estable.\n",
+    )
+    head = Source(
+        "AGENTS.md",
+        "## Identidad del repositorio\nMetadata compactada.\n\n"
+        "## Resolución del kernel\nRuta compactada.\n\n"
+        "## Evidencia viva\nEvidencia compactada.\n\n"
+        "## Notas propias del target\nComando estable compactado.\n",
+    )
+
+    assert _check_overlay_removals(base, head) == []
+
+
+def test_compact_target_notes_remain_protected_in_a_base_to_head_audit() -> None:
+    base = Source(
+        "BROWSER_CHAT.md",
+        "## Resolución y evidencia\nTexto anterior.\n\n"
+        "## Notas propias del target\nNo eliminar esta restricción de dominio.\n",
+    )
+    head = Source("BROWSER_CHAT.md", "## Resolución y evidencia\nTexto compactado.\n")
+
+    findings = _check_overlay_removals(base, head)
+
+    assert [finding.code for finding in findings] == ["TAA-OVERLAY-SECTION-REMOVED"]
+    assert findings[0].evidence == "Notas propias del target"

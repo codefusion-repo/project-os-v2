@@ -43,11 +43,14 @@ CANONICAL_HEADINGS = {
         "Outputs y artefactos",
         "Live state",
         "Estado vivo",
+        "Evidencia viva",
         "Seguridad y validacion",
         "Seguridad y validación",
         "Project-specific notes",
         "Notas especificas del proyecto",
         "Notas específicas del proyecto",
+        "Notas propias del target",
+        "Notas propias del repositorio",
     },
     "BROWSER_CHAT.md": {
         "Contract",
@@ -70,6 +73,8 @@ CANONICAL_HEADINGS = {
         "First-message activation",
         "Activacion del primer mensaje",
         "Activación del primer mensaje",
+        "Resolución y evidencia",
+        "Notas propias del target",
     },
     "CLAUDE.md": set(),
     "GEMINI.md": set(),
@@ -120,6 +125,8 @@ PROTECTED_NOTES_HEADINGS = {
     PROTECTED_NOTES_HEADING,
     "Notas especificas del proyecto",
     "Notas específicas del proyecto",
+    "Notas propias del target",
+    "Notas propias del repositorio",
 }
 
 
@@ -652,10 +659,19 @@ def _significant_lines(section: Section | None) -> list[tuple[int, str]]:
     return lines
 
 
+def _section_identity(heading: str) -> str:
+    if heading in PROTECTED_NOTES_HEADINGS:
+        return PROTECTED_NOTES_HEADING
+    return heading
+
+
 def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
     findings: list[Finding] = []
     base_sections = _parse_sections(base)
     head_sections = _parse_sections(head)
+    head_sections_by_identity = {
+        _section_identity(heading): section for heading, section in head_sections.items()
+    }
     canonical = CANONICAL_HEADINGS.get(base.name, set())
 
     for heading, section in sorted(base_sections.items(), key=lambda item: item[1].line):
@@ -665,7 +681,7 @@ def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
         base_lines = _significant_lines(section)
         if not base_lines:
             continue
-        head_section = head_sections.get(heading)
+        head_section = head_sections_by_identity.get(_section_identity(heading))
         if head_section is None:
             findings.append(
                 Finding(
@@ -677,6 +693,19 @@ def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
                     heading,
                 )
             )
+            continue
+        if heading in PROTECTED_NOTES_HEADINGS:
+            if not _significant_lines(head_section):
+                findings.append(
+                    Finding(
+                        "TAA-OVERLAY-CONTENT-REMOVED",
+                        "warning",
+                        f"{base.name}@base",
+                        section.line,
+                        f"protected target-owned section {heading!r} is empty in head",
+                        heading,
+                    )
+                )
             continue
         head_text = "\n".join(line for _, line in _significant_lines(head_section))
         for line_no, protected_line in base_lines:
