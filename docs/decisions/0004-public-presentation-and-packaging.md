@@ -56,10 +56,12 @@ reference with GitHub-native operating-layer positioning** (options 2 + 3
 below, with option 1 as the publishing mechanism and option 4 as the existing
 copy-based adoption mechanism). Everything execution-shaped — CLI, API/bridge,
 GPT/MCP/action packaging — stays deferred. "Internal-only" is the correct
-*current* state but is not recommended as the end state: the repository stays
-private until the Stage 0 gate below passes **and** the PM approves publication
-exactly. Passing the gate does not itself publish anything, and the PM may
-still decide against publication at that point.
+*current* state and is not what this ADR recommends as the end state, but it
+remains a **valid final outcome**: the repository stays private until the
+Stage 0 gate below passes **and** the PM approves publication exactly. Passing
+the gate does not itself publish anything, and the PM may decide at that point
+— or at any later gate — that Project OS stays internal-only, which closes the
+staged path without any rollback needed.
 
 ### Stages
 
@@ -149,11 +151,13 @@ implying that product, engineering, QA or security judgment is replaced.
 7. **GPT/MCP/action package later.** Deferred: auth, secret safety, write
    authority and support burden are all unresolved; also depends on bridge
    decisions. Stage 2+, last.
-8. **Internal-only / not ready.** Accurate today (Stage 0 gate not passed) but
-   wrong as an end state: the roadmap's direction is Project OS for target
-   projects generally, the surfaces are consolidated and bilingual, and the
-   remaining gaps are a readiness review and presentation polish — both
-   nameable, scoped work. Selected only as the interim state.
+8. **Internal-only / not ready.** Accurate today (Stage 0 gate not passed) and
+   a valid final outcome, though not the recommended one: the roadmap's
+   direction is Project OS for target projects generally, the surfaces are
+   consolidated and bilingual, and the remaining gaps are a readiness review
+   and presentation polish — both nameable, scoped work. Selected as the
+   interim state; it becomes the end state if Stage 0 fails or the PM decides
+   against publication.
 
 ### Decision matrix
 
@@ -170,7 +174,7 @@ higher is always better.
 | 5. CLI onboarding | 4 | 2 | 3 | 2 | 4 | 2 (deferred by ADR 0003) | 2 | Stage 2 candidate |
 | 6. Read-only API/bridge | 3 | 2 | 2 | 2 | 3 | 2 (deferred by #274) | 1 | Stage 2+ |
 | 7. GPT/MCP/action package | 3 | 1 | 1 | 1 | 4 | 2 | 1 | Stage 2+, last |
-| 8. Internal-only | 1 (external) | 5 | 5 | 5 | 1 | 2 as end state | 3 | Interim state only |
+| 8. Internal-only | 1 (external) | 5 | 5 | 5 | 1 | 2 as end state | 3 | Interim state; valid end state by PM decision |
 
 ## Audiences and value
 
@@ -307,11 +311,13 @@ values, signed URLs or production data in any capture.
    README/pitches per this ADR, audience benefits, improved browser/terminal
    tutorial, reproducible context benchmark with declared tokenizer and date,
    approved images, language/accessibility/secret-safety review.
-3. `release: revisar readiness y crear el primer tag` — depends on 1 and 2:
-   security and licensing re-check, version definition (taking into account
-   the existing internal tags, latest `project-os-lab-v0.3.0`, so "primer tag"
-   means the first public release tag), changelog/release notes, final
-   validation, rollback, and exact PM approval for tag and release.
+3. `release: revisar readiness y crear el primer tag público de release` —
+   depends on 1 and 2: security and licensing re-check, version definition
+   taking into account the existing internal tags (latest
+   `project-os-lab-v0.3.0`), changelog/release notes, final validation,
+   rollback, and exact PM approval for tag and release. "Primer tag" here
+   always means the first public release tag, never the first tag of the
+   repository.
 4. (Stage 2, evidence-gated) reopen CLI onboarding design under ADR 0003
    constraints; then read-only API/bridge; then GPT/MCP/action packaging —
    each only with adoption evidence and its own PM decision.
