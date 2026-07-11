@@ -1,0 +1,42 @@
+{
+  "actors": [
+    {
+      "key": "actor.human_pm",
+      "surface": "human",
+      "context": "Project authority: decides scope, priority, and exact approvals; owns target merge, closure, labels, tags, releases, and settings. Does not operate under delegated modes. Actors are execution surfaces, not roles; capability comes from the surface, never from a prompt, template, role, or output.",
+      "allowed_modes": [],
+      "active": true
+    },
+    {
+      "key": "actor.terminal_agent",
+      "surface": "terminal",
+      "context": "Repository-capable agent operating under this kernel and the target adapter; the only surface with delegated writes, always bounded by its limits and resolved mode.",
+      "allowed_modes": [
+        "mode.review_only",
+        "mode.local_implementation",
+        "mode.delegated_commit_push",
+        "mode.delegated_commit_pr",
+        "mode.delegated_deploy_execution"
+      ],
+      "active": true
+    },
+    {
+      "key": "actor.browser_chat",
+      "surface": "browser",
+      "context": "Draft-only surface: reads provided context, analyzes, and drafts work units, prompts, reports, and copy-safe command bundles.",
+      "allowed_modes": [
+        "mode.review_only"
+      ],
+      "active": true
+    },
+    {
+      "key": "actor.unknown",
+      "surface": "unknown",
+      "context": "Unidentified surface: fails closed for write-capable requests and asks for context when the surface cannot be identified. A new actor requires a new approved execution surface, never a new role.",
+      "allowed_modes": [
+        "mode.review_only"
+      ],
+      "active": true
+    }
+  ]
+}

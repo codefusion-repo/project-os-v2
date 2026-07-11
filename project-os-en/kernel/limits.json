@@ -1,0 +1,132 @@
+{
+  "limits": [
+    {
+      "key": "boundary.branch_preflight",
+      "actor_key": null,
+      "rule": "Before edit, commit, push, or PR creation, verify the current branch, worktree, HEAD, branch scope, and unrelated files with real output.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.no_main_edits",
+      "actor_key": null,
+      "rule": "The main branch is a clean pre-branch baseline only; edit only after creating or switching to a scoped branch.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.draft_only_browser",
+      "actor_key": "actor.browser_chat",
+      "rule": "Browser chat does not edit files or mutate the repository or remote target; PM write approval routes work to a terminal surface and never expands browser capability.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.separate_pm_approval",
+      "actor_key": null,
+      "rule": "Merge, closure, labels, tags, releases, settings, automation, and target artifacts require separate exact PM approval naming the project, work unit, and action.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.review_before_close",
+      "actor_key": null,
+      "rule": "Close only after comparing the work unit with changed files, diff, relevant final files, validation, and risks; the body and reports are claims, not proof.",
+      "on_violation": "status.needs_pm_decision",
+      "blocking": false,
+      "active": true
+    },
+    {
+      "key": "boundary.no_live_state_durable",
+      "actor_key": null,
+      "rule": "Durable files do not store live work-unit, PR, branch, commit, review, validation, release, deployment, or planning state.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.no_invented_state",
+      "actor_key": null,
+      "rule": "Do not invent command output, repository state, work-unit state, validation, review, or PM approval.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.security_privacy",
+      "actor_key": null,
+      "rule": "Do not expose or store secrets, credentials, tokens, keys, sensitive data, or confidential operational details in any file, output, log, command, or comment.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.fail_closed",
+      "actor_key": null,
+      "rule": "On ambiguous authority, missing kernel data, missing evidence, source conflicts, failed validation, or missing approval, stop with the corresponding unresolved status.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.output_not_permission",
+      "actor_key": null,
+      "rule": "Outputs, templates, roles, variables, and route packets define shape only; they never authorize writing or any action.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.implementation_discipline",
+      "actor_key": null,
+      "rule": "Complete the live work-unit scope without unrelated rewrites, speculative abstraction, over-implementation, or under-implementation disguised as minimalism.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.primary_path_discipline",
+      "actor_key": null,
+      "rule": "Keep the primary path correct, explicit, and validated; do not add fallbacks to hide or avoid investigating errors.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.validation_discipline",
+      "actor_key": null,
+      "rule": "Validate in proportion to risk; add tests only for behavior, regression, security, or contracts that justify them.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.code_clarity",
+      "actor_key": null,
+      "rule": "Prefer self-documenting code; comment only non-obvious intent, invariants, real risk, or external assumptions.",
+      "on_violation": "status.needs_pm_decision",
+      "blocking": false,
+      "active": true
+    },
+    {
+      "key": "boundary.copy_safe_commands",
+      "actor_key": null,
+      "rule": "PM-facing command bundles must be copy-safe: rendering preserves valid shell with exact targets, supported fields, and no patterns that cut or corrupt the session.",
+      "on_violation": "status.needs_pm_decision",
+      "blocking": false,
+      "active": true
+    },
+    {
+      "key": "boundary.context_economy",
+      "actor_key": null,
+      "rule": "Use only the context and subagents needed without losing required evidence, validation, secret safety, or exact approval.",
+      "on_violation": "status.needs_pm_decision",
+      "blocking": false,
+      "active": true
+    }
+  ]
+}

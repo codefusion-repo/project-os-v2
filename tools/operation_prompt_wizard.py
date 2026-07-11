@@ -152,10 +152,12 @@ class OperationTemplate:
             return ""
         labels = []
         for part in self.phase_path.split("/"):
-            if part == "cross-fase":
-                labels.append("Cross-fase")
+            if part in {"cross-fase", "cross-phase"}:
+                labels.append("Cross-phase" if part == "cross-phase" else "Cross-fase")
             elif match := re.fullmatch(r"fase-(\d+)", part):
                 labels.append(f"Fase {match.group(1)}")
+            elif match := re.fullmatch(r"phase-(\d+)", part):
+                labels.append(f"Phase {match.group(1)}")
             else:
                 labels.append(part.replace("-", " ").title())
         return " / ".join(labels)
@@ -223,7 +225,7 @@ def extract_title(text: str, path: Path) -> str:
 def extract_description(text: str, path: Path) -> str:
     """Return concise catalog metadata for presentation, with a safe fallback."""
 
-    match = re.search(r"^\*\*Hace:\*\*\s*(.+?)\s*$", text, flags=re.MULTILINE)
+    match = re.search(r"^\*\*(?:Hace|Does):\*\*\s*(.+?)\s*$", text, flags=re.MULTILINE)
     if match:
         return match.group(1)
 
@@ -232,7 +234,7 @@ def extract_description(text: str, path: Path) -> str:
 
 
 def parse_input_variables(text: str) -> tuple[InputVariable, ...]:
-    """Parse variables from conventional INPUT or active Spanish Variables blocks."""
+    """Parse variables from conventional INPUT or either compact catalog."""
 
     variables: list[InputVariable] = []
     for raw_line in input_block_lines(text):
@@ -260,12 +262,12 @@ def parse_input_variables(text: str) -> tuple[InputVariable, ...]:
     if variables:
         return tuple(variables)
 
-    variables.extend(parse_spanish_variables(text))
+    variables.extend(parse_compact_variables(text))
     return tuple(variables)
 
 
-def parse_spanish_variables(text: str) -> tuple[InputVariable, ...]:
-    """Parse ``**Variables**`` from the compact active Spanish catalog."""
+def parse_compact_variables(text: str) -> tuple[InputVariable, ...]:
+    """Parse ``**Variables**`` from the compact Spanish or English catalog."""
 
     marker = "**Variables**"
     if marker not in text:
@@ -273,9 +275,10 @@ def parse_spanish_variables(text: str) -> tuple[InputVariable, ...]:
     section = text.split(marker, 1)[1]
     section = re.split(r"\n\s*\n(?=\*\*)", section, maxsplit=1)[0]
     parsed: list[InputVariable] = []
-    for label, required in (("Requeridas", True), ("Opcionales", False)):
+    for labels, required in ((("Requeridas", "Required"), True), (("Opcionales", "Optional"), False)):
+        label_pattern = "|".join(labels)
         match = re.search(
-            rf"^-\s*{label}:\s*(.*?)(?=^-\s*(?:Requeridas|Opcionales):|\Z)",
+            rf"^-\s*(?:{label_pattern}):\s*(.*?)(?=^-\s*(?:Requeridas|Opcionales|Required|Optional):|\Z)",
             section,
             flags=re.MULTILINE | re.DOTALL | re.IGNORECASE,
         )
@@ -291,7 +294,7 @@ def parse_spanish_variables(text: str) -> tuple[InputVariable, ...]:
                     placeholder=f"<{name}>",
                     required=required,
                     raw_line="",
-                    note=f"{label.lower()} en catálogo español",
+                    note=f"{labels[0].lower()} in the compact catalog",
                 )
             )
     return tuple(parsed)

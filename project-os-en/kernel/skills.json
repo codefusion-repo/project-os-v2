@@ -1,0 +1,26 @@
+{
+  "skills": [
+    {
+      "key": "skill.arquitectura_backend",
+      "name": "Backend architecture",
+      "responsibility": "Apply backend judgment to architecture, data, APIs, security, performance, reliability, migrations, and observability.",
+      "required_skill": "project-os-en/skills/backend-architecture.md",
+      "use_for": [
+        "Scopes involving data models, APIs, services, cloud infrastructure, integrations, migrations, backend performance, or resilience."
+      ],
+      "non_authorization": "Optional: grants no permission and never replaces live scope, PM approval, preflight, validation, traceability, or review-before-close.",
+      "active": true
+    },
+    {
+      "key": "skill.desarrollo_frontend",
+      "name": "Frontend development",
+      "responsibility": "Apply frontend judgment to implementable UI, accessibility, web performance, components, state, and API integration.",
+      "required_skill": "project-os-en/skills/frontend-development.md",
+      "use_for": [
+        "Scopes involving web interfaces, components, client state, accessibility, responsive design, frontend performance, or editor/browser integration."
+      ],
+      "non_authorization": "Optional: grants no permission and never replaces live scope, PM approval, preflight, validation, traceability, or review-before-close.",
+      "active": true
+    }
+  ]
+}

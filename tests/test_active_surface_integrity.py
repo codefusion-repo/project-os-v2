@@ -17,6 +17,7 @@ MARKDOWN_LINK_PATTERN = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 def active_files() -> list[Path]:
     roots = [
         REPO_ROOT / "project-os-es",
+        REPO_ROOT / "project-os-en",
         REPO_ROOT / "tools",
         REPO_ROOT / "tests",
         REPO_ROOT / "README.md",
@@ -33,14 +34,15 @@ def active_files() -> list[Path]:
     return files
 
 
-def test_single_active_resolver_and_nonoperative_future_english_surface() -> None:
+def test_single_resolver_and_two_allowed_language_surfaces() -> None:
     assert (REPO_ROOT / "tools/project_os_resolve.py").is_file()
     removed_resolver = REPO_ROOT / "project-os-es" / "tools" / "resolver.py"
     assert not removed_resolver.exists()
-    assert not list((REPO_ROOT / "project-os-en").glob("*"))
+    assert (REPO_ROOT / "project-os-en/kernel/manifest.json").is_file()
+    assert not (REPO_ROOT / "project-os-en/tools").exists()
 
     tool_sources = "\n".join(path.read_text(encoding="utf-8") for path in (REPO_ROOT / "tools").glob("*.py"))
-    assert "DEFAULT_KERNEL_DIR = REPO_ROOT / \"project-os-es\" / \"kernel\"" in tool_sources
+    assert "DEFAULT_SURFACE = SURFACES[0]" in tool_sources
     assert "DEFAULT_OPERATIONS_DIR = REPO_ROOT / \"project-os-es\" / \"operaciones\"" in tool_sources
 
 
@@ -59,14 +61,22 @@ def test_removed_surface_references_cannot_reappear_in_active_files() -> None:
 
 def test_active_markdown_relative_links_resolve() -> None:
     missing: list[str] = []
-    markdown_files = [REPO_ROOT / "README.md", *sorted((REPO_ROOT / "project-os-es").rglob("*.md"))]
+    markdown_files = [
+        REPO_ROOT / "README.md",
+        *sorted((REPO_ROOT / "project-os-es").rglob("*.md")),
+        *sorted((REPO_ROOT / "project-os-en").rglob("*.md")),
+    ]
     for source in markdown_files:
         text = source.read_text(encoding="utf-8")
         for raw_target in MARKDOWN_LINK_PATTERN.findall(text):
             target = raw_target.strip().split()[0].strip("<>").split("#", 1)[0]
             if not target or target.startswith(("#", "http://", "https://", "mailto:")) or "{{" in target:
                 continue
-            candidate = (REPO_ROOT / target) if target.startswith("project-os-es/") else (source.parent / target)
+            candidate = (
+                REPO_ROOT / target
+                if target.startswith(("project-os-es/", "project-os-en/"))
+                else source.parent / target
+            )
             if not candidate.resolve().exists():
                 missing.append(f"{source.relative_to(REPO_ROOT)} -> {raw_target}")
     assert missing == []
@@ -82,7 +92,7 @@ def test_active_surface_has_no_secret_values_or_durable_commit_state() -> None:
         text = path.read_text(encoding="utf-8")
         if SECRET_PATTERN.search(text):
             secret_hits.append(str(path.relative_to(REPO_ROOT)))
-        if "project-os-es/kernel" in str(path) and sha_pattern.search(text):
+        if any(root in str(path) for root in ("project-os-es/kernel", "project-os-en/kernel")) and sha_pattern.search(text):
             sha_hits.append(str(path.relative_to(REPO_ROOT)))
     assert secret_hits == []
     assert sha_hits == []
@@ -110,3 +120,13 @@ def test_active_pm_command_bundle_preserves_copy_safe_shell_contract() -> None:
     assert "Verificación final read-only" in template
     assert "gh pr view <pr-number> --repo <owner/repo> --json state,mergedAt,headRefOid" in template
     assert not (REPO_ROOT / "templates/pm-command-bundle.md").exists()
+
+    english = (REPO_ROOT / "project-os-en/templates/pm-command-bundle.md").read_text(encoding="utf-8")
+    assert "single canonical" in english
+    assert "short linear sequence" in english
+    assert "--body-file" in english
+    assert "<<'PR_COMMENT_END'" in english
+    assert "--match-head-commit <reviewed-head-sha>" in english
+    assert "Writing blocks" in english
+    assert "Final read-only verification" in english
+    assert "gh pr view <pr-number> --repo <owner/repo> --json state,mergedAt,headRefOid" in english

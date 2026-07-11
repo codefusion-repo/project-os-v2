@@ -1,9 +1,7 @@
-"""Read-only integrity validator for the active ``project-os-es`` kernel.
+"""Read-only integrity validator for an allowed Project OS kernel.
 
-The validator checks the active Spanish kernel's JSON shape, active ids,
-cross-references, template/skill paths, and durable-content safety.  It does
-does not validate removed historical surfaces as active routes and grants no
-permission.
+Spanish remains the default; callers may explicitly validate the parallel
+English kernel. Every other kernel path fails closed.
 """
 
 from __future__ import annotations
@@ -15,22 +13,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+try:
+    from tools.project_os_surfaces import DEFAULT_KERNEL_DIR, SURFACES, ProjectOSSurface, select_surface
+except ModuleNotFoundError:  # Direct ``python tools/validate_kernel.py`` execution.
+    from project_os_surfaces import DEFAULT_KERNEL_DIR, SURFACES, ProjectOSSurface, select_surface  # type: ignore[no-redef]
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_KERNEL_DIR = REPO_ROOT / "project-os-es" / "kernel"
-KERNEL_FILES = {
-    "manifest.json": "manifest",
-    "reglas-operativas.json": "operational_rules",
-    "actores.json": "actors",
-    "modos.json": "modes",
-    "workflows.json": "workflows",
-    "limites.json": "limits",
-    "evidencia.json": "evidence",
-    "salidas.json": "outputs",
-    "artefactos.json": "artefactos",
-    "skills.json": "skills",
-    "estados.json": "statuses",
-}
 CANONICAL_STATUSES = {"status.resolved", "status.needs_context", "status.needs_pm_decision", "status.blocked"}
 SHA_PATTERN = re.compile(r"\b[0-9a-f]{40}\b")
 FORBIDDEN_KEYS = {"write_authorization_granted", "write_authorized", "permission_granted", "approval_granted"}
@@ -46,9 +33,11 @@ class Finding:
         return f"{self.code} {self.file}: {self.message}"
 
 
-def _load(kernel_dir: Path, findings: list[Finding]) -> dict[str, list[dict[str, Any]]]:
+def _load(
+    kernel_dir: Path, surface: ProjectOSSurface, findings: list[Finding]
+) -> dict[str, list[dict[str, Any]]]:
     data: dict[str, list[dict[str, Any]]] = {}
-    for filename, collection in KERNEL_FILES.items():
+    for family, (filename, collection) in surface.kernel_files.items():
         path = kernel_dir / filename
         if not path.is_file():
             findings.append(Finding("KES-001", filename, "required kernel file is missing"))
@@ -62,7 +51,7 @@ def _load(kernel_dir: Path, findings: list[Finding]) -> dict[str, list[dict[str,
         if not isinstance(entries, list):
             findings.append(Finding("KES-002", filename, f"missing list '{collection}'"))
             continue
-        data[collection] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
+        data[family] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
     return data
 
 
@@ -112,13 +101,27 @@ def _check_durable_safety(kernel_dir: Path, findings: list[Finding]) -> None:
 
 
 def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
-    """Validate the active Spanish kernel directory and return all findings."""
-    directory = DEFAULT_KERNEL_DIR if kernel_dir is None else Path(kernel_dir)
+    """Validate one exact allowed kernel directory and return all findings."""
+    surface, directory = select_surface(kernel_dir)
     findings: list[Finding] = []
-    data = _load(directory, findings)
+    if surface is None:
+        surface = next(
+            (
+                candidate
+                for candidate in SURFACES
+                if directory.name == "kernel" and directory.parent.name == candidate.root_name
+            ),
+            None,
+        )
+    if surface is None:
+        return [Finding("KES-011", str(directory), "kernel surface is not allowed")]
+    data = _load(directory, surface, findings)
     if findings:
         return findings
-    indexes = {collection: _index(data[collection], filename, findings) for filename, collection in KERNEL_FILES.items()}
+    indexes = {
+        family: _index(data[family], filename, findings)
+        for family, (filename, _) in surface.kernel_files.items()
+    }
     manifest = data["manifest"]
     if len(manifest) != 1:
         findings.append(Finding("KES-009", "manifest.json", "exactly one active manifest is required"))
@@ -126,13 +129,19 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     manifest_key = manifest[0].get("key")
     rules = indexes["operational_rules"]
     if not any(rule.get("manifest_key") == manifest_key for rule in rules.values()):
-        findings.append(Finding("KES-005", "reglas-operativas.json", "no active rule references the active manifest"))
+        findings.append(
+            Finding(
+                "KES-005",
+                surface.kernel_files["operational_rules"][0],
+                "no active rule references the active manifest",
+            )
+        )
 
     actors, modes, workflows = indexes["actors"], indexes["modes"], indexes["workflows"]
     evidence, outputs, statuses = indexes["evidence"], indexes["outputs"], indexes["statuses"]
     for actor in actors.values():
         for mode in actor.get("allowed_modes", []):
-            _check_reference(modes, mode, "actores.json", findings)
+            _check_reference(modes, mode, surface.kernel_files["actors"][0], findings)
     for workflow in workflows.values():
         for key in workflow.get("required_evidence", []):
             _check_reference(evidence, key, "workflows.json", findings)
@@ -140,25 +149,37 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
             _check_reference(outputs, key, "workflows.json", findings)
     for limit in data["limits"]:
         if limit.get("actor_key") is not None:
-            _check_reference(actors, limit.get("actor_key"), "limites.json", findings)
-        _check_reference(statuses, limit.get("on_violation"), "limites.json", findings)
+            _check_reference(actors, limit.get("actor_key"), surface.kernel_files["limits"][0], findings)
+        _check_reference(statuses, limit.get("on_violation"), surface.kernel_files["limits"][0], findings)
     for item in data["evidence"]:
-        _check_reference(statuses, item.get("missing_status"), "evidencia.json", findings)
+        _check_reference(statuses, item.get("missing_status"), surface.kernel_files["evidence"][0], findings)
         for key in item.get("workflow_key", []):
-            _check_reference(workflows, key, "evidencia.json", findings)
+            _check_reference(workflows, key, surface.kernel_files["evidence"][0], findings)
     for item in data["outputs"]:
         if item.get("status_key") is not None:
-            _check_reference(statuses, item.get("status_key"), "salidas.json", findings)
+            _check_reference(statuses, item.get("status_key"), surface.kernel_files["outputs"][0], findings)
         for key in item.get("workflow_key", []):
-            _check_reference(workflows, key, "salidas.json", findings)
-    for artifact in data["artefactos"]:
+            _check_reference(workflows, key, surface.kernel_files["outputs"][0], findings)
+    for artifact in data["artifacts"]:
         for key in artifact.get("workflow_key", []):
-            _check_reference(workflows, key, "artefactos.json", findings)
+            _check_reference(workflows, key, surface.kernel_files["artifacts"][0], findings)
         if artifact.get("output_key") is not None:
-            _check_reference(outputs, artifact.get("output_key"), "artefactos.json", findings)
-        _check_project_markdown(artifact.get("required_template"), ("project-os-es", "templates"), "artefactos.json", directory, findings)
+            _check_reference(outputs, artifact.get("output_key"), surface.kernel_files["artifacts"][0], findings)
+        _check_project_markdown(
+            artifact.get("required_template"),
+            surface.templates_prefix,
+            surface.kernel_files["artifacts"][0],
+            directory,
+            findings,
+        )
     for skill in data["skills"]:
-        _check_project_markdown(skill.get("required_skill"), ("project-os-es", "habilidades"), "skills.json", directory, findings)
+        _check_project_markdown(
+            skill.get("required_skill"),
+            surface.skills_prefix,
+            surface.kernel_files["skills"][0],
+            directory,
+            findings,
+        )
     if set(statuses) != CANONICAL_STATUSES:
         findings.append(Finding("KES-010", "estados.json", f"statuses must be exactly {sorted(CANONICAL_STATUSES)}"))
     _check_durable_safety(directory, findings)

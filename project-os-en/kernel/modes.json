@@ -1,0 +1,103 @@
+{
+  "modes": [
+    {
+      "key": "mode.review_only",
+      "allowed_actions": [
+        "read",
+        "analyze",
+        "run read-only commands",
+        "report"
+      ],
+      "prohibited_actions": [
+        "edit files",
+        "commit",
+        "push",
+        "open a PR",
+        "comment",
+        "mutate the remote target"
+      ],
+      "fallback": null,
+      "active": true
+    },
+    {
+      "key": "mode.local_implementation",
+      "allowed_actions": [
+        "read",
+        "analyze",
+        "edit scoped files",
+        "run validation",
+        "report"
+      ],
+      "prohibited_actions": [
+        "commit",
+        "push",
+        "open a PR",
+        "comment",
+        "mutate the remote target"
+      ],
+      "fallback": "mode.review_only",
+      "active": true
+    },
+    {
+      "key": "mode.delegated_commit_push",
+      "allowed_actions": [
+        "edit scoped files",
+        "run validation",
+        "commit",
+        "push to the work branch",
+        "report"
+      ],
+      "prohibited_actions": [
+        "open a PR",
+        "merge",
+        "close the work unit",
+        "comment outside scope",
+        "perform another remote-target mutation"
+      ],
+      "fallback": "mode.review_only",
+      "active": true
+    },
+    {
+      "key": "mode.delegated_commit_pr",
+      "allowed_actions": [
+        "edit scoped files",
+        "run validation",
+        "commit",
+        "push to the work branch",
+        "open a draft PR",
+        "report"
+      ],
+      "prohibited_actions": [
+        "merge",
+        "close the work unit",
+        "apply labels",
+        "create tags or releases",
+        "change settings"
+      ],
+      "fallback": "mode.review_only",
+      "active": true
+    },
+    {
+      "key": "mode.delegated_deploy_execution",
+      "allowed_actions": [
+        "run target-owned deployment commands for one approved local or staging environment",
+        "run validation",
+        "report"
+      ],
+      "prohibited_actions": [
+        "edit files",
+        "commit",
+        "push",
+        "open a PR",
+        "mutate the remote target",
+        "invent deployment commands",
+        "deploy to production",
+        "expose secrets",
+        "run broad environment or configuration dumps",
+        "mutate secret stores"
+      ],
+      "fallback": "mode.review_only",
+      "active": true
+    }
+  ]
+}
