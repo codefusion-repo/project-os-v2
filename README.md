@@ -63,6 +63,12 @@ La superficie inglesa se selecciona solo reemplazando el path por
 `--kernel-dir project-os-en/kernel`. No existe preferencia persistente ni
 selector global de idioma.
 
+El resolver acepta `--hydration-level minimal|compact|full/debug`; `compact`
+es el valor predeterminado práctico. El nivel solo proyecta cuánto contrato ya resuelto se
+devuelve, nunca cambia autoridad ni lee estado vivo. `full/debug` es para
+revisión, debugging o auditoría. El flag existente `--compact` continúa siendo
+solo formato JSON sin indentación.
+
 La resolución manual desde `project-os-es/kernel/manifest.json` sigue siendo
 el fallback canónico. Las superficies browser/no terminales nunca ejecutan
 repo-local Python: siempre resuelven manualmente desde el manifest. En ambos

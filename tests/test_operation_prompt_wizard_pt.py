@@ -13,6 +13,8 @@ import pytest
 
 from tools.operation_prompt_wizard import (
     DEFAULT_OPERATIONS_DIR,
+    HYDRATION_LEVEL_DEFAULT,
+    HYDRATION_LEVEL_NAME,
     HAVE_PROMPT_TOOLKIT,
     PM_AUTHORIZATION_GRANTED,
     PM_AUTHORIZATION_PENDING,
@@ -229,7 +231,7 @@ def test_active_mos35_collects_authorization_and_never_requests_agent_family(
     monkeypatch.setattr(
         "tools.operation_prompt_wizard.prompt",
         mock_prompt([
-            "MOS-3.5", "405", "", "none", "", "", "1", "write", "exit",
+            "MOS-3.5", "405", "", "none", "", "", "", "1", "write", "exit",
         ]),
     )
     result = run_wizard_pt(
@@ -242,10 +244,11 @@ def test_active_mos35_collects_authorization_and_never_requests_agent_family(
     content = result.read_text(encoding="utf-8")
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     transcript = stream.getvalue()
     assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted" in transcript
-    assert "Optional (4): PR_NUMBER <PR_NUMBER>, OPTIONAL_SKILL <OPTIONAL_SKILL>, PM_FEEDBACK_HUMANO <PM_FEEDBACK_HUMANO>, PM_QUESTION_HUMANO <PM_QUESTION_HUMANO>" in transcript
+    assert "Optional (5): PR_NUMBER <PR_NUMBER>, OPTIONAL_SKILL <OPTIONAL_SKILL>, HYDRATION_LEVEL <HYDRATION_LEVEL>, PM_FEEDBACK_HUMANO <PM_FEEDBACK_HUMANO>, PM_QUESTION_HUMANO <PM_QUESTION_HUMANO>" in transcript
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY (" not in transcript
 
 
@@ -257,7 +260,7 @@ def test_active_mos34_collects_authorization_in_prompt_toolkit_mode(
     monkeypatch.setattr(
         "tools.operation_prompt_wizard.prompt",
         mock_prompt([
-            "MOS-3.4", "405", "274", "skill.arquitectura_backend", "", "", "2", "write", "exit",
+            "MOS-3.4", "405", "274", "skill.arquitectura_backend", "", "", "", "2", "write", "exit",
         ]),
     )
     result = run_wizard_pt(
@@ -270,6 +273,7 @@ def test_active_mos34_collects_authorization_in_prompt_toolkit_mode(
     content = result.read_text(encoding="utf-8")
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     assert "OPTIONAL_SKILL=skill.arquitectura_backend" in content
     assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted" in stream.getvalue()

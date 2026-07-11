@@ -133,6 +133,7 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
 
     for field in (
         "OPTIONAL_SKILL",
+        "HYDRATION_LEVEL",
         "RECOMMENDED_TERMINAL_AGENT_FAMILY",
         "PM_AUTHORIZATION_STATUS",
         "recommended_effort",

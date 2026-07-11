@@ -78,6 +78,12 @@ directorio de fase o código MOS. Selecciona por índice mostrado, código MOS
 (por ejemplo `MOS-3.5`), filename, stem o path relativo exacto. Tras seleccionar,
 el wizard muestra el path relativo para confirmar o desambiguar.
 
+Al draftear `MOS-3.4` o `MOS-3.5`, el wizard también captura
+`HYDRATION_LEVEL` para el receptor terminal: acepta `minimal`, `compact` o
+`full/debug` y precarga `compact` como valor predeterminado. Esta ayuda es local a esos route prompts;
+no convierte el nivel en variable canónica del catálogo completo ni autoriza
+escritura. El nivel solo controla la vista devuelta por el resolver.
+
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
 también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de
 vida: `project-os-es/operaciones/cross-fase/`,

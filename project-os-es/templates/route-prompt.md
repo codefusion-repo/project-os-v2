@@ -15,6 +15,7 @@ WORKFLOW = {{workflow id}}
 EXECUTION_MODE = {{mode id}}
 OUTPUT_CONTRACT = {{output id}}
 OPTIONAL_SKILL = {{skill.<id> | none}}
+HYDRATION_LEVEL = {{minimal | compact | full/debug}}
 RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}
 SCOPE = {{1-3 lineas, no el cuerpo completo}}
 OUT_OF_SCOPE = {{errores plausibles a evitar}}
@@ -34,7 +35,10 @@ implementación de código, tooling Python, migraciones, refactors y tests;
 Claude para síntesis documental, revisión de arquitectura o prosa de contexto
 largo; Gemini para trabajo multimodal o de ecosistema Google con ventaja clara;
 `none` si no hay ventaja significativa o falta evidencia. El feedback explícito
-del PM puede reemplazar esa recomendación. `OPTIONAL_SKILL` y la familia
-recomendada no eligen permisos, no reemplazan aprobacion PM exacta y no fuerzan
-herramienta.
+del PM puede reemplazar esa recomendación. `OPTIONAL_SKILL`, `HYDRATION_LEVEL`
+y la familia recomendada no eligen permisos, no reemplazan aprobacion PM exacta
+y no fuerzan herramienta. `HYDRATION_LEVEL` controla solo cuánto contrato ya
+resuelto devuelve el resolver: `compact` es el valor predeterminado práctico, `minimal`
+conserva los límites obligatorios y `full/debug` sirve para revisión, debugging
+o auditoría. Ningún nivel lee estado vivo, inventa estado ni cambia autorización.
 Este prompt no autoriza escritura.

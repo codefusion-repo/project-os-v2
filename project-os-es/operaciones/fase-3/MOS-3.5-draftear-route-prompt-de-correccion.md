@@ -17,10 +17,12 @@ advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
 
 **Variables**
 - Requeridas: ISSUE_NUMBER
-- Opcionales: PR_NUMBER, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO,
-  PM_QUESTION_HUMANO (el skill, el feedback y la pregunta del PM son contexto;
-  nunca autorizan nada). El wizard pide `PM_AUTHORIZATION_STATUS` de forma
-  requerida antes de generar este route-prompt.
+- Opcionales: PR_NUMBER, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO,
+  PM_QUESTION_HUMANO (el skill, el nivel, el feedback y la pregunta del PM son
+  contexto; nunca autorizan nada). `HYDRATION_LEVEL` acepta `minimal`,
+  `compact` (valor predeterminado) o `full/debug` y solo controla el contenido hidratado del
+  resolver. El wizard pide `PM_AUTHORIZATION_STATUS` de forma requerida y
+  precarga `HYDRATION_LEVEL=compact` antes de generar este route-prompt.
 
 **Entrega:** output.route_prompt. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
