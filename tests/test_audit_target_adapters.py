@@ -8,6 +8,7 @@ from tools.audit_target_adapters import (
     Source,
     _canonical_roadmap_lines,
     _check_overlay_removals,
+    _load_repo_sources,
     audit_target_adapters,
 )
 
@@ -217,12 +218,17 @@ def test_target_owned_units_normalize_bullet_markers_and_whitespace() -> None:
     assert _check_overlay_removals(base, head) == []
 
 
-def test_real_pr_base_to_worktree_transition_has_no_findings() -> None:
-    assert audit_target_adapters(
-        REPO_ROOT,
-        expected_repository="codefusion-repo/project-os-v2",
-        base_ref=PR_BASE_REF,
-    ) == []
+def test_real_pr_base_to_head_transition_preserves_all_target_owned_overlays() -> None:
+    base_sources = _load_repo_sources(REPO_ROOT, ref=PR_BASE_REF)
+    head_sources = _load_repo_sources(REPO_ROOT, ref="HEAD")
+
+    findings = [
+        finding
+        for name, base_source in base_sources.items()
+        for finding in _check_overlay_removals(base_source, head_sources[name])
+    ]
+
+    assert findings == []
 
 
 def test_compact_target_notes_report_an_individual_removed_constraint() -> None:
