@@ -51,6 +51,6 @@ Use `../adapters/AGENTS.target.md` as the only complete terminal bootloader. Cla
 
 ## Start operating
 
-Open `../operations/README.md`, choose the operation matching the real lifecycle outcome, fill its variables, and gather the declared live evidence. Optional local prompt generation may call `tools.operation_prompt_wizard.discover_operations(Path("project-os-en/operations"))`; this does not execute the operation or choose a global language.
+Open `../operations/README.md`, choose the operation matching the real lifecycle outcome, fill its variables, and gather the declared live evidence. Optional local prompt generation may run `python tools/operation_prompt_wizard.py --language en` (or answer the wizard's one-time `es/en` question; Spanish stays the default); the selection is session-only, does not execute the operation, and never adopts a language for the target.
 
 Stop with the resolved status if the kernel, scope, authority, evidence, or validation is missing or ambiguous.

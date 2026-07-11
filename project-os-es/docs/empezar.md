@@ -141,4 +141,9 @@ artefactos/templates, referenciado por `required_skill` bajo
 4. **Usa
    [MOS-0.6](../operaciones/fase-0/MOS-0.6-transferir-contexto-de-sesion.md)
    solo si la sesión está incoherente, agotada o necesita traspaso.**
-5. **Siguiente paso:** lee [reglas.md](reglas.md) y luego [ritmo.md](ritmo.md).
+5. **Genera prompts locales opcionalmente** con
+   `python tools/operation_prompt_wizard.py --language es` (o responde su
+   pregunta única `es/en`; español sigue siendo el default). La selección es
+   solo de sesión, no ejecuta la operación y nunca adopta un idioma para el
+   target.
+6. **Siguiente paso:** lee [reglas.md](reglas.md) y luego [ritmo.md](ritmo.md).

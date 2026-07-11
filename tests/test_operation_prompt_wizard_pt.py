@@ -117,6 +117,42 @@ def test_cancel_at_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
     assert run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out") is None
 
 
+def test_language_question_empty_answer_keeps_spanish_default(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", mock_prompt(["", "cancel"]))
+    stream = StringIO()
+    assert run_wizard_pt(output_dir=tmp_path / "out", output_stream=stream) is None
+    transcript = stream.getvalue()
+    assert "Session surface: es (session-only" in transcript
+    assert "Operations catalog: project-os-es/operaciones" in transcript
+    assert "Skills catalog: project-os-es/kernel/skills.json" in transcript
+
+
+def test_language_question_rejects_unknown_then_selects_english(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", mock_prompt(["fr", "en", "cancel"]))
+    stream = StringIO()
+    assert run_wizard_pt(output_dir=tmp_path / "out", output_stream=stream) is None
+    transcript = stream.getvalue()
+    assert "Unknown language 'fr'" in transcript
+    assert "Session surface: en (session-only" in transcript
+    assert "Operations catalog: project-os-en/operations" in transcript
+    assert "Skills catalog: project-os-en/kernel/skills.json" in transcript
+
+
+def test_explicit_language_option_skips_the_question(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("tools.operation_prompt_wizard.prompt", mock_prompt(["cancel"]))
+    stream = StringIO()
+    assert run_wizard_pt(language="en", output_dir=tmp_path / "out", output_stream=stream) is None
+    transcript = stream.getvalue()
+    assert "Session surface: en (session-only" in transcript
+    assert "Kernel (reference only, not applied): project-os-en/kernel" in transcript
+
+
 def test_cancel_during_value_entry(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     operations = setup_catalog(tmp_path)
     monkeypatch.setattr("tools.operation_prompt_wizard.prompt", mock_prompt(["MOS-3.5", "cancel"]))
@@ -350,7 +386,7 @@ def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_pat
     completed = subprocess.run(
         [script, "-qec", command, "/dev/null"],
         cwd=Path(__file__).resolve().parents[1],
-        input="/enumerator\n/phases\nMOS-3.4\n405\n274\ncancel\n",
+        input="\n/enumerator\n/phases\nMOS-3.4\n405\n274\ncancel\n",
         text=True,
         capture_output=True,
         check=False,

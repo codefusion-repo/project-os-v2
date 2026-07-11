@@ -2,9 +2,13 @@
 
 If prompt_toolkit is importable, the wizard uses an enhanced interactive mode.
 If unavailable, it falls back to a standard line-based flow.
-The wizard reads the active operation catalog from ``project-os-es/operaciones``
-and only writes local Markdown prompt artifacts. It does not execute
-operations, run commands, or call GitHub, git, or network services.
+The wizard reads one coherent language surface per session — Spanish
+(``project-os-es``, the default) or English (``project-os-en``) — selected once
+at session start via ``--language`` or a single interactive question, and only
+writes local Markdown prompt artifacts. It does not execute operations, run
+commands, call GitHub, git, or network services, install Project OS, or change
+any target adapter or persistent configuration; the selection lives only in
+memory for the session.
 
 The wizard stays open across multiple generated prompts in one session until
 the PM explicitly exits, and keeps only the single latest wizard-generated
@@ -33,10 +37,28 @@ try:
 except ImportError:
     HAVE_PROMPT_TOOLKIT = False
 
+try:
+    from tools.project_os_surfaces import (
+        ProjectOSSurface,
+        surface_for_language,
+        surface_for_operations_dir,
+    )
+except ModuleNotFoundError:  # Direct ``python tools/operation_prompt_wizard.py`` execution.
+    from project_os_surfaces import (  # type: ignore[no-redef]
+        ProjectOSSurface,
+        surface_for_language,
+        surface_for_operations_dir,
+    )
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OPERATIONS_DIR = REPO_ROOT / "project-os-es" / "operaciones"
 DEFAULT_SKILLS_CATALOG = REPO_ROOT / "project-os-es" / "kernel" / "skills.json"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / ".local" / "operation-prompts"
+
+LANGUAGE_CHOICES = ("es", "en")
+DEFAULT_LANGUAGE = "es"
+CUSTOM_SURFACE_LANGUAGE = "custom"
+LANGUAGE_QUESTION = "Elige idioma / Choose language [es/en] (default: es): "
 # The active Spanish catalog encodes its phase model in directory names.  An
 # optional table can still override those labels for custom catalogs.
 DEFAULT_OPERATION_FLOWS_PATH: Path | None = None
@@ -180,6 +202,138 @@ class RoutePromptPathResult:
     action: str
     values: dict[str, str]
     include_pm_authorization_status: bool
+
+
+@dataclass(frozen=True)
+class SurfaceSelection:
+    """One coherent session-only catalog bundle; never target adoption or permission.
+
+    ``language`` is ``es``, ``en``, or ``custom`` for an explicit non-surface
+    operations directory. ``kernel_dir`` is shown as local orientation only.
+    """
+
+    language: str
+    operations_dir: Path
+    skills_catalog_path: Path
+    kernel_dir: Path | None
+
+
+def surface_selection_for_surface(surface: ProjectOSSurface) -> SurfaceSelection:
+    """Bundle one allowed surface's operations, skills, and reference kernel."""
+
+    return SurfaceSelection(
+        language=surface.language,
+        operations_dir=surface.operations_dir,
+        skills_catalog_path=surface.skills_catalog_path,
+        kernel_dir=surface.kernel_dir,
+    )
+
+
+def surface_selection_for_language(language: str) -> SurfaceSelection:
+    """Resolve one full surface bundle for an explicit language, failing closed."""
+
+    surface = surface_for_language(language)
+    if surface is None:
+        raise WizardError(
+            f"unknown wizard language {language!r}; choose one of: {', '.join(LANGUAGE_CHOICES)}"
+        )
+    return surface_selection_for_surface(surface)
+
+
+def resolve_surface_selection(
+    language: str | None = None,
+    operations_dir: Path | None = None,
+    skills_catalog_path: Path | None = None,
+    input_func: Callable[[str], str] = input,
+    output_stream: TextIO = sys.stdout,
+) -> SurfaceSelection | None:
+    """Resolve the session surface bundle once, before any catalog is read.
+
+    Precedence: an explicit ``language`` and an explicit ``operations_dir``
+    must name the same surface (no silent mixing); an ``operations_dir`` that
+    exactly matches a known surface derives that surface's skills catalog; any
+    other ``operations_dir`` stays a custom catalog that keeps the existing
+    programmatic ``skills_catalog_path`` API and is not labeled es or en; with
+    neither, one interactive question selects the surface (Enter keeps
+    Spanish). An explicit ``skills_catalog_path`` only replaces the catalog of
+    a custom ``operations_dir``; on a known es/en surface it must point to that
+    surface's canonical catalog or the resolution fails closed (no mixing).
+    Returns ``None`` when the interactive question is cancelled.
+    """
+
+    if language is not None:
+        language = language.strip().lower()
+        if language not in LANGUAGE_CHOICES:
+            raise WizardError(
+                f"unknown wizard language {language!r}; choose one of: {', '.join(LANGUAGE_CHOICES)}"
+            )
+
+    if operations_dir is not None:
+        surface = surface_for_operations_dir(operations_dir)
+        if language is not None:
+            if surface is None or surface.language != language:
+                raise WizardError(
+                    f"--language {language} is incompatible with --operations-dir "
+                    f"{operations_dir}; the wizard never mixes operations and skills "
+                    "from different surfaces. Drop one option or make them match."
+                )
+            selection = surface_selection_for_surface(surface)
+        elif surface is not None:
+            selection = surface_selection_for_surface(surface)
+        else:
+            selection = SurfaceSelection(
+                language=CUSTOM_SURFACE_LANGUAGE,
+                operations_dir=Path(operations_dir).expanduser(),
+                skills_catalog_path=DEFAULT_SKILLS_CATALOG,
+                kernel_dir=None,
+            )
+    elif language is not None:
+        selection = surface_selection_for_language(language)
+    else:
+        selection = None
+        while selection is None:
+            answer = input_func(LANGUAGE_QUESTION).strip().lower()
+            if is_cancel_command(answer):
+                return None
+            if not answer:
+                answer = DEFAULT_LANGUAGE
+            if answer in LANGUAGE_CHOICES:
+                selection = surface_selection_for_language(answer)
+                break
+            print(
+                f"Unknown language {answer!r}. Use es, en, or Enter for the Spanish default.",
+                file=output_stream,
+            )
+
+    if skills_catalog_path is not None:
+        if selection.language == CUSTOM_SURFACE_LANGUAGE:
+            selection = SurfaceSelection(
+                language=selection.language,
+                operations_dir=selection.operations_dir,
+                skills_catalog_path=skills_catalog_path,
+                kernel_dir=selection.kernel_dir,
+            )
+        else:
+            supplied = Path(skills_catalog_path).expanduser()
+            supplied_abs = supplied if supplied.is_absolute() else Path.cwd() / supplied
+            canonical = selection.skills_catalog_path
+            if supplied_abs != canonical and supplied_abs.resolve() != canonical:
+                raise WizardError(
+                    f"skills catalog {skills_catalog_path} does not belong to the "
+                    f"{selection.language} surface; the wizard never mixes operations "
+                    "and skills from different surfaces. Drop the override or use "
+                    f"{display_path(canonical)}."
+                )
+    return selection
+
+
+def display_path(path: Path) -> str:
+    """Show repository paths relative to the repo root and others as given."""
+
+    try:
+        return path.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[OperationTemplate]:
@@ -553,7 +707,9 @@ def load_active_skill_options(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG
         if not isinstance(entry, dict):
             raise WizardError(f"invalid active skills catalog {skills_catalog_path}: skills[{index}] is not an object")
         key = entry.get("key")
-        name = entry.get("nombre")
+        # The Spanish catalog names skills with "nombre" and the English one
+        # with "name"; both surfaces stay catalog-owned and authoritative.
+        name = entry.get("nombre") if isinstance(entry.get("nombre"), str) else entry.get("name")
         active = entry.get("active")
         if (
             not isinstance(key, str)
@@ -564,7 +720,7 @@ def load_active_skill_options(skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG
         ):
             raise WizardError(
                 f"invalid active skills catalog {skills_catalog_path}: skills[{index}] needs "
-                "key skill.*, non-empty nombre, and boolean active"
+                "key skill.*, non-empty nombre or name, and boolean active"
             )
         if active:
             if key in {option.key for option in options}:
@@ -967,10 +1123,42 @@ def print_stage(label: str, title: str, output_stream: TextIO) -> None:
     print(f"[{label}] {title}", file=output_stream)
 
 
-def print_session_state(output_stream: TextIO, current_prompt_path: Path | None) -> None:
-    """Print visible output-mode and current-prompt session state."""
+def print_session_surface(
+    selection: SurfaceSelection,
+    output_directory: Path,
+    output_stream: TextIO,
+) -> None:
+    """Print the session-only surface bundle as local orientation, never adoption."""
 
     print("", file=output_stream)
+    print(
+        f"Session surface: {selection.language} (session-only; does not configure or adopt the target)",
+        file=output_stream,
+    )
+    print(f"  Operations catalog: {display_path(selection.operations_dir)}", file=output_stream)
+    print(f"  Skills catalog: {display_path(selection.skills_catalog_path)}", file=output_stream)
+    if selection.kernel_dir is not None:
+        print(
+            f"  Kernel (reference only, not applied): {display_path(selection.kernel_dir)}",
+            file=output_stream,
+        )
+    else:
+        print("  Kernel (reference only, not applied): none for a custom catalog", file=output_stream)
+    print(f"  Output directory: {output_directory}", file=output_stream)
+
+
+def print_session_state(
+    output_stream: TextIO,
+    current_prompt_path: Path | None,
+    selection: SurfaceSelection | None = None,
+    output_directory: Path | None = None,
+) -> None:
+    """Print visible surface, output-mode, and current-prompt session state."""
+
+    if selection is not None and output_directory is not None:
+        print_session_surface(selection, output_directory, output_stream)
+    else:
+        print("", file=output_stream)
     print("Output mode: single latest prompt", file=output_stream)
     if current_prompt_path is not None:
         print(f"Current prompt: {current_prompt_path}", file=output_stream)
@@ -1074,8 +1262,8 @@ def print_optional_skill_options(
     print("OPTIONAL_SKILL (optional)", file=output_stream)
     for option in options:
         print(f"  - {option.key} — {option.name}", file=output_stream)
-    print("  - none — Sin skill opcional", file=output_stream)
-    print("  - Enter — Dejar vacío", file=output_stream)
+    print("  - none — Sin skill opcional / No optional skill", file=output_stream)
+    print("  - Enter — Dejar vacío / Leave blank", file=output_stream)
 
 
 def print_pm_authorization_assistance(output_stream: TextIO) -> None:
@@ -1573,19 +1761,30 @@ def choose_post_write_action(
 
 
 def run_wizard(
-    operations_dir: Path = DEFAULT_OPERATIONS_DIR,
+    operations_dir: Path | None = None,
     output_dir: Path | None = None,
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
     operation_flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
-    skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG,
+    skills_catalog_path: Path | None = None,
+    language: str | None = None,
 ) -> Path | None:
     """Run the interactive operation prompt wizard for one or more prompts in one session."""
 
-    operations = discover_operations(operations_dir)
+    selection = resolve_surface_selection(
+        language=language,
+        operations_dir=operations_dir,
+        skills_catalog_path=skills_catalog_path,
+        input_func=input_func,
+        output_stream=output_stream,
+    )
+    if selection is None:
+        print("Cancelled before language selection. No file was created.", file=output_stream)
+        return None
+    operations = discover_operations(selection.operations_dir)
     output_directory = resolve_output_dir(output_dir)
     phase_by_operation = load_phase_map(operation_flows_path, operations)
-    skill_options = load_active_skill_options(skills_catalog_path)
+    skill_options = load_active_skill_options(selection.skills_catalog_path)
     skill_choices = skill_choice_keys(skill_options)
 
     written_operation: OperationTemplate | None = None
@@ -1599,7 +1798,7 @@ def run_wizard(
 
     while True:
         if stage == "select_operation":
-            print_session_state(output_stream, current_prompt_path)
+            print_session_state(output_stream, current_prompt_path, selection, output_directory)
             picked = select_operation(
                 operations,
                 input_func=input_func,
@@ -2210,17 +2409,35 @@ if HAVE_PROMPT_TOOLKIT:
             if answer in EDIT_COMMANDS:
                 return "edit"
 
+    def ask_language_pt(question: str) -> str:
+        completer = WordCompleter(list(LANGUAGE_CHOICES), ignore_case=True)
+        try:
+            return prompt(question, completer=completer)
+        except (EOFError, KeyboardInterrupt):
+            return "cancel"
+
     def run_wizard_pt(
-        operations_dir: Path = DEFAULT_OPERATIONS_DIR,
+        operations_dir: Path | None = None,
         output_dir: Path | None = None,
         output_stream: TextIO = sys.stdout,
         operation_flows_path: Path | None = DEFAULT_OPERATION_FLOWS_PATH,
-        skills_catalog_path: Path = DEFAULT_SKILLS_CATALOG,
+        skills_catalog_path: Path | None = None,
+        language: str | None = None,
     ) -> Path | None:
-        operations = discover_operations(operations_dir)
+        selection = resolve_surface_selection(
+            language=language,
+            operations_dir=operations_dir,
+            skills_catalog_path=skills_catalog_path,
+            input_func=ask_language_pt,
+            output_stream=output_stream,
+        )
+        if selection is None:
+            print("Cancelled before language selection. No file was created.", file=output_stream)
+            return None
+        operations = discover_operations(selection.operations_dir)
         output_directory = resolve_output_dir(output_dir)
         phase_by_operation = load_phase_map(operation_flows_path, operations)
-        skill_options = load_active_skill_options(skills_catalog_path)
+        skill_options = load_active_skill_options(selection.skills_catalog_path)
         skill_choices = skill_choice_keys(skill_options)
 
         written_operation: OperationTemplate | None = None
@@ -2234,7 +2451,7 @@ if HAVE_PROMPT_TOOLKIT:
 
         while True:
             if stage == "select_operation":
-                print_session_state(output_stream, current_prompt_path)
+                print_session_state(output_stream, current_prompt_path, selection, output_directory)
                 picked = select_operation_pt(
                     operations, output_stream=output_stream, phase_by_operation=phase_by_operation
                 )
@@ -2374,10 +2591,30 @@ if HAVE_PROMPT_TOOLKIT:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--language",
+        choices=LANGUAGE_CHOICES,
+        default=None,
+        help=(
+            "Session-only surface selection: es loads project-os-es/operaciones with "
+            "Spanish skills and en loads project-os-en/operations with English skills. "
+            "Without it and without --operations-dir, the wizard asks once at session "
+            "start and Enter keeps the Spanish default. The selection lives only in "
+            "this session and never adopts, installs, or configures a target."
+        ),
+    )
+    parser.add_argument(
         "--operations-dir",
         type=Path,
-        default=DEFAULT_OPERATIONS_DIR,
-        help="Active operation catalog directory; Markdown files are discovered recursively.",
+        default=None,
+        help=(
+            "Advanced: explicit operation catalog directory; Markdown files are "
+            "discovered recursively. A directory matching a known es/en surface "
+            "derives that same surface's skills catalog; any other directory is a "
+            "custom catalog that keeps the default Spanish skills catalog and is not "
+            "labeled es or en. Combined with a mismatched --language it fails closed "
+            "instead of mixing surfaces. Without it, the session language selection "
+            "decides the catalog."
+        ),
     )
     parser.add_argument(
         "--output-dir",
@@ -2396,9 +2633,17 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if HAVE_PROMPT_TOOLKIT:
-            result = run_wizard_pt(operations_dir=args.operations_dir, output_dir=args.output_dir)
+            result = run_wizard_pt(
+                operations_dir=args.operations_dir,
+                output_dir=args.output_dir,
+                language=args.language,
+            )
         else:
-            result = run_wizard(operations_dir=args.operations_dir, output_dir=args.output_dir)
+            result = run_wizard(
+                operations_dir=args.operations_dir,
+                output_dir=args.output_dir,
+                language=args.language,
+            )
     except WizardError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

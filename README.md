@@ -90,8 +90,15 @@ variables PM y trazabilidad viva en GitHub.
    `project-os-es/docs/ritmo.md`; las reglas no negociables en
    `project-os-es/docs/reglas.md`.
 4. **Genera un prompt local opcionalmente**: ejecuta
-   `python tools/operation_prompt_wizard.py`. El wizard lista de forma
-   recursiva las operaciones activas bajo `project-os-es/operaciones/`. Puedes
+   `python tools/operation_prompt_wizard.py`. Al iniciar sin selección
+   explícita, el wizard pregunta una sola vez
+   `Elige idioma / Choose language [es/en]` (Enter mantiene español) y carga el
+   bundle coherente de esa superficie: operaciones, skills y kernel
+   orientativo. `--language es|en` selecciona lo mismo sin preguntar. La
+   selección vive solo en la sesión del wizard y nunca adopta, instala ni
+   configura un target. El wizard lista de forma
+   recursiva las operaciones activas del catálogo seleccionado
+   (por defecto `project-os-es/operaciones/`). Puedes
    mantener la lista enumerada, usar `/phases` para agruparla por `cross-fase`
    y `fase-*`, filtrar por título/path/fase, o seleccionar por índice, código
    MOS (`MOS-3.5`), filename, stem o path relativo. Solo escribe el artefacto

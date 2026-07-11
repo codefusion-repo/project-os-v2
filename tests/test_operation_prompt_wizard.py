@@ -6,8 +6,13 @@ import json
 from io import StringIO
 from pathlib import Path
 
+import pytest
+
 from tools.operation_prompt_wizard import (
     DEFAULT_OPERATIONS_DIR,
+    DEFAULT_SKILLS_CATALOG,
+    LANGUAGE_QUESTION,
+    REPO_ROOT,
     HYDRATION_LEVEL_DEFAULT,
     HYDRATION_LEVEL_NAME,
     InputVariable,
@@ -28,10 +33,12 @@ from tools.operation_prompt_wizard import (
     load_phase_map,
     operation_needs_pm_authorization_assistance,
     operation_output_refs,
+    build_parser,
     parse_input_variables,
     print_phase_groups,
     render_prompt,
     resolve_operation_selection,
+    resolve_surface_selection,
     run_wizard,
     select_operation,
     validate_variable_value,
@@ -247,6 +254,7 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
     output = run_wizard(
         output_dir=tmp_path,
         input_func=answers(
+            "",
             "/phases",
             "MOS-3.5",
             "405", "", "none", "", "", "", "1",
@@ -258,6 +266,9 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
     assert output is not None and output.is_file()
     transcript = stream.getvalue()
     content = output.read_text(encoding="utf-8")
+    assert "Session surface: es (session-only" in transcript
+    assert "Operations catalog: project-os-es/operaciones" in transcript
+    assert "Kernel (reference only, not applied): project-os-es/kernel" in transcript
     assert "Operations grouped by SDLC phase:" in transcript
     assert "Fase 3:" in transcript
     assert "ISSUE_NUMBER=405" in content
@@ -274,6 +285,7 @@ def test_line_wizard_active_mos34_generates_granted_route_prompt(tmp_path: Path)
     output = run_wizard(
         output_dir=tmp_path,
         input_func=answers(
+            "es",
             "MOS-3.4",
             "405", "274", "skill.arquitectura_backend", "", "", "", "2",
             "write", "exit",
@@ -640,6 +652,193 @@ def test_line_wizard_rejects_invalid_hydration_before_rendering_full_debug(tmp_p
     assert output is not None
     assert f"{HYDRATION_LEVEL_NAME}=full/debug" in output.read_text(encoding="utf-8")
     assert "HYDRATION_LEVEL must be exactly one of" in stream.getvalue()
+
+
+def test_language_selector_defaults_rejects_unknown_and_selects_each_surface() -> None:
+    questions: list[str] = []
+
+    def ask(factory):
+        iterator = iter(factory)
+
+        def _ask(question: str) -> str:
+            questions.append(question)
+            return next(iterator)
+
+        return _ask
+
+    stream = StringIO()
+    spanish = resolve_surface_selection(input_func=ask([""]), output_stream=stream)
+    assert spanish.language == "es"
+    assert spanish.operations_dir == REPO_ROOT / "project-os-es" / "operaciones"
+    assert spanish.skills_catalog_path == REPO_ROOT / "project-os-es" / "kernel" / "skills.json"
+    assert spanish.kernel_dir == REPO_ROOT / "project-os-es" / "kernel"
+
+    explicit_spanish = resolve_surface_selection(input_func=ask(["es"]), output_stream=stream)
+    assert explicit_spanish == spanish
+
+    english = resolve_surface_selection(input_func=ask(["fr", "en"]), output_stream=stream)
+    assert english.language == "en"
+    assert english.operations_dir == REPO_ROOT / "project-os-en" / "operations"
+    assert english.skills_catalog_path == REPO_ROOT / "project-os-en" / "kernel" / "skills.json"
+    assert english.kernel_dir == REPO_ROOT / "project-os-en" / "kernel"
+    assert "Unknown language 'fr'" in stream.getvalue()
+    assert questions == [LANGUAGE_QUESTION] * 4
+    assert resolve_surface_selection(input_func=ask(["cancel"]), output_stream=stream) is None
+
+
+def test_explicit_language_never_asks_and_invalid_language_fails_closed() -> None:
+    def never_ask(_question: str) -> str:
+        raise AssertionError("explicit --language must not prompt interactively")
+
+    english = resolve_surface_selection(language="en", input_func=never_ask)
+    assert english.language == "en"
+    assert english.operations_dir == REPO_ROOT / "project-os-en" / "operations"
+
+    with pytest.raises(WizardError, match="unknown wizard language"):
+        resolve_surface_selection(language="fr", input_func=never_ask)
+    assert build_parser().parse_args(["--language", "en"]).language == "en"
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["--language", "fr"])
+
+
+def test_operations_dir_matching_a_surface_derives_that_surface_and_custom_stays_custom(tmp_path: Path) -> None:
+    def never_ask(_question: str) -> str:
+        raise AssertionError("an explicit operations dir must not prompt interactively")
+
+    english = resolve_surface_selection(
+        operations_dir=REPO_ROOT / "project-os-en" / "operations", input_func=never_ask
+    )
+    assert english.language == "en"
+    assert english.skills_catalog_path == REPO_ROOT / "project-os-en" / "kernel" / "skills.json"
+
+    custom = resolve_surface_selection(operations_dir=tmp_path / "operations", input_func=never_ask)
+    assert custom.language == "custom"
+    assert custom.kernel_dir is None
+    assert custom.skills_catalog_path == DEFAULT_SKILLS_CATALOG
+
+    injected = resolve_surface_selection(
+        operations_dir=tmp_path / "operations",
+        skills_catalog_path=tmp_path / "skills.json",
+        input_func=never_ask,
+    )
+    assert injected.skills_catalog_path == tmp_path / "skills.json"
+
+
+def test_incompatible_language_and_operations_dir_fail_closed(tmp_path: Path) -> None:
+    for language, operations_dir in (
+        ("en", DEFAULT_OPERATIONS_DIR),
+        ("es", REPO_ROOT / "project-os-en" / "operations"),
+        ("es", tmp_path / "operations"),
+    ):
+        with pytest.raises(WizardError, match="never mixes operations and skills"):
+            resolve_surface_selection(language=language, operations_dir=operations_dir)
+
+
+def test_known_surface_rejects_skills_catalog_from_another_surface(tmp_path: Path) -> None:
+    def never_ask(_question: str) -> str:
+        raise AssertionError("explicit selections must not prompt interactively")
+
+    es_catalog = REPO_ROOT / "project-os-es" / "kernel" / "skills.json"
+    en_catalog = REPO_ROOT / "project-os-en" / "kernel" / "skills.json"
+    for kwargs in (
+        {"language": "en", "skills_catalog_path": es_catalog},
+        {"language": "es", "skills_catalog_path": en_catalog},
+        {
+            "operations_dir": REPO_ROOT / "project-os-en" / "operations",
+            "skills_catalog_path": es_catalog,
+        },
+        {
+            "operations_dir": REPO_ROOT / "project-os-es" / "operaciones",
+            "skills_catalog_path": en_catalog,
+        },
+        {"language": "es", "skills_catalog_path": tmp_path / "skills.json"},
+    ):
+        with pytest.raises(WizardError, match="never mixes operations and skills"):
+            resolve_surface_selection(input_func=never_ask, **kwargs)
+
+
+def test_known_surface_accepts_its_own_canonical_skills_catalog() -> None:
+    def never_ask(_question: str) -> str:
+        raise AssertionError("explicit selections must not prompt interactively")
+
+    en_catalog = REPO_ROOT / "project-os-en" / "kernel" / "skills.json"
+    english = resolve_surface_selection(
+        language="en", skills_catalog_path=en_catalog, input_func=never_ask
+    )
+    assert english.language == "en"
+    assert english.skills_catalog_path == en_catalog
+
+    unnormalized = REPO_ROOT / "tools" / ".." / "project-os-en" / "kernel" / "skills.json"
+    assert resolve_surface_selection(
+        language="en", skills_catalog_path=unnormalized, input_func=never_ask
+    ).skills_catalog_path == en_catalog
+
+    spanish = resolve_surface_selection(
+        operations_dir=REPO_ROOT / "project-os-es" / "operaciones",
+        skills_catalog_path=REPO_ROOT / "project-os-es" / "kernel" / "skills.json",
+        input_func=never_ask,
+    )
+    assert spanish.language == "es"
+    assert spanish.skills_catalog_path == REPO_ROOT / "project-os-es" / "kernel" / "skills.json"
+
+
+def test_language_question_is_asked_once_per_session(tmp_path: Path) -> None:
+    asked: list[str] = []
+    values = iter(
+        (
+            "",
+            "MOS-3.5",
+            "405", "", "none", "", "", "", "1",
+            "write",
+            "new",
+            "cancel",
+            "exit",
+        )
+    )
+
+    def input_func(question: str) -> str:
+        if question == LANGUAGE_QUESTION:
+            asked.append(question)
+        return next(values)
+
+    stream = StringIO()
+    output = run_wizard(output_dir=tmp_path, input_func=input_func, output_stream=stream)
+
+    assert output is not None
+    assert asked == [LANGUAGE_QUESTION]
+    assert stream.getvalue().count("Session surface: es (session-only") >= 2
+
+
+def test_english_language_loads_coherent_english_bundle(tmp_path: Path) -> None:
+    stream = StringIO()
+    output = run_wizard(
+        language="en",
+        output_dir=tmp_path,
+        input_func=answers("MOS-3.5", "405", "", "none", "", "", "", "1", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    transcript = stream.getvalue()
+    content = output.read_text(encoding="utf-8")
+    assert "Session surface: en (session-only" in transcript
+    assert "Operations catalog: project-os-en/operations" in transcript
+    assert "Skills catalog: project-os-en/kernel/skills.json" in transcript
+    assert "Kernel (reference only, not applied): project-os-en/kernel" in transcript
+    assert "skill.arquitectura_backend — Backend architecture" in transcript
+    assert "skill.desarrollo_frontend — Frontend development" in transcript
+    assert "MOS-3.5 — Draft correction route prompt" in content
+    assert "project-os-en/operations/README.md" in content
+    assert "project-os-es" not in content
+
+
+def test_english_skills_catalog_loads_names_from_name_field() -> None:
+    options = load_active_skill_options(REPO_ROOT / "project-os-en" / "kernel" / "skills.json")
+    assert [option.key for option in options] == [
+        "skill.arquitectura_backend",
+        "skill.desarrollo_frontend",
+    ]
+    assert [option.name for option in options] == ["Backend architecture", "Frontend development"]
 
 
 def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejected(tmp_path: Path) -> None:

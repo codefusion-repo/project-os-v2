@@ -69,7 +69,37 @@ ejecútalo en la superficie que indica (`browser_chat`, `terminal_agent`,
 indica la operación previa, las siguientes seguras y la recomendada.
 
 Para seleccionar y generar un artefacto local desde el catálogo activo, ejecuta
-`python tools/operation_prompt_wizard.py` desde la raíz del repo. El wizard
+`python tools/operation_prompt_wizard.py` desde la raíz del repo.
+
+El wizard usa una superficie coherente por sesión. Sin selección explícita
+pregunta una sola vez `Elige idioma / Choose language [es/en] (default: es)`:
+Enter o `es` mantienen español (`project-os-es/operaciones` +
+`project-os-es/kernel/skills.json`); `en` carga el bundle inglés completo
+(`project-os-en/operations` + `project-os-en/kernel/skills.json`). La opción
+`--language es|en` hace la misma selección sin preguntar y un valor inválido
+falla cerrado. La pregunta no se repite al generar más prompts dentro de la
+misma sesión y el resumen de sesión muestra idioma, catálogo, skills, kernel
+orientativo y directorio de salida. La selección vive solo en memoria durante
+la sesión: no modifica adapters, `PM_FACING_LANGUAGE` ni `KERNEL_LOCAL_PATH`,
+no instala ni copia el kernel, y el kernel mostrado es orientación local, no
+configuración aplicada al target. Ninguna selección concede permisos.
+
+Ejemplos:
+
+```sh
+python tools/operation_prompt_wizard.py --language es
+python tools/operation_prompt_wizard.py --language en
+```
+
+Uso avanzado: `--operations-dir` sigue disponible para tests, desarrollo y
+catálogos custom. Precedencia: si `--language` y `--operations-dir` no nombran
+la misma superficie, el wizard falla cerrado en vez de mezclar; un
+`--operations-dir` que coincide exactamente con una superficie conocida deriva
+el catálogo de skills de esa misma superficie; cualquier otro directorio es un
+catálogo custom que conserva la API programática existente y no se etiqueta
+como es ni en.
+
+El wizard
 descubre recursivamente estas operaciones, excluye este README y muestra por
 defecto una lista compacta con índice, fase, código MOS y propósito extraído de
 `**Hace:**`. Usa `/phases` para agrupar el mismo catálogo por `cross-fase` y
