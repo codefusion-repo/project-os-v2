@@ -117,10 +117,28 @@ def test_compact_headings_allow_canonical_changes_while_preserving_target_notes(
         "## Identidad del repositorio\nMetadata compactada.\n\n"
         "## Resolución del kernel\nRuta compactada.\n\n"
         "## Evidencia viva\nEvidencia compactada.\n\n"
-        "## Notas propias del target\nComando estable compactado.\n",
+        "## Notas propias del target\nConservar este comando estable.\n",
     )
 
     assert _check_overlay_removals(base, head) == []
+
+
+def test_compact_target_notes_report_an_individual_removed_constraint() -> None:
+    base = Source(
+        "AGENTS.md",
+        "## Notas propias del target\n"
+        "Mantener este path protegido.\n"
+        "Mantener esta restricción de dominio.\n",
+    )
+    head = Source(
+        "AGENTS.md",
+        "## Notas propias del target\nMantener este path protegido.\n",
+    )
+
+    findings = _check_overlay_removals(base, head)
+
+    assert [finding.code for finding in findings] == ["TAA-OVERLAY-CONTENT-REMOVED"]
+    assert findings[0].evidence == "Mantener esta restricción de dominio."
 
 
 def test_compact_target_notes_remain_protected_in_a_base_to_head_audit() -> None:

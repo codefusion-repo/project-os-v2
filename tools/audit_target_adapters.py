@@ -694,19 +694,6 @@ def _check_overlay_removals(base: Source, head: Source) -> list[Finding]:
                 )
             )
             continue
-        if heading in PROTECTED_NOTES_HEADINGS:
-            if not _significant_lines(head_section):
-                findings.append(
-                    Finding(
-                        "TAA-OVERLAY-CONTENT-REMOVED",
-                        "warning",
-                        f"{base.name}@base",
-                        section.line,
-                        f"protected target-owned section {heading!r} is empty in head",
-                        heading,
-                    )
-                )
-            continue
         head_text = "\n".join(line for _, line in _significant_lines(head_section))
         for line_no, protected_line in base_lines:
             if protected_line not in head_text:
