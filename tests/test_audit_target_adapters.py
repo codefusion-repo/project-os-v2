@@ -13,6 +13,7 @@ from tools.audit_target_adapters import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+PR_BASE_REF = "625899846c33cd79060bfd58f63657155cd6f7df"
 
 LEGACY_GENERIC_POLICY = """Security / project constraints:
 - Follow target-specific security practices; for web/API/user-facing changes,
@@ -168,6 +169,60 @@ def test_real_compaction_discards_generic_policy_but_preserves_target_constraint
     )
 
     assert _check_overlay_removals(base, head) == []
+
+
+def test_generic_phrase_extended_with_a_stable_command_is_not_discarded() -> None:
+    unit = "- Follow target-specific security practices; run `bin/pci-check` before every payment release."
+    base = Source("AGENTS.md", f"## Project-specific notes\n{unit}\n")
+    head = Source("AGENTS.md", "## Project-specific notes\n")
+
+    findings = _check_overlay_removals(base, head)
+
+    assert [finding.code for finding in findings] == ["TAA-OVERLAY-CONTENT-REMOVED"]
+    assert findings[0].evidence == unit
+
+
+def test_generic_phrase_extended_with_a_protected_path_is_not_discarded() -> None:
+    unit = "- Follow target-specific security practices; keep `config/payment-policy.yml` protected."
+    base = Source("AGENTS.md", f"## Project-specific notes\n{unit}\n")
+    head = Source("AGENTS.md", "## Project-specific notes\n")
+
+    findings = _check_overlay_removals(base, head)
+
+    assert [finding.code for finding in findings] == ["TAA-OVERLAY-CONTENT-REMOVED"]
+    assert findings[0].evidence == unit
+
+
+def test_generic_phrase_extended_with_a_security_constraint_is_not_discarded() -> None:
+    unit = "- Follow target-specific security practices; payment releases require dual approval."
+    base = Source("AGENTS.md", f"## Project-specific notes\n{unit}\n")
+    head = Source("AGENTS.md", "## Project-specific notes\n")
+
+    findings = _check_overlay_removals(base, head)
+
+    assert [finding.code for finding in findings] == ["TAA-OVERLAY-CONTENT-REMOVED"]
+    assert findings[0].evidence == unit
+
+
+def test_target_owned_units_normalize_bullet_markers_and_whitespace() -> None:
+    base = Source(
+        "AGENTS.md",
+        "## Project-specific notes\n- Run `bin/pci-check` before every payment release.\n",
+    )
+    head = Source(
+        "AGENTS.md",
+        "## Project-specific notes\n*   Run `bin/pci-check` before every payment release.\n",
+    )
+
+    assert _check_overlay_removals(base, head) == []
+
+
+def test_real_pr_base_to_worktree_transition_has_no_findings() -> None:
+    assert audit_target_adapters(
+        REPO_ROOT,
+        expected_repository="codefusion-repo/project-os-v2",
+        base_ref=PR_BASE_REF,
+    ) == []
 
 
 def test_compact_target_notes_report_an_individual_removed_constraint() -> None:

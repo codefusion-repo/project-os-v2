@@ -129,20 +129,61 @@ PROTECTED_NOTES_HEADINGS = {
     "Notas propias del repositorio",
 }
 
-# These patterns identify legacy copies of cross-project policy, not allowed
-# target content. Anything in a protected notes section that does not match one
-# of these policy shapes remains target-owned and is compared base-to-head.
+# These patterns identify complete, known legacy copies of cross-project policy,
+# not fragments of otherwise target-owned content. Patterns are matched against
+# normalized comparison units in their entirety. Anything added to, combined
+# with, or otherwise differing from one of these units remains target-owned and
+# is compared base-to-head.
 GENERIC_POLICY_PATTERNS = (
-    re.compile(r"\bsecurity / (?:project|target) constraints\b", re.I),
-    re.compile(r"\btarget-specific security practices\b", re.I),
-    re.compile(r"\bOWASP secure-coding risks?\b", re.I),
-    re.compile(r"\b(?:never print|never expose).+\bsecret-looking values?\b", re.I),
-    re.compile(r"\btreat sensitive values as unsafe\b", re.I),
-    re.compile(r"\bredact sensitive values as `?\[REDACTED\]`?", re.I),
-    re.compile(r"\bbroad environment/config dumps?\b", re.I),
-    re.compile(r"\bdo not modify secret stores\b", re.I),
-    re.compile(r"\bkeep build commands, protected paths, domain constraints, and validation notes\b", re.I),
-    re.compile(r"\bfollow proportional validation\b", re.I),
+    re.compile(r"security / (?:project|target) constraints:?", re.I),
+    re.compile(
+        r"follow target-specific security practices; for web/api/user-facing changes, "
+        r"consider owasp secure-coding risks such as auth, authorization, sessions, "
+        r"input validation, file uploads, redirects, dependency risk, and admin surfaces\.?",
+        re.I,
+    ),
+    re.compile(
+        r"never print, paste, commit, upload, summarize, quote, or expose `?\.env`?, "
+        r"`?\.env\.\*`?, private keys, api tokens, oauth/client secrets, database urls, "
+        r"cookies, session tokens, jwts, production credentials, payment-provider keys, "
+        r"ssh/gpg keys, ci secrets, or secret-looking values\.?",
+        re.I,
+    ),
+    re.compile(
+        r"treat sensitive values as unsafe even in tests, logs, screenshots, shell output, "
+        r"github comments, pr bodies, validation reports, and copied command output\.?",
+        re.I,
+    ),
+    re.compile(
+        r"redact sensitive values as `?\[redacted\]`?; report only file paths, variable names, "
+        r"and risk type\.?",
+        re.I,
+    ),
+    re.compile(
+        r"do not run broad environment/config dumps such as `?env`?, `?printenv`?, `?set`?, "
+        r"framework config dumps, or ci secret-context dumps unless the pm explicitly scopes "
+        r"a safe redacted diagnostic\.?",
+        re.I,
+    ),
+    re.compile(
+        r"do not modify secret stores, rotate keys, change production credentials, edit "
+        r"deployment secrets, or touch payment/auth production settings without separate "
+        r"exact pm approval\.?",
+        re.I,
+    ),
+    re.compile(
+        r"keep build commands, protected paths, domain constraints, and validation notes here "
+        r"when they are stable and target-owned; never store issue/pr/branch state, shas, review "
+        r"status, release status, or live validation results\.?",
+        re.I,
+    ),
+    re.compile(
+        r"follow proportional validation from `?project-os-es/docs/reglas\.md`? and "
+        r"`?project-os-es/kernel/reglas-operativas\.json`?: run scoped required checks, draft "
+        r"pm-run commands when useful validation should remain pm-executed, and do not impose "
+        r"project os-specific tests or add tests by default unless the issue risk justifies them\.?",
+        re.I,
+    ),
 )
 
 
@@ -709,7 +750,8 @@ def _content_units(section: Section | None) -> list[tuple[int, str]]:
 
 
 def _is_generic_policy_unit(unit: str) -> bool:
-    return any(pattern.search(unit) for pattern in GENERIC_POLICY_PATTERNS)
+    normalized = _normalized_content(unit)
+    return any(pattern.fullmatch(normalized) for pattern in GENERIC_POLICY_PATTERNS)
 
 
 def _target_owned_content(section: Section | None) -> list[tuple[int, str]]:
