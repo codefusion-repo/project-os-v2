@@ -227,6 +227,90 @@ aquí):
 5. Tratamiento de issues/PRs de GitHub ante un cambio de visibilidad — B4.
 6. Cadencia de re-verificación de comparaciones fechadas (ADR 0004).
 
+## Resultado de la revisión PM (2026-07-11)
+
+Primera revisión PM de este artefacto, registrada en PR #418. Clasificación:
+**decisión exacta** / **dirección PM definida** / **propuesta downstream
+pendiente de diseño** / **trabajo expresamente no autorizado**. Esta sección
+solo registra el resultado: no implementa nada, no cierra ningún blocker y no
+altera el veredicto ni los findings técnicos.
+
+### B1 — Licencia: decisión exacta pendiente
+
+Intención PM registrada:
+
+- proyecto open source;
+- libre uso, modificación y redistribución;
+- conservación de atribución y derechos del autor;
+- permitir que cada usuario adapte el kernel y el futuro CLI.
+
+Recomendación inicial para la decisión posterior: **Apache-2.0** — permite
+usar, modificar y distribuir; concesión expresa de patentes; exige conservar
+los avisos aplicables e indicar archivos modificados; no obliga a publicar
+las modificaciones como open source. Aclaración: "atribución" significa
+conservar licencia, copyright y avisos en las distribuciones; Apache-2.0 no
+obliga a mostrar branding de CodeFusion en la interfaz de ningún producto.
+MIT cubre la misma intención con un texto más breve, pero sin la concesión
+expresa de patentes. MPL-2.0 solo sería candidata si se quisiera copyleft a
+nivel de archivo, obligación que no aparece en la intención PM actual.
+
+La selección exacta sigue pendiente y nada de esto autoriza crear `LICENSE`.
+B1 permanece abierto.
+
+### B2 — Seguridad: dirección PM definida; implementación pendiente
+
+- Canal de contacto: `support@codefusion.cl`.
+- Los reportes no deben incluir datos sensibles.
+- Cuando exista el repositorio público, el canal estructurado principal
+  recomendado es el private vulnerability reporting de GitHub, con el email
+  como canal secundario; habilitarlo es un cambio de settings separado.
+
+B2 permanece abierto hasta que `SECURITY.md` exista (issue separado).
+
+### B3 — Contribuciones y soporte: dirección PM parcialmente definida
+
+- Se aceptarán contribuciones de la comunidad.
+- Soporte best-effort y sin SLA, salvo decisión posterior.
+- `CONTRIBUTING.md` deberá definir el proceso gobernado por issues, PRs,
+  validación y review-before-close.
+- Decisiones exactas pendientes: idiomas aceptados, código de conducta e
+  inbound licensing.
+
+La visión de un panel interactivo que asuma parte de la experiencia de
+browser chat queda como idea downstream: no pertenece a #417, a Stage 0 ni
+al follow-up documental de `CONTRIBUTING.md`. B3 permanece abierto.
+
+### B4 — Superficies GitHub: dirección estratégica candidata, no decisión cerrada
+
+Propuesta PM registrada:
+
+- preservar este repositorio como baseline interno/pre-CLI;
+- crear posteriormente un repositorio público nuevo con historial limpio;
+- usar el desarrollo del CLI como dogfood de instalación sobre un proyecto
+  separado;
+- evitar publicar issues, PRs, comentarios, emails y exposiciones históricas
+  de este repositorio.
+
+Esta dirección reduciría sustancialmente B4 (y las exposiciones F-04, F-05 y
+F-06 dejarían de publicarse), pero modifica el mecanismo de Stage 1 de
+ADR 0004 — que hoy plantea publicar el repositorio existente — y por eso
+requiere una decisión ADR/follow-up separada que defina: cuál repositorio es
+la fuente de verdad; la relación entre repositorio interno y público; la
+sincronización de kernel y superficies ES/EN; el ownership de tags y
+releases; la política de historial y procedencia; y cómo evitar forks
+divergentes o duplicación manual permanente. Ningún repositorio se crea,
+taggea, transfiere ni publica dentro de esta corrección. B4 permanece
+abierto.
+
+### Propuestas downstream expresamente no autorizadas
+
+`project-os-init` (CLI de adopción), el concepto `os-git` (capa de
+integración sobre una sesión GitHub existente, sin secret store propio y sin
+copiar ni almacenar tokens) y el panel interactivo pertenecen a una revisión
+de idea/arquitectura posterior. ADR 0004 mantiene el tooling de Stage 2 sin
+autorización actual; ninguna de estas propuestas forma parte de Stage 0 ni
+de sus follow-ups.
+
 ## Veredicto
 
 **`GO_WITH_BLOCKERS`.**
