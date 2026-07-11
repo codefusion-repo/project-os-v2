@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact approval for target writes)
 
 **Does:** Prepare an existing repository to operate with Project OS (adapters and checklist).
-**For:** Adopt an existing project as a target.
-**How:** Browser chat drafts; the terminal agent writes adapters only with exact approval.
+**For:** To adopt an existing project as a target.
+**How:** Draft in browser chat; a terminal agent writes adapters only with exact approval.
 
 **Variables**
 - Required: TARGET_REPOSITORY

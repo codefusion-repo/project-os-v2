@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Validates created documentation against identified requirements.
-**For:** Detect gaps or contradictions before planning.
-**How:** Review read-only doc against requirements with actionable findings.
+**Does:** Validate created documentation against identified requirements.
+**For:** To detect gaps or contradictions before planning.
+**How:** Review the documentation read-only against requirements and report actionable findings.
 
 **Variables**
 - Required: — (none)

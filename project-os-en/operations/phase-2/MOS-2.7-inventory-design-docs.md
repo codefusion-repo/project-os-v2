@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.target_adoption
 - PM approval: No (read-only)
 
-**Does:** Identifies the existing design documentation in a project.
-**For:** Know what design already exists before creating or updating.
+**Does:** Identify the existing design documentation in a project.
+**For:** To determine which design documentation already exists before creating or updating it.
 **How:** Read-only inventory of design docs and their status.
 
 **Variables**

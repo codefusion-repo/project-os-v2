@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (advisory review; does not change phase)
 
 **Does:** Review readiness advisory before moving work between MOSDLC phases.
-**For:** Identify evidence, blockers and missing decisions before moving forward.
+**For:** To identify evidence, blockers and missing decisions before moving forward.
 **How:** Contrast current phase, target phase and live state without executing transition.
 
 **Variables**

@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (recommendation only; does not execute or authorize)
 
 **Does:** Recommend exactly one next MOSDLC operation from live traceability.
-**For:** Choose lifecycle path without ad hoc reasoning.
+**For:** To choose lifecycle path without ad hoc reasoning.
 **How:** Read live status, justify the recommendation and show safe alternatives if there is ambiguity.
 
 **Variables**

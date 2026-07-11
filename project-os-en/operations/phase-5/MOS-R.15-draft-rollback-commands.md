@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No for drafting; rollback requires exact approval for target, environment, and action
 
 **Does:** Draft commands or rollback path for a failed deployment.
-**For:** Return to a safe state without improvising under pressure.
+**For:** To return to a safe state without improvising under pressure.
 **How:** Use only target-owned rollback paths and keep warnings outside of executable blocks.
 
 **Variables**

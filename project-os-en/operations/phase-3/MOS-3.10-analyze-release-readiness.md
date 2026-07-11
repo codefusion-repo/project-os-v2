@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Analyze release-on-tag readiness and draft build commands if ready.
-**For:** Decide tag/release with merged evidence and validation.
+**For:** To decide tag/release with merged evidence and validation.
 **How:** Evaluate readiness and chain the draft of the bundle only if appropriate.
 
 **Variables**

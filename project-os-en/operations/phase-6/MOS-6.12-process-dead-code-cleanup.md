@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes cleanup of detected useless code.
-**For:** Carry out the cleaning with a limited and safe scope.
+**Does:** Process cleanup of detected dead code.
+**For:** To carry out the cleaning with a limited and safe scope.
 **How:** Draft the delegated cleaning route in limited batches.
 
 **Variables**

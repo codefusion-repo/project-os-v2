@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (the route prompt does not authorize; writing requires exact PM approval)
 
 **Does:** Draft the correction prompt from QA results.
-**For:** Fix QA blockers without expanding the scope.
-**How:** Encapsulates the QA_RESULT in a delegated fix path.
+**For:** To fix QA blockers without expanding the scope.
+**How:** Encapsulate QA_RESULT in a delegated correction path.
 
 **Variables**
 - Required: QA_RESULT

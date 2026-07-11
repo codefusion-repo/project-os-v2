@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Audit issue/PR and live traceability on GitHub.
-**For:** Verify that the cycle is reconstructable from evidence.
+**For:** To verify that the cycle is reconstructable from evidence.
 **How:** Read-only audit of links, evidence of closure and status.
 
 **Variables**

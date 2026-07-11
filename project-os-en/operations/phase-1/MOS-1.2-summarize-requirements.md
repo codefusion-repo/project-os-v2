@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis
 - PM approval: No (draft-only)
 
-**Does:** Summarizes and structures the requirements identified in the interview.
-**For:** Have a stable foundation before documenting.
-**How:** Synthesizes the conversation into a list verifiable by the PM.
+**Does:** Summarize and structure the requirements identified in the interview.
+**For:** To have a stable foundation before documenting.
+**How:** Synthesize the conversation into a list verifiable by the PM.
 
 **Variables**
 - Required: — (none)

@@ -1,4 +1,4 @@
-# MOS-1.12 — Update roadmap existing
+# MOS-1.12 — Update an existing project roadmap
 
 MOSDLC operation `update-roadmap-existing` · Phase 1 — Requirements, planning, and feasibility · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (only the bundled GitHub write, run by the Human PM)
 
 **Does:** Update or plan the general roadmap of an existing project.
-**For:** Give direction by phases to adopted projects.
-**How:** Draft creation or update of the roadmap issue for the Human PM.
+**For:** To give direction by phases to adopted projects.
+**How:** Draft a roadmap-issue creation or update bundle for the Human PM.
 
 **Variables**
 - Required: TARGET_REPOSITORY

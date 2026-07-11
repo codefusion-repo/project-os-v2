@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only)
 
 **Does:** Draft the initial adoption structure and foundational roadmap of a new repo.
-**For:** Start a new project under Project OS.
-**How:** Browser chat drafts adoption package; the Human PM applies or delegates it.
+**For:** To start a new project under Project OS.
+**How:** Draft an adoption packet in browser chat; the Human PM applies or delegates it.
 
 **Variables**
 - Required: TARGET_REPOSITORY

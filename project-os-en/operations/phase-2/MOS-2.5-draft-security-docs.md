@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact approval for the file write only)
 
 **Does:** Draft security documentation based on OWASP and the 8 domains from Phase 1 requirements.
-**For:** Sustain Phase 2 with stable design documentation.
-**How:** Browser chat drafts; a terminal agent applies the changes only with exact approval.
+**For:** To sustain Phase 2 with stable design documentation.
+**How:** Draft in browser chat; a terminal agent applies the changes only with exact approval.
 
 **Variables**
 - Required: — (none)

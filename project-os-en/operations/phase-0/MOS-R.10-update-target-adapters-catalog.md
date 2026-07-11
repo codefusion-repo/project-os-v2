@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact approval to write in the target)
 
 **Does:** Update adapters of a target to a new catalog/kernel version.
-**For:** Propagate catalog upgrades without massive drift.
-**How:** Draft the adoption package and delegate route; the writing requires exact approval, preflight and proportional validation.
+**For:** To propagate catalog upgrades without massive drift.
+**How:** Draft the adoption packet and delegated route; require exact approval, preflight, and proportional validation for writing.
 
 **Variables**
 - Required: TARGET_REPOSITORY

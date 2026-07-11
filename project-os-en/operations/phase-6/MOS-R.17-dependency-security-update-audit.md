@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only audit)
 
 **Does:** Audit dependencies and pending security updates.
-**For:** Reduce risk of dependencies without blindly executing upgrades.
+**For:** To reduce risk of dependencies without blindly executing upgrades.
 **How:** Read manifests, lockfiles and advisories; classifies severity and proposes a prioritized route.
 
 **Variables**

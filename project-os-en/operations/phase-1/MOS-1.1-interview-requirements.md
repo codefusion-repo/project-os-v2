@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only)
 
 **Does:** Conduct a guided interview with the PM to elicit requirements.
-**For:** Capture functional and non-functional requirements from the PM's knowledge.
+**For:** To capture functional and non-functional requirements from the PM's knowledge.
 **How:** Ask iterative questions in chat and synthesize the findings without writing files.
 
 **Variables**

@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (classification only; rollback and correction have their own gates)
 
-**Does:** Processes a successful, partial, or failed deployment into continue, fix, or rollback.
-**For:** Decide next path with evidence, not unverified deploy output.
-**How:** Cross DEPLOYMENT_RESULT with MOS-R.13 evidence and redact any sensible output.
+**Does:** Process a successful, partial, or failed deployment into a continue, fix, or rollback path.
+**For:** To decide next path with evidence, not unverified deploy output.
+**How:** Compare DEPLOYMENT_RESULT with MOS-R.13 evidence and redact any sensitive output.
 
 **Variables**
 - Required: DEPLOYMENT_RESULT, TARGET_ENVIRONMENT

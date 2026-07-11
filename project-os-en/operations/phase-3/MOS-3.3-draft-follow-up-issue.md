@@ -1,4 +1,4 @@
-# MOS-3.3 — Draft follow up issue
+# MOS-3.3 — Draft a follow-up issue
 
 MOSDLC operation `draft-follow-up-issue` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft a follow-up issue from an incomplete issue.
-**For:** Don't lose pending work when an issue closes incomplete.
+**For:** To retain pending work when an issue closes incomplete.
 **How:** Isolate what is missing in a follow-up with its own scope.
 
 **Variables**

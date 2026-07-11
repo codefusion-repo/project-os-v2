@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only)
 
 **Does:** Process the results of functional gaps for production readiness.
-**For:** Prioritize closing functional gaps.
+**For:** To prioritize closing functional gaps.
 **How:** Classify gaps into new issues or follow-ups.
 
 **Variables**

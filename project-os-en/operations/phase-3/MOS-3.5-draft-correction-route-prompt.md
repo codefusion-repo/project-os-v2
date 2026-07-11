@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (the route prompt does not authorize; writing requires exact PM approval)
 
 **Does:** Draft the correction route-prompt of a PR/issue from actionable feedback.
-**For:** Correct without expanding the original scope.
+**For:** To correct without expanding the original scope.
 **How:** Encapsulate findings in a delegated correction route. Browser chat may recommend an optional skill and infer `RECOMMENDED_TERMINAL_AGENT_FAMILY` from the work. The recommendation is advisory, authorizes nothing, and may be overridden by explicit PM feedback.
 
 **Variables**

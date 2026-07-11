@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Packages live context and PM decisions to transfer to a new session.
-**For:** Continue work without losing traceability.
+**Does:** Package live context and PM decisions to transfer to a new session.
+**For:** To continue work without losing traceability.
 **How:** Draft a rebuildable handoff packet from GitHub.
 
 **Variables**

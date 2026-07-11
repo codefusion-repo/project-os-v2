@@ -1,4 +1,4 @@
-# MOS-6.2 — Review feature gaps production
+# MOS-6.2 — Review feature gaps for production
 
 MOSDLC operation `review-feature-gaps-production` · Phase 6 — Maintenance and improvements · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Review functionality gaps for production readiness.
-**For:** Know what is missing functionally before production.
+**For:** To know what is missing functionally before production.
 **How:** Contrast real features against docs and requirements.
 
 **Variables**

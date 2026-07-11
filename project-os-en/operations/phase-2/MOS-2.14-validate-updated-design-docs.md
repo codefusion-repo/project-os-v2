@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Validates updated documentation against existing documentation and Phase 1.
-**For:** Close Phase 2 in existing projects without breaking what is in force.
+**Does:** Validate updated documentation against existing documentation and Phase 1.
+**For:** To close Phase 2 in existing projects without disrupting what is already in effect.
 **How:** Read-only review of consistency between new and previous docs and requirements.
 
 **Variables**

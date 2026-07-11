@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft the human local deployment checklist naming variables and steps, never secret values.
-**For:** Guide the human steps of local deployment.
+**For:** To guide the human steps of local deployment.
 **How:** Copy-safe checklist for the Human PM; secrets only as variable names.
 
 **Variables**

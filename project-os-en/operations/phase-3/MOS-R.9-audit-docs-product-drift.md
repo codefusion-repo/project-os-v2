@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only audit)
 
 **Does:** Audit drift between documentation and real product.
-**For:** Maintain docs as usable truth of the product.
-**How:** Contrast docs, code and live status; Actionable drift list with evidence.
+**For:** To maintain docs as usable truth of the product.
+**How:** Contrast documentation, code, and live status; produce an actionable drift list with evidence.
 
 **Variables**
 - Required: TARGET_REPOSITORY

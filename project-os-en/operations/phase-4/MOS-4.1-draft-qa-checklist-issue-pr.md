@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Draft the human QA checklist focused on an issue/PR.
-**For:** Cover the non-automatable with directed human QA.
+**For:** To cover non-automatable checks with directed human QA.
 **How:** Extract issue/PR criteria in human-verifiable steps.
 
 **Variables**

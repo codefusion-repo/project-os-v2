@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact for target, environment, and action; never implicit)
 
 **Does:** Execute the deployment in staging by terminal agent only if the target supports it.
-**For:** Deploy frictionless internal staging when safe.
+**For:** To deploy to internal staging with minimal friction when it is safe.
 **How:** Execute only target-owned commands under exact approval and report redacted.
 
 **Variables**

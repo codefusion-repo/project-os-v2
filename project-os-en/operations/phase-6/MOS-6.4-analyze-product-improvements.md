@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Analyzes and recommends product improvements.
-**For:** Feed the roadmap with founded improvements.
+**Does:** Analyze and recommend product improvements.
+**For:** To inform the roadmap with evidence-based improvements.
 **How:** Read-only analysis of product against usage and docs.
 
 **Variables**

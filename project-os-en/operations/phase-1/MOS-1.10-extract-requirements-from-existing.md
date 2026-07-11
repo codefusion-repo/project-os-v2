@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Identify real requirements from the code and docs of an existing project.
-**For:** Adopt projects that never had formal Phase 1.
+**For:** To adopt projects that never had formal Phase 1.
 **How:** Read the repo target and reconstruct observable requirements.
 
 **Variables**

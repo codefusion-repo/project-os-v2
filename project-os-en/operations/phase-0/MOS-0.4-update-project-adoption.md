@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.target_adoption, evidence.branch_preflight, evidence.pm_approval, evidence.validation_output
 - PM approval: Yes (exact approval for target writes)
 
-**Does:** Refreshes adapters from an already adopted target to the current kernel/catalog version.
-**For:** Keep adoption aligned to the current kernel.
-**How:** Same as adoption: draft plus delegated writing with exact approval.
+**Does:** Refresh adapters from an already adopted target to the current kernel/catalog version.
+**For:** To keep adoption aligned to the current kernel.
+**How:** Use the adoption flow: draft first, then write through a delegated route with exact approval.
 
 **Variables**
 - Required: TARGET_REPOSITORY

@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.target_adoption, evidence.source_basis
 - PM approval: No (read-only)
 
-**Does:** Analyzes readiness and necessary configuration of the production deployment.
-**For:** Prepare a secure and reproducible production deployment.
+**Does:** Analyze the readiness and required configuration of the production deployment.
+**For:** To prepare a secure and reproducible production deployment.
 **How:** Perform a read-only review of target notes and the repository; every configuration write goes through an approved delegated route.
 
 **Variables**

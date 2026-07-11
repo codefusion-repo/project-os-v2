@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (the route prompt does not authorize; writing requires exact PM approval)
 
 **Does:** Draft the OWASP security review prompt and the 8 domains where appropriate.
-**For:** Obtain an external security gate with mandatory redaction.
-**How:** Prompt with sensitive surface described without exposing secrets.
+**For:** To obtain an external security gate with mandatory redaction.
+**How:** Describe the sensitive surface in the prompt without exposing secrets.
 
 **Variables**
 - Required: PR_NUMBER

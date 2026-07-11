@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only)
 
 **Does:** Process recommended code improvements.
-**For:** Close the code normalization loop.
+**For:** To close the code normalization loop.
 **How:** Classify improvements into correction or follow-up.
 
 **Variables**

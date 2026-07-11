@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Look for orphaned code, legacy code, unused variables, obsolete functions and useless code.
-**For:** Reduce dead surface and technical debt.
+**For:** To reduce dead surface and technical debt.
 **How:** Read-only audit with file and line evidence.
 
 **Variables**

@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft the production deployment command bundle from the target-owned commands in Project-specific notes.
-**For:** Prepare the execution of the production deployment without inventing commands.
-**How:** Bundle copy-safe only from target-owned commands; never prints secrets.
+**For:** To prepare the execution of the production deployment without inventing commands.
+**How:** Build a copy-safe bundle only from target-owned commands; never print secrets.
 
 **Variables**
 - Required: TARGET_REPOSITORY

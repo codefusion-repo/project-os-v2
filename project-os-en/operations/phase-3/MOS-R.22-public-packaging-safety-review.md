@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only review; conversion and publication are separate)
 
 **Does:** Check if the target is safe for packaging or public use.
-**For:** Avoid publishing internal surfaces, secrets, insecure defaults or risky docs.
+**For:** To avoid publishing internal surfaces, secrets, insecure defaults or risky docs.
 **How:** Inspect hygiene of secrets, document display and internal-only surfaces without converting anything.
 
 **Variables**

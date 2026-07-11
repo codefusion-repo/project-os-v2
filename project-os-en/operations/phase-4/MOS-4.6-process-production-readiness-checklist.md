@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes the result of the human production readiness checklist.
-**For:** Decide if the project moves toward deployment.
-**How:** Classifies readiness gaps and recommends the safe phase.
+**Does:** Process the human production-readiness checklist result.
+**For:** To decide if the project moves toward deployment.
+**How:** Classify readiness gaps and recommend the safe phase.
 
 **Variables**
 - Required: QA_RESULT

@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Draft the human QA checklist from a description or feature.
-**For:** Validate features described without anchor issue/PR.
+**For:** To validate features described without anchor issue/PR.
 **How:** Convert the description into human-verifiable steps.
 
 **Variables**

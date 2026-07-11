@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (the Human PM authorizes and runs the release)
 
 **Does:** Draft the GitHub Release object creation bundle (notes and tag).
-**For:** Publish releases with traceable notes.
-**How:** Bundle copy-safe different from simple tag; runs the Human PM.
+**For:** To publish releases with traceable notes.
+**How:** Provide a copy-safe bundle, distinct from a simple tag bundle, for the Human PM to run.
 
 **Variables**
 - Required: — (none)

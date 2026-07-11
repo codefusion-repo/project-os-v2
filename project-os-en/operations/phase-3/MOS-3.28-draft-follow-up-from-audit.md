@@ -1,4 +1,4 @@
-# MOS-3.28 — Draft follow up from audit
+# MOS-3.28 — Draft a follow-up from an audit
 
 MOSDLC operation `draft-follow-up-from-audit` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft follow-up from the audit of discipline gaps.
-**For:** Defer non-blocking findings with traceability.
+**For:** To defer non-blocking findings with traceability.
 **How:** Follow-up creation bundle for the Human PM.
 
 **Variables**

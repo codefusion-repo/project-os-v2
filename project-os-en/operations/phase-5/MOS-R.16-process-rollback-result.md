@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (classification only; incidents and corrections have their own gates)
 
 **Does:** Process an executed rollback result into an incident, correction, or closure path.
-**For:** Close the deployment incident with traceability and post-rollback evidence.
-**How:** Classifies ROLLBACK_RESULT as restored, partial, or failed only when the evidence supports it.
+**For:** To close the deployment incident with traceability and post-rollback evidence.
+**How:** Classify ROLLBACK_RESULT as restored, partial, or failed only when the evidence supports that result.
 
 **Variables**
 - Required: ROLLBACK_RESULT, TARGET_ENVIRONMENT

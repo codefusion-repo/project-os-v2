@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.target_adoption
 - PM approval: No (read-only)
 
-**Does:** Read-only audits that the target adoption exists, is correct and points to the current kernel.
-**For:** Confirm that the target can operate safely.
+**Does:** Audit the target adoption read-only to confirm that it exists, is correct, and points to the current kernel.
+**For:** To confirm that the target can operate safely.
 **How:** Read adapters and target evidence without writing anything.
 
 **Variables**

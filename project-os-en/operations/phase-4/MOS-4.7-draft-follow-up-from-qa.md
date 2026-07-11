@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft follow-up from QA results.
-**For:** Defer non-blocking QA findings with traceability.
+**For:** To defer non-blocking QA findings with traceability.
 **How:** Follow-up creation bundle for the Human PM.
 
 **Variables**

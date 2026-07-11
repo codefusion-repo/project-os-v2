@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only triage; hotfixes and commands have separate gates)
 
 **Does:** Process a critical incident or bug by severity, hotfix, and postmortem path.
-**For:** Give an explicit route to incidents without improvising under pressure.
+**For:** To give an explicit route to incidents without improvising under pressure.
 **How:** Confirm live evidence, classify severity and draft issue/route/bundle only when applicable.
 
 **Variables**

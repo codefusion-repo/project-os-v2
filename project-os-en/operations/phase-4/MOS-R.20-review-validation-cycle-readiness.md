@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (advisory review; the PM starts or closes the cycle)
 
 **Does:** Check readiness to start or close a target validation cycle.
-**For:** Enter and exit validation with clear criteria.
+**For:** To enter and exit validation with clear criteria.
 **How:** Evaluate entry or exit criteria, missing evidence, blockers and pending PM decisions.
 
 **Variables**

@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Establishes the PM draft-only session in browser chat by resolving the kernel manifest.
-**For:** Start any MOSDLC cycle with correct boundaries and context.
-**How:** Resolves the kernel, reads minimum alive state and outputs the initial status.
+**Does:** Establish the PM draft-only session in browser chat by resolving the kernel manifest.
+**For:** To start any MOSDLC cycle with correct boundaries and context.
+**How:** Resolve the kernel, read the minimum live state, and report the initial status.
 
 **Variables**
 - Required: — (none)

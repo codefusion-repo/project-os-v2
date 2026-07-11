@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (classifies and drafts; does not create or execute follow-ups)
 
-**Does:** Processes findings from a validation cycle and converts them into limited follow-ups.
-**For:** Capture real friction from the target as traceable work.
-**How:** Classifies findings by evidence, impact and route: correction, follow-up, PM or no-op decision.
+**Does:** Process validation-cycle findings and convert them into limited follow-ups.
+**For:** To capture real friction from the target as traceable work.
+**How:** Classify findings by evidence, impact, and route: correction, follow-up, PM decision, or no-op.
 
 **Variables**
 - Required: VALIDATION_FINDINGS

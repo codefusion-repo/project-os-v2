@@ -1,4 +1,4 @@
-# MOS-3.29 — Draft follow up from security
+# MOS-3.29 — Draft a follow-up from a security review
 
 MOSDLC operation `draft-follow-up-from-security` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft follow-up from the security review.
-**For:** Delay non-blocking security findings with traceability.
+**For:** To delay non-blocking security findings with traceability.
 **How:** Follow-up creation bundle for the Human PM.
 
 **Variables**

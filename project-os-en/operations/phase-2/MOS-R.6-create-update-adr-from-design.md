@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No for drafting; exact approval is required to write or update ADRs
 
 **Does:** Extract stable decisions from design or requirements documentation and draft ADRs.
-**For:** Bring to ADR the decisions that must survive documents and issues.
-**How:** Reads SOURCE_DOCS, identifies candidate decisions, and derives a delegated path per decision.
+**For:** To preserve in ADRs the decisions that must survive documents and issues.
+**How:** Read SOURCE_DOCS, identify candidate decisions, and derive a delegated path for each decision.
 
 **Variables**
 - Required: SOURCE_DOCS

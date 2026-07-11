@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact approval for the file write only)
 
 **Does:** Update documentation and roadmap with an accepted requirement.
-**For:** Maintain docs and roadmap as the only truth of scope.
-**How:** Draft changes to docs and roadmap bundles; writing with exact approval.
+**For:** To maintain docs and roadmap as the only truth of scope.
+**How:** Draft documentation and roadmap changes; write only with exact approval.
 
 **Variables**
 - Required: DESCRIPTION

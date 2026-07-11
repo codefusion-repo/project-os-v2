@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (the Human PM authorizes and runs the tag)
 
 **Does:** Draft the git tag creation bundle for GitHub.
-**For:** Publish a simple tag when readiness justifies it.
-**How:** Bundle copy-safe; the Human PM executes tag and push.
+**For:** To publish a simple tag when readiness justifies it.
+**How:** Provide a copy-safe bundle for the Human PM to run the tag and push commands.
 
 **Variables**
 - Required: — (none)

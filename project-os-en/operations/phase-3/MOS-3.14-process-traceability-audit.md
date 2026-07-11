@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes the result of the traceability audit and classifies the safe route.
-**For:** Convert audit findings into concrete actions.
+**Does:** Process the traceability-audit result and classify the safe route.
+**For:** To convert audit findings into concrete actions.
 **How:** Classify each finding into correction, follow-up, or no-op.
 
 **Variables**

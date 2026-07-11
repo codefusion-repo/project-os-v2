@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Analyzes and recommends performance improvements.
-**For:** Prioritize optimizations with evidence.
+**Does:** Analyze and recommend performance improvements.
+**For:** To prioritize optimizations with evidence.
 **How:** Read-only analysis with actionable recommendations.
 
 **Variables**

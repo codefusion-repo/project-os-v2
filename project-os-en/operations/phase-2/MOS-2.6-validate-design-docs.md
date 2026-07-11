@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Validate design documentation against Phase 1.
-**For:** Ensure that the design meets the requirements.
+**For:** To ensure that the design meets the requirements.
 **How:** Read-only review with actionable gaps and contradictions.
 
 **Variables**

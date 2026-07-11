@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only audit)
 
 **Does:** Audit the adoption of several target repositories in a single pass.
-**For:** Maintain multiple adopted targets without accumulated drift.
-**How:** Iterates the adoption verification by target and consolidates drift, missing adapters and stale adoption.
+**For:** To maintain multiple adopted targets without accumulated drift.
+**How:** Verify adoption for each target and consolidate drift, missing adapters, and stale adoption.
 
 **Variables**
 - Required: TARGET_REPOSITORIES

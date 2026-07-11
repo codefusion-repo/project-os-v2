@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (planning only; the PM starts the cycle)
 
 **Does:** Plan a real validation cycle for the target according to its type.
-**For:** Test end-to-end with evidence before expanding or publishing.
+**For:** To test end-to-end with evidence before expanding or publishing.
 **How:** Draft plan and limited issues for QA, UAT, beta, TestFlight, playtest, integration, pilot or other applicable surface.
 
 **Variables**

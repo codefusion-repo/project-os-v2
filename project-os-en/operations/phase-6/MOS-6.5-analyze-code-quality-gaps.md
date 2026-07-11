@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Analyzes and recommends code normalization improvements or clean code gaps.
-**For:** Keep code consistent with Phase 2 standards.
+**Does:** Analyze and recommend code-normalization improvements or clean-code gaps.
+**For:** To keep code consistent with Phase 2 standards.
 **How:** Read-only analysis against documented standards.
 
 **Variables**

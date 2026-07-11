@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Review the impact of removing a requirement from the project.
-**For:** Avoid removals that break roadmap, docs or dependencies.
-**How:** Analyzes impact and returns decision to the PM; fail-closed to status.needs_pm_decision.
+**For:** To avoid removals that break roadmap, docs or dependencies.
+**How:** Analyze the impact and return the decision to the PM; fail closed with `status.needs_pm_decision`.
 
 **Variables**
 - Required: DESCRIPTION

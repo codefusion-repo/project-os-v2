@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only)
 
 **Does:** Process recommended performance improvements.
-**For:** Turn recommendations into prioritized work.
+**For:** To turn recommendations into prioritized work.
 **How:** Classify improvements into issues or follow-ups.
 
 **Variables**

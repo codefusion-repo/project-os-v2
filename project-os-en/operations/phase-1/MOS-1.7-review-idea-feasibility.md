@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Evaluate a new idea as a possible project requirement.
-**For:** Decide if the idea fits into the roadmap.
-**How:** Analyzes the idea against live status and documentation and recommends route.
+**For:** To decide if the idea fits into the roadmap.
+**How:** Analyze the idea against live status and documentation, then recommend a route.
 
 **Variables**
 - Required: IDEA

@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Identify gaps in the existing documentation with respect to Phase 1.
-**For:** Prioritize which design to update or create.
+**For:** To prioritize which design to update or create.
 **How:** Compare inventory against requirements and list gaps.
 
 **Variables**

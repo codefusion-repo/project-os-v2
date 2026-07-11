@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes the delivery of an audio asset and maps it to technical tasks or drafts.
-**For:** Integrate assets received into the development cycle.
+**Does:** Process an audio asset delivery and map it to technical tasks or drafts.
+**For:** To integrate assets received into the development cycle.
 **How:** Classify the delivery into an issue, correction, or follow-up.
 
 **Variables**

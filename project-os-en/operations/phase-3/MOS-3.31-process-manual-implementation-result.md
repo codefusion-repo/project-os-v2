@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.issue_scope, evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes the result of the manual implementation applied by the human.
-**For:** Classify the safe route after applying a manual plan.
-**How:** Refers to PR review when PR exists; never duplicate that review.
+**Does:** Process the result of the manual implementation applied by the human.
+**For:** To classify the safe route after applying a manual plan.
+**How:** Refer to PR review when a PR exists; do not duplicate that review.
 
 **Variables**
 - Required: ISSUE_NUMBER, MANUAL_IMPLEMENTATION_RESULT

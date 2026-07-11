@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No for drafting; execution requires exact approval for target, environment, and action
 
 **Does:** Draft a copy-safe bundle of deployment commands for an environment.
-**For:** Unify drafting by environment without losing PM clarity.
+**For:** To unify drafting by environment without losing PM clarity.
 **How:** Use only target-owned commands and keep risk, rollback, and verification out of executable blocks.
 
 **Variables**

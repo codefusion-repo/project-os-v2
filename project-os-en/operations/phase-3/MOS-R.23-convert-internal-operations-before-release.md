@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No for drafting; exact approval is required to convert, hide, remove, or disable
 
 **Does:** Draft internal-only surface conversion before public release.
-**For:** Publish without exposing internal capabilities of the target.
-**How:** Uses the target's exposure inventory and produces a non-authorizing delegate route.
+**For:** To publish without exposing internal capabilities of the target.
+**How:** Use the target's exposure inventory to produce a non-authorizing delegated route.
 
 **Variables**
 - Required: TARGET_REPOSITORY

@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft a limited set of issues from live traceability and roadmap.
-**For:** Plan work lots with explicit limit.
+**For:** To plan work lots with explicit limit.
 **How:** Demand a limit and draft one bundle per outcome.
 
 **Variables**

@@ -34,6 +34,34 @@ SPANISH_PROSE_PATTERN = re.compile(
 )
 # These machine values and variable names are stable contracts, not prose.
 SPANISH_TOKEN_ALLOWLIST = ("no_resuelto", "resuelto", "PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO")
+# This is intentionally a narrow regression list, not a grammar checker. These
+# third-person forms occurred as the first significant word of Does/How sections.
+THIRD_PERSON_OPERATION_VERBS = frozenset(
+    {
+        "Analyzes",
+        "Checks",
+        "Classifies",
+        "Converts",
+        "Derives",
+        "Encapsulates",
+        "Establishes",
+        "Evaluates",
+        "Identifies",
+        "Iterates",
+        "Packages",
+        "Processes",
+        "Reads",
+        "Refers",
+        "Refreshes",
+        "Resolves",
+        "Sorts",
+        "Summarizes",
+        "Synthesizes",
+        "Updates",
+        "Uses",
+        "Validates",
+    }
+)
 
 
 def test_kernel_and_operation_contracts_have_no_parity_findings() -> None:
@@ -78,7 +106,24 @@ def test_english_operations_keep_semantic_sections_safeguards_and_natural_titles
         assert boilerplate not in operation.text
         assert ("**Cuida**" in spanish[code].text) == ("**Safeguards**" in operation.text)
         assert "PRocess" not in operation.text.splitlines()[0]
-        assert "Review pr" not in operation.text.splitlines()[0]
+        assert not re.search(r"\bReview pr\b", operation.text.splitlines()[0])
+
+
+def test_english_operation_does_and_how_avoid_known_third_person_regressions() -> None:
+    """Protect the observed voice regression without attempting general grammar validation."""
+    operations = discover_operations(REPO_ROOT / "project-os-en/operations")
+
+    assert len(operations) == 121
+    for operation in operations:
+        for label in ("Does", "How"):
+            match = re.search(rf"^\*\*{label}:\*\*\s*(.+)$", operation.text, re.MULTILINE)
+            assert match and match.group(1).strip(), f"{operation.mos_code} has an empty {label} section"
+            first_word = re.search(r"[A-Za-z]+(?:-[A-Za-z]+)?", match.group(1))
+            assert first_word, f"{operation.mos_code} has no significant word in {label}"
+            assert first_word.group(0) not in THIRD_PERSON_OPERATION_VERBS, (
+                f"{operation.mos_code} starts {label} with a known third-person verb: "
+                f"{first_word.group(0)}"
+            )
 
 
 def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> None:

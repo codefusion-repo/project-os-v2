@@ -1,4 +1,4 @@
-# MOS-R.18 — Secret safe config audit
+# MOS-R.18 — Secret-safe configuration audit
 
 MOSDLC operation `secret-safe-config-audit` · Phase 6 — Maintenance and improvements · Risk: high.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only and redacted audit by design)
 
 **Does:** Audit environment/config risks without exposing secrets.
-**For:** Detect insecure configuration, risky defaults or compromised secrets without copying values.
+**For:** To detect insecure configuration, risky defaults or compromised secrets without copying values.
 **How:** Review repo configuration surfaces and report only path, variable name and risk type.
 
 **Variables**

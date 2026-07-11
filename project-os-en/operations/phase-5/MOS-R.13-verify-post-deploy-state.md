@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state, evidence.validation_output
 - PM approval: No (read-only verification)
 
-**Does:** Checks the post-deploy status of the target environment.
-**For:** Confirm that the deployment was healthy with evidence of health or smoke.
+**Does:** Check the post-deployment status of the target environment.
+**For:** To confirm that the deployment was healthy with evidence of health or smoke.
 **How:** Use only target-owned checks and report redacted evidence.
 
 **Variables**

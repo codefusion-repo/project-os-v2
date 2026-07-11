@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft the issue/PR closure and cleanup package according to live status.
-**For:** Close with complete evidence and without agent-side writes.
-**How:** Copy-safe bundle that runs the Human PM.
+**For:** To close with complete evidence and without agent-side writes.
+**How:** Provide a copy-safe bundle for the Human PM to run.
 
 **Variables**
 - Required: PR_NUMBER, ISSUE_NUMBER

@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact approval for the file write only)
 
 **Does:** Draft documentation of functional and non-functional requirements, use cases and user stories.
-**For:** Establish the documentary base for Phase 1.
-**How:** Browser chat drafts; a terminal agent applies the changes only with exact approval.
+**For:** To establish the documentary base for Phase 1.
+**How:** Draft in browser chat; a terminal agent applies the changes only with exact approval.
 
 **Variables**
 - Required: — (none)

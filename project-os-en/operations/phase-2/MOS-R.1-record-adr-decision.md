@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No for drafting; exact approval is required to write the ADR
 
 **Does:** Draft an ADR to record a stable PM decision and the delegated write path.
-**For:** Preserve decisions that must survive the current issue.
-**How:** Converts DECISION and its base into non-authorizing ADR and route prompt content.
+**For:** To preserve decisions that must survive the current issue.
+**How:** Convert DECISION and its basis into non-authorizing ADR and route-prompt content.
 
 **Variables**
 - Required: DECISION

@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes the result of the human steps of production deployment.
-**For:** Confirm readiness or derive gaps before continuing.
-**How:** Sorts the CHECKLIST_RESULT toward continue, correct, or stop.
+**Does:** Process the result of the human steps for production deployment.
+**For:** To confirm readiness or derive gaps before continuing.
+**How:** Sort the CHECKLIST_RESULT toward continue, correct, or stop.
 
 **Variables**
 - Required: CHECKLIST_RESULT

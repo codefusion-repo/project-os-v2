@@ -1,4 +1,4 @@
-# MOS-1.11 — Update requirements docs existing
+# MOS-1.11 — Update requirements documentation for an existing project
 
 MOSDLC operation `update-requirements-docs-existing` · Phase 1 — Requirements, planning, and feasibility · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis
 - PM approval: Yes (exact approval for the file write only)
 
-**Does:** Updates or creates requirements documentation for an existing project.
-**For:** Close the documentary gap of adopted projects.
-**How:** Same as MOS-1.4 but based on requirements extracted from the project.
+**Does:** Update or create requirements documentation for an existing project.
+**For:** To close the documentary gap of adopted projects.
+**How:** Follow MOS-1.4 using requirements extracted from the project.
 
 **Variables**
 - Required: TARGET_REPOSITORY

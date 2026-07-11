@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes the result of the human description/feature checklist.
-**For:** Close the features QA loop without anchor issue.
+**Does:** Process the human description-or-feature checklist result.
+**For:** To close the features QA loop without anchor issue.
 **How:** Classify findings into a new issue, correction, or no-op.
 
 **Variables**

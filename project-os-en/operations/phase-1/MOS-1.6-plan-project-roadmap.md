@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (only the bundled GitHub write, run by the Human PM)
 
 **Does:** Plan the general roadmap of the project from stable documentation.
-**For:** Organize work by phases and outcomes.
+**For:** To organize work by phases and outcomes.
 **How:** Draft the issue body roadmap or creation bundle for the Human PM.
 
 **Variables**

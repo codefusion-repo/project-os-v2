@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; a human applies and validates)
 
 **Does:** Draft a human-executable, step-by-step plan to implement an issue without writing files.
-**For:** Deploy when no terminal agent is available or appropriate.
-**How:** Detailed plan by file and anchors; he never claims to have edited code.
+**For:** To deploy when no terminal agent is available or appropriate.
+**How:** Provide a detailed plan by file and anchor; the plan never claims that code was edited.
 
 **Variables**
 - Required: ISSUE_NUMBER

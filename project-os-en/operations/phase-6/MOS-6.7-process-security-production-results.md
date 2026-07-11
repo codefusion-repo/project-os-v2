@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes security results for production readiness.
-**For:** Convert detected risks into concrete actions.
+**Does:** Process security results for production readiness.
+**For:** To convert detected risks into concrete actions.
 **How:** Classify blockers and deferrables without executing anything.
 
 **Variables**

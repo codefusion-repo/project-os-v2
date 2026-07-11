@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Audit implementation discipline gaps against boundary.implementation_discipline.
-**For:** Detect discipline debt with file and line evidence.
+**For:** To detect discipline debt with file and line evidence.
 **How:** Read-only audit with findings and follow-up drafts.
 
 **Variables**

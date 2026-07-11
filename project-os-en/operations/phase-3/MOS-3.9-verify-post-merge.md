@@ -1,4 +1,4 @@
-# MOS-3.9 — Verify post merge
+# MOS-3.9 — Verify post-merge state
 
 MOSDLC operation `verify-post-merge` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Verify that the main branch was healthy and the issue was resolved after the merge.
-**For:** Close the implementation loop with evidence.
+**For:** To close the implementation loop with evidence.
 **How:** Read-only check of default branch, issue and checks.
 
 **Variables**

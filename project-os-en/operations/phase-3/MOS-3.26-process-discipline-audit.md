@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only)
 
 **Does:** Process the audit of discipline gaps and classify each finding.
-**For:** Close the loop of the discipline audit.
-**How:** Derives blockers to correction and deferrables to follow-up.
+**For:** To close the loop of the discipline audit.
+**How:** Route blockers to correction and deferrables to follow-up.
 
 **Variables**
 - Required: AUDIT_RESULT

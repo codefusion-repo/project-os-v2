@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only)
 
 **Does:** Process recommended product improvements.
-**For:** Feed roadmap and backlog with PM decisions.
+**For:** To feed roadmap and backlog with PM decisions.
 **How:** Classify improvements into roadmap work, issues, or no-op.
 
 **Variables**

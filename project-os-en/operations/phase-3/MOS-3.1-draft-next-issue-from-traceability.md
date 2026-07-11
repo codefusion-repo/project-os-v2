@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Infer the next real outcome from live traceability and roadmap and draft its creation.
-**For:** Create the next unique issue without losing track of the roadmap.
+**For:** To create the next unique issue without losing track of the roadmap.
 **How:** Read live state and draft the issue-creation bundle for the Human PM.
 
 **Variables**

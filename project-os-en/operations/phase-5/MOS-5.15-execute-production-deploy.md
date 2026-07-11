@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact for target, environment, and action; never implicit)
 
 **Does:** Execute the deployment in production by terminal agent only if the target supports it.
-**For:** Cover the internal case where the PM explicitly delegates production.
-**How:** Execute only target-owned commands under exact approval and report redacted; By default production remains with the Human PM.
+**For:** To cover the internal case where the PM explicitly delegates production.
+**How:** Execute only target-owned commands under exact approval and report redacted results; by default, production remains with the Human PM.
 
 **Variables**
 - Required: TARGET_REPOSITORY

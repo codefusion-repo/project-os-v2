@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (the route prompt does not authorize; writing requires exact PM approval)
 
 **Does:** Draft the asset prompt to request an audio asset from an external recipient.
-**For:** Get audio assets without treating the creator as a kernel actor.
-**How:** Prompt PM-facing with objective, constraints and delivery format.
+**For:** To get audio assets without treating the creator as a kernel actor.
+**How:** Provide a PM-facing prompt with an objective, constraints, and delivery format.
 
 **Variables**
 - Required: DESCRIPTION

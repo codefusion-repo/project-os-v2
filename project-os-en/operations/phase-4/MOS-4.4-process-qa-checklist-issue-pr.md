@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes the result of the issue/PR human checklist.
-**For:** Convert human QA into correction, follow-up or advancement.
-**How:** Classifies blockers and non-blockers without executing anything.
+**Does:** Process the issue/PR human-checklist result.
+**For:** To convert human QA into correction, follow-up or advancement.
+**How:** Classify blockers and non-blockers without executing anything.
 
 **Variables**
 - Required: QA_RESULT

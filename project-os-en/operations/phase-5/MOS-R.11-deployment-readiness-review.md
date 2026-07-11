@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only readiness review)
 
 **Does:** Check deployment readiness for a `TARGET_ENVIRONMENT`.
-**For:** Unify local analysis/staging/production without deleting PM-facing operations per environment.
+**For:** To unify local analysis/staging/production without deleting PM-facing operations per environment.
 **How:** Verify configuration, target-owned commands, pending checklist and environment blockers.
 
 **Variables**

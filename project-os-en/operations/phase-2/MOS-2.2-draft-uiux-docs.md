@@ -1,4 +1,4 @@
-# MOS-2.2 — Draft ui/ux docs
+# MOS-2.2 — Draft UI/UX documentation
 
 MOSDLC operation `draft-uiux-docs` · Phase 2 — Design · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -9,8 +9,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact approval for the file write only)
 
 **Does:** Draft UI/UX design documentation from Phase 1 requirements.
-**For:** Sustain Phase 2 with stable design documentation.
-**How:** Browser chat drafts; a terminal agent applies the changes only with exact approval.
+**For:** To sustain Phase 2 with stable design documentation.
+**How:** Draft in browser chat; a terminal agent applies the changes only with exact approval.
 
 **Variables**
 - Required: — (none)

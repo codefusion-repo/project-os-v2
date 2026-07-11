@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (advisory review; publication stays with the PM)
 
 **Does:** Review licensing, support, secrets hygiene and document quality for publication.
-**For:** Decide to publish with real evidence, not by intuition.
+**For:** To decide to publish with real evidence, not by intuition.
 **How:** Compare the repo and target release criteria without executing release actions.
 
 **Variables**

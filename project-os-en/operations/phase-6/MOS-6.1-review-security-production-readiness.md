@@ -1,4 +1,4 @@
-# MOS-6.1 — Review security production readiness
+# MOS-6.1 — Review project security for production readiness
 
 MOSDLC operation `review-security-production-readiness` · Phase 6 — Maintenance and improvements · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Review PRoject security for production readiness.
-**For:** Detect security risks before production.
+**Does:** Review project security for production readiness.
+**For:** To detect security risks before production.
 **How:** Review read-only OWASP and 8 domains on the current state.
 
 **Variables**

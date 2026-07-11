@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: Yes (exact for target, environment, and action; never implicit)
 
 **Does:** Run local deployment/debug by terminal agent only if the target supports it.
-**For:** Test local in-house dogfood deployments without repetitive manual steps.
+**For:** To test local in-house dogfood deployments without repetitive manual steps.
 **How:** Execute only target-owned commands under exact approval and report redacted.
 
 **Variables**

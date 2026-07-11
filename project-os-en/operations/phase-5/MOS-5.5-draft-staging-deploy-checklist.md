@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft the human staging deployment checklist naming variables and steps, never secret values.
-**For:** Guide the human steps of the staging deployment.
+**For:** To guide the human steps of the staging deployment.
 **How:** Copy-safe checklist for the Human PM; secrets only as variable names.
 
 **Variables**

@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Draft the human QA checklist for production readiness.
-**For:** Verify actual preparation before considering production.
+**For:** To verify actual preparation before considering production.
 **How:** Cross-sectional readiness checklist verifiable by a human.
 
 **Variables**

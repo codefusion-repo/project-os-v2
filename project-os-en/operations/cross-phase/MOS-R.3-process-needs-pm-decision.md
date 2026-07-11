@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (classifies the decision; does not execute or self-approve)
 
 **Does:** Process a `status.needs_pm_decision` from a source operation into a safe output.
-**For:** Resolve pending PM decisions with clear and target-agnostic variables.
+**For:** To resolve pending PM decisions with clear and target-agnostic variables.
 **How:** Classify the decision as missing context, route selection, correction approval, follow-up creation, stop/no-op, return to the source, or a request for more evidence.
 
 **Variables**

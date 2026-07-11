@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Evaluates technical feasibility and scope of the identified requirements.
-**For:** Avoid documenting or planning unfeasible requirements.
+**Does:** Evaluate technical feasibility and scope of the identified requirements.
+**For:** To avoid documenting or planning unfeasible requirements.
 **How:** Contrast requirements against evidence from the repo and known restrictions.
 
 **Variables**

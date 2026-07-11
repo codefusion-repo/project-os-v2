@@ -1,4 +1,4 @@
-# MOS-3.27 — Review PRoject state
+# MOS-3.27 — Review project state
 
 MOSDLC operation `review-project-state` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
@@ -8,8 +8,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.repo_state
 - PM approval: No (read-only)
 
-**Does:** Review PRoject status and misalignments with documentation.
-**For:** Detect drift between docs, roadmap and repo reality.
+**Does:** Review project status and misalignments with documentation.
+**For:** To detect drift between docs, roadmap and repo reality.
 **How:** Use PM decisions and fixed docs as the main truth.
 
 **Variables**

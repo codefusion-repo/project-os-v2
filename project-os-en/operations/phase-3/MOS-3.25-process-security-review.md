@@ -8,9 +8,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only)
 
-**Does:** Processes the result of a security review and classifies the safe route.
-**For:** Convert security findings into correction or follow-up.
-**How:** Classifies blockers and non-blockers without executing anything.
+**Does:** Process the security-review result and classify the safe route.
+**For:** To convert security findings into correction or follow-up.
+**How:** Classify blockers and non-blockers without executing anything.
 
 **Variables**
 - Required: SECURITY_REVIEW_RESULT

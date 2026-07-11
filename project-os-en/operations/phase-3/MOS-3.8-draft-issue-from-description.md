@@ -9,7 +9,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
 **Does:** Draft an issue from a description and verify that it does not affect the roadmap or documentation.
-**For:** Capture new work without breaking current planning.
+**For:** To capture new work without breaking current planning.
 **How:** Convert the description into a bundle and check impact against roadmap and docs.
 
 **Variables**
