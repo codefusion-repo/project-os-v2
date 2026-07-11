@@ -1,0 +1,28 @@
+{
+  "statuses": [
+    {
+      "key": "status.blocked",
+      "meaning": "a limit, authority, safety, approval, or validation prevents action; first in precedence when gates conflict",
+      "type": "no_resuelto",
+      "active": true
+    },
+    {
+      "key": "status.needs_pm_decision",
+      "meaning": "a material PM decision is missing; second in precedence",
+      "type": "no_resuelto",
+      "active": true
+    },
+    {
+      "key": "status.needs_context",
+      "meaning": "obtainable context or evidence is missing; third in precedence",
+      "type": "no_resuelto",
+      "active": true
+    },
+    {
+      "key": "status.resolved",
+      "meaning": "shape resolution is complete and adds no permission; last in precedence",
+      "type": "resuelto",
+      "active": true
+    }
+  ]
+}

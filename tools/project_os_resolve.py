@@ -1,9 +1,8 @@
-"""Principal deterministic resolver for the active Project OS kernel.
+"""Principal deterministic resolver for the allowed Project OS kernels.
 
-The resolver reads ``project-os-es/kernel`` at runtime and hydrates one
-``(actor, mode, workflow)`` selection.  It is deliberately a repository tool,
-not a multilingual abstraction: the canonical Spanish kernel is the only
-repository surface it resolves by default or by explicit ``--kernel-dir``.
+The resolver defaults to ``project-os-es/kernel`` and may explicitly resolve
+``project-os-en/kernel``. It hydrates one ``(actor, mode, workflow)`` selection
+and fails closed for every other path.
 
 The resulting JSON is operative guidance only.  It never reads GitHub or git,
 mutates files, grants permission, or replaces exact PM approval and the
@@ -18,55 +17,52 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from tools.project_os_surfaces import (
+        DEFAULT_KERNEL_DIR,
+        DEFAULT_SURFACE,
+        ProjectOSSurface,
+        select_surface,
+    )
+except ModuleNotFoundError:  # Direct ``python tools/project_os_resolve.py`` execution.
+    from project_os_surfaces import (  # type: ignore[no-redef]
+        DEFAULT_KERNEL_DIR,
+        DEFAULT_SURFACE,
+        ProjectOSSurface,
+        select_surface,
+    )
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_KERNEL_DIR = REPO_ROOT / "project-os-es" / "kernel"
 MODE_FALLBACK = "mode.review_only"
-AUTHORIZATION_NOTICE = (
-    "Esta resolucion da forma operativa y nunca concede permisos; la autoridad "
-    "requiere aprobacion PM exacta y los gates del kernel."
-)
-
-KERNEL_FILES = {
-    "manifest": ("manifest.json", "manifest"),
-    "reglas_operativas": ("reglas-operativas.json", "operational_rules"),
-    "actores": ("actores.json", "actors"),
-    "modos": ("modos.json", "modes"),
-    "workflows": ("workflows.json", "workflows"),
-    "limites": ("limites.json", "limits"),
-    "evidencia": ("evidencia.json", "evidence"),
-    "salidas": ("salidas.json", "outputs"),
-    "artefactos": ("artefactos.json", "artefactos"),
-    "skills": ("skills.json", "skills"),
-    "estados": ("estados.json", "statuses"),
-}
+AUTHORIZATION_NOTICE = DEFAULT_SURFACE.authorization_notice
 
 
-def _fail_closed(errors: list[str]) -> dict[str, Any]:
+def _fail_closed(errors: list[str], surface: ProjectOSSurface = DEFAULT_SURFACE) -> dict[str, Any]:
     return {
         "estado": "status.blocked",
         "resuelto": None,
-        "autorizacion": AUTHORIZATION_NOTICE,
+        "autorizacion": surface.authorization_notice,
         "errores": errors,
     }
 
 
-def _load(kernel_dir: Path) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
+def _load(
+    kernel_dir: Path, surface: ProjectOSSurface
+) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
     data: dict[str, list[dict[str, Any]]] = {}
     errors: list[str] = []
-    for family, (filename, collection) in KERNEL_FILES.items():
+    for family, (filename, collection) in surface.kernel_files.items():
         path = kernel_dir / filename
         if not path.is_file():
-            errors.append(f"archivo del kernel faltante: {path}")
+            errors.append(f"{surface.messages['missing_file']}: {path}")
             continue
         try:
             content = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            errors.append(f"archivo del kernel ilegible o invalido: {filename}: {exc}")
+            errors.append(f"{surface.messages['invalid_file']}: {filename}: {exc}")
             continue
         entries = content.get(collection) if isinstance(content, dict) else None
         if not isinstance(entries, list):
-            errors.append(f"{filename} no contiene la lista '{collection}'")
+            errors.append(f"{filename} {surface.messages['missing_collection']} '{collection}'")
             continue
         data[family] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
     return data, errors
@@ -97,13 +93,22 @@ def _valid_project_path(path_value: Any, prefix: tuple[str, ...], kernel_dir: Pa
 
 
 def _hydrate(
-    keys: list[str], index: dict[str, dict[str, Any]], kind: str, errors: list[str]
+    keys: list[str],
+    index: dict[str, dict[str, Any]],
+    kind: str,
+    surface: ProjectOSSurface,
+    errors: list[str],
 ) -> dict[str, dict[str, Any]]:
     hydrated: dict[str, dict[str, Any]] = {}
     for key in keys:
         entry = index.get(key)
         if entry is None:
-            errors.append(f"{kind} requerida por el workflow no encontrada: {key}")
+            message = (
+                f"{kind} required by the workflow was not found"
+                if surface.language == "en"
+                else f"{kind} requerida por el workflow no encontrada"
+            )
+            errors.append(f"{message}: {key}")
         else:
             hydrated[key] = entry
     return hydrated
@@ -114,6 +119,7 @@ def _resolve_artifacts(
     outputs: dict[str, dict[str, Any]],
     artifacts: list[dict[str, Any]],
     kernel_dir: Path,
+    surface: ProjectOSSurface,
     errors: list[str],
 ) -> list[dict[str, Any]]:
     resolved: list[dict[str, Any]] = []
@@ -123,30 +129,46 @@ def _resolve_artifacts(
         if artifact.get("output_key") not in (None, *outputs):
             continue
         template = artifact.get("required_template")
-        if not _valid_project_path(template, ("project-os-es", "templates"), kernel_dir):
-            errors.append(f"template requerido por artefacto no encontrado: {artifact.get('key')}: {template}")
+        if not _valid_project_path(template, surface.templates_prefix, kernel_dir):
+            errors.append(f"{surface.messages['missing_template']}: {artifact.get('key')}: {template}")
             continue
         resolved.append(
-            _fields(artifact, "key", "output_key", "responsabilidad", "required_template", "active")
+            {
+                **_fields(artifact, "key", "output_key"),
+                "responsabilidad": artifact.get("responsabilidad", artifact.get("responsibility")),
+                **_fields(artifact, "required_template", "active"),
+            }
         )
     return resolved
 
 
 def _resolve_skills(
-    requested: list[str], skills: dict[str, dict[str, Any]], kernel_dir: Path, errors: list[str]
+    requested: list[str],
+    skills: dict[str, dict[str, Any]],
+    kernel_dir: Path,
+    surface: ProjectOSSurface,
+    errors: list[str],
 ) -> list[dict[str, Any]]:
     resolved: list[dict[str, Any]] = []
     for key in dict.fromkeys(requested):
         skill = skills.get(key)
         if skill is None:
-            errors.append(f"skill desconocido: {key!r} (conocidos: {sorted(skills)})")
+            errors.append(
+                f"{surface.messages['unknown_skill']}: {key!r} "
+                f"({surface.messages['known']}: {sorted(skills)})"
+            )
             continue
         required_skill = skill.get("required_skill")
-        if not _valid_project_path(required_skill, ("project-os-es", "habilidades"), kernel_dir):
-            errors.append(f"skill requerido no encontrado: {key}: {required_skill}")
+        if not _valid_project_path(required_skill, surface.skills_prefix, kernel_dir):
+            errors.append(f"{surface.messages['missing_skill_file']}: {key}: {required_skill}")
             continue
         resolved.append(
-            _fields(skill, "key", "nombre", "responsabilidad", "required_skill", "use_for", "non_authorization", "active")
+            {
+                "key": skill.get("key"),
+                "nombre": skill.get("nombre", skill.get("name")),
+                "responsabilidad": skill.get("responsabilidad", skill.get("responsibility")),
+                **_fields(skill, "required_skill", "use_for", "non_authorization", "active"),
+            }
         )
     return resolved
 
@@ -158,71 +180,110 @@ def resolver(
     kernel_dir: Path | str | None = None,
     skill: str | list[str] | tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
-    """Resolve the active Spanish kernel, failing closed for every bad selector."""
-    directory = DEFAULT_KERNEL_DIR if kernel_dir is None else Path(kernel_dir)
+    """Resolve an allowed kernel, defaulting to Spanish and failing closed."""
+    surface, directory = select_surface(kernel_dir)
+    if surface is None:
+        return _fail_closed(
+            [f"{DEFAULT_SURFACE.messages['invalid_kernel_dir']}: {directory}"],
+            DEFAULT_SURFACE,
+        )
     if not directory.is_dir():
-        return _fail_closed([f"directorio del kernel no encontrado: {directory}"])
-    data, errors = _load(directory)
+        return _fail_closed([f"{surface.messages['missing_kernel_dir']}: {directory}"], surface)
+    data, errors = _load(directory, surface)
     if errors:
-        return _fail_closed(errors)
+        return _fail_closed(errors, surface)
 
     manifests = data["manifest"]
     if len(manifests) != 1:
-        return _fail_closed([f"el kernel debe tener exactamente un manifest activo; hay {len(manifests)}"])
+        message = (
+            f"the kernel must have exactly one active manifest; found {len(manifests)}"
+            if surface.language == "en"
+            else f"el kernel debe tener exactamente un manifest activo; hay {len(manifests)}"
+        )
+        return _fail_closed([message], surface)
     manifest = manifests[0]
     rules = sorted(
-        (rule for rule in data["reglas_operativas"] if rule.get("manifest_key") == manifest.get("key")),
+        (rule for rule in data["operational_rules"] if rule.get("manifest_key") == manifest.get("key")),
         key=lambda rule: rule.get("priority", 0),
     )
     if not rules:
-        return _fail_closed([f"sin operational_rules activas para {manifest.get('key')}"])
+        message = (
+            f"no active operational_rules for {manifest.get('key')}"
+            if surface.language == "en"
+            else f"sin operational_rules activas para {manifest.get('key')}"
+        )
+        return _fail_closed([message], surface)
 
-    actors = _index(data["actores"])
-    modes = _index(data["modos"])
+    actors = _index(data["actors"])
+    modes = _index(data["modes"])
     workflows = _index(data["workflows"])
     actor_entry = actors.get(actor or "")
     mode_key = mode or MODE_FALLBACK
     mode_entry = modes.get(mode_key)
     workflow_entry = workflows.get(workflow or "")
     if actor_entry is None:
-        errors.append(f"actor desconocido: {actor!r} (conocidos: {sorted(actors)})")
+        errors.append(f"{surface.messages['unknown_actor']}: {actor!r} ({surface.messages['known']}: {sorted(actors)})")
     if mode_entry is None:
-        errors.append(f"mode desconocido: {mode_key!r} (conocidos: {sorted(modes)})")
+        errors.append(f"{surface.messages['unknown_mode']}: {mode_key!r} ({surface.messages['known']}: {sorted(modes)})")
     if workflow_entry is None:
-        errors.append(f"workflow desconocido: {workflow!r} (conocidos: {sorted(workflows)})")
+        errors.append(f"{surface.messages['unknown_workflow']}: {workflow!r} ({surface.messages['known']}: {sorted(workflows)})")
     if errors:
-        return _fail_closed(errors)
+        return _fail_closed(errors, surface)
     assert actor_entry is not None and mode_entry is not None and workflow_entry is not None
     if mode_key not in actor_entry.get("allowed_modes", []):
-        return _fail_closed([f"mode incompatible: {mode_key!r} no esta en allowed_modes de {actor_entry['key']!r}"])
+        message = (
+            f"{surface.messages['incompatible_mode']}: {mode_key!r} is not in "
+            f"allowed_modes for {actor_entry['key']!r}"
+            if surface.language == "en"
+            else f"mode incompatible: {mode_key!r} no esta en allowed_modes de {actor_entry['key']!r}"
+        )
+        return _fail_closed([message], surface)
 
-    evidence = _hydrate(workflow_entry.get("required_evidence", []), _index(data["evidencia"]), "evidence", errors)
-    outputs = _hydrate(workflow_entry.get("allowed_outputs", []), _index(data["salidas"]), "output", errors)
-    artifacts = _resolve_artifacts(workflow_entry, outputs, data["artefactos"], directory, errors)
+    evidence = _hydrate(
+        workflow_entry.get("required_evidence", []),
+        _index(data["evidence"]),
+        "evidence",
+        surface,
+        errors,
+    )
+    outputs = _hydrate(
+        workflow_entry.get("allowed_outputs", []),
+        _index(data["outputs"]),
+        "output",
+        surface,
+        errors,
+    )
+    artifacts = _resolve_artifacts(workflow_entry, outputs, data["artifacts"], directory, surface, errors)
     requested = [skill] if isinstance(skill, str) else list(skill or [])
-    requested_skills = _resolve_skills(requested, _index(data["skills"]), directory, errors)
+    requested_skills = _resolve_skills(requested, _index(data["skills"]), directory, surface, errors)
     if errors:
-        return _fail_closed(errors)
+        return _fail_closed(errors, surface)
 
-    statuses = _index(data["estados"])
-    status_refs = [limit.get("on_violation") for limit in data["limites"] if limit.get("actor_key") in (None, actor_entry["key"])]
+    statuses = _index(data["statuses"])
+    status_refs = [limit.get("on_violation") for limit in data["limits"] if limit.get("actor_key") in (None, actor_entry["key"])]
     status_refs += [item.get("missing_status") for item in evidence.values()]
     status_refs += [item.get("status_key") for item in outputs.values()]
     selected_statuses: list[dict[str, Any]] = []
     for status_key in dict.fromkeys(ref for ref in status_refs if ref):
         status = statuses.get(status_key)
         if status is None:
-            errors.append(f"status referenciado no encontrado: {status_key}")
+            errors.append(
+                f"{'referenced status not found' if surface.language == 'en' else 'status referenciado no encontrado'}: {status_key}"
+            )
         else:
             selected_statuses.append(_fields(status, "key", "meaning", "type", "active"))
     if errors:
-        return _fail_closed(errors)
+        return _fail_closed(errors, surface)
 
     resolved: dict[str, Any] = {
-        "manifest": _fields(manifest, "key", "version", "language", "objetivo", "resolution_sequence", "active"),
+        "manifest": {
+            **_fields(manifest, "key", "version", "language"),
+            "objetivo": manifest.get("objetivo", manifest.get("objective")),
+            **_fields(manifest, "resolution_sequence", "active"),
+        },
         "reglas_operativas": [_fields(rule, "key", "manifest_key", "resolution_sequence", "on_violation", "priority", "active") for rule in rules],
         "actor": _fields(actor_entry, "key", "surface", "context", "allowed_modes", "active"),
-        "limites": [_fields(limit, "key", "actor_key", "rule", "on_violation", "blocking", "active") for limit in data["limites"] if limit.get("actor_key") in (None, actor_entry["key"])],
+        "limites": [_fields(limit, "key", "actor_key", "rule", "on_violation", "blocking", "active") for limit in data["limits"] if limit.get("actor_key") in (None, actor_entry["key"])],
         "mode": _fields(mode_entry, "key", "allowed_actions", "prohibited_actions", "fallback", "active"),
         "workflow": {
             **_fields(workflow_entry, "key", "use_for", "required_behavior", "active"),
@@ -234,7 +295,7 @@ def resolver(
     }
     if requested_skills:
         resolved["requested_skills"] = requested_skills
-    return {"estado": "status.resolved", "resuelto": resolved, "autorizacion": AUTHORIZATION_NOTICE, "errores": []}
+    return {"estado": "status.resolved", "resuelto": resolved, "autorizacion": surface.authorization_notice, "errores": []}
 
 
 def resolve(
@@ -244,13 +305,13 @@ def resolve(
     kernel_dir: Path | str | None = None,
     skill: str | list[str] | tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
-    """Compatibility import for root tools; resolves the active Spanish kernel."""
+    """Compatibility import; Spanish remains the default surface."""
     return resolver(actor_id, mode_id, workflow_id, kernel_dir=kernel_dir, skill=skill)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Principal deterministic resolver for the active project-os-es kernel; output never grants permission."
+        description="Principal deterministic resolver for project-os-es (default) or explicit project-os-en; output never grants permission."
     )
     parser.add_argument("--actor", required=True, help="e.g. actor.terminal_agent")
     parser.add_argument("--workflow", required=True, help="e.g. workflow.issue_implementation")
@@ -262,7 +323,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         result = resolver(args.actor, args.mode, args.workflow, args.kernel_dir, args.skill)
     except Exception as exc:
-        result = _fail_closed([f"error de tooling inesperado: {exc}"])
+        surface, _ = select_surface(args.kernel_dir)
+        selected = surface or DEFAULT_SURFACE
+        result = _fail_closed([f"{selected.messages['unexpected_error']}: {exc}"], selected)
         print(json.dumps(result, ensure_ascii=False), file=sys.stderr)
         return 2
     print(json.dumps(result, indent=None if args.compact else 2, ensure_ascii=False))

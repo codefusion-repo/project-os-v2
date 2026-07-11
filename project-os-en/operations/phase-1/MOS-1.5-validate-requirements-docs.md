@@ -1,0 +1,21 @@
+# MOS-1.5 — Validate requirements docs
+
+MOSDLC operation `validate-requirements-docs` · Phase 1 — Requirements, planning, and feasibility · Risk: low.
+Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
+
+- Surface: browser_chat
+- Kernel: workflow.review_only · mode.review_only · output.status_result
+- Evidence: evidence.source_basis, evidence.repo_state
+- PM approval: No (read-only)
+
+**Does:** Validate created documentation against identified requirements.
+**For:** To detect gaps or contradictions before planning.
+**How:** Review the documentation read-only against requirements and report actionable findings.
+
+**Variables**
+- Required: — (none)
+- Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+
+**Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
+
+**Connections:** Previous: MOS-1.4. Next: MOS-1.6. Recommended: MOS-1.6.

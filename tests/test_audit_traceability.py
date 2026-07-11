@@ -1,4 +1,4 @@
-"""Spanish traceability and active protected-path guards."""
+"""Traceability and active protected-path guards."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from tools.audit_traceability import (
 )
 
 
-def test_all_active_project_os_es_surfaces_are_protected() -> None:
+def test_all_active_project_os_language_surfaces_are_protected() -> None:
     for path in (
         "project-os-es/kernel/manifest.json",
         "project-os-es/operaciones/fase-3/MOS-3.5.md",
@@ -20,6 +20,12 @@ def test_all_active_project_os_es_surfaces_are_protected() -> None:
         "project-os-es/adapters/AGENTS.target.md",
         "project-os-es/docs/reglas.md",
         "project-os-es/habilidades/arquitectura-backend.md",
+        "project-os-en/kernel/manifest.json",
+        "project-os-en/operations/phase-3/MOS-3.5.md",
+        "project-os-en/templates/execution-report.md",
+        "project-os-en/adapters/AGENTS.target.md",
+        "project-os-en/docs/rules.md",
+        "project-os-en/skills/backend-architecture.md",
     ):
         assert _is_protected_file(path), path
 

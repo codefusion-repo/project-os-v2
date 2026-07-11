@@ -85,13 +85,13 @@ def test_adapters_reserve_target_owned_constraints_without_kernel_contracts() ->
     assert "## Seguridad y validacion" not in target_adapter
 
 
-def test_adapters_only_reference_the_active_spanish_surface_and_forbid_live_state() -> None:
-    retired_references = ("project-os-en", "project-os-es/" + "tools/resolver.py")
+def test_spanish_adapters_do_not_cross_surfaces_and_forbid_live_state() -> None:
+    cross_surface_or_removed_references = ("project-os-en", "project-os-es/" + "tools/resolver.py")
     sha_pattern = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
     adapter_paths = [*MAIN_BOOTLOADERS, *SHIMS, REPO_ROOT / "project-os-es/adapters/README.md"]
 
     for path in adapter_paths:
         text = path.read_text(encoding="utf-8")
-        assert not any(reference in text for reference in retired_references), path
+        assert not any(reference in text for reference in cross_surface_or_removed_references), path
         assert not sha_pattern.search(text), path
         assert "estado vivo" in text, path

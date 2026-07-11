@@ -1,0 +1,211 @@
+{
+  "workflows": [
+    {
+      "key": "workflow.review_only",
+      "use_for": "analysis, audits, questions, and findings without changes",
+      "required_behavior": [
+        "analyze the requested scope and produce findings instead of changes"
+      ],
+      "required_evidence": [
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.review_result",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.issue_implementation",
+      "use_for": "implement a traceable, bounded work unit in a target; a GitHub issue is one possible adapter",
+      "required_behavior": [
+        "implement the complete change within the live work-unit scope and nothing else"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.branch_preflight",
+        "evidence.pm_approval",
+        "evidence.validation_output"
+      ],
+      "allowed_outputs": [
+        "output.execution_report",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.issue_implementation_manual",
+      "use_for": "draft a human-executable plan without mutating the repository or remote target",
+      "required_behavior": [
+        "draft a human-executable plan naming files and anchors only when they can be verified"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.source_basis",
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.manual_implementation_plan",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.review_before_close",
+      "use_for": "review finished work before PM merge or closure",
+      "required_behavior": [
+        "compare the real implementation and validation against work-unit scope, out of scope, and acceptance criteria"
+      ],
+      "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.pr_diff",
+        "evidence.validation_output"
+      ],
+      "allowed_outputs": [
+        "output.review_result",
+        "output.closure_comment",
+        "output.pm_command_bundle",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.implementation_discipline_audit",
+      "use_for": "read-only implementation-discipline audit",
+      "required_behavior": [
+        "audit evidence against boundary.implementation_discipline, boundary.primary_path_discipline, and boundary.validation_discipline",
+        "distinguish discipline gaps from acceptable local tradeoffs or explicit project conventions"
+      ],
+      "required_evidence": [
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.review_result",
+        "output.status_result",
+        "output.draft_issue"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.pm_intake",
+      "use_for": "turn PM input into drafted work units, route prompts, or decision requests",
+      "required_behavior": [
+        "present explicitly the decisions the PM must make"
+      ],
+      "required_evidence": [
+        "evidence.source_basis"
+      ],
+      "allowed_outputs": [
+        "output.draft_issue",
+        "output.route_prompt",
+        "output.pm_command_bundle",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.design_asset",
+      "use_for": "prepare an asset prompt for an external recipient that is not an actor",
+      "required_behavior": [
+        "identify needed assets and their product, brand, accessibility, format, dimension, and acceptance constraints",
+        "keep product and design truth in the target, never in the prompt"
+      ],
+      "required_evidence": [
+        "evidence.repo_state",
+        "evidence.source_basis"
+      ],
+      "allowed_outputs": [
+        "output.asset_prompt",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.security_revision",
+      "use_for": "prepare an OWASP security-review prompt without exposing secrets",
+      "required_behavior": [
+        "identify sensitive target surfaces: authentication, authorization, sessions, input validation, uploads, redirects, dependencies, admin, secrets, logging, and configuration"
+      ],
+      "required_evidence": [
+        "evidence.repo_state",
+        "evidence.source_basis"
+      ],
+      "allowed_outputs": [
+        "output.security_review_prompt",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.release_readiness",
+      "use_for": "assess tag or release readiness without creating a tag or release",
+      "required_behavior": [
+        "assess readiness and name every open gap"
+      ],
+      "required_evidence": [
+        "evidence.repo_state",
+        "evidence.validation_output"
+      ],
+      "allowed_outputs": [
+        "output.review_result",
+        "output.pm_command_bundle",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.handoff",
+      "use_for": "transfer a session or work by pointing to live evidence",
+      "required_behavior": [
+        "leave all transferable state in target systems of record before ending the session"
+      ],
+      "required_evidence": [
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.handoff_packet",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.target_adoption",
+      "use_for": "audit or bootstrap target adapters on this kernel",
+      "required_behavior": [
+        "audit target adapters against canonical adapters and report drift without overwriting target-owned notes, constraints, or commands",
+        "when adoption is missing, create or draft only the canonical adapters",
+        "keep the adoption diff adapter-only, without product code or extra authority"
+      ],
+      "required_evidence": [
+        "evidence.target_adoption"
+      ],
+      "allowed_outputs": [
+        "output.adoption_packet",
+        "output.execution_report",
+        "output.status_result"
+      ],
+      "active": true
+    },
+    {
+      "key": "workflow.deployment",
+      "use_for": "run an internal local or staging deployment with target-owned commands",
+      "required_behavior": [
+        "deploy one environment at a time",
+        "verify post-deploy state before reporting"
+      ],
+      "required_evidence": [
+        "evidence.pm_approval",
+        "evidence.source_basis",
+        "evidence.target_adoption",
+        "evidence.deployment_readiness",
+        "evidence.validation_output",
+        "evidence.repo_state"
+      ],
+      "allowed_outputs": [
+        "output.execution_report",
+        "output.status_result"
+      ],
+      "active": true
+    }
+  ]
+}

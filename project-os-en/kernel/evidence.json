@@ -1,0 +1,139 @@
+{
+  "evidence": [
+    {
+      "key": "evidence.issue_scope",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.issue_implementation_manual",
+        "workflow.review_before_close"
+      ],
+      "mode_key": [],
+      "satisfied_by": "a live work unit with objective, scope, out of scope, and acceptance criteria; a GitHub issue or PR is one possible adapter",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.source_basis",
+      "workflow_key": [
+        "workflow.issue_implementation_manual",
+        "workflow.pm_intake",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "prior target work units, changes, ADRs, or decisions read live",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.branch_preflight",
+      "workflow_key": [
+        "workflow.issue_implementation"
+      ],
+      "mode_key": [],
+      "satisfied_by": "real current-branch, worktree, HEAD, expected-branch, and unrelated-file output captured before editing",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.repo_state",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.issue_implementation_manual",
+        "workflow.implementation_discipline_audit",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.release_readiness",
+        "workflow.handoff",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "files, branches, diffs, history, checks, or comments needed by the task and read live",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.pm_approval",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "exact PM approval naming the project, work unit, and action or approved command bundle",
+      "missing_status": "status.blocked",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.validation_output",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.review_before_close",
+        "workflow.release_readiness",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "validation commands run for this change with their real results",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.pr_diff",
+      "workflow_key": [
+        "workflow.review_before_close"
+      ],
+      "mode_key": [],
+      "satisfied_by": "real changed files and diff, plus relevant final files when the diff is insufficient",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.review_evidence",
+      "workflow_key": [],
+      "mode_key": [],
+      "satisfied_by": "review findings or verdict recorded on the work unit or change",
+      "missing_status": "status.needs_context",
+      "required": false,
+      "active": true
+    },
+    {
+      "key": "evidence.closure_evidence",
+      "workflow_key": [],
+      "mode_key": [],
+      "satisfied_by": "closure comment with completion evidence, validation, preserved limits, and change references",
+      "missing_status": "status.needs_pm_decision",
+      "required": false,
+      "active": true
+    },
+    {
+      "key": "evidence.target_adoption",
+      "workflow_key": [
+        "workflow.target_adoption",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "target identity, adapters, metadata, roadmap anchor, kernel version and path, target-owned notes, validation, and durable-state risk",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "active": true
+    },
+    {
+      "key": "evidence.deployment_readiness",
+      "workflow_key": [
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "approved internal environment, documented target-owned commands, validated prerequisites, and secret safety without exposed values",
+      "missing_status": "status.blocked",
+      "required": true,
+      "active": true
+    }
+  ]
+}

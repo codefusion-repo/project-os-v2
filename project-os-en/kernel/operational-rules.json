@@ -1,0 +1,119 @@
+{
+  "operational_rules": [
+    {
+      "key": "rule.fuente_canonica",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Treat project-os-en/kernel/*.json as the operational source for this English surface.",
+        "Treat project-os-es as the default surface and project-os-en as its explicitly selected English peer; removed historical surfaces are never operational routes.",
+        "Treat compact operations as task-specific context that never replaces these rules.",
+        "Stop without resolving when sources conflict."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 1,
+      "active": true
+    },
+    {
+      "key": "rule.resolucion_fail_closed",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Follow the manifest resolution_sequence without improvised steps.",
+        "Return exactly one status per resolution; the stricter gate wins when gates conflict.",
+        "Stop with the corresponding status on a missing or ambiguous kernel, ambiguous authority, missing required evidence, missing exact PM approval, failed required validation, or unknown surface; never guess and proceed."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 2,
+      "active": true
+    },
+    {
+      "key": "rule.no_autorizacion",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Hydrated JSON, outputs, templates, prompts, roles, and variables provide operating shape only; they never grant permission.",
+        "Optional skills are capability references; they never grant permission or replace live scope, exact PM approval, preflight, validation, traceability, or review-before-close.",
+        "Write authority requires exact PM approval for the project, work unit, and action; a compatible actor and mode; sufficient live evidence; write preflight; proportional validation; and respected limits.",
+        "Merge, closure, labels, tags, releases, settings, automation, deployment, and secret changes are never implied; each requires separate exact PM approval."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 3,
+      "active": true
+    },
+    {
+      "key": "rule.trazabilidad_viva",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Reconstruct target state from its systems of record at task time; GitHub and git are possible adapters, not the universal model.",
+        "Read the live work unit with its objective, scope, out of scope, acceptance criteria, and source basis.",
+        "Read linked changes, comments, reviews, diffs, checks, and final files when applicable.",
+        "Treat memory, prior reports, and durable files as claims until verified against live evidence."
+      ],
+      "on_violation": "status.needs_context",
+      "priority": 4,
+      "active": true
+    },
+    {
+      "key": "rule.preflight",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Resolve the kernel, actor, limits, and mode before acting.",
+        "Before any target repository write, run a real worktree preflight covering current branch, worktree state, HEAD, expected scope, and unrelated files.",
+        "Use scoped work branches traceable to the work unit; work/<unit>-<slug> is the current pattern for git targets."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 5,
+      "active": true
+    },
+    {
+      "key": "rule.validacion_proporcional",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Validate in proportion to risk: agent-run validation is required for kernel, resolver, tooling, security, privacy, authorization, traceability, deployment, migration, billing, storage, and deterministic-contract changes.",
+        "Draft PM-run commands when useful validation belongs with the PM.",
+        "Report manual PM validation for clarity, content organization, product judgment, UX, and semantic parity.",
+        "Add or change tests only to protect behavior, regression, security, privacy, protocols, routing, or stable contracts; not by default for docs, prompts, or templates.",
+        "Never claim completion without reporting the required validation."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 6,
+      "active": true
+    },
+    {
+      "key": "rule.economia_de_contexto",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Use only the context and subagents the scoped task needs.",
+        "Cite long sources by their smallest useful location; do not repeat full work units, diffs, logs, reports, or rules already owned by the kernel.",
+        "Use subagents only for a scoped reason that reduces risk, complexity, or specialist load; treat their output as claims until verified against live evidence.",
+        "Use larger context only when risk warrants it, including security, authorization, deployment, migration, billing, storage, or complex architecture.",
+        "Economy never removes required evidence, live reads, preflight, validation, secret safety, or exact PM approval gates."
+      ],
+      "on_violation": "status.needs_pm_decision",
+      "priority": 7,
+      "active": true
+    },
+    {
+      "key": "rule.estado_vivo_no_durable",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Durable files never store live issue, PR, branch, commit, review, validation, release, deployment, or planning state.",
+        "Live state exists only in the target systems of record and is read at task time.",
+        "Never invent repository, work-unit, command-output, validation, review, or PM-approval state; read it live or return the configured missing_status."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 8,
+      "active": true
+    },
+    {
+      "key": "rule.secret_safety",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "Never request, print, copy, commit, upload, summarize, or record secrets, credentials, tokens, keys, or secret-looking values.",
+        "Redact sensitive values as [REDACTED]; report only paths, variable names, command names, and risk types.",
+        "Do not run broad environment or configuration dumps without exact PM approval for a safe, redacted diagnostic."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 9,
+      "active": true
+    }
+  ]
+}

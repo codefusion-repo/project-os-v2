@@ -8,7 +8,9 @@ estado vivo del proyecto queda en GitHub** y se lee al momento de la tarea.
 Cualquier agente puede retomar un proyecto en frío resolviendo el kernel y
 leyendo GitHub; nada depende de la memoria de un chat previo.
 
-La superficie activa es la superficie en español: **`project-os-es/`**.
+Hay dos superficies activas y semánticamente equivalentes:
+**`project-os-es/`** (español, default) y **`project-os-en/`** (inglés,
+selección explícita). Omitir el path de kernel siempre conserva español.
 
 ## Fuentes de verdad
 
@@ -25,12 +27,14 @@ La superficie activa es la superficie en español: **`project-os-es/`**.
 
 | Ruta | Propósito | ¿Activa? |
 | --- | --- | --- |
-| `project-os-es/kernel/*.json` | El kernel operativo activo: actores, modos, workflows, límites, evidencia, salidas, estados, artefactos y skills | **Activa (canónica)** |
-| `tools/project_os_resolve.py` | Resolver determinista principal: hidrata `project-os-es/kernel` por (actor, mode, workflow) sin conceder permisos | **Activa** |
+| `project-os-es/kernel/*.json` | Kernel operativo en español: actores, modos, workflows, límites, evidencia, salidas, estados, artefactos y skills | **Activa (default)** |
+| `project-os-en/kernel/*.json` | Kernel operativo paralelo en inglés, con los mismos IDs, gates y relaciones | **Activa (explícita)** |
+| `tools/project_os_resolve.py` | Único resolver determinista principal: default ES o EN mediante path explícito, sin conceder permisos | **Activa** |
 | `project-os-es/docs/` | Docs PM-facing: `project-os-es/docs/empezar.md`, `project-os-es/docs/reglas.md`, `project-os-es/docs/ritmo.md` | **Activa** |
 | `project-os-es/operaciones/` | Catálogo MOSDLC compacto en español, por fase | **Activa** |
 | `project-os-es/adapters/` | Adapter templates `*.target.md` para adoptar Project OS en un target | **Activa** |
 | `project-os-es/templates/` + `project-os-es/habilidades/` | Formas de artefactos y skills opcionales referenciados por el kernel | **Activa** |
+| `project-os-en/docs/`, `operations/`, `adapters/`, `templates/`, `skills/` | Capas PM-facing inglesas paralelas | **Activa (explícita)** |
 | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` | Adapters propios de este repo (corre sobre su propio kernel) | Adapter (self) |
 | `docs/decisions/` | ADRs de este repositorio | Decisiones del repo |
 | `tools/` + `tests/` | Resolver y validador del kernel activo, guards focalizados y diagnósticos read-only secundarios | Infraestructura activa |
@@ -54,6 +58,10 @@ resolver principal (los detalles de adopción viven en
 python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
   --mode <mode> --kernel-dir project-os-es/kernel [--skill skill.<id>]
 ```
+
+La superficie inglesa se selecciona solo reemplazando el path por
+`--kernel-dir project-os-en/kernel`. No existe preferencia persistente ni
+selector global de idioma.
 
 La resolución manual desde `project-os-es/kernel/manifest.json` sigue siendo
 el fallback canónico. Las superficies browser/no terminales nunca ejecutan
@@ -86,13 +94,17 @@ variables PM y trazabilidad viva en GitHub.
 ## Validación
 
 ```sh
-python3 -m tools.validate_kernel   # valida project-os-es/kernel, el kernel activo
-python3 -m pytest tests/ -q        # resolver principal y guards de rutas activas
+python3 -m tools.validate_kernel --kernel-dir project-os-es/kernel
+python3 -m tools.validate_kernel --kernel-dir project-os-en/kernel
+python3 -m pytest tests/ -q
 ```
 
 `tests/test_active_project_os_resolver.py` guarda la resolución del kernel
 español activo y evita referencias activas al resolver eliminado.
-`tools.validate_kernel` valida `project-os-es/kernel/*.json`.
+`tests/test_project_os_bilingual_parity.py` guarda la paridad estructural ES/EN,
+los contratos MOS, adapters, paths y selección fail-closed.
+`tools.validate_kernel` valida la superficie permitida seleccionada; español
+sigue siendo su default cuando se omite `--kernel-dir`.
 
 `tools.audit_target_adapters` y `tools.audit_traceability` siguen siendo
 diagnósticos read-only manuales. CI (`.github/workflows/validate.yml`) ejecuta
@@ -105,6 +117,5 @@ Este repo sostuvo antes una arquitectura de contract-graph (781 contratos),
 reducida al kernel mínimo inglés tras una auditoría de uso real en 2026-06, y
 luego consolidada en la superficie en español `project-os-es` como base
 primaria (ADR 0003, `docs/decisions/0003-project-os-cli-adoption-model.md`).
-La historia y el racional de las superficies anteriores son recuperables desde
-el historial git. El árbol actual conserva exclusivamente la superficie
-canónica en español.
+La historia y el racional de superficies retiradas son recuperables desde git;
+el árbol actual conserva español como default y su traducción inglesa paralela.

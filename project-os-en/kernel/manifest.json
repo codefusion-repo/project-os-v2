@@ -1,0 +1,22 @@
+{
+  "manifest": [
+    {
+      "key": "manifest.kernel_es",
+      "version": "1.0.0",
+      "language": "en",
+      "objective": "Define the compact operating contract hydrated by one resolver for an (actor, mode, workflow) selection, without granting permission. The model is project-agnostic; GitHub, git, issues, and PRs are adapters or source examples only. Artifacts are draftable, creatable, traceable, or documentable units with one responsibility and, when template-backed, one required_template .md file. Skills are optional capabilities requested by the PM or recommended by a route prompt; they never authorize or replace gates. This surface operates only from project-os-en/kernel/*.json as the explicitly selected English peer of the default Spanish surface; removed historical surfaces are never routes.",
+      "resolution_sequence": [
+        "Read this complete resolution.",
+        "Treat it as mandatory operating guidance.",
+        "Follow the operational rules.",
+        "Follow the limits and the context of the acting surface.",
+        "Follow the allowed and prohibited actions of the resolved execution mode.",
+        "Execute only the resolved workflow.",
+        "Follow the workflow evidence, outputs, and artifacts.",
+        "Treat any requested optional skill as a capability reference, never as permission or workflow logic.",
+        "Follow the resolved statuses."
+      ],
+      "active": true
+    }
+  ]
+}

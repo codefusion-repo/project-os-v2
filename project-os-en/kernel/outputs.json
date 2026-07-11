@@ -1,0 +1,253 @@
+{
+  "outputs": [
+    {
+      "key": "output.execution_report",
+      "workflow_key": [
+        "workflow.issue_implementation",
+        "workflow.target_adoption",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "use_for": "report implementation work; never claim completion without complete scope, respected out of scope, and reported validation",
+      "status_key": "status.resolved",
+      "must_include": [
+        "work unit or PR",
+        "project or repository",
+        "branch",
+        "evidence reviewed",
+        "files changed",
+        "validation performed with results, validation not run with reason, and required manual PM validation",
+        "risks and limitations",
+        "commit or PR reference when applicable",
+        "remaining work"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.manual_implementation_plan",
+      "workflow_key": [
+        "workflow.issue_implementation_manual"
+      ],
+      "mode_key": [],
+      "use_for": "draft human-executable instructions; never claim code was edited or validated",
+      "status_key": "status.resolved",
+      "must_include": [
+        "objective",
+        "files to inspect",
+        "files to modify",
+        "anchored change plan",
+        "validation commands",
+        "manual QA",
+        "risks and rollback",
+        "recommended next operation",
+        "no-write statement"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.review_result",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.review_before_close",
+        "workflow.implementation_discipline_audit",
+        "workflow.release_readiness"
+      ],
+      "mode_key": [],
+      "use_for": "report review or analysis findings; a GO verdict requires code-backed comparison",
+      "status_key": "status.resolved",
+      "must_include": [
+        "scope reviewed",
+        "evidence reviewed",
+        "comparison against work-unit scope",
+        "findings with references",
+        "verdict or recommendation",
+        "risks",
+        "not reviewed"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.closure_comment",
+      "workflow_key": [
+        "workflow.review_before_close"
+      ],
+      "mode_key": [],
+      "use_for": "draft the PM closure packet only after review with code evidence, never from claims alone",
+      "status_key": "status.resolved",
+      "must_include": [
+        "completion evidence",
+        "validation evidence with real output",
+        "accepted exceptions",
+        "preserved limits",
+        "friction note",
+        "commit or PR references"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.draft_issue",
+      "workflow_key": [
+        "workflow.implementation_discipline_audit",
+        "workflow.pm_intake"
+      ],
+      "mode_key": [],
+      "use_for": "draft a work unit for PM review; one outcome per unit",
+      "status_key": "status.resolved",
+      "must_include": [
+        "why it exists",
+        "objective",
+        "source basis",
+        "scope",
+        "out of scope",
+        "acceptance criteria",
+        "validation expectations",
+        "risk and rollback"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.route_prompt",
+      "workflow_key": [
+        "workflow.pm_intake"
+      ],
+      "mode_key": [],
+      "use_for": "route scoped work to another surface; scope and shape only, with authorization carried as exact PM approval",
+      "status_key": "status.resolved",
+      "must_include": [
+        "standard variable block",
+        "recommended optional skill when useful, without making it mandatory or authorizing",
+        "recommended terminal-agent family when useful, such as Codex, Claude, or Gemini, without making it binding",
+        "task instruction in terms of scope",
+        "recommended effort with rationale",
+        "note that the executing agent re-resolves the kernel and the prompt grants no permission"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.pm_command_bundle",
+      "workflow_key": [
+        "workflow.review_before_close",
+        "workflow.pm_intake",
+        "workflow.release_readiness"
+      ],
+      "mode_key": [],
+      "use_for": "draft copy-safe command bundles that the PM runs manually",
+      "status_key": "status.resolved",
+      "must_include": [
+        "what the bundle does and its scope in prose",
+        "commands with exact targets in execution order",
+        "expected verification output",
+        "risk and rollback in prose"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.asset_prompt",
+      "workflow_key": [
+        "workflow.design_asset"
+      ],
+      "mode_key": [],
+      "use_for": "draft an asset prompt for a real design recipient; routes work only and creates no assets",
+      "status_key": "status.resolved",
+      "must_include": [
+        "live context read",
+        "asset objective",
+        "recipient and non-actor decision",
+        "asset type and usage context",
+        "dimensions, format, and delivery",
+        "brand and product constraints from target truth",
+        "accessibility notes",
+        "acceptance criteria",
+        "out of scope and authority limits"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.security_review_prompt",
+      "workflow_key": [
+        "workflow.security_revision"
+      ],
+      "mode_key": [],
+      "use_for": "draft an OWASP security-review prompt; routes review only, runs no scanner, and exposes no secrets",
+      "status_key": "status.resolved",
+      "must_include": [
+        "live context read",
+        "review objective",
+        "recipient and non-actor decision",
+        "sensitive surfaces",
+        "OWASP areas to inspect",
+        "secret redaction requirements",
+        "evidence to review",
+        "findings format",
+        "out of scope and authority limits"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.handoff_packet",
+      "workflow_key": [
+        "workflow.handoff"
+      ],
+      "mode_key": [],
+      "use_for": "transfer work between sessions, agents, or tools by pointing to live evidence; never becomes a durable state file",
+      "status_key": "status.resolved",
+      "must_include": [
+        "current state with live references",
+        "verified versus assumed",
+        "next steps with source basis",
+        "open PM decisions",
+        "active limits on remaining work"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.adoption_packet",
+      "workflow_key": [
+        "workflow.target_adoption"
+      ],
+      "mode_key": [],
+      "use_for": "report an audit or bootstrap of target adoption",
+      "status_key": "status.resolved",
+      "must_include": [
+        "target and repository",
+        "adopted kernel version",
+        "current adoption state",
+        "present and missing files",
+        "audit findings",
+        "adapter diff or draft",
+        "exact write scope when applicable",
+        "adoption checklist",
+        "what remains target-owned",
+        "rollback"
+      ],
+      "active": true
+    },
+    {
+      "key": "output.status_result",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.issue_implementation",
+        "workflow.issue_implementation_manual",
+        "workflow.review_before_close",
+        "workflow.implementation_discipline_audit",
+        "workflow.pm_intake",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.release_readiness",
+        "workflow.handoff",
+        "workflow.target_adoption",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "use_for": "report an unresolved status and name precisely the missing source or blocking limit",
+      "status_key": null,
+      "must_include": [
+        "the status",
+        "exactly what is missing, conflicting, or blocking",
+        "where it should come from or who decides",
+        "the safe next step"
+      ],
+      "active": true
+    }
+  ]
+}
