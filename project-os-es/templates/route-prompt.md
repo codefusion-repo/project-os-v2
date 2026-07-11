@@ -1,7 +1,11 @@
 # Route prompt
 
-Responsabilidad: rutear trabajo scoped a otra superficie sin pegar el issue
-completo ni conceder permisos.
+Responsabilidad: rutear trabajo scoped a otra superficie como bootloader compacto
+e issue-referential, sin pegar el issue, PR o comentarios completos ni conceder
+permisos. El detalle de implementacion permanece en la evidencia viva.
+
+El bloque siguiente es el route prompt completo: contiene un unico bloque
+estandar de variables y una unica instruccion concreta al final.
 
 ```text
 PROJECT_NAME = {{nombre}}
@@ -17,7 +21,7 @@ OUTPUT_CONTRACT = {{output id}}
 OPTIONAL_SKILL = {{skill.<id> | none}}
 HYDRATION_LEVEL = {{minimal | compact | full/debug}}
 RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}
-SCOPE = {{1-3 lineas, no el cuerpo completo}}
+SCOPE = {{1-3 lineas; no restatar issue, PR, cuerpos, comentarios, acceptance criteria, source basis ni checklists}}
 OUT_OF_SCOPE = {{errores plausibles a evitar}}
 EVIDENCE_REQUIRED = {{evidence ids requeridas}}
 VALIDATION_REQUIRED = {{agent-run | PM-run | manual PM | none con razon}}
@@ -25,11 +29,15 @@ BRANCH_NAME = work/{{issue}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{razon breve}}
 
-{{Instruccion concreta: implementar, revisar, auditar o draftear solo el scope.}}
+{{Una unica instruccion concreta: re-resuelve el kernel, lee la evidencia viva requerida y, sin asumir autorizacion porque este prompt no autoriza escritura, implementa, revisa, audita o draftea solo el scope.}}
 ```
 
-El agente receptor re-resuelve el kernel, lee evidencia viva y falla cerrado si
-falta contexto, autoridad o validacion. El browser chat infiere
+Al draftear, lee el issue o PR vivo y sus comentarios, y referencia ese detalle
+en vez de copiarlo. No agregues encabezados, secciones, listas, checklists ni
+planes de implementacion antes o despues del bloque: fuera de las variables, el
+unico contenido permitido es la instruccion concreta final. El agente receptor
+re-resuelve el kernel, lee evidencia viva y falla cerrado si falta contexto,
+autoridad o validacion. El browser chat infiere
 `RECOMMENDED_TERMINAL_AGENT_FAMILY` como consejo no vinculante: Codex para
 implementación de código, tooling Python, migraciones, refactors y tests;
 Claude para síntesis documental, revisión de arquitectura o prosa de contexto

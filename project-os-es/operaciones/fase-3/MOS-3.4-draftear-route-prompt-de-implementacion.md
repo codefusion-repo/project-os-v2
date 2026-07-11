@@ -10,9 +10,11 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea el route-prompt para delegar la implementación de un issue a un terminal agent.
 **Para:** Rutear implementación con scope, modo y evidencia correctos.
-**Cómo:** Bootloader compacto; el browser chat puede recomendar un skill opcional
-e infiere `RECOMMENDED_TERMINAL_AGENT_FAMILY` según el trabajo. La recomendación
-es advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
+**Cómo:** Usa un bootloader compacto e issue-referential: el detalle permanece
+en el issue o PR vivo y sus comentarios, no en el route prompt. El browser chat
+puede recomendar un skill opcional e infiere `RECOMMENDED_TERMINAL_AGENT_FAMILY`
+según el trabajo. La recomendación es advisory, no autoriza nada y el feedback
+explícito del PM puede reemplazarla.
 
 **Variables**
 - Requeridas: — (ninguna)
@@ -24,6 +26,19 @@ es advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla
   requerida y precarga `HYDRATION_LEVEL=compact` antes de generar este
   route-prompt.
 
-**Entrega:** output.route_prompt. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
+**Comprobación de conformidad:** Antes de entregar, compara la salida con
+`project-os-es/templates/route-prompt.md`. Comprímela si repite detalle del
+issue, PR o comentarios; conserva una referencia a la evidencia viva en vez de
+copiar cuerpos, acceptance criteria, source basis, checklists o pasos de
+implementación. Entrega solo un bloque estándar de variables, `SCOPE` de 1-3
+líneas y una única instrucción concreta posterior. Si no puede producir esa
+forma, falla cerrado con `output.status_result`.
+
+**QA manual reproducible:** Usa un issue largo con comentarios extensos. Verifica
+que el route prompt conserva solo metadata, scope breve, out-of-scope breve y
+una instrucción concreta; que `SCOPE` tiene 1-3 líneas; que no hay secciones
+copiadas; y que instruye al agente receptor a leer evidencia viva.
+
+**Entrega:** output.route_prompt. Ante evidencia, alcance, aprobación o forma conforme faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
 **Conexiones:** Antes: MOS-3.1, MOS-3.2 o MOS-3.8. Después: MOS-3.7 tras el PR. Recomendada: MOS-3.7.
