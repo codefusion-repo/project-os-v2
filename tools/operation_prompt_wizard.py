@@ -255,7 +255,9 @@ def resolve_surface_selection(
     other ``operations_dir`` stays a custom catalog that keeps the existing
     programmatic ``skills_catalog_path`` API and is not labeled es or en; with
     neither, one interactive question selects the surface (Enter keeps
-    Spanish). An explicit ``skills_catalog_path`` always wins for callers.
+    Spanish). An explicit ``skills_catalog_path`` only replaces the catalog of
+    a custom ``operations_dir``; on a known es/en surface it must point to that
+    surface's canonical catalog or the resolution fails closed (no mixing).
     Returns ``None`` when the interactive question is cancelled.
     """
 
@@ -304,12 +306,24 @@ def resolve_surface_selection(
             )
 
     if skills_catalog_path is not None:
-        selection = SurfaceSelection(
-            language=selection.language,
-            operations_dir=selection.operations_dir,
-            skills_catalog_path=skills_catalog_path,
-            kernel_dir=selection.kernel_dir,
-        )
+        if selection.language == CUSTOM_SURFACE_LANGUAGE:
+            selection = SurfaceSelection(
+                language=selection.language,
+                operations_dir=selection.operations_dir,
+                skills_catalog_path=skills_catalog_path,
+                kernel_dir=selection.kernel_dir,
+            )
+        else:
+            supplied = Path(skills_catalog_path).expanduser()
+            supplied_abs = supplied if supplied.is_absolute() else Path.cwd() / supplied
+            canonical = selection.skills_catalog_path
+            if supplied_abs != canonical and supplied_abs.resolve() != canonical:
+                raise WizardError(
+                    f"skills catalog {skills_catalog_path} does not belong to the "
+                    f"{selection.language} surface; the wizard never mixes operations "
+                    "and skills from different surfaces. Drop the override or use "
+                    f"{display_path(canonical)}."
+                )
     return selection
 
 

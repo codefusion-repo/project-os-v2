@@ -734,6 +734,54 @@ def test_incompatible_language_and_operations_dir_fail_closed(tmp_path: Path) ->
             resolve_surface_selection(language=language, operations_dir=operations_dir)
 
 
+def test_known_surface_rejects_skills_catalog_from_another_surface(tmp_path: Path) -> None:
+    def never_ask(_question: str) -> str:
+        raise AssertionError("explicit selections must not prompt interactively")
+
+    es_catalog = REPO_ROOT / "project-os-es" / "kernel" / "skills.json"
+    en_catalog = REPO_ROOT / "project-os-en" / "kernel" / "skills.json"
+    for kwargs in (
+        {"language": "en", "skills_catalog_path": es_catalog},
+        {"language": "es", "skills_catalog_path": en_catalog},
+        {
+            "operations_dir": REPO_ROOT / "project-os-en" / "operations",
+            "skills_catalog_path": es_catalog,
+        },
+        {
+            "operations_dir": REPO_ROOT / "project-os-es" / "operaciones",
+            "skills_catalog_path": en_catalog,
+        },
+        {"language": "es", "skills_catalog_path": tmp_path / "skills.json"},
+    ):
+        with pytest.raises(WizardError, match="never mixes operations and skills"):
+            resolve_surface_selection(input_func=never_ask, **kwargs)
+
+
+def test_known_surface_accepts_its_own_canonical_skills_catalog() -> None:
+    def never_ask(_question: str) -> str:
+        raise AssertionError("explicit selections must not prompt interactively")
+
+    en_catalog = REPO_ROOT / "project-os-en" / "kernel" / "skills.json"
+    english = resolve_surface_selection(
+        language="en", skills_catalog_path=en_catalog, input_func=never_ask
+    )
+    assert english.language == "en"
+    assert english.skills_catalog_path == en_catalog
+
+    unnormalized = REPO_ROOT / "tools" / ".." / "project-os-en" / "kernel" / "skills.json"
+    assert resolve_surface_selection(
+        language="en", skills_catalog_path=unnormalized, input_func=never_ask
+    ).skills_catalog_path == en_catalog
+
+    spanish = resolve_surface_selection(
+        operations_dir=REPO_ROOT / "project-os-es" / "operaciones",
+        skills_catalog_path=REPO_ROOT / "project-os-es" / "kernel" / "skills.json",
+        input_func=never_ask,
+    )
+    assert spanish.language == "es"
+    assert spanish.skills_catalog_path == REPO_ROOT / "project-os-es" / "kernel" / "skills.json"
+
+
 def test_language_question_is_asked_once_per_session(tmp_path: Path) -> None:
     asked: list[str] = []
     values = iter(
