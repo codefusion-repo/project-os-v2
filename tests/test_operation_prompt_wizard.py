@@ -8,6 +8,8 @@ from pathlib import Path
 
 from tools.operation_prompt_wizard import (
     DEFAULT_OPERATIONS_DIR,
+    HYDRATION_LEVEL_DEFAULT,
+    HYDRATION_LEVEL_NAME,
     InputVariable,
     PM_AUTHORIZATION_GRANTED,
     PM_AUTHORIZATION_PENDING,
@@ -195,13 +197,14 @@ def test_selected_summary_exposes_relative_path_without_repeating_it_in_main_lis
     assert "Path: fase-6/MOS-6.9-procesar-mejoras-de-rendimiento.md" in transcript
 
 
-def test_active_route_operations_expose_required_authorization_and_no_pm_agent_family() -> None:
+def test_active_route_operations_expose_hydration_and_required_authorization() -> None:
     operations = discover_operations()
     expected_variables = {
         "MOS-3.4": [
             ("ISSUE_NUMBER", False),
             ("ROADMAP_ISSUE", False),
             ("OPTIONAL_SKILL", False),
+            (HYDRATION_LEVEL_NAME, False),
             ("PM_FEEDBACK_HUMANO", False),
             ("PM_QUESTION_HUMANO", False),
         ],
@@ -209,6 +212,7 @@ def test_active_route_operations_expose_required_authorization_and_no_pm_agent_f
             ("ISSUE_NUMBER", True),
             ("PR_NUMBER", False),
             ("OPTIONAL_SKILL", False),
+            (HYDRATION_LEVEL_NAME, False),
             ("PM_FEEDBACK_HUMANO", False),
             ("PM_QUESTION_HUMANO", False),
         ],
@@ -227,10 +231,15 @@ def test_active_route_operations_expose_required_authorization_and_no_pm_agent_f
 
         rendered = render_prompt(
             operation,
-            {"ISSUE_NUMBER": "405", PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED},
+            {
+                "ISSUE_NUMBER": "405",
+                HYDRATION_LEVEL_NAME: "full/debug",
+                PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED,
+            },
         )
         assert rendered.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
         assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in rendered
+        assert f"{HYDRATION_LEVEL_NAME}=full/debug" in rendered
 
 
 def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path) -> None:
@@ -240,7 +249,7 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
         input_func=answers(
             "/phases",
             "MOS-3.5",
-            "405", "", "none", "", "", "1",
+            "405", "", "none", "", "", "", "1",
             "write", "exit",
         ),
         output_stream=stream,
@@ -254,6 +263,7 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
     assert "ISSUE_NUMBER=405" in content
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode." in transcript
     assert WIZARD_PROMPT_MARKER in content
@@ -265,7 +275,7 @@ def test_line_wizard_active_mos34_generates_granted_route_prompt(tmp_path: Path)
         output_dir=tmp_path,
         input_func=answers(
             "MOS-3.4",
-            "405", "274", "skill.arquitectura_backend", "", "", "2",
+            "405", "274", "skill.arquitectura_backend", "", "", "", "2",
             "write", "exit",
         ),
         output_stream=stream,
@@ -275,6 +285,7 @@ def test_line_wizard_active_mos34_generates_granted_route_prompt(tmp_path: Path)
     content = output.read_text(encoding="utf-8")
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
+    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     assert "OPTIONAL_SKILL=skill.arquitectura_backend" in content
     transcript = stream.getvalue()
@@ -581,13 +592,54 @@ def test_line_wizard_shows_dynamic_skill_choices_and_rejects_unknown_value(tmp_p
 def test_route_prompt_template_keeps_ai_advisory_field_without_pm_input() -> None:
     template = (DEFAULT_OPERATIONS_DIR.parent / "templates" / "route-prompt.md").read_text(encoding="utf-8")
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}" in template
+    assert "HYDRATION_LEVEL = {{minimal | compact | full/debug}}" in template
+    assert "`compact` es el valor predeterminado práctico" in template
     assert "browser chat infiere" in template
     assert "feedback explícito\ndel PM puede reemplazar" in template
 
     for mos_code in ("MOS-3.4", "MOS-3.5"):
         operation = next(candidate for candidate in discover_operations() if candidate.mos_code == mos_code)
         assert "RECOMMENDED_TERMINAL_AGENT_FAMILY" not in [variable.name for variable in operation.variables]
+        assert HYDRATION_LEVEL_NAME in [variable.name for variable in operation.variables]
         assert "browser chat" in operation.text
+
+
+def test_hydration_level_rejects_unknown_values_and_is_absent_from_unrelated_operations() -> None:
+    level = InputVariable(HYDRATION_LEVEL_NAME, "<minimal|compact|full/debug>", False, "")
+    assert validate_variable_value(level, HYDRATION_LEVEL_DEFAULT) is None
+    assert validate_variable_value(level, "full/debug") is None
+    assert "exactly one of" in (validate_variable_value(level, "verbose") or "")
+
+    implementation_route = next(
+        operation for operation in discover_operations() if operation.mos_code == "MOS-3.4"
+    )
+    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in render_prompt(
+        implementation_route, {}
+    )
+
+    unrelated = next(operation for operation in discover_operations() if operation.mos_code == "MOS-4.1")
+    assert HYDRATION_LEVEL_NAME not in [variable.name for variable in unrelated.variables]
+
+
+def test_line_wizard_rejects_invalid_hydration_before_rendering_full_debug(tmp_path: Path) -> None:
+    operations_dir = tmp_path / "operations"
+    write_spanish_operation(
+        operations_dir / "fase-3" / "MOS-3.4-route.md",
+        "MOS-3.4",
+        "Route",
+        optional=HYDRATION_LEVEL_NAME,
+    )
+    stream = StringIO()
+    output = run_wizard(
+        operations_dir=operations_dir,
+        output_dir=tmp_path / "out",
+        input_func=answers("MOS-3.4", "verbose", "full/debug", "write", "exit"),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    assert f"{HYDRATION_LEVEL_NAME}=full/debug" in output.read_text(encoding="utf-8")
+    assert "HYDRATION_LEVEL must be exactly one of" in stream.getvalue()
 
 
 def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejected(tmp_path: Path) -> None:

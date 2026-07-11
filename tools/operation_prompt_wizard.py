@@ -86,6 +86,9 @@ PM_AUTHORIZATION_STATUS_NAME = "PM_AUTHORIZATION_STATUS"
 PM_AUTHORIZATION_PENDING = "pending"
 PM_AUTHORIZATION_GRANTED = "granted for this exact scope and mode"
 PM_AUTHORIZATION_CHOICES = (PM_AUTHORIZATION_PENDING, PM_AUTHORIZATION_GRANTED)
+HYDRATION_LEVEL_NAME = "HYDRATION_LEVEL"
+HYDRATION_LEVEL_DEFAULT = "compact"
+HYDRATION_LEVEL_CHOICES = ("minimal", HYDRATION_LEVEL_DEFAULT, "full/debug")
 
 
 class WizardError(RuntimeError):
@@ -417,6 +420,14 @@ def validate_variable_value(
             )
         return None
 
+    if is_hydration_level_variable(variable.name):
+        if stripped not in HYDRATION_LEVEL_CHOICES:
+            return (
+                f"{variable.name} must be exactly one of: "
+                f"{', '.join(HYDRATION_LEVEL_CHOICES)}."
+            )
+        return None
+
     if is_optional_skill_variable(variable.name):
         choices = skill_choices or load_active_skill_choices()
         if stripped not in choices:
@@ -453,6 +464,8 @@ def validation_example(
 
     if is_pm_authorization_status_variable(variable.name):
         return "Choose 1 for pending or 2 for granted for this exact scope and mode."
+    if is_hydration_level_variable(variable.name):
+        return "Use minimal, compact, or full/debug; compact is the default."
     if is_optional_skill_variable(variable.name):
         choices = skill_choices or load_active_skill_choices()
         return f"Use an active skill, none, or leave it blank: {', '.join(choices)}."
@@ -507,6 +520,12 @@ def is_pm_authorization_status_variable(name: str) -> bool:
     """Identify the route-prompt authorization-status assistance variable."""
 
     return name == PM_AUTHORIZATION_STATUS_NAME
+
+
+def is_hydration_level_variable(name: str) -> bool:
+    """Identify the narrow route-prompt resolver-hydration variable."""
+
+    return name == HYDRATION_LEVEL_NAME
 
 
 def is_optional_skill_variable(name: str) -> bool:
@@ -691,10 +710,13 @@ def render_prompt(
         operation,
         include_route_prompt_authorization=include_route_prompt_authorization,
     )
+    rendered_values = dict(values)
+    if any(is_hydration_level_variable(variable.name) for variable in variables):
+        rendered_values.setdefault(HYDRATION_LEVEL_NAME, HYDRATION_LEVEL_DEFAULT)
     for i, line in enumerate(lines):
         for variable in variables:
             if variable.raw_line and line.rstrip() == variable.raw_line:
-                value = values.get(variable.name, "").strip()
+                value = rendered_values.get(variable.name, "").strip()
                 if value:
                     lines[i] = f"  {variable.name}={single_line(value)}"
                 else:
@@ -708,7 +730,7 @@ def render_prompt(
     if not has_input_block:
         lines.extend(["", "INPUT:"])
         for variable in variables:
-            value = values.get(variable.name, "").strip()
+            value = rendered_values.get(variable.name, "").strip()
             lines.append(f"  {variable.name}={single_line(value) if value else ''}")
     elif needs_synthetic and not operation_declares_pm_authorization_status(operation):
         lines = insert_input_variable_line(
@@ -1074,6 +1096,20 @@ def print_pm_authorization_assistance(output_stream: TextIO) -> None:
     )
 
 
+def print_hydration_level_assistance(output_stream: TextIO) -> None:
+    """Explain the route-prompt-only resolver hydration choice before asking."""
+
+    print("", file=output_stream)
+    print(
+        "HYDRATION_LEVEL: minimal, compact (default), or full/debug.",
+        file=output_stream,
+    )
+    print(
+        "It changes only how much selected resolver guidance is returned; it never grants permission.",
+        file=output_stream,
+    )
+
+
 def print_output_path_help(output_stream: TextIO) -> None:
     """Print multi-output route-prompt path help."""
 
@@ -1205,6 +1241,9 @@ def collect_values_with_controls(
     print_stage("Step 2/3", "Fill INPUT variables", output_stream)
     display_operation_summary(operation, output_stream)
     variables = wizard_variables(operation)
+    for variable in variables:
+        if is_hydration_level_variable(variable.name):
+            values.setdefault(variable.name, HYDRATION_LEVEL_DEFAULT)
     if not variables:
         print("This operation declares no INPUT variables.", file=output_stream)
         return ValueCollectionResult("values", values)
@@ -1217,6 +1256,8 @@ def collect_values_with_controls(
     for variable in variables:
         if is_pm_authorization_status_variable(variable.name):
             print_pm_authorization_assistance(output_stream)
+        if is_hydration_level_variable(variable.name):
+            print_hydration_level_assistance(output_stream)
         if is_optional_skill_variable(variable.name):
             print_optional_skill_options(output_stream, skill_options=skill_options)
         label = "required" if variable.required else "optional"
@@ -1815,6 +1856,9 @@ if HAVE_PROMPT_TOOLKIT:
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
         display_operation_summary(operation, output_stream)
         variables = wizard_variables(operation)
+        for variable in variables:
+            if is_hydration_level_variable(variable.name):
+                values.setdefault(variable.name, HYDRATION_LEVEL_DEFAULT)
         if not variables:
             print("This operation declares no INPUT variables.", file=output_stream)
             return ValueCollectionResult("values", values)
@@ -1828,6 +1872,8 @@ if HAVE_PROMPT_TOOLKIT:
         for variable in variables:
             if is_pm_authorization_status_variable(variable.name):
                 print_pm_authorization_assistance(output_stream)
+            if is_hydration_level_variable(variable.name):
+                print_hydration_level_assistance(output_stream)
             if is_optional_skill_variable(variable.name):
                 print_optional_skill_options(output_stream, skill_options=skill_options)
             label = "required" if variable.required else "optional"
@@ -1851,6 +1897,8 @@ if HAVE_PROMPT_TOOLKIT:
             completer = None
             if is_pm_authorization_status_variable(variable.name):
                 completer = WordCompleter(["1", "2", *PM_AUTHORIZATION_CHOICES], ignore_case=True)
+            elif is_hydration_level_variable(variable.name):
+                completer = WordCompleter(list(HYDRATION_LEVEL_CHOICES), ignore_case=True)
             elif is_optional_skill_variable(variable.name):
                 completer = WordCompleter(list(skill_choices or load_active_skill_choices()), ignore_case=True)
             else:
@@ -1871,7 +1919,10 @@ if HAVE_PROMPT_TOOLKIT:
                         default=current,
                         validator=VariableValidator(),
                         completer=completer,
-                        complete_while_typing=is_optional_skill_variable(variable.name),
+                        complete_while_typing=(
+                            is_optional_skill_variable(variable.name)
+                            or is_hydration_level_variable(variable.name)
+                        ),
                         style=style,
                         bottom_toolbar=bottom_toolbar
                     )

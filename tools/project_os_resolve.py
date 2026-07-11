@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -36,13 +37,59 @@ MODE_FALLBACK = "mode.review_only"
 AUTHORIZATION_NOTICE = DEFAULT_SURFACE.authorization_notice
 
 
-def _fail_closed(errors: list[str], surface: ProjectOSSurface = DEFAULT_SURFACE) -> dict[str, Any]:
-    return {
-        "estado": "status.blocked",
-        "resuelto": None,
-        "autorizacion": surface.authorization_notice,
-        "errores": errors,
-    }
+class HydrationLevel(str, Enum):
+    """Safe internal names for the public hydration-level values."""
+
+    MINIMAL = "minimal"
+    COMPACT = "compact"
+    FULL_DEBUG = "full/debug"
+
+
+DEFAULT_HYDRATION_LEVEL = HydrationLevel.COMPACT
+HYDRATION_LEVEL_VALUES = tuple(level.value for level in HydrationLevel)
+
+
+def _fail_closed(
+    errors: list[str],
+    surface: ProjectOSSurface = DEFAULT_SURFACE,
+    hydration_level: HydrationLevel | None = None,
+) -> dict[str, Any]:
+    result: dict[str, Any] = {"estado": "status.blocked"}
+    if hydration_level is not None:
+        result["hydration_level"] = hydration_level.value
+    result.update(
+        {
+            "resuelto": None,
+            "autorizacion": surface.authorization_notice,
+            "errores": errors,
+        }
+    )
+    return result
+
+
+def _parse_hydration_level(
+    hydration_level: str | HydrationLevel | None,
+    compact: str | HydrationLevel | None,
+) -> tuple[HydrationLevel | None, list[str]]:
+    """Validate one explicit level without silently falling back.
+
+    ``compact`` is a Python compatibility alias. The command-line ``--compact``
+    flag remains reserved for compact JSON formatting, so ``--hydration-level``
+    is the unambiguous CLI spelling.
+    """
+
+    if hydration_level is not None and compact is not None:
+        return None, ["hydration_level and compact cannot be supplied together"]
+    value = hydration_level if hydration_level is not None else compact
+    if value is None:
+        return DEFAULT_HYDRATION_LEVEL, []
+    try:
+        return HydrationLevel(value), []
+    except (TypeError, ValueError):
+        return None, [
+            "unknown hydration level; expected exactly one of: "
+            + ", ".join(HYDRATION_LEVEL_VALUES)
+        ]
 
 
 def _load(
@@ -173,25 +220,185 @@ def _resolve_skills(
     return resolved
 
 
+def _safety_limits(limits: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep every applicable limit and its blocking meaning at every level."""
+
+    return [
+        _fields(limit, "key", "rule", "on_violation", "blocking")
+        for limit in limits
+    ]
+
+
+def _required_evidence(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep the complete required-evidence contract at every level."""
+
+    return [
+        _fields(item, "key", "satisfied_by", "missing_status", "required")
+        for item in evidence
+    ]
+
+
+def _allowed_outputs(outputs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep allowed-output constraints rather than only their identifiers."""
+
+    return [
+        _fields(item, "key", "use_for", "status_key", "must_include")
+        for item in outputs
+    ]
+
+
+def _referenced_statuses(statuses: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep referenced status meanings, not only status identifiers."""
+
+    return [_fields(status, "key", "meaning", "type") for status in statuses]
+
+
+def _minimal_requested_skills(skills: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep a requested capability's identity and non-authorizing boundary."""
+
+    return [
+        _fields(skill, "key", "required_skill", "non_authorization")
+        for skill in skills
+    ]
+
+
+def _compact_requested_skills(skills: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep concise, usable requested-skill references for normal execution."""
+
+    return [
+        _fields(
+            skill,
+            "key",
+            "nombre",
+            "responsabilidad",
+            "required_skill",
+            "use_for",
+            "non_authorization",
+        )
+        for skill in skills
+    ]
+
+
+def _minimal_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
+    """Project the explicit non-omittable safety contract for minimal output."""
+
+    workflow = resolved["workflow"]
+    projected: dict[str, Any] = {
+        "manifest": _fields(resolved["manifest"], "key", "version", "language"),
+        "actor": _fields(resolved["actor"], "key"),
+        "limites": _safety_limits(resolved["limites"]),
+        "mode": _fields(resolved["mode"], "key", "prohibited_actions", "fallback"),
+        "workflow": {
+            "key": workflow["key"],
+            "required_evidence": _required_evidence(workflow["required_evidence"]),
+            "allowed_outputs": _allowed_outputs(workflow["allowed_outputs"]),
+        },
+        "estados_permitidos": _referenced_statuses(resolved["estados_permitidos"]),
+    }
+    if "requested_skills" in resolved:
+        projected["requested_skills"] = _minimal_requested_skills(resolved["requested_skills"])
+    return projected
+
+
+def _compact_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
+    """Project concise mandatory guidance for ordinary agent execution."""
+
+    workflow = resolved["workflow"]
+    projected: dict[str, Any] = {
+        "manifest": _fields(
+            resolved["manifest"],
+            "key",
+            "version",
+            "language",
+            "objetivo",
+            "resolution_sequence",
+        ),
+        "reglas_operativas": [
+            _fields(rule, "key", "resolution_sequence", "on_violation", "priority")
+            for rule in resolved["reglas_operativas"]
+        ],
+        "actor": _fields(resolved["actor"], "key", "surface", "context", "allowed_modes"),
+        "limites": _safety_limits(resolved["limites"]),
+        "mode": _fields(
+            resolved["mode"],
+            "key",
+            "allowed_actions",
+            "prohibited_actions",
+            "fallback",
+        ),
+        "workflow": {
+            "key": workflow["key"],
+            "use_for": workflow["use_for"],
+            "required_behavior": workflow["required_behavior"],
+            "required_evidence": _required_evidence(workflow["required_evidence"]),
+            "allowed_outputs": _allowed_outputs(workflow["allowed_outputs"]),
+            "artefactos": [
+                _fields(
+                    artifact,
+                    "key",
+                    "output_key",
+                    "responsabilidad",
+                    "required_template",
+                )
+                for artifact in workflow["artefactos"]
+            ],
+        },
+        "estados_permitidos": _referenced_statuses(resolved["estados_permitidos"]),
+    }
+    if "requested_skills" in resolved:
+        projected["requested_skills"] = _compact_requested_skills(resolved["requested_skills"])
+    return projected
+
+
+def _project_resolution(
+    resolved: dict[str, Any], hydration_level: HydrationLevel
+) -> dict[str, Any]:
+    """Apply one explicit view after resolving the complete internal contract."""
+
+    if hydration_level is HydrationLevel.MINIMAL:
+        return _minimal_resolution(resolved)
+    if hydration_level is HydrationLevel.COMPACT:
+        return _compact_resolution(resolved)
+    return resolved
+
+
 def resolver(
     actor: str | None,
     mode: str | None = None,
     workflow: str | None = None,
     kernel_dir: Path | str | None = None,
     skill: str | list[str] | tuple[str, ...] | None = None,
+    hydration_level: str | HydrationLevel | None = None,
+    compact: str | HydrationLevel | None = None,
 ) -> dict[str, Any]:
-    """Resolve an allowed kernel, defaulting to Spanish and failing closed."""
+    """Resolve an allowed kernel, defaulting to compact Spanish guidance.
+
+    The complete selected contract is built first and then projected into one
+    hydration level. Neither the level nor this result grants authority.
+    """
     surface, directory = select_surface(kernel_dir)
+    selected_hydration_level, hydration_errors = _parse_hydration_level(
+        hydration_level, compact
+    )
+    selected_surface = surface or DEFAULT_SURFACE
+    if hydration_errors:
+        return _fail_closed(hydration_errors, selected_surface)
+    assert selected_hydration_level is not None
     if surface is None:
         return _fail_closed(
             [f"{DEFAULT_SURFACE.messages['invalid_kernel_dir']}: {directory}"],
             DEFAULT_SURFACE,
+            selected_hydration_level,
         )
     if not directory.is_dir():
-        return _fail_closed([f"{surface.messages['missing_kernel_dir']}: {directory}"], surface)
+        return _fail_closed(
+            [f"{surface.messages['missing_kernel_dir']}: {directory}"],
+            surface,
+            selected_hydration_level,
+        )
     data, errors = _load(directory, surface)
     if errors:
-        return _fail_closed(errors, surface)
+        return _fail_closed(errors, surface, selected_hydration_level)
 
     manifests = data["manifest"]
     if len(manifests) != 1:
@@ -200,7 +407,7 @@ def resolver(
             if surface.language == "en"
             else f"el kernel debe tener exactamente un manifest activo; hay {len(manifests)}"
         )
-        return _fail_closed([message], surface)
+        return _fail_closed([message], surface, selected_hydration_level)
     manifest = manifests[0]
     rules = sorted(
         (rule for rule in data["operational_rules"] if rule.get("manifest_key") == manifest.get("key")),
@@ -212,7 +419,7 @@ def resolver(
             if surface.language == "en"
             else f"sin operational_rules activas para {manifest.get('key')}"
         )
-        return _fail_closed([message], surface)
+        return _fail_closed([message], surface, selected_hydration_level)
 
     actors = _index(data["actors"])
     modes = _index(data["modes"])
@@ -228,7 +435,7 @@ def resolver(
     if workflow_entry is None:
         errors.append(f"{surface.messages['unknown_workflow']}: {workflow!r} ({surface.messages['known']}: {sorted(workflows)})")
     if errors:
-        return _fail_closed(errors, surface)
+        return _fail_closed(errors, surface, selected_hydration_level)
     assert actor_entry is not None and mode_entry is not None and workflow_entry is not None
     if mode_key not in actor_entry.get("allowed_modes", []):
         message = (
@@ -237,7 +444,7 @@ def resolver(
             if surface.language == "en"
             else f"mode incompatible: {mode_key!r} no esta en allowed_modes de {actor_entry['key']!r}"
         )
-        return _fail_closed([message], surface)
+        return _fail_closed([message], surface, selected_hydration_level)
 
     evidence = _hydrate(
         workflow_entry.get("required_evidence", []),
@@ -257,7 +464,7 @@ def resolver(
     requested = [skill] if isinstance(skill, str) else list(skill or [])
     requested_skills = _resolve_skills(requested, _index(data["skills"]), directory, surface, errors)
     if errors:
-        return _fail_closed(errors, surface)
+        return _fail_closed(errors, surface, selected_hydration_level)
 
     statuses = _index(data["statuses"])
     status_refs = [limit.get("on_violation") for limit in data["limits"] if limit.get("actor_key") in (None, actor_entry["key"])]
@@ -273,7 +480,7 @@ def resolver(
         else:
             selected_statuses.append(_fields(status, "key", "meaning", "type", "active"))
     if errors:
-        return _fail_closed(errors, surface)
+        return _fail_closed(errors, surface, selected_hydration_level)
 
     resolved: dict[str, Any] = {
         "manifest": {
@@ -295,7 +502,13 @@ def resolver(
     }
     if requested_skills:
         resolved["requested_skills"] = requested_skills
-    return {"estado": "status.resolved", "resuelto": resolved, "autorizacion": surface.authorization_notice, "errores": []}
+    return {
+        "estado": "status.resolved",
+        "hydration_level": selected_hydration_level.value,
+        "resuelto": _project_resolution(resolved, selected_hydration_level),
+        "autorizacion": surface.authorization_notice,
+        "errores": [],
+    }
 
 
 def resolve(
@@ -304,9 +517,19 @@ def resolve(
     mode_id: str,
     kernel_dir: Path | str | None = None,
     skill: str | list[str] | tuple[str, ...] | None = None,
+    hydration_level: str | HydrationLevel | None = None,
+    compact: str | HydrationLevel | None = None,
 ) -> dict[str, Any]:
     """Compatibility import; Spanish remains the default surface."""
-    return resolver(actor_id, mode_id, workflow_id, kernel_dir=kernel_dir, skill=skill)
+    return resolver(
+        actor_id,
+        mode_id,
+        workflow_id,
+        kernel_dir=kernel_dir,
+        skill=skill,
+        hydration_level=hydration_level,
+        compact=compact,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -318,10 +541,27 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", default=None, help="e.g. mode.delegated_commit_pr; omitted falls back to mode.review_only")
     parser.add_argument("--kernel-dir", default=None, help="kernel directory (default: ./project-os-es/kernel)")
     parser.add_argument("--skill", action="append", default=None, help="optional skill selector; repeatable")
-    parser.add_argument("--compact", action="store_true", help="omit JSON indentation")
+    parser.add_argument(
+        "--hydration-level",
+        default=None,
+        metavar="LEVEL",
+        help="minimal, compact (default), or full/debug; changes returned guidance only",
+    )
+    parser.add_argument(
+        "--compact",
+        action="store_true",
+        help="omit JSON indentation; legacy formatting flag, not a hydration selector",
+    )
     args = parser.parse_args(argv)
     try:
-        result = resolver(args.actor, args.mode, args.workflow, args.kernel_dir, args.skill)
+        result = resolver(
+            args.actor,
+            args.mode,
+            args.workflow,
+            args.kernel_dir,
+            args.skill,
+            hydration_level=args.hydration_level,
+        )
     except Exception as exc:
         surface, _ = select_surface(args.kernel_dir)
         selected = surface or DEFAULT_SURFACE

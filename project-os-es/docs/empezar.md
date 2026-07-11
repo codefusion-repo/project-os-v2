@@ -84,6 +84,38 @@ python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
 La resolución manual de `project-os-es/kernel/manifest.json` sigue siendo el
 fallback canónico para la superficie en español.
 
+### Nivel de hidratación
+
+El resolver acepta `--hydration-level minimal|compact|full/debug`. Si se omite,
+usa `compact`: es la vista práctica para ejecutar sin volcar todo el contrato.
+`minimal` conserva IDs, límites, evidencia, outputs, statuses, no-autorización
+y secret safety necesarios para detener acciones prohibidas. `compact` añade la
+guía mandatoria, actor/workflow/mode y referencias resolubles. `full/debug`
+amplía los metadatos de la resolución seleccionada para revisión, debugging o
+auditoría; no es el modo normal ni reemplaza el manifest canónico.
+
+La respuesta declara `hydration_level` y usa estos shapes deterministas:
+
+- `minimal`: identidad de manifest/actor/mode/workflow, todos los límites
+  aplicables, acciones prohibidas, evidencia, outputs y statuses referenciados.
+- `compact`: todo `minimal` más reglas mandatorias concisas, el contexto
+  operativo seleccionado y referencias de artifacts/templates/skills.
+- `full/debug`: todo `compact` más los metadatos completos de la resolución
+  seleccionada, incluidos flags de actividad y enlaces internos de auditoría.
+
+```sh
+python tools/project_os_resolve.py --actor actor.terminal_agent \
+  --workflow workflow.issue_implementation --mode mode.delegated_commit_pr \
+  --kernel-dir project-os-es/kernel --hydration-level compact
+```
+
+El nivel cambia solo el contenido devuelto: no lee GitHub/git, no inventa estado
+y nunca concede permisos. Los otros niveles se solicitan con el mismo flag; un
+valor desconocido falla cerrado. En Python el parámetro canónico es
+`hydration_level`; `compact` sigue disponible como alias de compatibilidad. El
+flag preexistente `--compact` conserva exclusivamente su función de imprimir
+JSON sin indentación.
+
 Cuando draftees outputs, el resolver puede exponer artefactos con
 `required_template`; usa ese template de
 [`project-os-es/templates/`](../templates/README.md) como forma del output, no

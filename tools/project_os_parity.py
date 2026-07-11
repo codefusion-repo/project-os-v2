@@ -463,6 +463,7 @@ def _template_semantic_findings(es_root: Path, en_root: Path) -> list[str]:
         "EXECUTION_MODE",
         "OUTPUT_CONTRACT",
         "OPTIONAL_SKILL",
+        "HYDRATION_LEVEL",
         "RECOMMENDED_TERMINAL_AGENT_FAMILY",
         "SCOPE",
         "OUT_OF_SCOPE",
