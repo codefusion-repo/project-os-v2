@@ -22,7 +22,33 @@ python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
   --mode <mode> --kernel-dir project-os-en/kernel [--skill skill.<id>]
 ```
 
-The local wizard may inspect this catalog through its existing explicit `operations_dir` API. This is not a global language selector and creates no persistent preference.
+The local wizard works with one coherent surface per session. Without an
+explicit selection it asks once, `Elige idioma / Choose language [es/en]
+(default: es)`: Enter or `es` keeps Spanish (`project-os-es/operaciones` +
+`project-os-es/kernel/skills.json`); `en` loads the full English bundle
+(`project-os-en/operations` + `project-os-en/kernel/skills.json`). The
+`--language es|en` option makes the same selection without asking and an
+invalid value fails closed. The question is never repeated while generating
+more prompts in the same session, and the session summary shows the language,
+catalog, skills, reference kernel, and output directory. The selection lives
+only in memory for the session: it does not modify adapters,
+`PM_FACING_LANGUAGE`, or `KERNEL_LOCAL_PATH`, does not install or copy the
+kernel, and the kernel shown is local orientation, not configuration applied
+to the target. No selection grants permission.
+
+Examples:
+
+```sh
+python tools/operation_prompt_wizard.py --language es
+python tools/operation_prompt_wizard.py --language en
+```
+
+Advanced use: `--operations-dir` remains available for tests, development, and
+custom catalogs. Precedence: when `--language` and `--operations-dir` do not
+name the same surface, the wizard fails closed instead of mixing; an
+`--operations-dir` that exactly matches a known surface derives the skills
+catalog from that same surface; any other directory is a custom catalog that
+keeps the existing programmatic API and is labeled neither es nor en.
 
 When drafting `MOS-3.4` or `MOS-3.5`, the wizard also captures
 `HYDRATION_LEVEL` for the terminal recipient: it accepts `minimal`, `compact`,

@@ -20,6 +20,7 @@ class ProjectOSSurface:
     kernel_files: dict[str, tuple[str, str]]
     templates_name: str
     skills_name: str
+    operations_name: str
     authorization_notice: str
     messages: dict[str, str]
 
@@ -30,6 +31,14 @@ class ProjectOSSurface:
     @property
     def kernel_dir(self) -> Path:
         return self.root / "kernel"
+
+    @property
+    def operations_dir(self) -> Path:
+        return self.root / self.operations_name
+
+    @property
+    def skills_catalog_path(self) -> Path:
+        return self.kernel_dir / "skills.json"
 
     @property
     def templates_prefix(self) -> tuple[str, ...]:
@@ -75,6 +84,7 @@ SURFACES = (
         kernel_files=SPANISH_KERNEL_FILES,
         templates_name="templates",
         skills_name="habilidades",
+        operations_name="operaciones",
         authorization_notice=(
             "Esta resolucion da forma operativa y nunca concede permisos; la autoridad "
             "requiere aprobacion PM exacta y los gates del kernel."
@@ -102,6 +112,7 @@ SURFACES = (
         kernel_files=ENGLISH_KERNEL_FILES,
         templates_name="templates",
         skills_name="skills",
+        operations_name="operations",
         authorization_notice=(
             "This resolution provides operating guidance and never grants permission; "
             "authority requires exact PM approval and the kernel gates."
@@ -140,3 +151,23 @@ def select_surface(kernel_dir: Path | str | None) -> tuple[ProjectOSSurface | No
         if directory == surface.kernel_dir:
             return surface, directory
     return None, directory
+
+
+def surface_for_language(language: str) -> ProjectOSSurface | None:
+    """Return the exact allowed surface for a session language, or ``None``."""
+
+    for surface in SURFACES:
+        if surface.language == language:
+            return surface
+    return None
+
+
+def surface_for_operations_dir(operations_dir: Path | str) -> ProjectOSSurface | None:
+    """Return the exact allowed surface owning ``operations_dir``, without fallbacks."""
+
+    supplied = Path(operations_dir).expanduser()
+    directory = supplied if supplied.is_absolute() else Path.cwd() / supplied
+    for surface in SURFACES:
+        if directory == surface.operations_dir or directory.resolve() == surface.operations_dir:
+            return surface
+    return None
