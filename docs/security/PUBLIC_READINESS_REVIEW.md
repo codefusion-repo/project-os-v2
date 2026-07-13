@@ -397,7 +397,7 @@ resolución de B2 y B3.
 - **Alcance preservado:** ningún setting, visibilidad, tag, release, SLA,
   CLA/DCO ni publicación fue modificado o prometido. **B4 permanece abierto**
   y el veredicto sigue siendo `GO_WITH_BLOCKERS`.
-- **PR que las incorpora:** registrado en el issue #421 y en el PR de la rama
+- **PR que las incorpora:** PR #425, desde
   `work/421-security-contributing-support`.
 
 ## Veredicto
