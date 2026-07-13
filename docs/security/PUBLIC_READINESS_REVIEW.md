@@ -86,8 +86,8 @@ cuando aplica, el valor queda como `[REDACTED]`.
 | ID | Sev. | Clase | Ubicación / referencia | Detalle y remediación |
 | --- | --- | --- | --- | --- |
 | F-01 | Alta | Licenciamiento | Raíz del repo (sin `LICENSE`) | No existe licencia. Publicar así deja el contenido "todos los derechos reservados": la adopción copy-based del Stage 1 sería legalmente inviable. Remediación: decisión PM de licencia + issue separado que la añada. **Blocker B1 — resuelto por #419** (ver [Actualización de B1](#actualización-de-b1--licencia-pública-añadida-2026-07-13)). |
-| F-02 | Media | Gobernanza de seguridad | Sin `SECURITY.md` ni política de reporte | No hay canal ni política de reporte responsable de vulnerabilidades. Remediación: issue separado; requiere decisión PM sobre canal de contacto (un email de contacto expone esa dirección). **Blocker B2.** |
-| F-03 | Media | Gobernanza de contribución/soporte | Sin `CONTRIBUTING.md`, política de soporte, expectativas para issues/PRs externos ni código de conducta | El contenido mínimo es derivable del estado actual (soporte best-effort, sin SLA), pero aceptar o no contribuciones, el mantenimiento bilingüe ES/EN y el código de conducta son decisiones de producto. **Blocker B3.** |
+| F-02 | Media | Gobernanza de seguridad | Sin `SECURITY.md` ni política de reporte | No hay canal ni política de reporte responsable de vulnerabilidades. Remediación: issue separado; requiere decisión PM sobre canal de contacto (un email de contacto expone esa dirección). **Blocker B2 — resuelto por #421** (ver [Actualización de B2/B3](#actualización-de-b2b3--políticas-de-seguridad-contribución-y-soporte-añadidas-2026-07-13)). |
+| F-03 | Media | Gobernanza de contribución/soporte | Sin `CONTRIBUTING.md`, política de soporte, expectativas para issues/PRs externos ni código de conducta | El contenido mínimo es derivable del estado actual (soporte best-effort, sin SLA), pero aceptar o no contribuciones, el mantenimiento bilingüe ES/EN y el código de conducta son decisiones de producto. **Blocker B3 — resuelto por #421** (ver [Actualización de B2/B3](#actualización-de-b2b3--políticas-de-seguridad-contribución-y-soporte-añadidas-2026-07-13)). |
 | F-04 | Informativa | Secreto sintético en historial | Histórico: `tests/test_validators.py`; añadido en `79655b2` (2026-06-07), eliminado en `4d63724` (2026-06-09) | Valor `[REDACTED]` con forma de token GitHub (`ghp_…`) en el fixture negativo `secret_value_violation`, junto a SHA y string de entropía deliberadamente falsos. Verificado sintético por contexto y forma, sin imprimir el valor. No es credencial real: no requiere rotación ni rewrite. Riesgo: ruido de secret scanning al publicar; conservar este registro para el triage de alertas. |
 | F-05 | Baja | Nombre de proyecto interno en historial | Histórico: ~40 líneas; commits `21a5943`, `078f098`, `be6d6a4` y merges asociados | El nombre del repo interno `codefusion-repo/project-os-console` queda expuesto al publicar el historial. Solo divulgación de nombre; sin URLs privadas ni credenciales. Remediación: aceptación PM explícita (una reescritura sería desproporcionada). |
 | F-06 | Baja | Datos personales en metadata de commits | Todo el historial (455 commits) | La autoría publica nombre real y dos emails personales (clase: direcciones personales; valores en `git log`, no repetidos aquí). Solo metadata: cero apariciones en contenido de diffs. Inevitable al publicar historial sin reescribir. Remediación: aceptación PM explícita; la alternativa es un repo público nuevo con historial reducido. |
@@ -203,9 +203,13 @@ aquí):
   PM exacta (Apache-2.0) y `LICENSE` añadido (ver
   [Actualización de B1](#actualización-de-b1--licencia-pública-añadida-2026-07-13)).
 - **B2 (F-02):** issue para `SECURITY.md` con canal de reporte decidido por
-  el PM.
+  el PM. **Resuelto** por #421: decisiones PM exactas registradas y
+  `SECURITY.md` añadido (ver
+  [Actualización de B2/B3](#actualización-de-b2b3--políticas-de-seguridad-contribución-y-soporte-añadidas-2026-07-13)).
 - **B3 (F-03):** issue para `CONTRIBUTING.md` + política de soporte (+ código
-  de conducta si el PM lo decide).
+  de conducta si el PM lo decide). **Resuelto** por #421: `CONTRIBUTING.md`,
+  `SUPPORT.md` y `CODE_OF_CONDUCT.md` añadidos (ver
+  [Actualización de B2/B3](#actualización-de-b2b3--políticas-de-seguridad-contribución-y-soporte-añadidas-2026-07-13)).
 - **B4 (cobertura):** decisión PM sobre las superficies no auditadas que la
   publicación expondría — issues/PRs/comentarios de GitHub — mediante
   auditoría separada o aceptación explícita del riesgo.
@@ -225,8 +229,12 @@ aquí):
 
 1. Licencia concreta (Apache-2.0 vs MIT vs otra) — B1. **Decidida y
    ejecutada en #419: Apache-2.0.**
-2. Canal de reporte de vulnerabilidades — B2.
+2. Canal de reporte de vulnerabilidades — B2. **Decidida y ejecutada en
+   #421: `support@codefusion.cl` privado hoy; private vulnerability reporting
+   como canal estructurado recomendado futuro, sin habilitar settings.**
 3. Postura de contribuciones, soporte, idiomas y código de conducta — B3.
+   **Decidida y ejecutada en #421: contribuciones aceptadas issue-first,
+   soporte best-effort sin SLA, español/inglés y Contributor Covenant 3.0.**
 4. Aceptación de exposición del historial tal cual (F-04, F-05, F-06) o repo
    público nuevo con historial reducido.
 5. Tratamiento de issues/PRs de GitHub ante un cambio de visibilidad — B4.
@@ -354,6 +362,43 @@ findings; solo registra la resolución de B1.
   Stage 0 ni autoriza publicación, cambio de visibilidad, tags, releases,
   B2–B4, Stage 1 ni tooling downstream.
 
+## Actualización de B2/B3 — políticas de seguridad, contribución y soporte añadidas (2026-07-13)
+
+Ejecutada por issue #421 con las seis decisiones PM exactas registradas como
+comentario en ese issue (2026-07-13): idiomas, código de conducta, versiones
+y superficies soportadas, expectativas de respuesta, CLA/DCO y ownership. No
+altera la revisión original ni el resto de findings; solo registra la
+resolución de B2 y B3.
+
+- **`SECURITY.md`:** reporte responsable privado a `support@codefusion.cl`;
+  prohibición de publicar secretos, datos personales o detalles explotables;
+  private vulnerability reporting de GitHub como canal estructurado
+  recomendado futuro (habilitarlo sigue siendo un cambio de settings separado
+  y no ejecutado); acuse best-effort objetivo de cinco días hábiles, sin SLA.
+- **`CONTRIBUTING.md`:** contribución issue-first con ramas `work/*`,
+  validación proporcional, draft PR y review-before-close; español o inglés
+  con paridad semántica ES/EN cuando aplique; inbound=outbound bajo
+  Apache-2.0; sin CLA ni DCO salvo decisión PM posterior y separada.
+- **`SUPPORT.md`:** soporte best-effort sin SLA; canales, versiones y
+  superficies cubiertas según la decisión PM; fuera de alcance el tooling
+  inexistente (CLI, API, bridge, MCP, GPT action); distinción explícita entre
+  soporte, seguridad y conducta.
+- **`CODE_OF_CONDUCT.md`:** traducción oficial al español de Contributor
+  Covenant 3.0 (CC BY-SA 4.0, atribución conservada), adoptada como texto
+  normativo por decisión PM, con solo los dos placeholders de
+  reporting/enforcement completados según la decisión PM: reportes privados a
+  `support@codefusion.cl` con asunto `[Project OS Conduct]`, confidenciales y
+  con medidas proporcionales; CodeFusion SpA responsable de la aplicación.
+- **README:** sección de links a las cuatro políticas.
+- **Ownership:** CodeFusion SpA propietaria y responsable final; revisión
+  antes de cada release público, ante cambios de canales o superficies y al
+  menos una vez al año.
+- **Alcance preservado:** ningún setting, visibilidad, tag, release, SLA,
+  CLA/DCO ni publicación fue modificado o prometido. **B4 permanece abierto**
+  y el veredicto sigue siendo `GO_WITH_BLOCKERS`.
+- **PR que las incorpora:** PR #425, desde
+  `work/421-security-contributing-support`.
+
 ## Veredicto
 
 **`GO_WITH_BLOCKERS`.**
@@ -361,10 +406,10 @@ findings; solo registra la resolución de B1.
 - El árbol actual está limpio y el historial no contiene credenciales reales:
   no hay blockers de secretos.
 - Los blockers son de gobernanza y cobertura: B1 (licencia, **resuelto por
-  #419**), B2 (seguridad), B3 (contribución/soporte), B4 (superficies GitHub
-  no auditadas).
+  #419**), B2 (seguridad, **resuelto por #421**), B3 (contribución/soporte,
+  **resuelto por #421**), B4 (superficies GitHub no auditadas, **abierto**).
 - `NO_GO` no aplica: no se encontró evidencia que obligue a permanecer
-  internal-only. `GO` no aplica: con B2–B4 abiertos, la publicación no puede
+  internal-only. `GO` no aplica: con B4 abierto, la publicación no puede
   considerarse.
 
 ## Condiciones exactas para considerar Stage 0 completado
@@ -385,7 +430,8 @@ findings; solo registra la resolución de B1.
    bloqueante; ejecuta la decisión PM de B1. **Creado y ejecutado como
    #419.**
 2. `docs: añadir SECURITY.md, CONTRIBUTING.md y política de soporte` —
-   bloqueante; ejecuta B2/B3 según decisiones PM.
+   bloqueante; ejecuta B2/B3 según decisiones PM. **Creado y ejecutado como
+   #421.**
 3. `security: auditar issues, PRs y comentarios de GitHub antes del cambio de
    visibilidad` — ejecuta B4 si el PM elige auditar en vez de aceptar.
 4. `chore: endurecer CI para exposición pública (pin de actions por SHA)` —
