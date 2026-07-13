@@ -85,7 +85,7 @@ cuando aplica, el valor queda como `[REDACTED]`.
 
 | ID | Sev. | Clase | Ubicación / referencia | Detalle y remediación |
 | --- | --- | --- | --- | --- |
-| F-01 | Alta | Licenciamiento | Raíz del repo (sin `LICENSE`) | No existe licencia. Publicar así deja el contenido "todos los derechos reservados": la adopción copy-based del Stage 1 sería legalmente inviable. Remediación: decisión PM de licencia + issue separado que la añada. **Blocker B1.** |
+| F-01 | Alta | Licenciamiento | Raíz del repo (sin `LICENSE`) | No existe licencia. Publicar así deja el contenido "todos los derechos reservados": la adopción copy-based del Stage 1 sería legalmente inviable. Remediación: decisión PM de licencia + issue separado que la añada. **Blocker B1 — resuelto por #419** (ver [Actualización de B1](#actualización-de-b1--licencia-pública-añadida-2026-07-13)). |
 | F-02 | Media | Gobernanza de seguridad | Sin `SECURITY.md` ni política de reporte | No hay canal ni política de reporte responsable de vulnerabilidades. Remediación: issue separado; requiere decisión PM sobre canal de contacto (un email de contacto expone esa dirección). **Blocker B2.** |
 | F-03 | Media | Gobernanza de contribución/soporte | Sin `CONTRIBUTING.md`, política de soporte, expectativas para issues/PRs externos ni código de conducta | El contenido mínimo es derivable del estado actual (soporte best-effort, sin SLA), pero aceptar o no contribuciones, el mantenimiento bilingüe ES/EN y el código de conducta son decisiones de producto. **Blocker B3.** |
 | F-04 | Informativa | Secreto sintético en historial | Histórico: `tests/test_validators.py`; añadido en `79655b2` (2026-06-07), eliminado en `4d63724` (2026-06-09) | Valor `[REDACTED]` con forma de token GitHub (`ghp_…`) en el fixture negativo `secret_value_violation`, junto a SHA y string de entropía deliberadamente falsos. Verificado sintético por contexto y forma, sin imprimir el valor. No es credencial real: no requiere rotación ni rewrite. Riesgo: ruido de secret scanning al publicar; conservar este registro para el triage de alertas. |
@@ -140,7 +140,9 @@ del historial, pero tres exposiciones requieren aceptación PM explícita
 
 ## Postura de licenciamiento y procedencia
 
-- **Código propio:** sin licencia (F-01). Es el blocker principal.
+- **Código propio:** sin licencia (F-01) al momento de esta revisión; era el
+  blocker principal. Resuelto después por #419 con Apache-2.0 (ver
+  [Actualización de B1](#actualización-de-b1--licencia-pública-añadida-2026-07-13)).
 - **Dependencias:** runtime solo stdlib de Python. `pytest` (MIT) solo en
   test/CI; `prompt_toolkit` (BSD-3-Clause) es un enhancement opcional con
   import protegido (el wizard y los tests degradan sin él). Ninguna se
@@ -197,7 +199,9 @@ Finitos y accionables; cada remediación es una unidad separada (no creada
 aquí):
 
 - **B1 (F-01):** decisión PM de licencia + issue que la añada. Sin licencia
-  no debe considerarse ninguna publicación.
+  no debe considerarse ninguna publicación. **Resuelto** por #419: decisión
+  PM exacta (Apache-2.0) y `LICENSE` añadido (ver
+  [Actualización de B1](#actualización-de-b1--licencia-pública-añadida-2026-07-13)).
 - **B2 (F-02):** issue para `SECURITY.md` con canal de reporte decidido por
   el PM.
 - **B3 (F-03):** issue para `CONTRIBUTING.md` + política de soporte (+ código
@@ -219,7 +223,8 @@ aquí):
 
 ## Decisiones abiertas para el PM
 
-1. Licencia concreta (Apache-2.0 vs MIT vs otra) — B1.
+1. Licencia concreta (Apache-2.0 vs MIT vs otra) — B1. **Decidida y
+   ejecutada en #419: Apache-2.0.**
 2. Canal de reporte de vulnerabilidades — B2.
 3. Postura de contribuciones, soporte, idiomas y código de conducta — B3.
 4. Aceptación de exposición del historial tal cual (F-04, F-05, F-06) o repo
@@ -256,6 +261,9 @@ nivel de archivo, obligación que no aparece en la intención PM actual.
 
 La selección exacta sigue pendiente y nada de esto autoriza crear `LICENSE`.
 B1 permanece abierto.
+
+Actualización: la decisión exacta quedó registrada en #419 y B1 fue resuelto
+(ver [Actualización de B1](#actualización-de-b1--licencia-pública-añadida-2026-07-13)).
 
 ### B2 — Seguridad: dirección PM definida; implementación pendiente
 
@@ -311,17 +319,53 @@ de idea/arquitectura posterior. ADR 0004 mantiene el tooling de Stage 2 sin
 autorización actual; ninguna de estas propuestas forma parte de Stage 0 ni
 de sus follow-ups.
 
+## Actualización de B1 — licencia pública añadida (2026-07-13)
+
+Ejecutada por issue #419 con decisión PM exacta registrada como comentario en
+ese issue (2026-07-12). No altera la revisión original ni el resto de
+findings; solo registra la resolución de B1.
+
+- **Licencia seleccionada:** Apache License 2.0 (SPDX: `Apache-2.0`).
+- **Titular del copyright:** CodeFusion SpA. **Año:** 2026. Ambos confirmados
+  por el PM en #419, no inferidos.
+- **`LICENSE`:** texto oficial completo descargado de
+  `https://www.apache.org/licenses/LICENSE-2.0.txt`, sin modificaciones ni
+  cláusulas personalizadas (el appendix conserva sus placeholders, como exige
+  el scope de #419); el aviso de copyright vive en la sección de licencia del
+  `README.md`.
+- **`NOTICE`:** no se crea, por decisión PM; solo se añadiría después si
+  existiera una atribución concreta que deba propagarse.
+- **Alcance:** la licencia cubre código, kernel JSON, templates, operaciones
+  y documentación del árbol.
+- **Contribuciones futuras:** inbound = outbound bajo Apache-2.0 salvo
+  acuerdo escrito separado; ningún CLA o DCO se adopta en #419 y cualquier
+  política adicional se decide en B3.
+- **Alternativas descartadas:** MIT (cubre la intención pero sin concesión
+  expresa de patentes) y MPL-2.0 (copyleft a nivel de archivo que no aparece
+  en la intención PM).
+- **Procedencia y titularidad:** verificadas contra la sección
+  [Postura de licenciamiento y procedencia](#postura-de-licenciamiento-y-procedencia):
+  autoría única consistente, dependencias no vendorizadas (`pytest` MIT solo
+  test/CI; `prompt_toolkit` BSD-3-Clause opcional), citas de terceros con
+  atribución y sin assets; nada requiere exclusiones ni tratamiento separado
+  bajo Apache-2.0.
+- **PR que la incorpora:** PR #420, desde `work/419-public-license`.
+- **Limitaciones:** esto no es asesoría legal. B1 resuelto no completa
+  Stage 0 ni autoriza publicación, cambio de visibilidad, tags, releases,
+  B2–B4, Stage 1 ni tooling downstream.
+
 ## Veredicto
 
 **`GO_WITH_BLOCKERS`.**
 
 - El árbol actual está limpio y el historial no contiene credenciales reales:
   no hay blockers de secretos.
-- Los blockers son de gobernanza y cobertura: B1 (licencia), B2 (seguridad),
-  B3 (contribución/soporte), B4 (superficies GitHub no auditadas).
+- Los blockers son de gobernanza y cobertura: B1 (licencia, **resuelto por
+  #419**), B2 (seguridad), B3 (contribución/soporte), B4 (superficies GitHub
+  no auditadas).
 - `NO_GO` no aplica: no se encontró evidencia que obligue a permanecer
-  internal-only. `GO` no aplica: sin licencia ni políticas mínimas, la
-  publicación no puede considerarse.
+  internal-only. `GO` no aplica: con B2–B4 abiertos, la publicación no puede
+  considerarse.
 
 ## Condiciones exactas para considerar Stage 0 completado
 
@@ -338,7 +382,8 @@ de sus follow-ups.
 ## Follow-up issues recomendados (no creados aquí)
 
 1. `legal: seleccionar y añadir la licencia pública del repositorio` —
-   bloqueante; ejecuta la decisión PM de B1.
+   bloqueante; ejecuta la decisión PM de B1. **Creado y ejecutado como
+   #419.**
 2. `docs: añadir SECURITY.md, CONTRIBUTING.md y política de soporte` —
    bloqueante; ejecuta B2/B3 según decisiones PM.
 3. `security: auditar issues, PRs y comentarios de GitHub antes del cambio de

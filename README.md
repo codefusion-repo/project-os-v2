@@ -132,3 +132,15 @@ luego consolidada en la superficie en español `project-os-es` como base
 primaria (ADR 0003, `docs/decisions/0003-project-os-cli-adoption-model.md`).
 La historia y el racional de superficies retiradas son recuperables desde git;
 el árbol actual conserva español como default y su traducción inglesa paralela.
+
+## Licencia
+
+Copyright 2026 CodeFusion SpA.
+
+Este repositorio se distribuye bajo la [Apache License 2.0](LICENSE)
+(SPDX: `Apache-2.0`). La licencia cubre el código, el kernel JSON, los
+templates, las operaciones y la documentación del árbol.
+
+La licencia no autoriza por sí misma nada más: publicación, visibilidad,
+soporte, contribuciones y releases siguen sujetos a sus propios gates y
+decisiones PM (ver `docs/security/PUBLIC_READINESS_REVIEW.md`).
