@@ -383,13 +383,12 @@ resolución de B2 y B3.
   superficies cubiertas según la decisión PM; fuera de alcance el tooling
   inexistente (CLI, API, bridge, MCP, GPT action); distinción explícita entre
   soporte, seguridad y conducta.
-- **`CODE_OF_CONDUCT.md`:** texto oficial de Contributor Covenant 3.0
-  (CC BY-SA 4.0, atribución conservada) con solo los dos placeholders de
+- **`CODE_OF_CONDUCT.md`:** traducción oficial al español de Contributor
+  Covenant 3.0 (CC BY-SA 4.0, atribución conservada), adoptada como texto
+  normativo por decisión PM, con solo los dos placeholders de
   reporting/enforcement completados según la decisión PM: reportes privados a
   `support@codefusion.cl` con asunto `[Project OS Conduct]`, confidenciales y
-  con medidas proporcionales; CodeFusion SpA responsable de la aplicación. No
-  existe traducción oficial al español de la versión 3.0 (solo 2.1), por lo
-  que el texto normativo adoptado es el oficial en inglés.
+  con medidas proporcionales; CodeFusion SpA responsable de la aplicación.
 - **README:** sección de links a las cuatro políticas.
 - **Ownership:** CodeFusion SpA propietaria y responsable final; revisión
   antes de cada release público, ante cambios de canales o superficies y al
