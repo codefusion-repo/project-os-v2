@@ -133,6 +133,15 @@ primaria (ADR 0003, `docs/decisions/0003-project-os-cli-adoption-model.md`).
 La historia y el racional de superficies retiradas son recuperables desde git;
 el árbol actual conserva español como default y su traducción inglesa paralela.
 
+## Seguridad, contribuciones, soporte y conducta
+
+- [SECURITY.md](SECURITY.md) — reporte responsable de vulnerabilidades,
+  siempre por canal privado.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — proceso de contribución issue-first,
+  en español o inglés, inbound=outbound bajo Apache-2.0.
+- [SUPPORT.md](SUPPORT.md) — soporte best-effort, sin SLA.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Contributor Covenant 3.0.
+
 ## Licencia
 
 Copyright 2026 CodeFusion SpA.
