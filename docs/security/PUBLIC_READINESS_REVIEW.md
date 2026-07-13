@@ -349,8 +349,7 @@ findings; solo registra la resolución de B1.
   test/CI; `prompt_toolkit` BSD-3-Clause opcional), citas de terceros con
   atribución y sin assets; nada requiere exclusiones ni tratamiento separado
   bajo Apache-2.0.
-- **PR que la incorpora:** el PR de implementación de #419 desde
-  `work/419-public-license`.
+- **PR que la incorpora:** PR #420, desde `work/419-public-license`.
 - **Limitaciones:** esto no es asesoría legal. B1 resuelto no completa
   Stage 0 ni autoriza publicación, cambio de visibilidad, tags, releases,
   B2–B4, Stage 1 ni tooling downstream.
