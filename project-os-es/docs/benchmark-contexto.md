@@ -2,8 +2,9 @@
 
 **Cuánto contexto de instrucciones carga una sesión de agente al inicio,
 medido sobre stacks convencionales reales y públicamente verificables y sobre
-el stack de Project OS, para una misma tarea declarada.** Este benchmark solo
-mide tamaños: no mide calidad, no demuestra ahorro frente a ningún stack, no
+el stack de Project OS, para una misma tarea declarada.** Este benchmark mide
+tamaños y, en su matriz de cobertura, presencia observada de instrucciones: no
+mide calidad, no ordena stacks, no demuestra ahorro frente a ningún stack, no
 promete ahorros universales y no otorga permisos
 (`boundary.output_not_permission`).
 
@@ -102,6 +103,161 @@ Desglose del stack de Project OS en bytes: `CLAUDE.md` 296 + `AGENTS.md` 2301
   requerida, outputs y estados, con no-autorización explícita). Cuál conviene
   depende del proyecto: este benchmark no lo decide y no afirma que Project OS
   reemplace a ninguna de estas herramientas.
+
+## Matriz de cobertura de gobernanza — mismo corpus pineado
+
+Esta matriz registra **presencia observada de instrucciones** por criterio en
+los mismos cinco stacks del benchmark principal: cada archivo convencional tal
+como existe al commit pineado de la tabla de procedencia, y el stack de sesión
+de Project OS (shim + bootloader + kernel resuelto `compact`). Registrar
+presencia no mide calidad ni pondera criterios: la matriz no es un ranking y
+más celdas Sí no hacen mejor a un stack.
+
+### Leyenda
+
+- **Sí:** el archivo medido contiene instrucciones explícitas sobre el
+  criterio.
+- **Parcial:** el archivo medido cubre el criterio solo de forma acotada o
+  para un caso puntual; la evidencia por criterio nombra cuál.
+- **No observado:** el criterio no aparece en el archivo medido a su commit
+  pineado. Significa ausencia en ese archivo, **no** incapacidad de la
+  herramienta: cada herramienta puede cubrir el criterio con más archivos,
+  configuración o producto, y eso queda fuera de esta medición.
+- **No aplica:** el criterio es una propiedad que el archivo medido no busca
+  tener por diseño.
+
+### Matriz
+
+| Criterio | Claude Code — `claude-cookbooks` | Gemini CLI — `gemini-cli` | GitHub Copilot — `vscode-copilot-chat` | Codex CLI — `codex` | Project OS — stack de sesión |
+| --- | --- | --- | --- | --- | --- |
+| Conocimiento técnico del target | Sí | Sí | Sí | Sí | Parcial |
+| Seguridad | Parcial | No observado | No observado | Parcial | Sí |
+| Scope de la unidad de trabajo | No observado | Parcial | No observado | Parcial | Sí |
+| Autoridad humana por acción | No observado | No observado | No observado | Parcial | Sí |
+| Preflight del árbol de trabajo | No observado | No observado | No observado | No observado | Sí |
+| Evidencia requerida antes de actuar | No observado | No observado | No observado | No observado | Sí |
+| Validación antes de entregar | Sí | Sí | Sí | Sí | Sí |
+| Fail-closed | No observado | No observado | Parcial | No observado | Sí |
+| Review-before-close | No observado | No observado | Parcial | Parcial | Sí |
+| Trazabilidad del trabajo | Parcial | Sí | No observado | No observado | Sí |
+| Portabilidad de la gobernanza | No aplica | No aplica | No aplica | No aplica | Sí |
+| Carga on-demand | Sí | Sí | Sí | Sí | Sí |
+| Separación contrato/estado vivo | No observado | No observado | No observado | No observado | Sí |
+
+### Evidencia por criterio
+
+Cada entrada define el criterio y cita la evidencia de cada celda Sí, Parcial
+o No aplica; una celda No observado se verifica leyendo el archivo completo al
+commit pineado, porque afirma una ausencia en ese archivo.
+
+1. **Conocimiento técnico del target** — build, tests, estilo y arquitectura
+   del proyecto gobernado. `claude-cookbooks`: secciones "Quick Start",
+   "Development Commands", "Code Style" y "Project Structure". `gemini-cli`:
+   "Project Overview", "Building and Running" y "Testing and Quality".
+   `vscode-copilot-chat`: "Project Overview", "Project Architecture" y
+   "Coding Standards". `codex`: convenciones de crates y comandos `just` de la
+   sección raíz, más "TUI style conventions". Project OS (Parcial): el
+   bootloader `AGENTS.md` lleva identidad y notas estables del repositorio; el
+   conocimiento de ingeniería del target se reconstruye desde evidencia viva y
+   queda fuera del stack medido por diseño.
+2. **Seguridad** — manejo de secretos, datos sensibles o entorno restringido.
+   `claude-cookbooks` (Parcial): "Key Rules" prohíbe commitear `.env` y exige
+   claves vía entorno, sin política general de secretos. `codex` (Parcial):
+   reglas sobre su sandbox (`CODEX_SANDBOX*`), sin política de secretos.
+   Project OS: `rule.secret_safety` y `boundary.security_privacy`, con
+   redacción `[REDACTED]`.
+3. **Scope de la unidad de trabajo** — mantener el cambio dentro de una unidad
+   acotada. `gemini-cli` (Parcial): "Development Conventions" pide PRs
+   pequeños y enfocados. `codex` (Parcial): "Change size guidance" limita el
+   tamaño del cambio y pide staging. Project OS: `evidence.issue_scope`
+   (objetivo, scope, out of scope y acceptance criteria vivos) y
+   `boundary.implementation_discipline`.
+4. **Autoridad humana por acción** — acciones que exigen aprobación humana
+   explícita. `codex` (Parcial): pide preguntar al usuario antes de la suite
+   completa de tests y exime `just fmt` de aprobación. Project OS:
+   `rule.no_autorizacion`, `boundary.separate_pm_approval` y
+   `evidence.pm_approval`: merge, cierre, labels, tags, releases, settings y
+   secretos exigen aprobación PM exacta separada.
+5. **Preflight del árbol de trabajo** — verificar rama, worktree y HEAD antes
+   de escribir. Project OS: `rule.preflight`, `boundary.branch_preflight`,
+   `boundary.no_main_edits` y `evidence.branch_preflight`. El comando
+   `npm run preflight` de `gemini-cli` es validación completa del proyecto, no
+   preflight del árbol de trabajo: cuenta en el criterio 7.
+6. **Evidencia requerida antes de actuar** — insumos obligatorios con estado
+   de falla si faltan. Project OS: `required_evidence` por workflow con
+   `missing_status`, por ejemplo `evidence.issue_scope` y
+   `evidence.validation_output`.
+7. **Validación antes de entregar** — comprobar el cambio antes de declararlo
+   listo. `claude-cookbooks`: "Quality checks" (`make check` antes de
+   commitear, notebooks de arriba abajo). `gemini-cli`: "Testing and Quality"
+   (`npm run preflight` antes de PRs). `vscode-copilot-chat`: "Validating
+   changes" (comprobar compilación antes de declarar el trabajo completo).
+   `codex`: `just fmt` y `just test` tras los cambios, con cobertura de
+   snapshots obligatoria para UI. Project OS: `rule.validacion_proporcional`,
+   `boundary.validation_discipline` y `evidence.validation_output`.
+8. **Fail-closed** — detenerse ante una condición no resuelta en vez de
+   adivinar y seguir. `vscode-copilot-chat` (Parcial): "Validating changes"
+   prohíbe avanzar con errores de compilación. Project OS:
+   `rule.resolucion_fail_closed`, `boundary.fail_closed` y estados no
+   resueltos explícitos.
+9. **Review-before-close** — revisar el trabajo contra su objetivo antes de
+   declararlo terminado. `vscode-copilot-chat` (Parcial): exige comprobar la
+   compilación antes de "declaring work complete". `codex` (Parcial): pide
+   revisar los snapshots generados y correr `just fix` antes de finalizar
+   cambios grandes. Project OS: `boundary.review_before_close` (comparar la
+   unidad de trabajo contra diff, archivos finales, validación y riesgos).
+10. **Trazabilidad del trabajo** — vincular el cambio a una unidad de trabajo
+    y a un registro convencional. `claude-cookbooks` (Parcial): "Git Workflow"
+    fija naming de ramas y conventional commits, sin vínculo a una unidad de
+    trabajo. `gemini-cli`: "Development Conventions" exige PRs vinculados a un
+    issue existente y Conventional Commits. Project OS:
+    `rule.trazabilidad_viva` y ramas `work/<unidad>-<slug>`.
+11. **Portabilidad de la gobernanza** — la gobernanza es separable del
+    repositorio concreto y reutilizable en otro target. Los cuatro archivos
+    convencionales gobiernan su propio repositorio por diseño: la convención
+    es portable, pero el contenido medido no se declara reutilizable (No
+    aplica). Project OS: el manifest declara el modelo agnóstico al proyecto,
+    el bootloader separa la configuración de máquina/adopción y la adopción es
+    copy-based por diseño (ver [empezar.md](empezar.md)).
+12. **Carga on-demand** — parte de la guía se difiere a recursos que se cargan
+    solo al usarse. `claude-cookbooks`: "Slash Commands" y el directorio
+    `.claude/`. `gemini-cli`: skills `pr-creator` y `docs-writer`.
+    `vscode-copilot-chat`: delega la documentación del SDK de Claude a un
+    `AGENTS.md` del árbol fuente. `codex`: `codex-rs/tui/styles.md` y el skill
+    `$remote-tests`. Project OS: resolver por tupla con referencias resolubles
+    a operaciones, templates y skills. La unidad de medida del benchmark ya
+    excluye ese contexto on-demand en los cinco stacks.
+13. **Separación contrato/estado vivo** — el archivo durable declara que el
+    estado vivo (issues, PRs, ramas, validaciones) vive fuera y se lee al
+    momento de la tarea. Project OS: `rule.estado_vivo_no_durable`,
+    `boundary.no_live_state_durable` y la separación declarada en la
+    metodología de este benchmark.
+
+### Conclusión de producto
+
+- Los dos tipos de stack optimizan cosas distintas y la matriz lo muestra sin
+  ordenarlos. Los cuatro archivos convencionales concentran su cobertura
+  observada donde la convención fue diseñada para servir: conocimiento técnico
+  del target, validación y carga on-demand. El stack de Project OS la
+  concentra en gobernanza de proceso — autoridad humana por acción, preflight,
+  evidencia requerida, fail-closed, review-before-close, trazabilidad y
+  separación contrato/estado vivo — y es Parcial justamente en conocimiento
+  técnico, que reconstruye desde evidencia viva en vez de inlinearlo.
+- El beneficio de gobernanza de Project OS es hacer explícito y verificable lo
+  que en los archivos medidos queda implícito o puntual: qué evidencia debe
+  existir antes de actuar, qué acciones exigen aprobación humana separada,
+  cuándo detenerse sin adivinar y qué revisar antes de cerrar. Cada celda Sí
+  de su columna cita una clave del kernel que el resolver entrega en cada
+  sesión y que los tests de hidratación protegen.
+- Esa gobernanza no depende del proyecto: el mismo contrato se adopta por
+  copia en otro repositorio sin reescribirlo, y lo específico del repo queda
+  en el bootloader.
+- Los mecanismos son complementarios, no excluyentes: el stack de Project OS
+  usa las mismas convenciones medidas (`CLAUDE.md`, `AGENTS.md`) como shim y
+  bootloader, y un proyecto puede llevar su conocimiento técnico en esos
+  archivos junto al contrato del kernel. Esta matriz registra presencia en un
+  archivo por stack a un commit pineado; no compara herramientas completas ni
+  decide qué stack conviene: eso depende del proyecto.
 
 ## Perfil interno de hidratación
 
@@ -234,6 +390,9 @@ reproducen el perfil interno.
 - La equivalencia es funcional (contexto de instrucciones repo-wide cargado al
   inicio de sesión para la tarea declarada), no de contenido: cada archivo
   gobierna un proyecto distinto con contenido distinto.
+- La matriz de cobertura registra presencia de instrucciones en archivos
+  concretos a commits concretos; no describe capacidades completas de ninguna
+  herramienta, no pondera criterios y no ordena stacks.
 - Un conteo de tokens depende del tokenizer y del modelo; usa el tokenizer de
   tu modelo real antes de planificar contexto con estas cifras.
 - Medir tamaño no mide utilidad ni calidad: `minimal` es más pequeño porque
