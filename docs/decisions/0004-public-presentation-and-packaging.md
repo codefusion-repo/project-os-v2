@@ -4,6 +4,13 @@
   the conditional docs-first staged path as designed here — including the
   Stage 0 gate and the exact-PM-approval requirement for any publication — and
   does not yet decide the implementation or distribution of the CLI.
+  **Amended by ADR 0005** (`0005-public-repository-strategy.md`, issue #422):
+  the Stage 1 *publishing mechanism* is no longer this repository — this
+  repository stays private and internal-only, and the future public surface
+  is a separate repository (`agent-os-cli`) with its own public-readiness
+  gate. Stage 1's docs-first *content*, the positioning rules, the staged
+  gates and the exact-PM-approval requirements remain in force as amended
+  there.
 - Date: 2026-07-11
 - Scope: issue #394; design-only decision on how Project OS should be
   presented, packaged and eventually published. No packaging, CLI, API,

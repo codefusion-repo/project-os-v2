@@ -212,7 +212,11 @@ aquí):
   [Actualización de B2/B3](#actualización-de-b2b3--políticas-de-seguridad-contribución-y-soporte-añadidas-2026-07-13)).
 - **B4 (cobertura):** decisión PM sobre las superficies no auditadas que la
   publicación expondría — issues/PRs/comentarios de GitHub — mediante
-  auditoría separada o aceptación explícita del riesgo.
+  auditoría separada o aceptación explícita del riesgo. **Resuelto** por
+  #422: decisión de arquitectura registrada en ADR 0005 — este repositorio
+  no se publica y sus superficies GitHub no migran a la futura superficie
+  pública (ver
+  [Actualización de B4](#actualización-de-b4--estrategia-de-repositorio-separado-2026-07-13)).
 
 ## Riesgos aceptables (si el PM los acepta explícitamente)
 
@@ -236,8 +240,12 @@ aquí):
    **Decidida y ejecutada en #421: contribuciones aceptadas issue-first,
    soporte best-effort sin SLA, español/inglés y Contributor Covenant 3.0.**
 4. Aceptación de exposición del historial tal cual (F-04, F-05, F-06) o repo
-   público nuevo con historial reducido.
+   público nuevo con historial reducido. **Decidida en #422: el repositorio
+   nuevo conserva la base git auditada y el PM acepta explícitamente F-04,
+   F-05 y F-06; este repositorio no se publica.**
 5. Tratamiento de issues/PRs de GitHub ante un cambio de visibilidad — B4.
+   **Decidida en #422: no se migran ni publican; la futura superficie
+   pública es un repositorio nuevo con su propio gate (ADR 0005).**
 6. Cadencia de re-verificación de comparaciones fechadas (ADR 0004).
 
 ## Resultado de la revisión PM (2026-07-11)
@@ -317,6 +325,10 @@ releases; la política de historial y procedencia; y cómo evitar forks
 divergentes o duplicación manual permanente. Ningún repositorio se crea,
 taggea, transfiere ni publica dentro de esta corrección. B4 permanece
 abierto.
+
+Actualización: la decisión de arquitectura quedó registrada en #422 /
+ADR 0005 y B4 fue resuelto (ver
+[Actualización de B4](#actualización-de-b4--estrategia-de-repositorio-separado-2026-07-13)).
 
 ### Propuestas downstream expresamente no autorizadas
 
@@ -399,18 +411,83 @@ resolución de B2 y B3.
 - **PR que las incorpora:** PR #425, desde
   `work/421-security-contributing-support`.
 
+## Actualización de B4 — estrategia de repositorio separado (2026-07-13)
+
+Ejecutada por issue #422 con decisión PM exacta registrada como comentario en
+ese issue y como decisión de arquitectura durable en
+[ADR 0005](../decisions/0005-public-repository-strategy.md), que enmienda el
+mecanismo de Stage 1 de ADR 0004. No altera la revisión original ni el resto
+de findings; solo registra la resolución de B4 y sus consecuencias sobre este
+gate.
+
+- **Decisión:** `codefusion-repo/project-os-v2` permanece privado e
+  internal-only y no será publicado. La futura superficie pública de
+  Project OS y su CLI será un repositorio nuevo (`agent-os-cli`), creado
+  posteriormente como privado, que será fuente de verdad tras una transición
+  única y sin sincronización bidireccional ni backports.
+- **Resolución de B4:** las superficies GitHub no auditadas de este
+  repositorio (issues, PRs, comentarios, reviews, descripciones y metadata)
+  no se publican ni migran al repositorio nuevo; por eso B4 queda resuelto
+  para este repositorio sin auditoría adicional. Ninguna superficie no
+  auditada queda expuesta por esta decisión.
+- **F-04, F-05, F-06:** el repositorio nuevo conservará la base git y de
+  contenido auditada, y el PM acepta explícitamente esos tres riesgos
+  históricos documentados. Al no publicarse este repositorio, esas
+  exposiciones no se materializan aquí; viajan con la base git al
+  repositorio nuevo y quedan cubiertas por su gate propio.
+- **F-07, F-09, F-10:** dejan de ser exposiciones de este gate porque este
+  repositorio no se publica; cualquier equivalente se evalúa en la auditoría
+  de public-readiness propia del repositorio nuevo antes de su cambio de
+  visibilidad.
+- **Gates posteriores preservados:** el repositorio nuevo tendrá su propia
+  auditoría de public-readiness antes de cambiar visibilidad; la publicación
+  sigue bloqueada además por la confirmación PM del dogfood; y crear el
+  repositorio, transferir contenido, cambiar visibilidad o settings y crear
+  tags o releases siguen requiriendo aprobación PM exacta y separada.
+- **Stage 1, #423 y #424:** Stage 1 conserva su contenido docs-first pero su
+  mecanismo de publicación deja de ser este repositorio; #423 prepara
+  documentación y onboarding reutilizables por la futura superficie pública;
+  #424 queda como gate de readiness y handoff sin crear tag ni release en
+  este repositorio — el tag y release públicos efectivos se ejecutan después
+  en el repositorio nuevo con aprobación PM separada. La secuencia PM vigente
+  es `#422 → #423 → #424 → cierre del roadmap #274 → comienzo del nuevo
+  repositorio y desarrollo del CLI`.
+- **Alcance preservado:** ningún repositorio fue creado, transferido,
+  copiado o publicado; ningún setting, visibilidad, tag o release cambió;
+  el CLI no se implementa y los proyectos demo no se modifican.
+- **Efecto sobre el veredicto:** `GO_WITH_BLOCKERS` se conserva como
+  registro histórico de la revisión original. Con B1–B4 resueltos ya no
+  queda ningún blocker abierto de este gate, pero de eso no se deriva ningún
+  `GO` de publicación para este repositorio: por ADR 0005 su publicación
+  dejó de considerarse y el estado internal-only es su estado final. La
+  aceptación de Stage 0 como gate de evidencia y cualquier transición
+  posterior siguen siendo decisiones PM separadas.
+- **ADR que la registra:** ADR 0005, desde `work/422-public-repository-strategy`.
+
 ## Veredicto
 
-**`GO_WITH_BLOCKERS`.**
+**Veredicto histórico de la revisión original (2026-07-11):
+`GO_WITH_BLOCKERS`.**
 
-- El árbol actual está limpio y el historial no contiene credenciales reales:
-  no hay blockers de secretos.
-- Los blockers son de gobernanza y cobertura: B1 (licencia, **resuelto por
-  #419**), B2 (seguridad, **resuelto por #421**), B3 (contribución/soporte,
-  **resuelto por #421**), B4 (superficies GitHub no auditadas, **abierto**).
-- `NO_GO` no aplica: no se encontró evidencia que obligue a permanecer
-  internal-only. `GO` no aplica: con B4 abierto, la publicación no puede
-  considerarse.
+- El árbol actual estaba limpio y el historial no contenía credenciales
+  reales: no había blockers de secretos.
+- Los blockers eran de gobernanza y cobertura: B1 (licencia), B2 (seguridad),
+  B3 (contribución/soporte) y B4 (superficies GitHub no auditadas).
+- En el momento de esa revisión, `NO_GO` no aplicaba porque la evidencia
+  técnica no obligaba por sí sola a descartar la publicación, y `GO` no
+  aplicaba porque los blockers B1–B4 seguían abiertos.
+
+**Estado posterior a ADR 0005 (2026-07-13):** los cuatro blockers están
+resueltos — B1 por #419, B2 y B3 por #421, y B4 por #422 / ADR 0005 (ver
+[Actualización de B4](#actualización-de-b4--estrategia-de-repositorio-separado-2026-07-13)).
+El veredicto histórico `GO_WITH_BLOCKERS` se conserva como registro de la
+revisión original y no se recalcula: por decisión de arquitectura
+(ADR 0005), la publicación de este repositorio dejó de considerarse y su
+estado final es internal-only, de modo que de la resolución de los blockers
+no se deriva ningún `GO`. Este documento sigue sin autorizar publicación,
+cambio de visibilidad ni transición alguna; la aceptación de Stage 0 como
+gate de evidencia y cualquier transición posterior siguen siendo decisiones
+PM separadas.
 
 ## Condiciones exactas para considerar Stage 0 completado
 
@@ -434,6 +511,9 @@ resolución de B2 y B3.
    #421.**
 3. `security: auditar issues, PRs y comentarios de GitHub antes del cambio de
    visibilidad` — ejecuta B4 si el PM elige auditar en vez de aceptar.
+   **Ya no aplica a este repositorio:** #422 / ADR 0005 resolvió B4 con la
+   estrategia de repositorio separado, sin publicar estas superficies; el
+   repositorio nuevo tendrá su propia auditoría de public-readiness.
 4. `chore: endurecer CI para exposición pública (pin de actions por SHA)` —
    opcional, recomendado antes de publicar (F-09).
 5. Stage 1 (`docs: implementar presentación pública y onboarding visual`) ya
