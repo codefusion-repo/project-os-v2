@@ -49,10 +49,16 @@ Tags existentes (locales y remotos coinciden):
 | `v2-min-dogfood.0` | baseline interno de dogfood |
 
 Ramas: `main` (default), `work/422-public-repository-strategy` (histórica) y
-la rama de trabajo de este issue. No existen GitHub Releases publicados.
+la rama de trabajo de este issue.
 
-Conclusión: el nombre candidato no colisiona con ningún ref existente y no
-pertenece a ninguna serie previa.
+GitHub Releases existentes (internos, en repositorio privado):
+`project-os-lab-v0.1.2`, `project-os-lab-v0.1.3`, `project-os-lab-v0.1.4`
+(marcado `Latest`) y `target-dogfood-baseline-2026-06-16`. Ninguno se mueve,
+reutiliza ni elimina en esta unidad de trabajo, y el tag de handoff **no**
+debe sumarse a esta lista: no tendrá GitHub Release asociado.
+
+Conclusión: el nombre candidato no colisiona con ningún ref ni release
+existente y no pertenece a ninguna serie previa.
 
 ## Propuesta de tag
 
