@@ -17,7 +17,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Optional: ISSUE_NUMBER, PR_NUMBER, DECISION_OPTIONS, PM_DECISION
 
 **Safeguards**
-- `ISSUE_NUMBER` and `PR_NUMBER` accept positive numbers only; at least one must be supplied. If both are absent, return `status.needs_context`.
+- `ISSUE_NUMBER` and `PR_NUMBER` are optional numeric references and, when supplied, accept positive numbers only. Both may remain blank: derive context from `DECISION_SOURCE` and live evidence, and return `status.needs_context` only when it cannot be derived unambiguously during execution.
 - Both references may be supplied when they belong to a verifiably related flow; if they are unrelated, fail closed.
 - `PM_DECISION_ALREADY_MADE` is `true` or `false`: when `true`, `PM_DECISION` is required; when `false`, it must be empty.
 - If `PM_DECISION_ALREADY_MADE=false`, use `DECISION_OPTIONS` when supplied or derive a bounded set from live evidence; deliver impact, tradeoffs, risks, reversibility, a recommendation, and the exact question.

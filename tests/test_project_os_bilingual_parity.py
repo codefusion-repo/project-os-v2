@@ -139,7 +139,8 @@ def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
         "never authorizes",
         "status.needs_context",
         "status.needs_pm_decision",
-        "at least one",
+        "both may remain blank",
+        "derive context",
         "unrelated",
     ):
         assert clause in english
@@ -148,10 +149,14 @@ def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
         REPO_ROOT / "project-os-es/operaciones/cross-fase/MOS-R.3-procesar-decision-pm-pendiente.md": (
             "flujo relacionado verificable",
             "no están relacionadas, falla cerrado",
+            "ambas pueden quedar vacías",
+            "deriva el contexto",
         ),
         REPO_ROOT / "project-os-en/operations/cross-phase/MOS-R.3-process-needs-pm-decision.md": (
             "verifiably related flow",
             "they are unrelated, fail closed",
+            "both may remain blank",
+            "derive context",
         ),
     }
     for path, clauses in related_flow_guards.items():

@@ -17,7 +17,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Opcionales: ISSUE_NUMBER, PR_NUMBER, DECISION_OPTIONS, PM_DECISION
 
 **Cuida**
-- `ISSUE_NUMBER` y `PR_NUMBER` reciben solo números positivos; al menos una debe estar presente. Si ambas faltan, devuelve `status.needs_context`.
+- `ISSUE_NUMBER` y `PR_NUMBER` son referencias numéricas opcionales y, cuando existen, reciben solo números positivos. Ambas pueden quedar vacías: deriva el contexto desde `DECISION_SOURCE` y evidencia viva, y devuelve `status.needs_context` solo si no puede derivarlo inequívocamente durante la ejecución.
 - Pueden estar presentes ambas referencias cuando pertenecen a un flujo relacionado verificable; si no están relacionadas, falla cerrado.
 - `PM_DECISION_ALREADY_MADE` es `true` o `false`: con `true`, `PM_DECISION` es obligatoria; con `false`, debe quedar vacía.
 - Si `PM_DECISION_ALREADY_MADE=false`, usa `DECISION_OPTIONS` cuando existan o deriva un conjunto acotado desde evidencia viva; entrega impacto, tradeoffs, riesgos, reversibilidad, recomendación y la pregunta exacta.

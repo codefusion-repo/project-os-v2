@@ -281,20 +281,11 @@ def test_mos_r3_validates_numeric_references_and_decision_state() -> None:
     assert validate_variable_value(pr_number, "#431") is None
     for invalid in ("issue #429", "PR #431", "0", "-429", "429, 431"):
         assert "positive issue/PR number" in (validate_variable_value(issue_number, invalid) or "")
-    assert "At least one" in (
-        validate_variable_value(
-            pr_number,
-            "",
-            current_values={"ISSUE_NUMBER": ""},
-            requires_mos_r3_reference=True,
-        )
-        or ""
-    )
+    assert validate_variable_value(pr_number, "", current_values={"ISSUE_NUMBER": ""}) is None
     assert validate_variable_value(
         pr_number,
         "",
         current_values={"ISSUE_NUMBER": "429"},
-        requires_mos_r3_reference=True,
     ) is None
 
     decision_made = variables["PM_DECISION_ALREADY_MADE"]
@@ -397,11 +388,12 @@ def test_mos_r3_line_collection_covers_issue_only_pr_only_both_and_neither() -> 
     neither_stream = StringIO()
     neither = collect_values_with_controls(
         operation,
-        input_func=answers("QA result", "false", "", "", "431", "", ""),
+        input_func=answers("QA result", "false", "", "", "", ""),
         output_stream=neither_stream,
     )
-    assert neither.values["PR_NUMBER"] == "431"
-    assert "At least one of ISSUE_NUMBER or PR_NUMBER is required" in neither_stream.getvalue()
+    assert neither.values["ISSUE_NUMBER"] == ""
+    assert neither.values["PR_NUMBER"] == ""
+    assert "At least one" not in neither_stream.getvalue()
 
 
 @pytest.mark.parametrize("language", ("es", "en"))
@@ -434,7 +426,7 @@ def test_mos_r3_wizard_generates_canonical_artifact_for_decision_already_made(
     assert "PM_DECISION=Apply the scoped correction" in content
 
 
-def test_mos_r3_wizard_rejects_contradictory_false_decision_and_allows_empty_options(
+def test_mos_r3_wizard_generates_artifact_without_references_and_rejects_contradictory_decision(
     tmp_path: Path,
 ) -> None:
     stream = StringIO()
@@ -447,7 +439,6 @@ def test_mos_r3_wizard_rejects_contradictory_false_decision_and_allows_empty_opt
             "false",
             "",
             "",
-            "431",
             "",
             "Contradictory decision",
             "",
@@ -461,11 +452,11 @@ def test_mos_r3_wizard_rejects_contradictory_false_decision_and_allows_empty_opt
     assert output is not None
     content = output.read_text(encoding="utf-8")
     assert "ISSUE_NUMBER=" in content
-    assert "PR_NUMBER=431" in content
+    assert "PR_NUMBER=" in content
     assert "PM_DECISION_ALREADY_MADE=false" in content
     assert "DECISION_OPTIONS=" in content
     assert "PM_DECISION=" in content
-    assert "At least one of ISSUE_NUMBER or PR_NUMBER is required" in stream.getvalue()
+    assert "At least one" not in stream.getvalue()
     assert "must be empty" in stream.getvalue()
 
 

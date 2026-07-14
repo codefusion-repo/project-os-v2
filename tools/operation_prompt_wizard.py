@@ -112,7 +112,7 @@ PM_DECISION_ALREADY_MADE_NAME = "PM_DECISION_ALREADY_MADE"
 PM_DECISION_NAME = "PM_DECISION"
 PM_DECISION_TRUE_CHOICES = ("true", "1", "yes", "y", "si", "sí")
 PM_DECISION_FALSE_CHOICES = ("false", "0", "no", "n")
-MOS_R3_REFERENCE_NAMES = ("ISSUE_NUMBER", "PR_NUMBER")
+MOS_R3_NUMERIC_REFERENCE_NAMES = ("ISSUE_NUMBER", "PR_NUMBER")
 HYDRATION_LEVEL_NAME = "HYDRATION_LEVEL"
 HYDRATION_LEVEL_DEFAULT = "compact"
 HYDRATION_LEVEL_CHOICES = ("minimal", HYDRATION_LEVEL_DEFAULT, "full/debug")
@@ -561,7 +561,6 @@ def validate_variable_value(
     value: str,
     skill_choices: tuple[str, ...] | None = None,
     current_values: dict[str, str] | None = None,
-    requires_mos_r3_reference: bool = False,
 ) -> str | None:
     """Return a validation error for common variable shapes, or ``None``."""
 
@@ -576,13 +575,6 @@ def validate_variable_value(
             return f"{PM_DECISION_NAME} is required when {PM_DECISION_ALREADY_MADE_NAME}=true."
         if decision_made == "false" and stripped:
             return f"{PM_DECISION_NAME} must be empty when {PM_DECISION_ALREADY_MADE_NAME}=false."
-    if (
-        requires_mos_r3_reference
-        and variable.name == "PR_NUMBER"
-        and not stripped
-        and not (current_values or {}).get("ISSUE_NUMBER", "").strip()
-    ):
-        return "At least one of ISSUE_NUMBER or PR_NUMBER is required."
     if not stripped:
         return None
     if SECRET_LOOKING_PATTERN.search(stripped):
@@ -1483,7 +1475,6 @@ def collect_values_with_controls(
     print_stage("Step 2/3", "Fill INPUT variables", output_stream)
     display_operation_summary(operation, output_stream)
     variables = wizard_variables(operation)
-    requires_mos_r3_reference = operation.mos_code == "MOS-R.3"
     for variable in variables:
         if is_hydration_level_variable(variable.name):
             values.setdefault(variable.name, HYDRATION_LEVEL_DEFAULT)
@@ -1526,7 +1517,6 @@ def collect_values_with_controls(
                     "",
                     skill_choices=skill_choices,
                     current_values=values,
-                    requires_mos_r3_reference=requires_mos_r3_reference,
                 )
                 if error is not None:
                     print(
@@ -1545,7 +1535,6 @@ def collect_values_with_controls(
                 value,
                 skill_choices=skill_choices,
                 current_values=values,
-                requires_mos_r3_reference=requires_mos_r3_reference,
             )
             if error is None:
                 values[variable.name] = normalize_variable_value(variable, value)
@@ -2123,7 +2112,6 @@ if HAVE_PROMPT_TOOLKIT:
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
         display_operation_summary(operation, output_stream)
         variables = wizard_variables(operation)
-        requires_mos_r3_reference = operation.mos_code == "MOS-R.3"
         for variable in variables:
             if is_hydration_level_variable(variable.name):
                 values.setdefault(variable.name, HYDRATION_LEVEL_DEFAULT)
@@ -2159,7 +2147,6 @@ if HAVE_PROMPT_TOOLKIT:
                         text,
                         skill_choices=skill_choices,
                         current_values=values,
-                        requires_mos_r3_reference=requires_mos_r3_reference,
                     )
                     if error is not None:
                         raise ValidationError(message=error, cursor_position=len(document.text))
@@ -2196,8 +2183,8 @@ if HAVE_PROMPT_TOOLKIT:
                         # so a rejected value starts a fresh buffer for the correction.
                         validator=(
                             None
-                            if requires_mos_r3_reference
-                            and variable.name in MOS_R3_REFERENCE_NAMES
+                            if operation.mos_code == "MOS-R.3"
+                            and variable.name in MOS_R3_NUMERIC_REFERENCE_NAMES
                             else VariableValidator()
                         ),
                         completer=completer,
@@ -2224,7 +2211,6 @@ if HAVE_PROMPT_TOOLKIT:
                         "",
                         skill_choices=skill_choices,
                         current_values=values,
-                        requires_mos_r3_reference=requires_mos_r3_reference,
                     )
                     if error is not None:
                         print(
@@ -2243,7 +2229,6 @@ if HAVE_PROMPT_TOOLKIT:
                     value,
                     skill_choices=skill_choices,
                     current_values=values,
-                    requires_mos_r3_reference=requires_mos_r3_reference,
                 )
                 if error is None:
                     values[variable.name] = normalize_variable_value(variable, value)
