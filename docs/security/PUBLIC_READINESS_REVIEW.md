@@ -466,20 +466,28 @@ gate.
 
 ## Veredicto
 
-**`GO_WITH_BLOCKERS`.**
+**Veredicto histórico de la revisión original (2026-07-11):
+`GO_WITH_BLOCKERS`.**
 
-- El árbol actual está limpio y el historial no contiene credenciales reales:
-  no hay blockers de secretos.
-- Los blockers son de gobernanza y cobertura: B1 (licencia, **resuelto por
-  #419**), B2 (seguridad, **resuelto por #421**), B3 (contribución/soporte,
-  **resuelto por #421**), B4 (superficies GitHub no auditadas, **resuelto
-  por #422 / ADR 0005**).
-- `NO_GO` no aplica: no se encontró evidencia que obligue a permanecer
-  internal-only. `GO` no aplica: con B4 abierto, la publicación no puede
-  considerarse. Tras #422, B4 está resuelto porque este repositorio no se
-  publicará; la publicación de este repositorio dejó de considerarse por
-  decisión de arquitectura (ADR 0005) y ningún `GO` se deriva (ver
-  [Actualización de B4](#actualización-de-b4--estrategia-de-repositorio-separado-2026-07-13)).
+- El árbol actual estaba limpio y el historial no contenía credenciales
+  reales: no había blockers de secretos.
+- Los blockers eran de gobernanza y cobertura: B1 (licencia), B2 (seguridad),
+  B3 (contribución/soporte) y B4 (superficies GitHub no auditadas).
+- En el momento de esa revisión, `NO_GO` no aplicaba porque la evidencia
+  técnica no obligaba por sí sola a descartar la publicación, y `GO` no
+  aplicaba porque los blockers B1–B4 seguían abiertos.
+
+**Estado posterior a ADR 0005 (2026-07-13):** los cuatro blockers están
+resueltos — B1 por #419, B2 y B3 por #421, y B4 por #422 / ADR 0005 (ver
+[Actualización de B4](#actualización-de-b4--estrategia-de-repositorio-separado-2026-07-13)).
+El veredicto histórico `GO_WITH_BLOCKERS` se conserva como registro de la
+revisión original y no se recalcula: por decisión de arquitectura
+(ADR 0005), la publicación de este repositorio dejó de considerarse y su
+estado final es internal-only, de modo que de la resolución de los blockers
+no se deriva ningún `GO`. Este documento sigue sin autorizar publicación,
+cambio de visibilidad ni transición alguna; la aceptación de Stage 0 como
+gate de evidencia y cualquier transición posterior siguen siendo decisiones
+PM separadas.
 
 ## Condiciones exactas para considerar Stage 0 completado
 
