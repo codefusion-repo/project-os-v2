@@ -31,6 +31,8 @@ from tools.operation_prompt_wizard import (
     load_active_skill_choices,
     load_active_skill_options,
     load_phase_map,
+    collect_values_with_controls,
+    normalize_variable_value,
     operation_needs_pm_authorization_assistance,
     operation_output_refs,
     build_parser,
@@ -247,6 +249,167 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
         assert rendered.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
         assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in rendered
         assert f"{HYDRATION_LEVEL_NAME}=full/debug" in rendered
+
+
+def test_mos_r3_exposes_only_the_five_decision_variables_in_both_languages() -> None:
+    expected = [
+        ("ISSUE_OR_PR", True),
+        ("DECISION_SOURCE", True),
+        ("PM_DECISION_ALREADY_MADE", True),
+        ("DECISION_OPTIONS", False),
+        ("PM_DECISION", False),
+    ]
+    for operations_dir in (
+        REPO_ROOT / "project-os-es" / "operaciones",
+        REPO_ROOT / "project-os-en" / "operations",
+    ):
+        operation = next(
+            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-R.3"
+        )
+        assert [(variable.name, variable.required) for variable in operation.variables] == expected
+        assert [(variable.name, variable.required) for variable in wizard_variables(operation)] == expected
+
+
+def test_mos_r3_validates_and_normalizes_typed_references_and_decision_state() -> None:
+    operation = next(item for item in discover_operations() if item.mos_code == "MOS-R.3")
+    variables = {variable.name: variable for variable in operation.variables}
+
+    issue_or_pr = variables["ISSUE_OR_PR"]
+    assert validate_variable_value(issue_or_pr, "issue #429") is None
+    assert validate_variable_value(issue_or_pr, "PR #428") is None
+    for invalid in ("429", "#429", "issue 429", "issue #429, PR #428"):
+        assert "exactly one typed reference" in (validate_variable_value(issue_or_pr, invalid) or "")
+    assert normalize_variable_value(issue_or_pr, "ISSUE #429") == "issue #429"
+    assert normalize_variable_value(issue_or_pr, "pr #428") == "PR #428"
+
+    decision_made = variables["PM_DECISION_ALREADY_MADE"]
+    for supplied, expected in (("true", "true"), ("sí", "true"), ("1", "true"), ("false", "false"), ("no", "false"), ("0", "false")):
+        assert validate_variable_value(decision_made, supplied) is None
+        assert normalize_variable_value(decision_made, supplied) == expected
+    assert "must be true or false" in (validate_variable_value(decision_made, "maybe") or "")
+
+    pm_decision = variables["PM_DECISION"]
+    assert "is required" in (
+        validate_variable_value(
+            pm_decision,
+            "",
+            current_values={"PM_DECISION_ALREADY_MADE": "true"},
+        )
+        or ""
+    )
+    assert "must be empty" in (
+        validate_variable_value(
+            pm_decision,
+            "Implement option A",
+            current_values={"PM_DECISION_ALREADY_MADE": "false"},
+        )
+        or ""
+    )
+    assert validate_variable_value(
+        pm_decision,
+        "Implement option A",
+        current_values={"PM_DECISION_ALREADY_MADE": "true"},
+    ) is None
+    assert validate_variable_value(
+        pm_decision,
+        "",
+        current_values={"PM_DECISION_ALREADY_MADE": "false"},
+    ) is None
+
+
+def test_mos_r3_line_collection_covers_both_conditional_routes() -> None:
+    operation = next(item for item in discover_operations() if item.mos_code == "MOS-R.3")
+
+    decided_stream = StringIO()
+    decided = collect_values_with_controls(
+        operation,
+        input_func=answers(
+            "issue #429", "security review", "sí", "", "/clear", "Apply option A"
+        ),
+        output_stream=decided_stream,
+    )
+    assert decided.values == {
+        "ISSUE_OR_PR": "issue #429",
+        "DECISION_SOURCE": "security review",
+        "PM_DECISION_ALREADY_MADE": "true",
+        "DECISION_OPTIONS": "",
+        "PM_DECISION": "Apply option A",
+    }
+    assert "PM_DECISION is required" in decided_stream.getvalue()
+
+    options_needed = collect_values_with_controls(
+        operation,
+        input_func=answers("pr #428", "QA result", "no", "", ""),
+        output_stream=StringIO(),
+    )
+    assert options_needed.values == {
+        "ISSUE_OR_PR": "PR #428",
+        "DECISION_SOURCE": "QA result",
+        "PM_DECISION_ALREADY_MADE": "false",
+        "DECISION_OPTIONS": "",
+        "PM_DECISION": "",
+    }
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_mos_r3_wizard_generates_canonical_artifact_for_decision_already_made(
+    tmp_path: Path, language: str
+) -> None:
+    output = run_wizard(
+        language=language,
+        output_dir=tmp_path,
+        input_func=answers(
+            "MOS-R.3",
+            "ISSUE #429",
+            "MOS-3.7 review",
+            "yes",
+            "",
+            "Apply the scoped correction",
+            "2",
+            "write",
+            "exit",
+        ),
+        output_stream=StringIO(),
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert "ISSUE_OR_PR=issue #429" in content
+    assert "PM_DECISION_ALREADY_MADE=true" in content
+    assert "PM_DECISION=Apply the scoped correction" in content
+
+
+def test_mos_r3_wizard_rejects_contradictory_false_decision_and_allows_empty_options(
+    tmp_path: Path,
+) -> None:
+    stream = StringIO()
+    output = run_wizard(
+        language="es",
+        output_dir=tmp_path,
+        input_func=answers(
+            "MOS-R.3",
+            "429",
+            "issue #429",
+            "QA result",
+            "false",
+            "",
+            "Contradictory decision",
+            "",
+            "2",
+            "write",
+            "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert "ISSUE_OR_PR=issue #429" in content
+    assert "PM_DECISION_ALREADY_MADE=false" in content
+    assert "DECISION_OPTIONS=" in content
+    assert "PM_DECISION=" in content
+    assert "exactly one typed reference" in stream.getvalue()
+    assert "must be empty" in stream.getvalue()
 
 
 def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path) -> None:

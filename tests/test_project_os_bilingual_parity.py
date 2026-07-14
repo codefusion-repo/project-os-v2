@@ -109,6 +109,39 @@ def test_english_operations_keep_semantic_sections_safeguards_and_natural_titles
         assert not re.search(r"\bReview pr\b", operation.text.splitlines()[0])
 
 
+def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
+    expected = (
+        ("ISSUE_OR_PR", True),
+        ("DECISION_SOURCE", True),
+        ("PM_DECISION_ALREADY_MADE", True),
+        ("DECISION_OPTIONS", False),
+        ("PM_DECISION", False),
+    )
+    for operations_dir in (
+        REPO_ROOT / "project-os-es" / "operaciones",
+        REPO_ROOT / "project-os-en" / "operations",
+    ):
+        operation = next(
+            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-R.3"
+        )
+        assert tuple((variable.name, variable.required) for variable in operation.variables) == expected
+
+    english = (
+        REPO_ROOT / "project-os-en/operations/cross-phase/MOS-R.3-process-needs-pm-decision.md"
+    ).read_text(encoding="utf-8").lower()
+    for clause in (
+        "live evidence",
+        "impact",
+        "tradeoffs",
+        "recommendation",
+        "exact question",
+        "never authorizes",
+        "status.needs_context",
+        "status.needs_pm_decision",
+    ):
+        assert clause in english
+
+
 def test_english_operation_does_and_how_avoid_known_third_person_regressions() -> None:
     """Protect the observed voice regression without attempting general grammar validation."""
     operations = discover_operations(REPO_ROOT / "project-os-en/operations")

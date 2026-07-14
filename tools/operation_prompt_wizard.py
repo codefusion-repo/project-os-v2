@@ -70,6 +70,7 @@ INPUT_VARIABLE_PATTERN = re.compile(
 )
 REPOSITORY_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 POSITIVE_NUMBER_PATTERN = re.compile(r"^#?[1-9][0-9]*$")
+ISSUE_OR_PR_PATTERN = re.compile(r"^(issue|pr)[ \t]+#([1-9][0-9]*)$", re.IGNORECASE)
 SAFE_FILENAME_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
 SECRET_LOOKING_PATTERN = re.compile(
     r"\b(?:gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{20,}|"
@@ -108,6 +109,10 @@ PM_AUTHORIZATION_STATUS_NAME = "PM_AUTHORIZATION_STATUS"
 PM_AUTHORIZATION_PENDING = "pending"
 PM_AUTHORIZATION_GRANTED = "granted for this exact scope and mode"
 PM_AUTHORIZATION_CHOICES = (PM_AUTHORIZATION_PENDING, PM_AUTHORIZATION_GRANTED)
+PM_DECISION_ALREADY_MADE_NAME = "PM_DECISION_ALREADY_MADE"
+PM_DECISION_NAME = "PM_DECISION"
+PM_DECISION_TRUE_CHOICES = ("true", "1", "yes", "y", "si", "sí")
+PM_DECISION_FALSE_CHOICES = ("false", "0", "no", "n")
 HYDRATION_LEVEL_NAME = "HYDRATION_LEVEL"
 HYDRATION_LEVEL_DEFAULT = "compact"
 HYDRATION_LEVEL_CHOICES = ("minimal", HYDRATION_LEVEL_DEFAULT, "full/debug")
@@ -555,12 +560,21 @@ def validate_variable_value(
     variable: InputVariable,
     value: str,
     skill_choices: tuple[str, ...] | None = None,
+    current_values: dict[str, str] | None = None,
 ) -> str | None:
     """Return a validation error for common variable shapes, or ``None``."""
 
     stripped = value.strip()
     if variable.required and not stripped:
         return f"{variable.name} is required. {validation_example(variable)}"
+    if variable.name == PM_DECISION_NAME and current_values is not None:
+        decision_made = normalize_pm_decision_already_made(
+            current_values.get(PM_DECISION_ALREADY_MADE_NAME, "")
+        )
+        if decision_made == "true" and not stripped:
+            return f"{PM_DECISION_NAME} is required when {PM_DECISION_ALREADY_MADE_NAME}=true."
+        if decision_made == "false" and stripped:
+            return f"{PM_DECISION_NAME} must be empty when {PM_DECISION_ALREADY_MADE_NAME}=false."
     if not stripped:
         return None
     if SECRET_LOOKING_PATTERN.search(stripped):
@@ -571,6 +585,19 @@ def validate_variable_value(
             return (
                 f"{variable.name} must be 1, 2, pending, or "
                 "granted for this exact scope and mode."
+            )
+        return None
+
+    if variable.name == "ISSUE_OR_PR":
+        if normalize_issue_or_pr(stripped) is None:
+            return "ISSUE_OR_PR must be exactly one typed reference: issue #123 or PR #456."
+        return None
+
+    if variable.name == PM_DECISION_ALREADY_MADE_NAME:
+        if normalize_pm_decision_already_made(stripped) is None:
+            return (
+                f"{PM_DECISION_ALREADY_MADE_NAME} must be true or false "
+                "(local helpers: yes/no, si/sí/no, or 1/0)."
             )
         return None
 
@@ -618,6 +645,12 @@ def validation_example(
 
     if is_pm_authorization_status_variable(variable.name):
         return "Choose 1 for pending or 2 for granted for this exact scope and mode."
+    if variable.name == "ISSUE_OR_PR":
+        return "Use exactly one typed reference: issue #123 or PR #456."
+    if variable.name == PM_DECISION_ALREADY_MADE_NAME:
+        return "Use true or false; local yes/no, si/sí/no, and 1/0 are normalized."
+    if variable.name == PM_DECISION_NAME:
+        return f"Required only when {PM_DECISION_ALREADY_MADE_NAME}=true; otherwise leave it blank."
     if is_hydration_level_variable(variable.name):
         return "Use minimal, compact, or full/debug; compact is the default."
     if is_optional_skill_variable(variable.name):
@@ -771,11 +804,41 @@ def normalize_pm_authorization_status(value: str) -> str | None:
     return None
 
 
+def normalize_issue_or_pr(value: str) -> str | None:
+    """Normalize one typed issue or PR reference without inferring its type."""
+
+    match = ISSUE_OR_PR_PATTERN.fullmatch(value.strip())
+    if match is None:
+        return None
+    reference_type, number = match.groups()
+    prefix = "issue" if reference_type.lower() == "issue" else "PR"
+    return f"{prefix} #{number}"
+
+
+def normalize_pm_decision_already_made(value: str) -> str | None:
+    """Normalize strict decision-state booleans from narrow local helpers."""
+
+    normalized = value.strip().lower()
+    if normalized in PM_DECISION_TRUE_CHOICES:
+        return "true"
+    if normalized in PM_DECISION_FALSE_CHOICES:
+        return "false"
+    return None
+
+
 def normalize_variable_value(variable: InputVariable, value: str) -> str:
     """Normalize supported variable values after validation."""
 
     if is_pm_authorization_status_variable(variable.name):
         normalized = normalize_pm_authorization_status(value)
+        if normalized is not None:
+            return normalized
+    if variable.name == "ISSUE_OR_PR":
+        normalized = normalize_issue_or_pr(value)
+        if normalized is not None:
+            return normalized
+    if variable.name == PM_DECISION_ALREADY_MADE_NAME:
+        normalized = normalize_pm_decision_already_made(value)
         if normalized is not None:
             return normalized
     return value
@@ -788,13 +851,13 @@ def operation_produces_route_prompt(operation: OperationTemplate) -> bool:
 
 
 def operation_output_refs(operation: OperationTemplate) -> tuple[str, ...]:
-    """Return distinct output refs from OUTPUT or active Spanish Entrega blocks."""
+    """Return distinct output refs from OUTPUT or compact bilingual delivery blocks."""
 
     refs: list[str] = []
     output_lines = named_block_lines(operation.text, "OUTPUT")
     if not output_lines:
         delivery_match = re.search(
-            r"\*\*Entrega:\*\*\s*(.*?)(?=\.\s|\.$|\n|\Z)",
+            r"\*\*(?:Entrega|Deliver):\*\*\s*(.*?)(?=\.\s|\.$|\n|\Z)",
             operation.text,
             flags=re.IGNORECASE,
         )
@@ -867,6 +930,11 @@ def render_prompt(
         include_route_prompt_authorization=include_route_prompt_authorization,
     )
     rendered_values = dict(values)
+    for variable in variables:
+        if variable.name in rendered_values:
+            rendered_values[variable.name] = normalize_variable_value(
+                variable, rendered_values[variable.name]
+            )
     if any(is_hydration_level_variable(variable.name) for variable in variables):
         rendered_values.setdefault(HYDRATION_LEVEL_NAME, HYDRATION_LEVEL_DEFAULT)
     for i, line in enumerate(lines):
@@ -1466,9 +1534,15 @@ def collect_values_with_controls(
             if is_back_command(raw_value):
                 return ValueCollectionResult("operation", values)
             if is_clear_command(raw_value):
-                if variable.required:
+                error = validate_variable_value(
+                    variable,
+                    "",
+                    skill_choices=skill_choices,
+                    current_values=values,
+                )
+                if error is not None:
                     print(
-                        f"Invalid value: {variable.name} is required. {validation_example(variable)}",
+                        f"Invalid value: {error}",
                         file=output_stream,
                     )
                     continue
@@ -1478,7 +1552,12 @@ def collect_values_with_controls(
             value = raw_value.strip()
             if not value and current:
                 value = current
-            error = validate_variable_value(variable, value, skill_choices=skill_choices)
+            error = validate_variable_value(
+                variable,
+                value,
+                skill_choices=skill_choices,
+                current_values=values,
+            )
             if error is None:
                 values[variable.name] = normalize_variable_value(variable, value)
                 break
@@ -2085,17 +2164,23 @@ if HAVE_PROMPT_TOOLKIT:
                     text = document.text.strip()
                     if is_cancel_command(text) or is_back_command(text) or is_clear_command(text) or is_help_command(text):
                         return
-                    if not text:
-                        if variable.required:
-                            raise ValidationError(message=f"Required. {validation_example(variable)}", cursor_position=len(document.text))
-                        return
-                    error = validate_variable_value(variable, text, skill_choices=skill_choices)
+                    error = validate_variable_value(
+                        variable,
+                        text,
+                        skill_choices=skill_choices,
+                        current_values=values,
+                    )
                     if error is not None:
                         raise ValidationError(message=error, cursor_position=len(document.text))
 
             completer = None
             if is_pm_authorization_status_variable(variable.name):
                 completer = WordCompleter(["1", "2", *PM_AUTHORIZATION_CHOICES], ignore_case=True)
+            elif variable.name == PM_DECISION_ALREADY_MADE_NAME:
+                completer = WordCompleter(
+                    [*PM_DECISION_TRUE_CHOICES, *PM_DECISION_FALSE_CHOICES],
+                    ignore_case=True,
+                )
             elif is_hydration_level_variable(variable.name):
                 completer = WordCompleter(list(HYDRATION_LEVEL_CHOICES), ignore_case=True)
             elif is_optional_skill_variable(variable.name):
@@ -2136,9 +2221,15 @@ if HAVE_PROMPT_TOOLKIT:
                 if is_back_command(raw_value):
                     return ValueCollectionResult("operation", values)
                 if is_clear_command(raw_value):
-                    if variable.required:
+                    error = validate_variable_value(
+                        variable,
+                        "",
+                        skill_choices=skill_choices,
+                        current_values=values,
+                    )
+                    if error is not None:
                         print(
-                            f"Invalid value: {variable.name} is required. {validation_example(variable)}",
+                            f"Invalid value: {error}",
                             file=output_stream,
                         )
                         continue
