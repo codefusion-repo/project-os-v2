@@ -8,7 +8,7 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Evidencia: evidence.source_basis, evidence.repo_state
 - Aprobación PM: No (clasifica la decisión; no ejecuta ni autoaprueba)
 
-**Hace:** Reconstruye desde evidencia viva una decisión PM pendiente y la procesa hacia una salida segura.
+**Hace:** Procesa una decisión PM pendiente desde evidencia viva hacia una salida segura.
 **Para:** Resolver decisiones PM pendientes con variables claras y target-agnostic.
 **Cómo:** Lee el issue o PR tipado, reconstruye el punto pendiente desde `DECISION_SOURCE` y valida una decisión ya tomada o presenta opciones con impacto, tradeoffs, recomendación y la pregunta exacta.
 

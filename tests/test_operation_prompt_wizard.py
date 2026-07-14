@@ -277,7 +277,15 @@ def test_mos_r3_validates_and_normalizes_typed_references_and_decision_state() -
     issue_or_pr = variables["ISSUE_OR_PR"]
     assert validate_variable_value(issue_or_pr, "issue #429") is None
     assert validate_variable_value(issue_or_pr, "PR #428") is None
-    for invalid in ("429", "#429", "issue 429", "issue #429, PR #428"):
+    for invalid in (
+        "429",
+        "#429",
+        "issue 429",
+        "PR#429",
+        "issue #0",
+        "issue #429, PR #428",
+        "issue #429 PR #428",
+    ):
         assert "exactly one typed reference" in (validate_variable_value(issue_or_pr, invalid) or "")
     assert normalize_variable_value(issue_or_pr, "ISSUE #429") == "issue #429"
     assert normalize_variable_value(issue_or_pr, "pr #428") == "PR #428"
@@ -315,6 +323,25 @@ def test_mos_r3_validates_and_normalizes_typed_references_and_decision_state() -
         "",
         current_values={"PM_DECISION_ALREADY_MADE": "false"},
     ) is None
+
+
+def test_mos_r3_display_description_names_the_pending_pm_decision_in_both_languages() -> None:
+    expected = {
+        "es": "Procesa una decisión PM pendiente desde evidencia viva hacia una salida segura.",
+        "en": "Process a pending PM decision from live evidence into a safe output.",
+    }
+    for language, operations_dir in (
+        ("es", REPO_ROOT / "project-os-es" / "operaciones"),
+        ("en", REPO_ROOT / "project-os-en" / "operations"),
+    ):
+        operation = next(
+            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-R.3"
+        )
+        stream = StringIO()
+        display_operation_summary(operation, stream)
+
+        assert operation.description == expected[language]
+        assert expected[language] in stream.getvalue()
 
 
 def test_mos_r3_line_collection_covers_both_conditional_routes() -> None:

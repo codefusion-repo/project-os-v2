@@ -2201,7 +2201,12 @@ if HAVE_PROMPT_TOOLKIT:
                     raw_value = prompt(
                         prompt_label,
                         default=current,
-                        validator=VariableValidator(),
+                        # ISSUE_OR_PR is validated after prompt() returns so an invalid
+                        # attempt starts a fresh buffer instead of trapping the corrected
+                        # typed reference behind prompt_toolkit's retained invalid text.
+                        validator=(
+                            None if variable.name == "ISSUE_OR_PR" else VariableValidator()
+                        ),
                         completer=completer,
                         complete_while_typing=(
                             is_optional_skill_variable(variable.name)
@@ -2237,8 +2242,18 @@ if HAVE_PROMPT_TOOLKIT:
                     break
 
                 value = raw_value.strip()
-                values[variable.name] = normalize_variable_value(variable, value)
-                break
+                if not value and current:
+                    value = current
+                error = validate_variable_value(
+                    variable,
+                    value,
+                    skill_choices=skill_choices,
+                    current_values=values,
+                )
+                if error is None:
+                    values[variable.name] = normalize_variable_value(variable, value)
+                    break
+                print(f"Invalid value: {error}", file=output_stream)
 
         return ValueCollectionResult("values", values)
 

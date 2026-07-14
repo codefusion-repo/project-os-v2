@@ -401,3 +401,31 @@ def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_pat
     assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
     assert "Select OPTIONAL_SKILL:" in transcript
     assert not list(output_dir.glob("*.md"))
+
+
+def test_mos_r3_prompt_toolkit_pseudo_tty_recovers_after_invalid_typed_reference(
+    tmp_path: Path,
+) -> None:
+    script = shutil.which("script")
+    if script is None:
+        pytest.skip("script utility is required for the pseudo-TTY black-box")
+
+    output_dir = tmp_path / "out"
+    command = (
+        f"{shlex.quote(sys.executable)} -m tools.operation_prompt_wizard "
+        f"--language es --output-dir {shlex.quote(str(output_dir))}"
+    )
+    completed = subprocess.run(
+        [script, "-qec", command, "/dev/null"],
+        cwd=Path(__file__).resolve().parents[1],
+        input="MOS-R.3\n431\nPR #431\ncancel\n",
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+
+    assert completed.returncode == 1
+    assert "Invalid value: ISSUE_OR_PR must be exactly one typed reference" in completed.stdout
+    assert "DECISION_SOURCE (required, <DECISION_SOURCE>):" in completed.stdout
+    assert not list(output_dir.glob("*.md"))

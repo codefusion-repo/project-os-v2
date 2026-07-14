@@ -8,7 +8,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (classifies the decision; does not execute or self-approve)
 
-**Does:** Reconstruct a pending PM decision from live evidence and process it into a safe output.
+**Does:** Process a pending PM decision from live evidence into a safe output.
 **For:** To resolve pending PM decisions with clear and target-agnostic variables.
 **How:** Read the typed issue or PR, reconstruct the pending point from `DECISION_SOURCE`, and either validate a decision already made or present options with impact, tradeoffs, a recommendation, and the exact question.
 
