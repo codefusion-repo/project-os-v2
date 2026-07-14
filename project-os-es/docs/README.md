@@ -24,6 +24,7 @@ Tres verdades sostienen todo el sistema:
 | [empezar.md](empezar.md) | Quién hace qué y cómo se adopta Project OS. | Arrancas un proyecto o una sesión nueva. |
 | [reglas.md](reglas.md) | Las reglas de seguridad y verdad que nunca se negocian. | Antes de delegar escritura a un agente. |
 | [ritmo.md](ritmo.md) | El ciclo de trabajo día a día y las variables PM. | Operas el proyecto y necesitas el siguiente paso. |
+| [benchmark-contexto.md](benchmark-contexto.md) | Cuánto contexto consume cada nivel de hidratación, con metodología y fecha declaradas. | Planificas contexto o comunicas tamaños medidos. |
 | [adapters](../adapters/README.md) | Bootloaders compactos para targets. | Adoptas Project OS en un repo. |
 | [templates](../templates/README.md) | Formas no operacionales enlazadas por artefactos. | Drafteas route prompts, bundles, reports o documentos. |
 | [skills](../kernel/skills.json) + [habilidades](../habilidades/) | Capacidades opcionales referenciables por resolver. | Quieres pedir o recomendar una capacidad de agente sin cambiar permisos. |
