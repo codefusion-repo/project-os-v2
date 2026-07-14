@@ -144,6 +144,21 @@ def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
     ):
         assert clause in english
 
+    related_flow_guards = {
+        REPO_ROOT / "project-os-es/operaciones/cross-fase/MOS-R.3-procesar-decision-pm-pendiente.md": (
+            "flujo relacionado verificable",
+            "no están relacionadas, falla cerrado",
+        ),
+        REPO_ROOT / "project-os-en/operations/cross-phase/MOS-R.3-process-needs-pm-decision.md": (
+            "verifiably related flow",
+            "they are unrelated, fail closed",
+        ),
+    }
+    for path, clauses in related_flow_guards.items():
+        text = path.read_text(encoding="utf-8").lower()
+        for clause in clauses:
+            assert clause in text
+
 
 def test_english_operation_does_and_how_avoid_known_third_person_regressions() -> None:
     """Protect the observed voice regression without attempting general grammar validation."""
