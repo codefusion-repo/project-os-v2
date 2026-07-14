@@ -111,9 +111,10 @@ def test_english_operations_keep_semantic_sections_safeguards_and_natural_titles
 
 def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
     expected = (
-        ("ISSUE_OR_PR", True),
         ("DECISION_SOURCE", True),
         ("PM_DECISION_ALREADY_MADE", True),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
         ("DECISION_OPTIONS", False),
         ("PM_DECISION", False),
     )
@@ -138,6 +139,8 @@ def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
         "never authorizes",
         "status.needs_context",
         "status.needs_pm_decision",
+        "at least one",
+        "unrelated",
     ):
         assert clause in english
 

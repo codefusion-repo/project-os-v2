@@ -10,14 +10,15 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Procesa una decisión PM pendiente desde evidencia viva hacia una salida segura.
 **Para:** Resolver decisiones PM pendientes con variables claras y target-agnostic.
-**Cómo:** Lee el issue o PR tipado, reconstruye el punto pendiente desde `DECISION_SOURCE` y valida una decisión ya tomada o presenta opciones con impacto, tradeoffs, recomendación y la pregunta exacta.
+**Cómo:** Lee el issue y/o PR identificado por sus números, reconstruye el punto pendiente desde `DECISION_SOURCE` y valida una decisión ya tomada o presenta opciones con impacto, tradeoffs, recomendación y la pregunta exacta.
 
 **Variables**
-- Requeridas: ISSUE_OR_PR, DECISION_SOURCE, PM_DECISION_ALREADY_MADE
-- Opcionales: DECISION_OPTIONS, PM_DECISION
+- Requeridas: DECISION_SOURCE, PM_DECISION_ALREADY_MADE
+- Opcionales: ISSUE_NUMBER, PR_NUMBER, DECISION_OPTIONS, PM_DECISION
 
 **Cuida**
-- `ISSUE_OR_PR` acepta una única referencia tipada `issue #N` o `PR #N`; resuelve el repositorio desde la adopción activa y devuelve `status.needs_context` si no es inequívoco.
+- `ISSUE_NUMBER` y `PR_NUMBER` reciben solo números positivos; al menos una debe estar presente. Si ambas faltan, devuelve `status.needs_context`.
+- Pueden estar presentes ambas referencias cuando pertenecen a un flujo relacionado verificable; si no están relacionadas, falla cerrado.
 - `PM_DECISION_ALREADY_MADE` es `true` o `false`: con `true`, `PM_DECISION` es obligatoria; con `false`, debe quedar vacía.
 - Si `PM_DECISION_ALREADY_MADE=false`, usa `DECISION_OPTIONS` cuando existan o deriva un conjunto acotado desde evidencia viva; entrega impacto, tradeoffs, riesgos, reversibilidad, recomendación y la pregunta exacta.
 - `PM_DECISION` decide solo el punto explícito; nunca autoriza escrituras, implementación, merge, cierre, tag, release, deploy, rutas futuras ni otras mutaciones.

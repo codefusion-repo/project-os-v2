@@ -70,7 +70,6 @@ INPUT_VARIABLE_PATTERN = re.compile(
 )
 REPOSITORY_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 POSITIVE_NUMBER_PATTERN = re.compile(r"^#?[1-9][0-9]*$")
-ISSUE_OR_PR_PATTERN = re.compile(r"^(issue|pr)[ \t]+#([1-9][0-9]*)$", re.IGNORECASE)
 SAFE_FILENAME_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
 SECRET_LOOKING_PATTERN = re.compile(
     r"\b(?:gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{20,}|"
@@ -113,6 +112,7 @@ PM_DECISION_ALREADY_MADE_NAME = "PM_DECISION_ALREADY_MADE"
 PM_DECISION_NAME = "PM_DECISION"
 PM_DECISION_TRUE_CHOICES = ("true", "1", "yes", "y", "si", "sí")
 PM_DECISION_FALSE_CHOICES = ("false", "0", "no", "n")
+MOS_R3_REFERENCE_NAMES = ("ISSUE_NUMBER", "PR_NUMBER")
 HYDRATION_LEVEL_NAME = "HYDRATION_LEVEL"
 HYDRATION_LEVEL_DEFAULT = "compact"
 HYDRATION_LEVEL_CHOICES = ("minimal", HYDRATION_LEVEL_DEFAULT, "full/debug")
@@ -561,6 +561,7 @@ def validate_variable_value(
     value: str,
     skill_choices: tuple[str, ...] | None = None,
     current_values: dict[str, str] | None = None,
+    requires_mos_r3_reference: bool = False,
 ) -> str | None:
     """Return a validation error for common variable shapes, or ``None``."""
 
@@ -575,6 +576,13 @@ def validate_variable_value(
             return f"{PM_DECISION_NAME} is required when {PM_DECISION_ALREADY_MADE_NAME}=true."
         if decision_made == "false" and stripped:
             return f"{PM_DECISION_NAME} must be empty when {PM_DECISION_ALREADY_MADE_NAME}=false."
+    if (
+        requires_mos_r3_reference
+        and variable.name == "PR_NUMBER"
+        and not stripped
+        and not (current_values or {}).get("ISSUE_NUMBER", "").strip()
+    ):
+        return "At least one of ISSUE_NUMBER or PR_NUMBER is required."
     if not stripped:
         return None
     if SECRET_LOOKING_PATTERN.search(stripped):
@@ -586,11 +594,6 @@ def validate_variable_value(
                 f"{variable.name} must be 1, 2, pending, or "
                 "granted for this exact scope and mode."
             )
-        return None
-
-    if variable.name == "ISSUE_OR_PR":
-        if normalize_issue_or_pr(stripped) is None:
-            return "ISSUE_OR_PR must be exactly one typed reference: issue #123 or PR #456."
         return None
 
     if variable.name == PM_DECISION_ALREADY_MADE_NAME:
@@ -645,8 +648,6 @@ def validation_example(
 
     if is_pm_authorization_status_variable(variable.name):
         return "Choose 1 for pending or 2 for granted for this exact scope and mode."
-    if variable.name == "ISSUE_OR_PR":
-        return "Use exactly one typed reference: issue #123 or PR #456."
     if variable.name == PM_DECISION_ALREADY_MADE_NAME:
         return "Use true or false; local yes/no, si/sí/no, and 1/0 are normalized."
     if variable.name == PM_DECISION_NAME:
@@ -804,17 +805,6 @@ def normalize_pm_authorization_status(value: str) -> str | None:
     return None
 
 
-def normalize_issue_or_pr(value: str) -> str | None:
-    """Normalize one typed issue or PR reference without inferring its type."""
-
-    match = ISSUE_OR_PR_PATTERN.fullmatch(value.strip())
-    if match is None:
-        return None
-    reference_type, number = match.groups()
-    prefix = "issue" if reference_type.lower() == "issue" else "PR"
-    return f"{prefix} #{number}"
-
-
 def normalize_pm_decision_already_made(value: str) -> str | None:
     """Normalize strict decision-state booleans from narrow local helpers."""
 
@@ -831,10 +821,6 @@ def normalize_variable_value(variable: InputVariable, value: str) -> str:
 
     if is_pm_authorization_status_variable(variable.name):
         normalized = normalize_pm_authorization_status(value)
-        if normalized is not None:
-            return normalized
-    if variable.name == "ISSUE_OR_PR":
-        normalized = normalize_issue_or_pr(value)
         if normalized is not None:
             return normalized
     if variable.name == PM_DECISION_ALREADY_MADE_NAME:
@@ -1497,6 +1483,7 @@ def collect_values_with_controls(
     print_stage("Step 2/3", "Fill INPUT variables", output_stream)
     display_operation_summary(operation, output_stream)
     variables = wizard_variables(operation)
+    requires_mos_r3_reference = operation.mos_code == "MOS-R.3"
     for variable in variables:
         if is_hydration_level_variable(variable.name):
             values.setdefault(variable.name, HYDRATION_LEVEL_DEFAULT)
@@ -1539,6 +1526,7 @@ def collect_values_with_controls(
                     "",
                     skill_choices=skill_choices,
                     current_values=values,
+                    requires_mos_r3_reference=requires_mos_r3_reference,
                 )
                 if error is not None:
                     print(
@@ -1557,6 +1545,7 @@ def collect_values_with_controls(
                 value,
                 skill_choices=skill_choices,
                 current_values=values,
+                requires_mos_r3_reference=requires_mos_r3_reference,
             )
             if error is None:
                 values[variable.name] = normalize_variable_value(variable, value)
@@ -2134,6 +2123,7 @@ if HAVE_PROMPT_TOOLKIT:
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
         display_operation_summary(operation, output_stream)
         variables = wizard_variables(operation)
+        requires_mos_r3_reference = operation.mos_code == "MOS-R.3"
         for variable in variables:
             if is_hydration_level_variable(variable.name):
                 values.setdefault(variable.name, HYDRATION_LEVEL_DEFAULT)
@@ -2169,6 +2159,7 @@ if HAVE_PROMPT_TOOLKIT:
                         text,
                         skill_choices=skill_choices,
                         current_values=values,
+                        requires_mos_r3_reference=requires_mos_r3_reference,
                     )
                     if error is not None:
                         raise ValidationError(message=error, cursor_position=len(document.text))
@@ -2201,11 +2192,13 @@ if HAVE_PROMPT_TOOLKIT:
                     raw_value = prompt(
                         prompt_label,
                         default=current,
-                        # ISSUE_OR_PR is validated after prompt() returns so an invalid
-                        # attempt starts a fresh buffer instead of trapping the corrected
-                        # typed reference behind prompt_toolkit's retained invalid text.
+                        # MOS-R.3 reference numbers are validated after prompt() returns
+                        # so a rejected value starts a fresh buffer for the correction.
                         validator=(
-                            None if variable.name == "ISSUE_OR_PR" else VariableValidator()
+                            None
+                            if requires_mos_r3_reference
+                            and variable.name in MOS_R3_REFERENCE_NAMES
+                            else VariableValidator()
                         ),
                         completer=completer,
                         complete_while_typing=(
@@ -2231,6 +2224,7 @@ if HAVE_PROMPT_TOOLKIT:
                         "",
                         skill_choices=skill_choices,
                         current_values=values,
+                        requires_mos_r3_reference=requires_mos_r3_reference,
                     )
                     if error is not None:
                         print(
@@ -2249,6 +2243,7 @@ if HAVE_PROMPT_TOOLKIT:
                     value,
                     skill_choices=skill_choices,
                     current_values=values,
+                    requires_mos_r3_reference=requires_mos_r3_reference,
                 )
                 if error is None:
                     values[variable.name] = normalize_variable_value(variable, value)

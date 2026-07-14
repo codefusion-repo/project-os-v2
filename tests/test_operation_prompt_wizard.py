@@ -251,11 +251,12 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
         assert f"{HYDRATION_LEVEL_NAME}=full/debug" in rendered
 
 
-def test_mos_r3_exposes_only_the_five_decision_variables_in_both_languages() -> None:
+def test_mos_r3_exposes_only_the_six_decision_variables_in_both_languages() -> None:
     expected = [
-        ("ISSUE_OR_PR", True),
         ("DECISION_SOURCE", True),
         ("PM_DECISION_ALREADY_MADE", True),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
         ("DECISION_OPTIONS", False),
         ("PM_DECISION", False),
     ]
@@ -270,25 +271,31 @@ def test_mos_r3_exposes_only_the_five_decision_variables_in_both_languages() -> 
         assert [(variable.name, variable.required) for variable in wizard_variables(operation)] == expected
 
 
-def test_mos_r3_validates_and_normalizes_typed_references_and_decision_state() -> None:
+def test_mos_r3_validates_numeric_references_and_decision_state() -> None:
     operation = next(item for item in discover_operations() if item.mos_code == "MOS-R.3")
     variables = {variable.name: variable for variable in operation.variables}
 
-    issue_or_pr = variables["ISSUE_OR_PR"]
-    assert validate_variable_value(issue_or_pr, "issue #429") is None
-    assert validate_variable_value(issue_or_pr, "PR #428") is None
-    for invalid in (
-        "429",
-        "#429",
-        "issue 429",
-        "PR#429",
-        "issue #0",
-        "issue #429, PR #428",
-        "issue #429 PR #428",
-    ):
-        assert "exactly one typed reference" in (validate_variable_value(issue_or_pr, invalid) or "")
-    assert normalize_variable_value(issue_or_pr, "ISSUE #429") == "issue #429"
-    assert normalize_variable_value(issue_or_pr, "pr #428") == "PR #428"
+    issue_number = variables["ISSUE_NUMBER"]
+    pr_number = variables["PR_NUMBER"]
+    assert validate_variable_value(issue_number, "429") is None
+    assert validate_variable_value(pr_number, "#431") is None
+    for invalid in ("issue #429", "PR #431", "0", "-429", "429, 431"):
+        assert "positive issue/PR number" in (validate_variable_value(issue_number, invalid) or "")
+    assert "At least one" in (
+        validate_variable_value(
+            pr_number,
+            "",
+            current_values={"ISSUE_NUMBER": ""},
+            requires_mos_r3_reference=True,
+        )
+        or ""
+    )
+    assert validate_variable_value(
+        pr_number,
+        "",
+        current_values={"ISSUE_NUMBER": "429"},
+        requires_mos_r3_reference=True,
+    ) is None
 
     decision_made = variables["PM_DECISION_ALREADY_MADE"]
     for supplied, expected in (("true", "true"), ("sí", "true"), ("1", "true"), ("false", "false"), ("no", "false"), ("0", "false")):
@@ -344,21 +351,22 @@ def test_mos_r3_display_description_names_the_pending_pm_decision_in_both_langua
         assert expected[language] in stream.getvalue()
 
 
-def test_mos_r3_line_collection_covers_both_conditional_routes() -> None:
+def test_mos_r3_line_collection_covers_issue_only_pr_only_both_and_neither() -> None:
     operation = next(item for item in discover_operations() if item.mos_code == "MOS-R.3")
 
     decided_stream = StringIO()
     decided = collect_values_with_controls(
         operation,
         input_func=answers(
-            "issue #429", "security review", "sí", "", "/clear", "Apply option A"
+            "security review", "sí", "429", "", "", "/clear", "Apply option A"
         ),
         output_stream=decided_stream,
     )
     assert decided.values == {
-        "ISSUE_OR_PR": "issue #429",
         "DECISION_SOURCE": "security review",
         "PM_DECISION_ALREADY_MADE": "true",
+        "ISSUE_NUMBER": "429",
+        "PR_NUMBER": "",
         "DECISION_OPTIONS": "",
         "PM_DECISION": "Apply option A",
     }
@@ -366,16 +374,34 @@ def test_mos_r3_line_collection_covers_both_conditional_routes() -> None:
 
     options_needed = collect_values_with_controls(
         operation,
-        input_func=answers("pr #428", "QA result", "no", "", ""),
+        input_func=answers("QA result", "no", "", "428", "", ""),
         output_stream=StringIO(),
     )
     assert options_needed.values == {
-        "ISSUE_OR_PR": "PR #428",
         "DECISION_SOURCE": "QA result",
         "PM_DECISION_ALREADY_MADE": "false",
+        "ISSUE_NUMBER": "",
+        "PR_NUMBER": "428",
         "DECISION_OPTIONS": "",
         "PM_DECISION": "",
     }
+
+    both = collect_values_with_controls(
+        operation,
+        input_func=answers("release review", "false", "429", "431", "", ""),
+        output_stream=StringIO(),
+    )
+    assert both.values["ISSUE_NUMBER"] == "429"
+    assert both.values["PR_NUMBER"] == "431"
+
+    neither_stream = StringIO()
+    neither = collect_values_with_controls(
+        operation,
+        input_func=answers("QA result", "false", "", "", "431", "", ""),
+        output_stream=neither_stream,
+    )
+    assert neither.values["PR_NUMBER"] == "431"
+    assert "At least one of ISSUE_NUMBER or PR_NUMBER is required" in neither_stream.getvalue()
 
 
 @pytest.mark.parametrize("language", ("es", "en"))
@@ -387,9 +413,10 @@ def test_mos_r3_wizard_generates_canonical_artifact_for_decision_already_made(
         output_dir=tmp_path,
         input_func=answers(
             "MOS-R.3",
-            "ISSUE #429",
             "MOS-3.7 review",
             "yes",
+            "429",
+            "",
             "",
             "Apply the scoped correction",
             "2",
@@ -401,7 +428,8 @@ def test_mos_r3_wizard_generates_canonical_artifact_for_decision_already_made(
 
     assert output is not None
     content = output.read_text(encoding="utf-8")
-    assert "ISSUE_OR_PR=issue #429" in content
+    assert "ISSUE_NUMBER=429" in content
+    assert "PR_NUMBER=" in content
     assert "PM_DECISION_ALREADY_MADE=true" in content
     assert "PM_DECISION=Apply the scoped correction" in content
 
@@ -415,10 +443,11 @@ def test_mos_r3_wizard_rejects_contradictory_false_decision_and_allows_empty_opt
         output_dir=tmp_path,
         input_func=answers(
             "MOS-R.3",
-            "429",
-            "issue #429",
             "QA result",
             "false",
+            "",
+            "",
+            "431",
             "",
             "Contradictory decision",
             "",
@@ -431,11 +460,12 @@ def test_mos_r3_wizard_rejects_contradictory_false_decision_and_allows_empty_opt
 
     assert output is not None
     content = output.read_text(encoding="utf-8")
-    assert "ISSUE_OR_PR=issue #429" in content
+    assert "ISSUE_NUMBER=" in content
+    assert "PR_NUMBER=431" in content
     assert "PM_DECISION_ALREADY_MADE=false" in content
     assert "DECISION_OPTIONS=" in content
     assert "PM_DECISION=" in content
-    assert "exactly one typed reference" in stream.getvalue()
+    assert "At least one of ISSUE_NUMBER or PR_NUMBER is required" in stream.getvalue()
     assert "must be empty" in stream.getvalue()
 
 

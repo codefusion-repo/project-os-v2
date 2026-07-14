@@ -403,7 +403,7 @@ def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_pat
     assert not list(output_dir.glob("*.md"))
 
 
-def test_mos_r3_prompt_toolkit_pseudo_tty_recovers_after_invalid_typed_reference(
+def test_mos_r3_prompt_toolkit_pseudo_tty_recovers_after_invalid_numeric_reference(
     tmp_path: Path,
 ) -> None:
     script = shutil.which("script")
@@ -418,7 +418,7 @@ def test_mos_r3_prompt_toolkit_pseudo_tty_recovers_after_invalid_typed_reference
     completed = subprocess.run(
         [script, "-qec", command, "/dev/null"],
         cwd=Path(__file__).resolve().parents[1],
-        input="MOS-R.3\n431\nPR #431\ncancel\n",
+        input="MOS-R.3\nMOS-3.7 review\nfalse\nissue #429\n429\ncancel\n",
         text=True,
         capture_output=True,
         check=False,
@@ -426,6 +426,6 @@ def test_mos_r3_prompt_toolkit_pseudo_tty_recovers_after_invalid_typed_reference
     )
 
     assert completed.returncode == 1
-    assert "Invalid value: ISSUE_OR_PR must be exactly one typed reference" in completed.stdout
-    assert "DECISION_SOURCE (required, <DECISION_SOURCE>):" in completed.stdout
+    assert "Invalid value: ISSUE_NUMBER must be a positive issue/PR number" in completed.stdout
+    assert "PR_NUMBER (optional, <PR_NUMBER>):" in completed.stdout
     assert not list(output_dir.glob("*.md"))

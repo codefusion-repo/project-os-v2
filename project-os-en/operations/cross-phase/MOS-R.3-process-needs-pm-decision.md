@@ -10,14 +10,15 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Process a pending PM decision from live evidence into a safe output.
 **For:** To resolve pending PM decisions with clear and target-agnostic variables.
-**How:** Read the typed issue or PR, reconstruct the pending point from `DECISION_SOURCE`, and either validate a decision already made or present options with impact, tradeoffs, a recommendation, and the exact question.
+**How:** Read the issue and/or PR identified by their numbers, reconstruct the pending point from `DECISION_SOURCE`, and either validate a decision already made or present options with impact, tradeoffs, a recommendation, and the exact question.
 
 **Variables**
-- Required: ISSUE_OR_PR, DECISION_SOURCE, PM_DECISION_ALREADY_MADE
-- Optional: DECISION_OPTIONS, PM_DECISION
+- Required: DECISION_SOURCE, PM_DECISION_ALREADY_MADE
+- Optional: ISSUE_NUMBER, PR_NUMBER, DECISION_OPTIONS, PM_DECISION
 
 **Safeguards**
-- `ISSUE_OR_PR` accepts exactly one typed `issue #N` or `PR #N` reference; resolve the repository from active adoption and return `status.needs_context` when it is not unambiguous.
+- `ISSUE_NUMBER` and `PR_NUMBER` accept positive numbers only; at least one must be supplied. If both are absent, return `status.needs_context`.
+- Both references may be supplied when they belong to a verifiably related flow; if they are unrelated, fail closed.
 - `PM_DECISION_ALREADY_MADE` is `true` or `false`: when `true`, `PM_DECISION` is required; when `false`, it must be empty.
 - If `PM_DECISION_ALREADY_MADE=false`, use `DECISION_OPTIONS` when supplied or derive a bounded set from live evidence; deliver impact, tradeoffs, risks, reversibility, a recommendation, and the exact question.
 - `PM_DECISION` decides only the explicit point; it never authorizes writes, implementation, merge, closure, tag, release, deploy, future routes, or other mutations.
