@@ -45,6 +45,11 @@ What it is **not**:
   validation; explicit authorization; freedom to switch agents and providers
   without losing project context to a single tool or context window.
 
+The verifiable detail — benefits with their source in the tree, the modular
+architecture, and scenarios such as chat loss, handoff, agent switching,
+missing approval, out-of-scope corrections and human QA — lives in
+[`project-os-en/docs/benefits.md`](project-os-en/docs/benefits.md).
+
 ## Sources of truth
 
 - **Stable behavior** lives in `project-os-es/kernel/*.json` (versioned and
@@ -63,7 +68,7 @@ What it is **not**:
 | `project-os-es/kernel/*.json` | Spanish operating kernel: actors, modes, workflows, boundaries, evidence, outputs, statuses, artifacts and skills | **Active (default)** |
 | `project-os-en/kernel/*.json` | Parallel English operating kernel, with the same IDs, gates and relationships | **Active (explicit)** |
 | `tools/project_os_resolve.py` | Single principal deterministic resolver: Spanish by default, English via explicit path, never granting permission | **Active** |
-| `project-os-en/docs/` | PM-facing docs: `project-os-en/docs/getting-started.md`, `project-os-en/docs/rules.md`, `project-os-en/docs/rhythm.md`, `project-os-en/docs/context-benchmark.md` | **Active (explicit)** |
+| `project-os-en/docs/` | PM-facing docs: `project-os-en/docs/getting-started.md`, `project-os-en/docs/rules.md`, `project-os-en/docs/rhythm.md`, `project-os-en/docs/benefits.md`, `project-os-en/docs/context-benchmark.md` | **Active (explicit)** |
 | `project-os-en/operations/` | Compact English MOSDLC catalog, by phase | **Active (explicit)** |
 | `project-os-en/adapters/` | Adapter templates `*.target.md` to adopt Project OS on a target | **Active (explicit)** |
 | `project-os-en/templates/` + `project-os-en/skills/` | Artifact shapes and optional skills referenced by the kernel | **Active (explicit)** |

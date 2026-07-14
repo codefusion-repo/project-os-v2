@@ -48,6 +48,11 @@ Qué **no** es:
   proveedores sin perder el contexto del proyecto en una sola herramienta o
   ventana.
 
+El detalle verificable — beneficios con su fuente en el árbol, arquitectura
+modular y escenarios como pérdida de chat, handoff, cambio de agente, falta
+de aprobación, corrección fuera de scope y QA humano — está en
+[`project-os-es/docs/beneficios.md`](project-os-es/docs/beneficios.md).
+
 ## Fuentes de verdad
 
 - **Comportamiento estable** vive en `project-os-es/kernel/*.json` (versionado
@@ -66,7 +71,7 @@ Qué **no** es:
 | `project-os-es/kernel/*.json` | Kernel operativo en español: actores, modos, workflows, límites, evidencia, salidas, estados, artefactos y skills | **Activa (default)** |
 | `project-os-en/kernel/*.json` | Kernel operativo paralelo en inglés, con los mismos IDs, gates y relaciones | **Activa (explícita)** |
 | `tools/project_os_resolve.py` | Único resolver determinista principal: default ES o EN mediante path explícito, sin conceder permisos | **Activa** |
-| `project-os-es/docs/` | Docs PM-facing: `project-os-es/docs/empezar.md`, `project-os-es/docs/reglas.md`, `project-os-es/docs/ritmo.md`, `project-os-es/docs/benchmark-contexto.md` | **Activa** |
+| `project-os-es/docs/` | Docs PM-facing: `project-os-es/docs/empezar.md`, `project-os-es/docs/reglas.md`, `project-os-es/docs/ritmo.md`, `project-os-es/docs/beneficios.md`, `project-os-es/docs/benchmark-contexto.md` | **Activa** |
 | `project-os-es/operaciones/` | Catálogo MOSDLC compacto en español, por fase | **Activa** |
 | `project-os-es/adapters/` | Adapter templates `*.target.md` para adoptar Project OS en un target | **Activa** |
 | `project-os-es/templates/` + `project-os-es/habilidades/` | Formas de artefactos y skills opcionales referenciados por el kernel | **Activa** |
