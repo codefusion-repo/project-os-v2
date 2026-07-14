@@ -1,8 +1,9 @@
 # Empezar con Project OS
 
 **Guía breve para arrancar bien: confirma lo externo, elige superficie,
-configura el browser, prepara terminal solo si vas a delegar y abre la primera
-sesión con evidencia real.**
+configura el browser, prepara terminal solo si vas a delegar, abre la primera
+sesión con evidencia real y opera el ciclo completo — delegar, revisar,
+corregir y cerrar.**
 
 ## 1. Requisitos externos
 
@@ -44,6 +45,11 @@ Dos repos aparecen en casi todos los flujos:
 
 Antes de pedir trabajo, nombra cuál repo cumple cada rol.
 
+Además de la superficie de actuación, elige la superficie de idioma por path:
+español es el default (`project-os-es/`); inglés es selección explícita
+(`project-os-en/`, o `--kernel-dir project-os-en/kernel` en el resolver). No
+existe selector global ni preferencia persistente de idioma.
+
 ## 3. Configuración browser
 
 Haz esto en la superficie browser antes de usarla para draft o revisión:
@@ -73,6 +79,11 @@ Haz esto solo cuando vayas a delegar implementación a un terminal agent:
 5. Adopta o revisa el adapter terminal del target con
    [`project-os-es/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md) y
    conoce `KERNEL_LOCAL_PATH` desde ese adapter.
+
+La adopción es copy-based por diseño: copiar el adapter al target y ajustar sus
+campos de identidad es la instalación completa. No hay installer, package ni
+CLI; cualquier tooling futuro tiene su propio gate y no es requisito para
+operar hoy.
 
 Fast path del resolver cuando el repo ya está listo:
 
@@ -110,7 +121,8 @@ python tools/project_os_resolve.py --actor actor.terminal_agent \
 ```
 
 El nivel cambia solo el contenido devuelto: no lee GitHub/git, no inventa estado
-y nunca concede permisos. Los otros niveles se solicitan con el mismo flag; un
+y nunca concede permisos. Los tamaños medidos por nivel, con metodología y
+fecha declaradas, están en [benchmark-contexto.md](benchmark-contexto.md). Los otros niveles se solicitan con el mismo flag; un
 valor desconocido falla cerrado. En Python el parámetro canónico es
 `hydration_level`; `compact` sigue disponible como alias de compatibilidad. El
 flag preexistente `--compact` conserva exclusivamente su función de imprimir
@@ -141,9 +153,40 @@ artefactos/templates, referenciado por `required_skill` bajo
 4. **Usa
    [MOS-0.6](../operaciones/fase-0/MOS-0.6-transferir-contexto-de-sesion.md)
    solo si la sesión está incoherente, agotada o necesita traspaso.**
-5. **Genera prompts locales opcionalmente** con
+5. **Elige la siguiente operación por fase** desde el catálogo
+   [`operaciones/README.md`](../operaciones/README.md) (incluye una tabla de
+   casos frecuentes en [docs/README.md](README.md)) y el ciclo día a día de
+   [ritmo.md](ritmo.md).
+6. **Genera prompts locales opcionalmente** con
    `python tools/operation_prompt_wizard.py --language es` (o responde su
    pregunta única `es/en`; español sigue siendo el default). La selección es
    solo de sesión, no ejecuta la operación y nunca adopta un idioma para el
    target.
-6. **Siguiente paso:** lee [reglas.md](reglas.md) y luego [ritmo.md](ritmo.md).
+
+## 6. Delegar, revisar, corregir y cerrar
+
+El ciclo completo de una unidad de trabajo, una vez activa la sesión:
+
+1. **Delegar la implementación.** Draftea el route prompt con
+   [MOS-3.4](../operaciones/fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md)
+   (el wizard captura `HYDRATION_LEVEL`; `compact` es el default) y entrégalo
+   al terminal agent. El agente re-resuelve el kernel, verifica preflight, scope
+   vivo y aprobación PM exacta, implementa solo el scope, valida y abre un
+   draft PR. El route prompt da forma y nunca autoriza por sí mismo.
+2. **Revisar el PR antes de cerrar.** Usa
+   [MOS-3.7](../operaciones/fase-3/MOS-3.7-revisar-pr-antes-de-cerrar.md):
+   compara la unidad de trabajo contra el diff, los archivos finales, la
+   validación reportada y los riesgos. Reportes y bodies son claims hasta
+   verificarlos contra evidencia viva.
+3. **Corregir dentro del mismo issue/PR.** Si el review encuentra gaps,
+   draftea la corrección con
+   [MOS-3.5](../operaciones/fase-3/MOS-3.5-draftear-route-prompt-de-correccion.md)
+   sobre la misma rama y el mismo PR; no abras unidades nuevas para corregir
+   scope vigente.
+4. **Cerrar y verificar post-merge.** Merge y cierre son siempre del Humano
+   PM: [MOS-3.6](../operaciones/fase-3/MOS-3.6-draftear-comandos-de-closeout.md)
+   draftea los comandos copy-safe de closeout y
+   [MOS-3.9](../operaciones/fase-3/MOS-3.9-verificar-estado-post-merge.md)
+   verifica el estado real post-merge con evidencia viva.
+
+**Siguiente paso:** lee [reglas.md](reglas.md) y luego [ritmo.md](ritmo.md).

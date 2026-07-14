@@ -1,18 +1,102 @@
-# Getting started
+# Getting started with Project OS
 
-## Choose the language surface
+**A short guide to a clean start: confirm the external prerequisites, choose
+your surfaces, set up the browser, prepare a terminal only when you will
+delegate, open the first session on live evidence, and run the full cycle —
+delegate, review, correct, and close.**
 
-Spanish is the default: omit `--kernel-dir` or select `project-os-es/kernel`. Select English only by passing `--kernel-dir project-os-en/kernel`. This is an explicit tooling path, not a persisted preference or productized language selector.
+## 1. External prerequisites
 
-## Resolve before acting
+Project OS does not control these points. Have them ready first:
 
-Read `project-os-en/kernel/manifest.json` and follow `resolution_sequence`. In a terminal checkout:
+- **A target repo on GitHub.** The product you will adopt, implement, review,
+  or audit.
+- **A GitHub account with access to the target repo.** The required connected
+  access is to the target: issues, PRs, diffs, and docs as the flow needs.
+- **A browser chat with read-only GitHub/target access.** Recommended: ChatGPT
+  with GitHub connected. Any browser surface works when it supports a
+  project/chat with persistent instructions and can read the target repo.
+- **A terminal/local setup with GitHub access to the target when you will
+  delegate implementation.** It must read and write only what is approved;
+  when the flow uses issues or PRs, it also needs issue/PR access on the
+  target.
+- **A readable Project OS repo.** Use it as the readable source of kernel,
+  operations, adapters, and docs; never present it as a private requirement
+  tied to a special account.
+- **No secrets to start.** You need no `.env`, tokens, private keys, or
+  production credentials to activate a session.
+
+## 2. Surfaces
+
+Capability follows the surface, not the role:
+
+- **Human PM.** Decides scope, exact approvals, merge, issue close, labels,
+  tags, releases, settings, secrets, and deployments.
+- **Browser chat.** Good at drafting, reviewing, routing, and analysis. It
+  stays read-only/draft-only even when the connected tool could write.
+- **Terminal agent.** Runs delegated implementation: edits in scope,
+  validates, commits/pushes, and opens a draft PR only with live evidence,
+  the right branch, and exact PM approval.
+
+Two repos appear in almost every flow:
+
+- **The Project OS repo:** kernel, operations, adapters, and docs.
+- **The target repo:** the product where work is adopted or executed. When
+  developing Project OS itself, target and Project OS can be the same repo.
+
+Name which repo plays each role when you ask an agent to work.
+
+Besides the acting surface, choose the language surface by path: Spanish is
+the default (`project-os-es/`); English is an explicit selection
+(`project-os-en/`, or `--kernel-dir project-os-en/kernel` on the resolver).
+There is no global selector and no persisted language preference.
+
+## 3. Browser setup
+
+Do this on the browser surface when you will use it to draft or review:
+
+1. Use ChatGPT (recommended) or another browser surface that supports a
+   project/chat with persistent instructions.
+2. Load the Project OS instructions or the target's adapter when one exists;
+   as the browser project/chat bootloader use
+   [`project-os-en/adapters/BROWSER_CHAT.target.md`](../adapters/BROWSER_CHAT.target.md).
+3. Connect or verify GitHub on that surface.
+4. Confirm it can read the target repo; when applicable, confirm it can also
+   read the Project OS repo.
+5. When it cannot read required evidence, it must answer
+   `status.needs_context` naming what is missing. It must never invent issue,
+   PR, branch, diff, or roadmap state.
+
+## 4. Terminal/local setup
+
+Do this only when you will delegate implementation to a terminal agent:
+
+1. Have the target repo cloned or the local workspace ready.
+2. Verify `gh auth status` against the target repo.
+3. Confirm issue and PR access on the target when the agent must read them,
+   comment, or open PRs.
+4. Have Python available when you will use the resolver.
+5. Adopt or review the target's terminal adapter with
+   [`project-os-en/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md)
+   and learn `KERNEL_LOCAL_PATH` from that adapter.
+
+Adoption is copy-based by design: copying the adapter into the target and
+filling its identity fields is the complete install. There is no installer,
+package, or CLI; any future tooling has its own gate and is not required to
+operate today.
+
+Resolver fast path once the repo is ready:
 
 ```sh
-python tools/project_os_resolve.py --actor <actor> --workflow <workflow>   --mode <mode> --kernel-dir project-os-en/kernel [--skill skill.<id>]
+python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
+  --mode <mode> --kernel-dir project-os-en/kernel [--skill skill.<id>]
 ```
 
-The resolver accelerates a canonical manifest read. Its output never grants permission or reads GitHub/git on your behalf. Browser chat does not run local Python; it reads the manifest through available sources and stays read-only and draft-only.
+Manual resolution of `project-os-en/kernel/manifest.json` remains the
+canonical fallback. The resolver output never grants permission and never
+reads GitHub/git on your behalf. Browser chat does not run local Python; it
+reads the manifest through available sources and stays read-only and
+draft-only.
 
 ### Hydration level
 
@@ -41,16 +125,75 @@ python tools/project_os_resolve.py --actor actor.terminal_agent \
 ```
 
 The level changes returned content only: it does not read GitHub/git, invent
-state, or grant permission. Unknown values fail closed. The canonical Python
-parameter is `hydration_level`; `compact` remains a compatibility alias. The
-pre-existing `--compact` flag only controls JSON indentation.
+project state, or grant permission. Unknown values fail closed. The canonical
+Python parameter is `hydration_level`; `compact` remains a compatibility
+alias. The pre-existing `--compact` flag only controls JSON indentation.
+Measured sizes per level, with declared method and date, live in
+[context-benchmark.md](context-benchmark.md).
 
-## Adopt a target
+When drafting outputs, the resolver may expose artifacts with a
+`required_template`; use that template from
+[`project-os-en/templates/`](../templates/README.md) as the output's shape,
+never as permission. When the PM asks or a route prompt recommends a skill,
+pass it with `--skill`; the resolver returns it as `requested_skills`,
+referenced by `required_skill` under
+[`project-os-en/skills/`](../skills/), with no extra authority.
 
-Use `../adapters/AGENTS.target.md` as the only complete terminal bootloader. Claude and Gemini files are shims. Use `BROWSER_CHAT.target.md` separately for browser chat. Preserve metadata order and put only stable target-owned commands, paths, domain/security constraints, language, and escalation notes in the target section.
+## 5. First session
 
-## Start operating
+1. **Choose the surface.** Browser chat drafts, reviews, and routes; the
+   terminal agent runs delegated implementation; the Human PM keeps merge,
+   close, settings, secrets, and deployments.
+2. **Activate browser chat with
+   [MOS-0.1](../operations/phase-0/MOS-0.1-activate-browser-session.md).**
+3. **Verify adoption when a target exists with
+   [MOS-0.5](../operations/phase-0/MOS-0.5-verify-target-adoption.md).** When
+   the target has not adopted Project OS yet, use
+   [MOS-0.2](../operations/phase-0/MOS-0.2-bootstrap-new-project.md) on a new
+   project or
+   [MOS-0.3](../operations/phase-0/MOS-0.3-adopt-existing-project.md) on an
+   existing one.
+4. **Use
+   [MOS-0.6](../operations/phase-0/MOS-0.6-handoff-session-context.md) only
+   when the session is incoherent, exhausted, or needs handoff.**
+5. **Pick the next lifecycle-phase operation** from the catalog
+   [`operations/README.md`](../operations/README.md) and the day-to-day cycle
+   in [rhythm.md](rhythm.md).
+6. **Optionally generate local prompts** with
+   `python tools/operation_prompt_wizard.py --language en` (or answer its
+   one-time `es/en` question; Spanish stays the default). The selection is
+   session-only, does not execute the chosen work, and never adopts a
+   language on the target.
 
-Open `../operations/README.md`, choose the operation matching the real lifecycle outcome, fill its variables, and gather the declared live evidence. Optional local prompt generation may run `python tools/operation_prompt_wizard.py --language en` (or answer the wizard's one-time `es/en` question; Spanish stays the default); the selection is session-only, does not execute the operation, and never adopts a language for the target.
+## 6. Delegate, review, correct, and close
 
-Stop with the resolved status if the kernel, scope, authority, evidence, or validation is missing or ambiguous.
+The full cycle of one unit of work, once the session is active:
+
+1. **Delegate the implementation.** Draft the route prompt with
+   [MOS-3.4](../operations/phase-3/MOS-3.4-draft-implementation-route-prompt.md)
+   (the wizard captures `HYDRATION_LEVEL`; `compact` is the default) and hand
+   it to the terminal agent. The agent re-resolves the kernel, verifies
+   preflight, live scope, and exact PM approval, implements only the scope,
+   validates, and opens a draft PR. The route prompt shapes and never
+   authorizes by itself.
+2. **Review the PR first.** Use
+   [MOS-3.7](../operations/phase-3/MOS-3.7-review-pr-before-close.md): compare
+   the unit of work against the diff, the final files, the reported
+   validation, and the risks. Reports and bodies are claims until verified
+   against live evidence.
+3. **Correct inside the same issue/PR.** When review finds gaps, draft the
+   correction with
+   [MOS-3.5](../operations/phase-3/MOS-3.5-draft-correction-route-prompt.md)
+   on the same branch and the same PR; do not open new units to correct live
+   scope.
+4. **Close and verify post-merge.** Merge and close always belong to the
+   Human PM:
+   [MOS-3.6](../operations/phase-3/MOS-3.6-draft-closeout-commands.md) drafts
+   the copy-safe closeout commands and
+   [MOS-3.9](../operations/phase-3/MOS-3.9-verify-post-merge.md) verifies the
+   real post-merge outcome on live evidence.
+
+Stop with the resolved status whenever the kernel, scope, authority, evidence,
+or validation is missing or ambiguous.
+
+**Next:** read [rules.md](rules.md), then [rhythm.md](rhythm.md).

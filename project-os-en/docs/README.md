@@ -5,5 +5,7 @@ This compact documentation points to the English kernel instead of duplicating i
 - [Getting started](getting-started.md): select a surface, adopt a target, and begin safely.
 - [Operating rules](rules.md): source-of-truth, authorization, live evidence, validation, context economy, and secret safety.
 - [Lifecycle rhythm](rhythm.md): the issue-to-draft-PR loop and MOSDLC branches.
+- [Benefits, architecture, and scenarios](benefits.md): what Project OS delivers, its modular architecture, and verifiable scenarios, with every claim anchored to a source in the tree.
+- [Internal hydration profile](context-benchmark.md): reproducible sizes per hydration level, with declared method, tokenizer, and date.
 
 Stable behavior lives in `../kernel/*.json`; live target state remains in its systems of record. Docs, adapters, templates, operations, and skills provide shape only.

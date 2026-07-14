@@ -12,6 +12,47 @@ Hay dos superficies activas y semánticamente equivalentes:
 **`project-os-es/`** (español, default) y **`project-os-en/`** (inglés,
 selección explícita). Omitir el path de kernel siempre conserva español.
 
+**English version:** [README.en.md](README.en.md).
+
+## Qué es y qué no es
+
+Project OS es un **sistema operativo humano-dirigido** para construir
+productos reales con agentes de IA, preservando contexto, calidad,
+trazabilidad y control: un operating layer de proceso, GitHub-native, anclado
+en workflows concretos — issues, PRs, evidencia, validación proporcional,
+review-before-close y decisiones PM exactas.
+
+Qué **no** es:
+
+- No es un agente de coding automático y no deja agentes trabajando sin
+  supervisión: el humano conserva scope, aprobaciones, merge, cierre y
+  release.
+- No es un runtime, un runner hosteado ni un workflow engine.
+- No es una API con capacidad de escritura ni una consola de operaciones.
+- No reemplaza OpenAI Agents SDK, LangGraph/Deep Agents, AutoGen/Microsoft
+  Agent Framework, Claude Code, Codex ni GitHub: es la capa de proceso bajo la
+  cual esas herramientas ejecutan.
+
+## Para quién
+
+- **Personas aprendiendo o haciendo vibe coding.** Entender qué cambió y por
+  qué; detectar errores que un agente de implementación omitió; revisar,
+  ajustar scope y draftear correcciones desde browser chat; aprender debugging
+  y QA desde evidencia concreta; continuar un trabajo sin depender de la
+  memoria del chat anterior. Project OS es un complemento estructurado a cómo
+  ya trabajas.
+- **Developers y equipos con experiencia.** Scope y transiciones explícitos;
+  review independiente entre implementación y closeout; resúmenes claros de
+  cambios, riesgos y validación; trazabilidad GitHub-native; validación
+  proporcional; autorización explícita; libertad para alternar agentes y
+  proveedores sin perder el contexto del proyecto en una sola herramienta o
+  ventana.
+
+El detalle verificable — beneficios con su fuente en el árbol, arquitectura
+modular y escenarios como pérdida de chat, handoff, cambio de agente, falta
+de aprobación, corrección fuera de scope y QA humano — está en
+[`project-os-es/docs/beneficios.md`](project-os-es/docs/beneficios.md).
+
 ## Fuentes de verdad
 
 - **Comportamiento estable** vive en `project-os-es/kernel/*.json` (versionado
@@ -30,7 +71,7 @@ selección explícita). Omitir el path de kernel siempre conserva español.
 | `project-os-es/kernel/*.json` | Kernel operativo en español: actores, modos, workflows, límites, evidencia, salidas, estados, artefactos y skills | **Activa (default)** |
 | `project-os-en/kernel/*.json` | Kernel operativo paralelo en inglés, con los mismos IDs, gates y relaciones | **Activa (explícita)** |
 | `tools/project_os_resolve.py` | Único resolver determinista principal: default ES o EN mediante path explícito, sin conceder permisos | **Activa** |
-| `project-os-es/docs/` | Docs PM-facing: `project-os-es/docs/empezar.md`, `project-os-es/docs/reglas.md`, `project-os-es/docs/ritmo.md` | **Activa** |
+| `project-os-es/docs/` | Docs PM-facing: `project-os-es/docs/empezar.md`, `project-os-es/docs/reglas.md`, `project-os-es/docs/ritmo.md`, `project-os-es/docs/beneficios.md`, `project-os-es/docs/benchmark-contexto.md` | **Activa** |
 | `project-os-es/operaciones/` | Catálogo MOSDLC compacto en español, por fase | **Activa** |
 | `project-os-es/adapters/` | Adapter templates `*.target.md` para adoptar Project OS en un target | **Activa** |
 | `project-os-es/templates/` + `project-os-es/habilidades/` | Formas de artefactos y skills opcionales referenciados por el kernel | **Activa** |
@@ -67,7 +108,9 @@ El resolver acepta `--hydration-level minimal|compact|full/debug`; `compact`
 es el valor predeterminado práctico. El nivel solo proyecta cuánto contrato ya resuelto se
 devuelve, nunca cambia autoridad ni lee estado vivo. `full/debug` es para
 revisión, debugging o auditoría. El flag existente `--compact` continúa siendo
-solo formato JSON sin indentación.
+solo formato JSON sin indentación. Los tamaños por nivel, medidos con
+metodología, tokenizer y fecha declarados, están en
+[`project-os-es/docs/benchmark-contexto.md`](project-os-es/docs/benchmark-contexto.md).
 
 La resolución manual desde `project-os-es/kernel/manifest.json` sigue siendo
 el fallback canónico. Las superficies browser/no terminales nunca ejecutan
@@ -132,6 +175,13 @@ luego consolidada en la superficie en español `project-os-es` como base
 primaria (ADR 0003, `docs/decisions/0003-project-os-cli-adoption-model.md`).
 La historia y el racional de superficies retiradas son recuperables desde git;
 el árbol actual conserva español como default y su traducción inglesa paralela.
+
+Por decisión durable (ADR 0005,
+`docs/decisions/0005-public-repository-strategy.md`), este repositorio
+permanece privado como baseline interno de CodeFusion; la futura superficie
+pública de Project OS es un repositorio separado con su propio gate de
+public-readiness. La documentación y el onboarding de este árbol se mantienen
+reutilizables por esa superficie.
 
 ## Seguridad, contribuciones, soporte y conducta
 
