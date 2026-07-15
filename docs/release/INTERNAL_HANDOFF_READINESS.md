@@ -1,118 +1,91 @@
-# Readiness y paquete de handoff interno — issue #424
+# Handoff interno — procedimiento del tag de baseline final
 
-- Fecha de preparación: 2026-07-14
-- Unidad de trabajo: issue #424; roadmap #274 (KOPS).
-- Base de la decisión:
-  [ADR 0005](../decisions/0005-public-repository-strategy.md) y su
-  Amendment 1 (excepción acotada de tag interno de handoff, decisión PM
-  Opción B registrada en issue #424).
-- Commit base de preparación: `f6cce7e0a550a0226ed5f0efc93008d14a5b46df`
-  (`main` al momento de la última actualización de este documento, ya
-  integrado en la rama de trabajo de este issue). **Este no es el SHA del
-  tag**: el SHA final se fija únicamente después del merge del PR de este
-  issue y de confirmar la validación final (ver
-  [Procedimiento para fijar el SHA](#procedimiento-para-fijar-el-sha)).
-- Este documento no autoriza ninguna acción. La creación del tag, la
-  creación de `agent-os-cli`, la transición de contenido, cualquier cambio
-  de visibilidad o settings y el cierre de #424 o #274 requieren, cada uno,
-  aprobación PM exacta y separada.
+Este documento define el procedimiento estable para el único tag interno
+anotado de handoff permitido conceptualmente por
+[ADR 0005, Amendment 1](../decisions/0005-public-repository-strategy.md#amendment-1--bounded-internal-handoff-tag-exception-issue-424).
 
-## Estado de readiness (al 2026-07-14)
+- Este documento no autoriza ninguna acción. Crear el tag, crear
+  `agent-os-cli`, transicionar contenido, cambiar visibilidad o settings y
+  cerrar la unidad de trabajo o el roadmap requieren, cada uno, aprobación
+  PM exacta y separada.
+- Este documento no guarda estado vivo. Readiness, inventarios de refs,
+  resultados de CI o validación, SHAs, fechas y aprobaciones se leen vivos
+  de sus fuentes de registro al momento de ejecutar cada paso.
+- Los placeholders `<APPROVED_TAG_NAME>`, `<APPROVED_TAG_MESSAGE>`,
+  `<APPROVED_MAIN_SHA>`, `<TAG_DATE>` y `<TRANSITION_DATE>` nunca se
+  rellenan en este archivo y no constituyen autorización: sus valores
+  exactos se fijan únicamente en la aprobación PM exacta correspondiente.
 
-- Stage 0 (public-readiness, #417 / PR #418): completado con veredicto
-  `GO_WITH_BLOCKERS`; ver
-  [PUBLIC_READINESS_REVIEW.md](../security/PUBLIC_READINESS_REVIEW.md).
-- Blockers de Stage 0: B1 resuelto por #419 / PR #420; B2 y B3 resueltos por
-  #421 / PR #425; B4 resuelto por #422 /
-  [ADR 0005](../decisions/0005-public-repository-strategy.md) (estrategia de
-  repositorio separado: este repositorio no se publica).
-- Stage 1 documental (#423 / PR #427): completado; presentación pública y
-  onboarding bilingüe preparados como material reusable por la futura
-  superficie pública, sin publicar nada desde este repositorio.
-- ADR 0005 Amendment 1: enmienda documental introducida por el PR de este
-  issue; permite conceptualmente un único tag interno anotado de handoff sin
-  autorizar su creación.
-- Validación local del PR de este issue: registrada en el propio PR
-  (kernel ES/EN, tests, `git diff --check`, links, barrido de secretos).
-- Readiness final: se confirma sobre el head final de `main` después del
-  merge, con GitHub Actions verdes sobre ese head y MOS-3.7 completado antes
-  del merge. Hasta entonces el readiness es preparatorio, no definitivo.
+## Invariantes (ADR 0005)
 
-## Inventario de refs y tags (2026-07-14, read-only)
+- `codefusion-repo/project-os-v2` permanece privado e internal-only y, tras
+  la transición, congelado como baseline interno de CodeFusion.
+- `agent-os-cli` es la futura superficie pública y, tras la transición, la
+  única fuente de verdad de Project OS y del CLI.
+- La transición es única: sin sincronización bidireccional y sin backports.
+- Se permite conceptualmente **exactamente un** tag interno anotado de
+  handoff en este repositorio; no es público, no es un GitHub Release y no
+  versiona Project OS para ninguna audiencia externa.
+- Un tag pusheado no se mueve, reutiliza ni elimina; un error se corrige con
+  un tag **nuevo** bajo una nueva aprobación PM exacta, y cualquier
+  eliminación requiere su propia aprobación PM exacta y comunicación
+  separada.
+- El tag no autoriza ninguna acción posterior.
 
-Tags existentes (locales y remotos coinciden):
+## Gates de aprobación PM exacta y separada
 
-| Tag | Naturaleza |
-| --- | --- |
-| `project-os-lab-v0.1.0` … `project-os-lab-v0.1.4` | serie interna de laboratorio |
-| `project-os-lab-v0.2.0`, `project-os-lab-v0.3.0` | serie interna de laboratorio |
-| `target-dogfood-baseline-2026-06-16` | baseline interno de dogfood |
-| `v2-min-dogfood.0` | baseline interno de dogfood |
+Cada uno de estos pasos requiere su propia aprobación PM exacta que nombre
+proyecto, unidad de trabajo y acción; ninguno queda implícito en otro:
 
-Ramas remotas: `main` (default) y la rama de trabajo de este issue. La rama
-histórica `work/422-public-repository-strategy` ya no existe en el remoto.
+1. Merge del PR que integra la enmienda y este procedimiento.
+2. Creación y push del tag, aprobando el trío exacto
+   `<APPROVED_TAG_NAME>` + `<APPROVED_TAG_MESSAGE>` + `<APPROVED_MAIN_SHA>`.
+3. Cierre de la unidad de trabajo y del roadmap.
+4. Creación de `agent-os-cli`, transición de contenido, cambios de
+   visibilidad o settings y cualquier publicación.
 
-GitHub Releases existentes (internos, en repositorio privado):
-`project-os-lab-v0.1.2`, `project-os-lab-v0.1.3`, `project-os-lab-v0.1.4`
-(marcado `Latest`) y `target-dogfood-baseline-2026-06-16`. Ninguno se mueve,
-reutiliza ni elimina en esta unidad de trabajo, y el tag de handoff **no**
-debe sumarse a esta lista: no tendrá GitHub Release asociado.
+## Requisitos del tag
 
-Conclusión: el nombre candidato no colisiona con ningún ref ni release
-existente y no pertenece a ninguna serie previa.
+- El tag debe ser **anotado** (`git tag -a`), nunca ligero, para que
+  mensaje, tagger y fecha queden registrados en el objeto tag.
+- `<APPROVED_TAG_NAME>` no debe colisionar con ningún tag, rama ni ref
+  existente (verificado vivo en el momento de aprobar), no debe parecer un
+  release público ni pertenecer a una serie previa de tags del repositorio,
+  y no debe seguir un esquema semver de producto.
+- `<APPROVED_TAG_MESSAGE>` debe declarar inequívocamente que el tag es un
+  marcador interno de handoff, que no es un release público ni un GitHub
+  Release y que no autoriza publicación, cambio de visibilidad, creación de
+  `agent-os-cli`, transición de contenido ni implementación del CLI.
+- `<APPROVED_MAIN_SHA>` debe pertenecer a `main`, coincidir con el estado
+  validado y fijarse únicamente según el procedimiento siguiente; nunca se
+  fija por anticipado ni se guarda en este archivo.
 
-## Propuesta de tag
+## Procedimiento pre-tag
 
-### Nombre propuesto
-
-`project-os-internal-handoff-v1`
-
-- No colisiona con ningún tag, rama ni ref existente (inventario anterior).
-- Contiene `internal-handoff`, que lo distingue inequívocamente de un
-  release público y de la serie `project-os-lab-v*`.
-- No sigue un esquema semver de producto (`vX.Y.Z`); el sufijo `v1` numera
-  el marcador de handoff, no una versión publicable.
-- Estado: **candidato**. El nombre exacto queda sujeto a aprobación PM
-  exacta y separada junto con el mensaje y el SHA.
-
-### Mensaje propuesto (tag anotado)
-
-```text
-Project OS internal handoff baseline (issue #424)
-
-Marcador interno del baseline final del kernel de project-os-v2 antes de la
-transicion unica hacia agent-os-cli (ADR 0005, Amendment 1).
-
-No es un release publico ni un GitHub Release. No autoriza publicacion,
-cambio de visibilidad, creacion de agent-os-cli, transicion de contenido ni
-implementacion del CLI. Cada una de esas acciones requiere aprobacion PM
-exacta y separada.
-```
-
-El tag debe ser **anotado** (`git tag -a`), nunca ligero, para que el
-mensaje, el tagger y la fecha queden registrados en el objeto tag.
-
-## Procedimiento para fijar el SHA
-
-El SHA nunca se fija antes del merge. Secuencia:
-
-1. Completar MOS-3.7 (review-before-close) sobre el PR de este issue.
-2. El PM mergea el PR con su aprobación exacta y separada de merge.
-3. Confirmar GitHub Actions verdes sobre el head final de `main`.
-4. Fijar `SHA_FINAL_MAIN` con `git rev-parse main` actualizado; debe ser el
-   merge commit del PR de este issue y coincidir con el estado validado.
-5. Solicitar aprobación PM exacta y separada del trío nombre + mensaje +
+1. Completar review-before-close (MOS-3.7) sobre el PR que integra la
+   enmienda y este procedimiento.
+2. El PM mergea ese PR con su aprobación exacta y separada de merge.
+3. Confirmar, en vivo, GitHub Actions verdes sobre el head final de `main`.
+4. Inventariar en vivo tags, ramas, refs y GitHub Releases existentes y
+   verificar que el nombre propuesto cumple los requisitos anteriores y no
+   colisiona.
+5. Fijar `<APPROVED_MAIN_SHA>` con `git rev-parse main` actualizado; debe
+   ser el merge commit del PR anterior y coincidir con el estado validado.
+6. Solicitar la aprobación PM exacta y separada del trío nombre + mensaje +
    SHA antes de ejecutar el command bundle.
 
-## Paquete de handoff
+## Paquete de handoff (template)
+
+Los valores se fijan en la aprobación PM exacta y en el registro vivo de la
+ejecución, nunca en este archivo.
 
 | Campo | Valor |
 | --- | --- |
 | Repositorio de origen | `codefusion-repo/project-os-v2` (privado, internal-only) |
-| Tag | `project-os-internal-handoff-v1` (candidato; anotado, interno) |
-| SHA | `<SHA_FINAL_MAIN>` — se fija después del merge, nunca antes |
-| Fecha del tag | `<FECHA_TAG>` — la fecha en que el PM ejecute el bundle aprobado |
-| Fecha de transición | `<FECHA_TRANSICION>` — se fija cuando la transición hacia `agent-os-cli` sea aprobada por separado |
+| Tag | `<APPROVED_TAG_NAME>` (anotado, interno) |
+| SHA | `<APPROVED_MAIN_SHA>` — se fija después del merge, nunca antes |
+| Fecha del tag | `<TAG_DATE>` — la fecha en que el PM ejecute el bundle aprobado |
+| Fecha de transición | `<TRANSITION_DATE>` — se fija cuando la transición hacia `agent-os-cli` sea aprobada por separado |
 | Nueva fuente de verdad | `agent-os-cli`, tras la transición única |
 
 - Contenido transferible (ADR 0005 §2): la base funcional de Project OS —
@@ -120,36 +93,32 @@ El SHA nunca se fija antes del merge. Secuencia:
   junto con la base git y de contenido auditada.
 - Contenido no transferible: issues, pull requests, comentarios, reviews y
   cualquier conversación histórica de GitHub de este repositorio.
-- Riesgos aceptados (decisión PM en #422, registrada en ADR 0005): F-04
-  (fixture sintético con forma de secreto en el historial), F-05 (nombre de
-  proyecto interno en el historial), F-06 (nombre personal y emails en
-  metadata de commits).
-- Reglas de la transición: transición **única**; sin sincronización
-  bidireccional; sin backports; este repositorio queda congelado como
-  baseline interno de CodeFusion después de la transición.
+- Riesgos aceptados: los registrados por decisión PM en
+  [ADR 0005](../decisions/0005-public-repository-strategy.md) y en la
+  [revisión Stage 0](../security/PUBLIC_READINESS_REVIEW.md)
+  (F-04, F-05, F-06).
 - El tag y este paquete **no** son autorización para ejecutar la
   transición; solo registran procedencia y límites.
 
 ## PM command bundle (copy-safe)
 
-Ejecutar solo después de la aprobación PM exacta y separada del nombre,
-mensaje y SHA. Reemplazar `<SHA_FINAL_MAIN>` por el SHA fijado según el
-procedimiento anterior. El bundle no crea GitHub Releases ni cambia
-visibilidad o settings.
+Ejecutar solo después de la aprobación PM exacta y separada del trío nombre
++ mensaje + SHA. Reemplazar cada placeholder por el valor exacto aprobado;
+`<APPROVED_TAG_MESSAGE>` es el texto aprobado completo (puede repartirse en
+varios `-m` conservando el contenido exacto). El bundle no crea GitHub
+Releases ni cambia visibilidad o settings.
 
 ```sh
 git fetch origin --prune
 git checkout main
 git pull --ff-only
 git rev-parse main
-# Debe imprimir exactamente <SHA_FINAL_MAIN>; si no coincide, detenerse.
+# Debe imprimir exactamente <APPROVED_MAIN_SHA>; si no coincide, detenerse.
 
-git tag -a project-os-internal-handoff-v1 <SHA_FINAL_MAIN> \
-  -m "Project OS internal handoff baseline (issue #424)" \
-  -m "Marcador interno del baseline final del kernel de project-os-v2 antes de la transicion unica hacia agent-os-cli (ADR 0005, Amendment 1)." \
-  -m "No es un release publico ni un GitHub Release. No autoriza publicacion, cambio de visibilidad, creacion de agent-os-cli, transicion de contenido ni implementacion del CLI. Cada una de esas acciones requiere aprobacion PM exacta y separada."
+git tag -a <APPROVED_TAG_NAME> <APPROVED_MAIN_SHA> \
+  -m "<APPROVED_TAG_MESSAGE>"
 
-git push origin refs/tags/project-os-internal-handoff-v1
+git push origin refs/tags/<APPROVED_TAG_NAME>
 ```
 
 ## Verificación post-tag (read-only)
@@ -158,51 +127,32 @@ Después de pushear el tag, verificar sin mutar nada:
 
 ```sh
 git fetch origin --prune
-git cat-file -t project-os-internal-handoff-v1
+git cat-file -t <APPROVED_TAG_NAME>
 # Debe imprimir: tag  (objeto anotado, no lightweight)
 
-git cat-file -p project-os-internal-handoff-v1
-# Revisar: object = <SHA_FINAL_MAIN>, tagger y mensaje interno completo.
+git cat-file -p <APPROVED_TAG_NAME>
+# Revisar: object = <APPROVED_MAIN_SHA>, tagger y mensaje aprobado completo.
 
-git ls-remote --tags origin project-os-internal-handoff-v1
+git ls-remote --tags origin <APPROVED_TAG_NAME>
 # El tag debe existir en el remoto y apuntar al objeto tag esperado.
 
-git branch --contains <SHA_FINAL_MAIN> --format='%(refname:short)'
+git branch --contains <APPROVED_MAIN_SHA> --format='%(refname:short)'
 # Debe incluir: main
 
 gh release list --repo codefusion-repo/project-os-v2
-# No debe listar project-os-internal-handoff-v1 ni ningún release nuevo.
+# No debe listar <APPROVED_TAG_NAME> ni ningún release nuevo.
 
 gh repo view codefusion-repo/project-os-v2 --json visibility --jq .visibility
 # Debe imprimir: PRIVATE
 ```
 
-## Evidencia para considerar el cierre de roadmap #274
+## Cierre y transición
 
-El cierre de #274 permanece como decisión PM posterior y separada. Estado
-preparado por esta unidad de trabajo:
-
-- Completado: Stage 0 y sus blockers B1–B4; ADR 0003, 0004 y 0005; Stage 1
-  documental (#423 / PR #427); enmienda ADR 0005 Amendment 1 y este paquete
-  de readiness/handoff (PR de #424).
-- Pendiente antes de considerar el cierre: merge del PR de #424; CI verde
-  sobre el head final; fijación del SHA; aprobación PM exacta del tag;
-  creación y verificación post-tag del tag interno.
-- Fuera de la secuencia de cierre: la creación de `agent-os-cli`, la
-  transición de contenido y cualquier publicación ocurren **después** del
-  cierre de #274 según la secuencia
-  `#422 → #423 → #424 → cierre de #274 → nuevo repositorio y CLI`, cada una
-  con su propia aprobación PM exacta.
-
-## Trazabilidad
-
-- Issue #424 (re-scoped: readiness, handoff y tag interno; decisión PM
-  Opción B) — unidad de trabajo de este documento.
-- Issue #423 / PR #427 — Stage 1 documental completado.
-- Issue #422 / [ADR 0005](../decisions/0005-public-repository-strategy.md)
-  — estrategia de repositorio separado y resolución de B4.
-- [ADR 0004](../decisions/0004-public-presentation-and-packaging.md) —
-  camino staged docs-first.
-- [Revisión Stage 0](../security/PUBLIC_READINESS_REVIEW.md) — gate de
-  public-readiness y findings F-04/F-05/F-06.
-- Roadmap #274 — secuencia y cierre posterior.
+- El cierre de la unidad de trabajo que produjo este procedimiento y el
+  cierre del roadmap son decisiones PM posteriores y separadas, informadas
+  por la evidencia viva leída en ese momento (merge integrado, CI verde
+  sobre el head final, tag creado y verificado).
+- La creación de `agent-os-cli`, la transición de contenido y cualquier
+  publicación ocurren después de ese cierre, cada una con su propia
+  aprobación PM exacta, según ADR 0005 y los gates preservados de
+  [ADR 0004](../decisions/0004-public-presentation-and-packaging.md).
