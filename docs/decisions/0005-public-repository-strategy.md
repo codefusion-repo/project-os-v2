@@ -3,7 +3,10 @@
 - Status: accepted by explicit PM decision (issue #422 PM comment). This ADR
   records the architecture decision that resolves B4 for this repository and
   amends the Stage 1 mechanism of ADR 0004
-  (`docs/decisions/0004-public-presentation-and-packaging.md`).
+  (`docs/decisions/0004-public-presentation-and-packaging.md`). Amended by
+  the PM decision on issue #424 (Option B) with a bounded exception for one
+  internal annotated handoff tag; see
+  [Amendment 1](#amendment-1--bounded-internal-handoff-tag-exception-issue-424).
 - Date: 2026-07-13
 - Scope: issue #422; architecture decision on the public repository strategy,
   the source of truth, the treatment of GitHub surfaces (issues, PRs,
@@ -151,10 +154,14 @@ current repository, ADR 0004's Stage 1 is reinterpreted as follows:
 - **#423** prepares documentation and onboarding that are **reusable by the
   future public surface**; it does not publish anything from this
   repository.
-- **#424** remains the **release-readiness and handoff gate**, without
-  creating a tag or release in the current repository. The effective public
-  tag and release are executed later **in the new repository**, from an
-  exact commit of that repository, with separate PM approval.
+- **#424** remains the **release-readiness and handoff gate**. It creates no
+  public tag, no GitHub Release and no release in the current repository;
+  under
+  [Amendment 1](#amendment-1--bounded-internal-handoff-tag-exception-issue-424)
+  it may culminate in **one internal annotated handoff tag** in this
+  repository, gated by exact, separate PM approval. The effective public tag
+  and release are executed later **in the new repository**, from an exact
+  commit of that repository, with separate PM approval.
 - The later gates of ADR 0004 are preserved: the new repository's own
   public-readiness audit before any visibility change, the dogfood
   confirmation gate, and exact, separate PM approvals for repository
@@ -210,3 +217,59 @@ having occurred.
 
 Rollback is reverting this ADR (and the paired B4 update in the Stage 0
 review). No remote state changes as a result of this decision.
+
+## Amendment 1 — bounded internal handoff tag exception (issue #424)
+
+- Date: 2026-07-14
+- Status: accepted by explicit PM decision on issue #424 (Option B). This
+  amendment changes only the tag treatment of this ADR for the current
+  repository; it replaces the earlier reading of #424 as a "first public
+  release tag" gate.
+- Source basis: issue #424 (re-scoped body recording the PM's Option B
+  decision); issue #423 / PR #427 (Stage 1 documentation completed);
+  roadmap #274; readiness and handoff package
+  (`docs/release/INTERNAL_HANDOFF_READINESS.md`).
+- Non-authorization: this amendment permits the tag **conceptually**; it
+  authorizes nothing. Creating and pushing the tag requires exact, separate
+  PM approval of the final name, message and SHA.
+
+### Exception
+
+`codefusion-repo/project-os-v2` may carry **exactly one annotated internal
+handoff tag** that marks the final kernel baseline before the single
+transition to `agent-os-cli`. The exception is bounded as follows:
+
+- The tag is an **internal marker only**: it is not public, it is not a
+  GitHub Release, and it does not announce, publish or version Project OS
+  for any external audience.
+- The tag must be **annotated** (not lightweight). Its name and message must
+  state unambiguously that it is an internal handoff marker and not a public
+  release; the name must not collide with any existing ref and must not
+  follow a public-release-looking naming scheme.
+- The target commit is fixed **only after** the #424 amendment and readiness
+  work is merged into `main` and final validation and CI are green on that
+  head. The fixed commit must belong to `main` and match the validated
+  state. The SHA is never fixed in advance.
+- Once pushed, the tag is not moved, reused or deleted; a mistake is
+  corrected with a **new** tag under a new exact PM approval, and any
+  deletion would require its own exact PM approval and separate
+  communication.
+- The tag is **not** an authorization to create `agent-os-cli`, transfer or
+  copy content, change visibility or settings, implement the CLI, publish
+  anything, or close #424 or roadmap #274. Each of those remains gated by
+  its own exact, separate PM approval.
+
+### What does not change
+
+Every other clause of this ADR stays in force: this repository remains
+private, internal-only and — after the transition — frozen as CodeFusion's
+internal baseline; `agent-os-cli` remains the future public surface and,
+after the transition, the **only** source of truth for Project OS and the
+CLI; the transition remains **single**, with no bidirectional
+synchronization and no backports; and the later gates of ADR 0004 (the new
+repository's own public-readiness audit, the dogfood confirmation gate, and
+exact, separate PM approvals for repository creation, content transition,
+visibility, tags, releases and publication) are preserved unchanged.
+
+Rollback of this amendment is documentary only: reverting it does not
+delete, move or reuse a tag that already exists.
