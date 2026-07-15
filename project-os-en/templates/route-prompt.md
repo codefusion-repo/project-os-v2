@@ -29,7 +29,7 @@ BRANCH_NAME = work/{{issue}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{brief reason}}
 
-{{One concrete instruction: re-resolve the kernel, read the required live evidence, and, without assuming authorization because this prompt does not authorize writing, implement, review, audit, or draft only the scoped work.}}
+{{One concrete instruction: re-resolve the kernel, read the required live evidence, and verify PM delivery, PM_AUTHORIZATION_STATUS, and the exact repository, workflow, mode, branch, and scope match; fail closed for a draft, missing delivery, `pending`, or absent, unknown, or inferred values, and implement, review, audit, or draft only the scoped work.}}
 ```
 
 When drafting, read the live issue or PR and its comments, then reference that
@@ -48,6 +48,14 @@ Explicit PM feedback may override that recommendation. `OPTIONAL_SKILL`,
 already-resolved contract content the resolver returns: `compact` is the
 practical default, `minimal` retains required boundaries, and `full/debug` is
 for review, debugging, or audit. No level reads live state, invents state, or
-changes authority.
-
-This prompt does not authorize writing.
+changes authority. The template and wizard do not grant permission by
+themselves. A route prompt that is a draft, was not delivered by the PM, or has
+`PM_AUTHORIZATION_STATUS=pending` does not authorize writing. When the PM
+delivers the route prompt with
+`PM_AUTHORIZATION_STATUS=granted for this exact scope and mode`, that delivery
+satisfies `evidence.pm_approval` only for the declared repository, workflow,
+mode, branch, and scope. The receiving agent must verify that match and the
+remaining evidence; an absent, unknown, or inferred status fails closed. No additional GitHub comment is universally required. The agent can never
+complete, change, or infer `granted`, and that approval does not cover merge,
+closure, tags, releases, deploys, settings, or any action outside the declared
+mode.

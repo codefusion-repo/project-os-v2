@@ -109,6 +109,62 @@ def test_english_operations_keep_semantic_sections_safeguards_and_natural_titles
         assert not re.search(r"\bReview pr\b", operation.text.splitlines()[0])
 
 
+def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
+    expected = (
+        ("DECISION_SOURCE", True),
+        ("PM_DECISION_ALREADY_MADE", True),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
+        ("DECISION_OPTIONS", False),
+        ("PM_DECISION", False),
+    )
+    for operations_dir in (
+        REPO_ROOT / "project-os-es" / "operaciones",
+        REPO_ROOT / "project-os-en" / "operations",
+    ):
+        operation = next(
+            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-R.3"
+        )
+        assert tuple((variable.name, variable.required) for variable in operation.variables) == expected
+
+    english = (
+        REPO_ROOT / "project-os-en/operations/cross-phase/MOS-R.3-process-needs-pm-decision.md"
+    ).read_text(encoding="utf-8").lower()
+    for clause in (
+        "live evidence",
+        "impact",
+        "tradeoffs",
+        "recommendation",
+        "exact question",
+        "never authorizes",
+        "status.needs_context",
+        "status.needs_pm_decision",
+        "both may remain blank",
+        "derive context",
+        "unrelated",
+    ):
+        assert clause in english
+
+    related_flow_guards = {
+        REPO_ROOT / "project-os-es/operaciones/cross-fase/MOS-R.3-procesar-decision-pm-pendiente.md": (
+            "flujo relacionado verificable",
+            "no están relacionadas, falla cerrado",
+            "ambas pueden quedar vacías",
+            "deriva el contexto",
+        ),
+        REPO_ROOT / "project-os-en/operations/cross-phase/MOS-R.3-process-needs-pm-decision.md": (
+            "verifiably related flow",
+            "they are unrelated, fail closed",
+            "both may remain blank",
+            "derive context",
+        ),
+    }
+    for path, clauses in related_flow_guards.items():
+        text = path.read_text(encoding="utf-8").lower()
+        for clause in clauses:
+            assert clause in text
+
+
 def test_english_operation_does_and_how_avoid_known_third_person_regressions() -> None:
     """Protect the observed voice regression without attempting general grammar validation."""
     operations = discover_operations(REPO_ROOT / "project-os-en/operations")
@@ -126,7 +182,7 @@ def test_english_operation_does_and_how_avoid_known_third_person_regressions() -
             )
 
 
-def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> None:
+def test_route_prompt_and_pm_command_bundle_keep_authorization_contracts() -> None:
     templates = REPO_ROOT / "project-os-en/templates"
     route = (templates / "route-prompt.md").read_text(encoding="utf-8")
     bundle = (templates / "pm-command-bundle.md").read_text(encoding="utf-8")
@@ -143,7 +199,9 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
         assert clause in route
     assert "do not grant permission" in route
     assert "replace exact PM approval" in route
-    assert "does not authorize writing" in route
+    assert "was not delivered by the PM" in route
+    assert "satisfies `evidence.pm_approval` only for the declared repository" in route
+    assert "No additional GitHub comment is universally required" in route
 
     for clause in (
         "Writing blocks",
@@ -205,7 +263,8 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
             (
                 "re-resuelve el kernel",
                 "lee la evidencia viva requerida",
-                "este prompt no autoriza escritura",
+                "verifica la entrega PM",
+                "falla cerrado",
             ),
         ),
         (
@@ -236,7 +295,8 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
             (
                 "re-resolve the kernel",
                 "read the required live evidence",
-                "this prompt does not authorize writing",
+                "verify PM delivery",
+                "fail closed",
             ),
         ),
     ),
@@ -278,6 +338,62 @@ def test_route_prompt_contract_template_and_mos_3_4_keep_compact_issue_referenti
     operation = (REPO_ROOT / operation_path).read_text(encoding="utf-8")
     for clause in operation_clauses:
         assert clause in operation
+
+
+@pytest.mark.parametrize(
+    ("template_path", "operation_path", "template_clauses", "operation_clauses"),
+    (
+        (
+            "project-os-es/templates/route-prompt.md",
+            "project-os-es/operaciones/fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md",
+            (
+                "no entregado por el PM",
+                "PM_AUTHORIZATION_STATUS=pending",
+                "satisface `evidence.pm_approval` únicamente para el repositorio, workflow,\nmodo, rama y scope declarados",
+                "No se exige un comentario adicional de GitHub como\ncondición universal",
+                "ausente, desconocido o\ninferido falla cerrado",
+            ),
+            (
+                "no entregado por el PM",
+                "PM_AUTHORIZATION_STATUS` en `pending`",
+                "satisface `evidence.pm_approval` únicamente para el repositorio, workflow,\nmodo, rama y scope declarados",
+                "No se exige un comentario adicional de GitHub como\ncondición universal",
+                "ausente, desconocido o\ninferido falla cerrado",
+            ),
+        ),
+        (
+            "project-os-en/templates/route-prompt.md",
+            "project-os-en/operations/phase-3/MOS-3.4-draft-implementation-route-prompt.md",
+            (
+                "was not delivered by the PM",
+                "PM_AUTHORIZATION_STATUS=pending",
+                "satisfies `evidence.pm_approval` only for the declared repository, workflow,\nmode, branch, and scope",
+                "No additional GitHub comment is universally required",
+                "absent, unknown, or inferred status fails closed",
+            ),
+            (
+                "was not\ndelivered by the PM",
+                "PM_AUTHORIZATION_STATUS` set to `pending`",
+                "satisfies `evidence.pm_approval` only for the declared repository, workflow,\nmode, branch, and scope",
+                "No additional GitHub comment is universally required",
+                "absent, unknown, or inferred status fails closed",
+            ),
+        ),
+    ),
+)
+def test_route_prompt_authorization_requires_exact_pm_delivered_grant(
+    template_path: str,
+    operation_path: str,
+    template_clauses: tuple[str, ...],
+    operation_clauses: tuple[str, ...],
+) -> None:
+    for path, clauses in (
+        (template_path, template_clauses),
+        (operation_path, operation_clauses),
+    ):
+        text = (REPO_ROOT / path).read_text(encoding="utf-8")
+        for clause in clauses:
+            assert clause in text
 
 
 def test_both_kernels_validate_and_default_remains_spanish() -> None:

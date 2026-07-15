@@ -174,7 +174,7 @@ GENERIC_POLICY_PATTERNS = (
     re.compile(
         r"keep build commands, protected paths, domain constraints, and validation notes here "
         r"when they are stable and target-owned; never store issue/pr/branch state, shas, review "
-        r"status, release status, or live validation results\.?",
+        r"status, release status, or live validation (?:result|results|outcome|outcomes)\.?",
         re.I,
     ),
     re.compile(
