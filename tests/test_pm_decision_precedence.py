@@ -1,5 +1,8 @@
 """Behavior guards for the shared PM-decision precedence contract."""
 
+import json
+from pathlib import Path
+
 from tools.pm_decision_precedence import (
     DecisionKey,
     PMDecision,
@@ -14,6 +17,7 @@ KEY = DecisionKey(
     action="create GitHub Release for the approved tag",
     scope="one exact release over project-os-internal-handoff-v1",
 )
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def decision(order: int | None, **overrides: object) -> PMDecision:
@@ -26,12 +30,13 @@ def decision(order: int | None, **overrides: object) -> PMDecision:
     return PMDecision(**values)  # type: ignore[arg-type]
 
 
-def test_later_exact_decision_supersedes_earlier_one_and_returns_traceability_drift() -> None:
+def test_exact_approved_publication_supersedes_earlier_decision_and_returns_drift() -> None:
     result = resolve_pm_decision_precedence(
         KEY,
         (decision(1), decision(2)),
         contradictory_durable_sources=("ADR 0005 Amendment 1", "issue #424"),
         remaining_gates=(RemainingGate("repository permission", "status.resolved", True),),
+        mutation_requested=True,
     )
 
     assert result.resulting_status == "status.resolved"
@@ -109,6 +114,66 @@ def test_insufficient_or_different_action_cannot_authorize_a_mutation() -> None:
 
     assert insufficient.resulting_status == "status.blocked"
     assert different_action.resulting_status == "status.blocked"
+
+
+def test_related_approved_action_does_not_authorize_settings_mutation() -> None:
+    settings_key = DecisionKey(KEY.project, KEY.work_unit, "change repository settings", "visibility")
+    result = resolve_pm_decision_precedence(
+        settings_key,
+        (decision(2),),
+        mutation_requested=True,
+    )
+
+    assert result.resulting_status == "status.blocked"
+    assert result.current_pm_decision is None
+
+
+def test_generic_pm_approval_does_not_authorize_a_mutation() -> None:
+    result = resolve_pm_decision_precedence(
+        KEY,
+        (decision(2, exact_action=False),),
+        mutation_requested=True,
+    )
+
+    assert result.resulting_status == "status.blocked"
+
+
+def test_status_result_contract_supports_the_canonical_mos_r3_resolution_in_both_languages() -> None:
+    expected = (
+        (
+            "project-os-es/kernel/salidas.json",
+            "project-os-es/templates/resultado-estado.md",
+            "project-os-es/operaciones/cross-fase/MOS-R.3-procesar-decision-pm-pendiente.md",
+            "cuando MOS-R.3 procese una decision PM",
+        ),
+        (
+            "project-os-en/kernel/outputs.json",
+            "project-os-en/templates/status-result.md",
+            "project-os-en/operations/cross-phase/MOS-R.3-process-needs-pm-decision.md",
+            "when MOS-R.3 processes a PM decision",
+        ),
+    )
+    fields = (
+        "decision_key",
+        "superseded_decision",
+        "current_pm_decision",
+        "required_traceability_follow_up",
+        "remaining_gates",
+        "resulting_status",
+        "safe_return_operation",
+    )
+
+    for output_path, template_path, operation_path, prefix in expected:
+        outputs = json.loads((REPO_ROOT / output_path).read_text(encoding="utf-8"))["outputs"]
+        status_result = next(output for output in outputs if output["key"] == "output.status_result")
+        contract = " ".join((status_result["use_for"], *status_result["must_include"]))
+        template = (REPO_ROOT / template_path).read_text(encoding="utf-8")
+        operation = (REPO_ROOT / operation_path).read_text(encoding="utf-8")
+
+        assert prefix in contract
+        assert all(field in contract for field in fields)
+        assert all(field in template for field in fields)
+        assert all(field in operation for field in fields)
 
 
 def test_non_delegable_limits_keep_precedence_over_a_current_pm_decision() -> None:

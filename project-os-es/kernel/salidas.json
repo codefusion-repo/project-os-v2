@@ -241,13 +241,14 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "use_for": "reportar un estado no resuelto nombrando con precision la fuente faltante o el limite que bloquea",
+      "use_for": "reportar un estado no resuelto nombrando con precision la fuente faltante o el limite que bloquea, o la resolucion PM canonica de MOS-R.3 cuando aplique",
       "status_key": null,
       "must_include": [
         "el estado",
         "que falta, conflictua o bloquea exactamente",
         "de donde deberia venir o quien decide",
-        "el siguiente paso seguro"
+        "el siguiente paso seguro",
+        "cuando MOS-R.3 procese una decision PM: decision_key, superseded_decision, current_pm_decision, required_traceability_follow_up, remaining_gates, resulting_status y safe_return_operation"
       ],
       "active": true
     }

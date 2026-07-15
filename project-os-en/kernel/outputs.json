@@ -241,13 +241,14 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "use_for": "report an unresolved status and name precisely the missing source or blocking limit",
+      "use_for": "report an unresolved status and name precisely the missing source or blocking limit, or the canonical MOS-R.3 PM resolution when applicable",
       "status_key": null,
       "must_include": [
         "the status",
         "exactly what is missing, conflicting, or blocking",
         "where it should come from or who decides",
-        "the safe next step"
+        "the safe next step",
+        "when MOS-R.3 processes a PM decision: decision_key, superseded_decision, current_pm_decision, required_traceability_follow_up, remaining_gates, resulting_status, and safe_return_operation"
       ],
       "active": true
     }
