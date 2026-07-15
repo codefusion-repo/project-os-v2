@@ -109,6 +109,62 @@ def test_english_operations_keep_semantic_sections_safeguards_and_natural_titles
         assert not re.search(r"\bReview pr\b", operation.text.splitlines()[0])
 
 
+def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
+    expected = (
+        ("DECISION_SOURCE", True),
+        ("PM_DECISION_ALREADY_MADE", True),
+        ("ISSUE_NUMBER", False),
+        ("PR_NUMBER", False),
+        ("DECISION_OPTIONS", False),
+        ("PM_DECISION", False),
+    )
+    for operations_dir in (
+        REPO_ROOT / "project-os-es" / "operaciones",
+        REPO_ROOT / "project-os-en" / "operations",
+    ):
+        operation = next(
+            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-R.3"
+        )
+        assert tuple((variable.name, variable.required) for variable in operation.variables) == expected
+
+    english = (
+        REPO_ROOT / "project-os-en/operations/cross-phase/MOS-R.3-process-needs-pm-decision.md"
+    ).read_text(encoding="utf-8").lower()
+    for clause in (
+        "live evidence",
+        "impact",
+        "tradeoffs",
+        "recommendation",
+        "exact question",
+        "never authorizes",
+        "status.needs_context",
+        "status.needs_pm_decision",
+        "both may remain blank",
+        "derive context",
+        "unrelated",
+    ):
+        assert clause in english
+
+    related_flow_guards = {
+        REPO_ROOT / "project-os-es/operaciones/cross-fase/MOS-R.3-procesar-decision-pm-pendiente.md": (
+            "flujo relacionado verificable",
+            "no están relacionadas, falla cerrado",
+            "ambas pueden quedar vacías",
+            "deriva el contexto",
+        ),
+        REPO_ROOT / "project-os-en/operations/cross-phase/MOS-R.3-process-needs-pm-decision.md": (
+            "verifiably related flow",
+            "they are unrelated, fail closed",
+            "both may remain blank",
+            "derive context",
+        ),
+    }
+    for path, clauses in related_flow_guards.items():
+        text = path.read_text(encoding="utf-8").lower()
+        for clause in clauses:
+            assert clause in text
+
+
 def test_english_operation_does_and_how_avoid_known_third_person_regressions() -> None:
     """Protect the observed voice regression without attempting general grammar validation."""
     operations = discover_operations(REPO_ROOT / "project-os-en/operations")

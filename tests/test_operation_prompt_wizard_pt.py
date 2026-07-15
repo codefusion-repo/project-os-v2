@@ -401,3 +401,31 @@ def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_pat
     assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
     assert "Select OPTIONAL_SKILL:" in transcript
     assert not list(output_dir.glob("*.md"))
+
+
+def test_mos_r3_prompt_toolkit_pseudo_tty_allows_empty_references_after_invalid_numeric_input(
+    tmp_path: Path,
+) -> None:
+    script = shutil.which("script")
+    if script is None:
+        pytest.skip("script utility is required for the pseudo-TTY black-box")
+
+    output_dir = tmp_path / "out"
+    command = (
+        f"{shlex.quote(sys.executable)} -m tools.operation_prompt_wizard "
+        f"--language es --output-dir {shlex.quote(str(output_dir))}"
+    )
+    completed = subprocess.run(
+        [script, "-qec", command, "/dev/null"],
+        cwd=Path(__file__).resolve().parents[1],
+        input="MOS-R.3\nMOS-3.7 review\nfalse\nissue #429\n\n\ncancel\n",
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+
+    assert completed.returncode == 1
+    assert "Invalid value: ISSUE_NUMBER must be a positive issue/PR number" in completed.stdout
+    assert "DECISION_OPTIONS (optional, <DECISION_OPTIONS>):" in completed.stdout
+    assert not list(output_dir.glob("*.md"))
