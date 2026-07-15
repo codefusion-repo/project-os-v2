@@ -10,7 +10,7 @@ su resolución canónica sin rellenar con reglas repetidas.
 
 ## Resolución de decisión PM (solo si aplica)
 
-- decision_key: {{proyecto/target · unidad · acción material · alcance · fuente · orden temporal}}
+- decision_key: {{proyecto/target · unidad · acción material · alcance exacto}}
 - superseded_decision: {{decisión anterior o ninguna}}
 - current_pm_decision: {{decisión vigente o ninguna}}
 - required_traceability_follow_up: {{drift durable a reconciliar o ninguno}}

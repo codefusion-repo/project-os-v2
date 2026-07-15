@@ -42,12 +42,12 @@
       "key": "rule.precedencia_decision_pm",
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
-        "Para decidir qué decisión PM vigente gobierna una acción, forma una decision_key verificable con proyecto o target, unidad de trabajo, acción material, alcance exacto, fuente y orden temporal.",
-        "Solo decisiones PM explícitas de fuente viva verificable, cronológicamente ordenables, con acción inequívoca, alcance suficiente y la misma decision_key pueden supersederse; la posterior es current_pm_decision y la anterior superseded_decision.",
+        "Para decidir qué decisión PM vigente gobierna una acción, forma una decision_key material verificable con proyecto o target, unidad de trabajo, acción material y alcance exacto; registra fuente y orden temporal como evidencia separada de cada decisión.",
+        "Solo decisiones PM explícitas de fuente viva verificable, cronológicamente ordenables, con acción inequívoca, alcance suficiente y la misma decision_key material pueden supersederse; la posterior es current_pm_decision y la anterior superseded_decision.",
         "Una decisión posterior ambigua, decisiones incompatibles sin orden verificable, o duda sobre si gobiernan la misma decision_key devuelven status.needs_pm_decision; fuente, procedencia, cronología o evidencia de relación faltante devuelven status.needs_context.",
         "Si current_pm_decision contradice un issue, ADR, comentario, procedimiento u otra evidencia durable anterior, conserva la historia, identifica el material contradictorio en required_traceability_follow_up y continúa solo si todos los demás gates están satisfechos; ese drift no es por sí solo un veto ni status.blocked.",
         "Una decisión PM nunca supersede capacidad del actor o superficie, boundary.draft_only_browser, permisos reales, secret safety, privacidad, requisitos legales o regulatorios, aprobaciones exactas separadas, preflight, validación, review-before-close, acciones no nombradas, auth, pagos, producción, credenciales, secret stores ni otro límite no delegable.",
-        "Toda operación PM-facing con Aprobación PM: Sí consume esta regla común sin duplicarla: conserva remaining_gates, selecciona el resulting_status más estricto aplicable y no extiende una aprobación de una acción material a otra. Una mutación sin aprobación PM exacta suficiente permanece status.blocked."
+        "Toda operación PM-facing con Aprobación PM: Sí consume esta regla común sin duplicarla: conserva la resolución PM y remaining_gates aun cuando un gate independiente bloquee, selecciona el resulting_status más estricto aplicable y no extiende una aprobación de una acción material a otra. Una mutación con aprobación PM no verificable o exacta insuficiente permanece status.blocked."
       ],
       "on_violation": "status.blocked",
       "priority": 4,

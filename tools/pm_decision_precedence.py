@@ -93,45 +93,44 @@ def resolve_pm_decision_precedence(
     """
 
     gates = tuple(remaining_gates)
-    gate_status = _highest_status(gates)
     matching = tuple(decision for decision in decisions if decision.key == decision_key)
-
-    if gate_status == "status.blocked":
-        return DecisionResolution(
-            decision_key, None, None, (), gates, gate_status, safe_return_operation
-        )
+    superseded: PMDecision | None = None
+    current: PMDecision | None = None
+    follow_up: tuple[str, ...] = ()
 
     if not matching:
-        status: Status = "status.blocked" if mutation_requested else "status.needs_context"
-        return DecisionResolution(decision_key, None, None, (), gates, status, safe_return_operation)
-
-    if any(
+        decision_status: Status = "status.blocked" if mutation_requested else "status.needs_context"
+    elif any(
         not decision.source_verified or decision.chronological_order is None
         for decision in matching
     ):
-        return DecisionResolution(
-            decision_key, None, None, (), gates, "status.needs_context", safe_return_operation
+        decision_status = "status.blocked" if mutation_requested else "status.needs_context"
+    elif any(not decision.exact_action or not decision.sufficient_scope for decision in matching):
+        decision_status = "status.blocked" if mutation_requested else "status.needs_pm_decision"
+    else:
+        ordered = sorted(
+            matching,
+            key=lambda decision: decision.chronological_order or 0,
+            reverse=True,
         )
+        if len(ordered) > 1 and ordered[0].chronological_order == ordered[1].chronological_order:
+            decision_status = "status.needs_pm_decision"
+        else:
+            current = ordered[0]
+            superseded = ordered[1] if len(ordered) > 1 else None
+            follow_up = tuple(contradictory_durable_sources)
+            decision_status = "status.resolved"
 
-    if any(not decision.exact_action or not decision.sufficient_scope for decision in matching):
-        status = "status.blocked" if mutation_requested else "status.needs_pm_decision"
-        return DecisionResolution(decision_key, None, None, (), gates, status, safe_return_operation)
-
-    ordered = sorted(matching, key=lambda decision: decision.chronological_order or 0, reverse=True)
-    current = ordered[0]
-    if len(ordered) > 1 and ordered[0].chronological_order == ordered[1].chronological_order:
-        return DecisionResolution(
-            decision_key, None, None, (), gates, "status.needs_pm_decision", safe_return_operation
-        )
-
-    superseded = ordered[1] if len(ordered) > 1 else None
-    follow_up = tuple(contradictory_durable_sources)
+    resulting_status = max(
+        (decision_status, _highest_status(gates)),
+        key=STATUS_PRECEDENCE.get,
+    )
     return DecisionResolution(
         decision_key,
         superseded,
         current,
         follow_up,
         gates,
-        gate_status,
+        resulting_status,
         safe_return_operation,
     )

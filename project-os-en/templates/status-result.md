@@ -10,7 +10,7 @@ its canonical resolution without padding it with repeated rules.
 
 ## PM decision resolution (only when applicable)
 
-- decision_key: {{project/target · work unit · material action · scope · source · chronological order}}
+- decision_key: {{project/target · work unit · material action · exact scope}}
 - superseded_decision: {{earlier decision or none}}
 - current_pm_decision: {{current decision or none}}
 - required_traceability_follow_up: {{durable drift to reconcile or none}}
