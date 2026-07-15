@@ -6,8 +6,9 @@
   [ADR 0005](../decisions/0005-public-repository-strategy.md) y su
   Amendment 1 (excepción acotada de tag interno de handoff, decisión PM
   Opción B registrada en issue #424).
-- Commit base de preparación: `01aaad811ca7a4618ae008b1657b2a81df2451fc`
-  (`main` al momento de preparar este documento). **Este no es el SHA del
+- Commit base de preparación: `f6cce7e0a550a0226ed5f0efc93008d14a5b46df`
+  (`main` al momento de la última actualización de este documento, ya
+  integrado en la rama de trabajo de este issue). **Este no es el SHA del
   tag**: el SHA final se fija únicamente después del merge del PR de este
   issue y de confirmar la validación final (ver
   [Procedimiento para fijar el SHA](#procedimiento-para-fijar-el-sha)).
@@ -48,8 +49,8 @@ Tags existentes (locales y remotos coinciden):
 | `target-dogfood-baseline-2026-06-16` | baseline interno de dogfood |
 | `v2-min-dogfood.0` | baseline interno de dogfood |
 
-Ramas: `main` (default), `work/422-public-repository-strategy` (histórica) y
-la rama de trabajo de este issue.
+Ramas remotas: `main` (default) y la rama de trabajo de este issue. La rama
+histórica `work/422-public-repository-strategy` ya no existe en el remoto.
 
 GitHub Releases existentes (internos, en repositorio privado):
 `project-os-lab-v0.1.2`, `project-os-lab-v0.1.3`, `project-os-lab-v0.1.4`
