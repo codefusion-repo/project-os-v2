@@ -6,7 +6,9 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Superficie: browser_chat → terminal_agent
 - Kernel: workflow.pm_intake · mode.review_only · output.route_prompt
 - Evidencia: evidence.source_basis, evidence.repo_state
-- Aprobación PM: No (el route-prompt no autoriza; la escritura exige aprobación PM exacta)
+- Aprobación PM: No para draftear. Un draft no autoriza escritura; una entrega
+  PM con `PM_AUTHORIZATION_STATUS` en `granted for this exact scope and mode` puede
+  satisfacer la aprobación PM exacta solo para lo declarado.
 
 **Hace:** Draftea el route-prompt para delegar la implementación de un issue a un terminal agent.
 **Para:** Rutear implementación con scope, modo y evidencia correctos.
@@ -25,6 +27,18 @@ explícito del PM puede reemplazarla.
   hidratado del resolver. El wizard pide `PM_AUTHORIZATION_STATUS` de forma
   requerida y precarga `HYDRATION_LEVEL=compact` antes de generar este
   route-prompt.
+
+**Contrato de autorización:** El browser chat solo draftea y nunca puede
+autoasignar, completar, cambiar ni inferir `granted`. Un route prompt en draft,
+no entregado por el PM o con `PM_AUTHORIZATION_STATUS` en `pending` no autoriza
+escrituras. Cuando el PM entrega el route prompt con
+`PM_AUTHORIZATION_STATUS` en `granted for this exact scope and mode`, esa entrega
+satisface `evidence.pm_approval` únicamente para el repositorio, workflow,
+modo, rama y scope declarados. El agente receptor debe verificar esa
+coincidencia y la evidencia restante; un estado ausente, desconocido o
+inferido falla cerrado. No se exige un comentario adicional de GitHub como
+condición universal, y la aprobación no cubre merge, cierre, tags, releases,
+deploys, settings ni otra acción fuera del modo declarado.
 
 **Comprobación de conformidad:** Antes de entregar, compara la salida con
 `project-os-es/templates/route-prompt.md`. Comprímela si repite detalle del
