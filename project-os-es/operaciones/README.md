@@ -60,6 +60,10 @@ a rutas raíz.
 10. **Contexto humano opcional.** `PM_FEEDBACK_HUMANO` y `PM_QUESTION_HUMANO`
    están disponibles en toda operación como contexto del PM; nunca reemplazan
    evidencia viva requerida ni autorizan mutaciones.
+11. **Precedencia de decisión PM.** Las operaciones PM-facing con
+   `Aprobación PM: Sí` consumen `rule.precedencia_decision_pm` desde el kernel
+   común: una decisión posterior solo supersede otra para la misma
+   `decision_key`; los límites y gates separados siguen vigentes.
 
 ## Cómo usar una operación
 

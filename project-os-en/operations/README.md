@@ -14,6 +14,10 @@ This directory is the English PM-facing MOSDLC (Modern AI SDLC Operations) catal
 8. Fail closed on missing kernel data, evidence, authority, or required validation.
 9. Never request or expose secrets; use `[REDACTED]` and report only names, paths, commands, and risk types.
 10. `PM_FEEDBACK_HUMANO` and `PM_QUESTION_HUMANO` are optional PM context and never authorization.
+11. PM-facing operations with `PM approval: Yes` consume
+    `rule.precedencia_decision_pm` from the shared kernel: a later decision
+    supersedes another only for the same `decision_key`; separate limits and
+    gates remain in force.
 
 Explicit resolver example:
 

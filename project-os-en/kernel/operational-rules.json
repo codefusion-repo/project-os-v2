@@ -39,6 +39,21 @@
       "active": true
     },
     {
+      "key": "rule.precedencia_decision_pm",
+      "manifest_key": "manifest.kernel_es",
+      "resolution_sequence": [
+        "To decide which current PM decision governs an action, form a verifiable decision_key with the project or target, work unit, material action, exact scope, source, and chronological order.",
+        "Only explicit PM decisions from a verifiable live source, with order that can be established, an unambiguous action, sufficient scope, and the same decision_key can supersede one another; the later one is current_pm_decision and the earlier one is superseded_decision.",
+        "An ambiguous later decision, incompatible decisions without verifiable order, or doubt about whether they govern the same decision_key returns status.needs_pm_decision; a missing source, provenance, chronology, or relationship evidence returns status.needs_context.",
+        "When current_pm_decision contradicts an earlier issue, ADR, comment, procedure, or other durable evidence, preserve history, identify the contradictory material in required_traceability_follow_up, and continue only when every other gate is satisfied; that drift is not a veto or status.blocked on its own.",
+        "A PM decision never supersedes actor or surface capability, boundary.draft_only_browser, real permissions, secret safety, privacy, legal or regulatory requirements, separate exact approvals, preflight, validation, review-before-close, unnamed actions, auth, payments, production, credentials, secret stores, or any other non-delegable limit.",
+        "Every PM-facing operation with PM approval: Yes consumes this common rule without duplicating it: retain remaining_gates, select the strictest applicable resulting_status, and never extend approval for one material action to another. A mutation without sufficient exact PM approval remains status.blocked."
+      ],
+      "on_violation": "status.blocked",
+      "priority": 4,
+      "active": true
+    },
+    {
       "key": "rule.trazabilidad_viva",
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
@@ -48,7 +63,7 @@
         "Treat memory, prior reports, and durable files as claims until verified against live evidence."
       ],
       "on_violation": "status.needs_context",
-      "priority": 4,
+      "priority": 5,
       "active": true
     },
     {
@@ -60,7 +75,7 @@
         "Use scoped work branches traceable to the work unit; work/<unit>-<slug> is the current pattern for git targets."
       ],
       "on_violation": "status.blocked",
-      "priority": 5,
+      "priority": 6,
       "active": true
     },
     {
@@ -74,7 +89,7 @@
         "Never claim completion without reporting the required validation."
       ],
       "on_violation": "status.blocked",
-      "priority": 6,
+      "priority": 7,
       "active": true
     },
     {
@@ -88,7 +103,7 @@
         "Economy never removes required evidence, live reads, preflight, validation, secret safety, or exact PM approval gates."
       ],
       "on_violation": "status.needs_pm_decision",
-      "priority": 7,
+      "priority": 8,
       "active": true
     },
     {
@@ -100,7 +115,7 @@
         "Never invent repository, work-unit, command-output, validation, review, or PM-approval state; read it live or return the configured missing_status."
       ],
       "on_violation": "status.blocked",
-      "priority": 8,
+      "priority": 9,
       "active": true
     },
     {
@@ -112,7 +127,7 @@
         "Do not run broad environment or configuration dumps without exact PM approval for a safe, redacted diagnostic."
       ],
       "on_violation": "status.blocked",
-      "priority": 9,
+      "priority": 10,
       "active": true
     }
   ]
