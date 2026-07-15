@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from tools.audit_target_adapters import (
     Source,
     _canonical_roadmap_lines,
@@ -168,6 +170,60 @@ def test_real_compaction_discards_generic_policy_but_preserves_target_constraint
     )
 
     assert _check_overlay_removals(base, head) == []
+
+
+@pytest.mark.parametrize("validation_outcome", ("result", "results", "outcome", "outcomes"))
+def test_real_compaction_discards_legacy_validation_outcome_variants(
+    validation_outcome: str,
+) -> None:
+    legacy_policy = LEGACY_GENERIC_POLICY.replace(
+        "live validation results",
+        f"live validation {validation_outcome}",
+    )
+    base = Source(
+        "AGENTS.md",
+        "## Project-specific notes\n"
+        f"{legacy_policy}"
+        "- Run `bin/verify-customer-ledger` before releasing ledger changes.\n"
+        "- Keep `config/ledger-policy.yml` as a protected path.\n"
+        "- Customer-ledger entries must remain immutable after settlement.\n",
+    )
+    head = Source(
+        "AGENTS.md",
+        "## Notas propias del repositorio\n"
+        "La política completa vive en `project-os-es/docs/reglas.md`.\n"
+        "- Run `bin/verify-customer-ledger` before releasing ledger changes.\n"
+        "- Keep `config/ledger-policy.yml` as a protected path.\n"
+        "- Customer-ledger entries must remain immutable after settlement.\n",
+    )
+
+    assert _check_overlay_removals(base, head) == []
+
+
+@pytest.mark.parametrize(
+    "target_owned_extension",
+    (
+        "Run `bin/verify-customer-ledger` before releasing ledger changes.",
+        "Keep `config/ledger-policy.yml` as a protected path.",
+        "Customer-ledger entries must remain immutable after settlement.",
+    ),
+)
+def test_extended_legacy_validation_outcomes_remain_target_owned(
+    target_owned_extension: str,
+) -> None:
+    unit = (
+        "- Keep build commands, protected paths, domain constraints, and validation notes here "
+        "when they are stable and target-owned; never store issue/PR/branch state, SHAs, review "
+        "status, release status, or live validation outcomes. "
+        f"{target_owned_extension}"
+    )
+    base = Source("AGENTS.md", f"## Project-specific notes\n{unit}\n")
+    head = Source("AGENTS.md", "## Project-specific notes\n")
+
+    findings = _check_overlay_removals(base, head)
+
+    assert [finding.code for finding in findings] == ["TAA-OVERLAY-CONTENT-REMOVED"]
+    assert findings[0].evidence == unit
 
 
 def test_generic_phrase_extended_with_a_stable_command_is_not_discarded() -> None:
