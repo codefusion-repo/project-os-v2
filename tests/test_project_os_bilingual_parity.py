@@ -182,7 +182,7 @@ def test_english_operation_does_and_how_avoid_known_third_person_regressions() -
             )
 
 
-def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> None:
+def test_route_prompt_and_pm_command_bundle_keep_authorization_contracts() -> None:
     templates = REPO_ROOT / "project-os-en/templates"
     route = (templates / "route-prompt.md").read_text(encoding="utf-8")
     bundle = (templates / "pm-command-bundle.md").read_text(encoding="utf-8")
@@ -199,7 +199,9 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
         assert clause in route
     assert "do not grant permission" in route
     assert "replace exact PM approval" in route
-    assert "does not authorize writing" in route
+    assert "was not delivered by the PM" in route
+    assert "satisfies `evidence.pm_approval` only for the declared repository" in route
+    assert "No additional GitHub comment is universally required" in route
 
     for clause in (
         "Writing blocks",
@@ -261,7 +263,8 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
             (
                 "re-resuelve el kernel",
                 "lee la evidencia viva requerida",
-                "este prompt no autoriza escritura",
+                "verifica la entrega PM",
+                "falla cerrado",
             ),
         ),
         (
@@ -292,7 +295,8 @@ def test_route_prompt_and_pm_command_bundle_keep_non_authorizing_contracts() -> 
             (
                 "re-resolve the kernel",
                 "read the required live evidence",
-                "this prompt does not authorize writing",
+                "verify PM delivery",
+                "fail closed",
             ),
         ),
     ),
@@ -334,6 +338,62 @@ def test_route_prompt_contract_template_and_mos_3_4_keep_compact_issue_referenti
     operation = (REPO_ROOT / operation_path).read_text(encoding="utf-8")
     for clause in operation_clauses:
         assert clause in operation
+
+
+@pytest.mark.parametrize(
+    ("template_path", "operation_path", "template_clauses", "operation_clauses"),
+    (
+        (
+            "project-os-es/templates/route-prompt.md",
+            "project-os-es/operaciones/fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md",
+            (
+                "no entregado por el PM",
+                "PM_AUTHORIZATION_STATUS=pending",
+                "satisface `evidence.pm_approval` únicamente para el repositorio, workflow,\nmodo, rama y scope declarados",
+                "No se exige un comentario adicional de GitHub como\ncondición universal",
+                "ausente, desconocido o\ninferido falla cerrado",
+            ),
+            (
+                "no entregado por el PM",
+                "PM_AUTHORIZATION_STATUS` en `pending`",
+                "satisface `evidence.pm_approval` únicamente para el repositorio, workflow,\nmodo, rama y scope declarados",
+                "No se exige un comentario adicional de GitHub como\ncondición universal",
+                "ausente, desconocido o\ninferido falla cerrado",
+            ),
+        ),
+        (
+            "project-os-en/templates/route-prompt.md",
+            "project-os-en/operations/phase-3/MOS-3.4-draft-implementation-route-prompt.md",
+            (
+                "was not delivered by the PM",
+                "PM_AUTHORIZATION_STATUS=pending",
+                "satisfies `evidence.pm_approval` only for the declared repository, workflow,\nmode, branch, and scope",
+                "No additional GitHub comment is universally required",
+                "absent, unknown, or inferred status fails closed",
+            ),
+            (
+                "was not\ndelivered by the PM",
+                "PM_AUTHORIZATION_STATUS` set to `pending`",
+                "satisfies `evidence.pm_approval` only for the declared repository, workflow,\nmode, branch, and scope",
+                "No additional GitHub comment is universally required",
+                "absent, unknown, or inferred status fails closed",
+            ),
+        ),
+    ),
+)
+def test_route_prompt_authorization_requires_exact_pm_delivered_grant(
+    template_path: str,
+    operation_path: str,
+    template_clauses: tuple[str, ...],
+    operation_clauses: tuple[str, ...],
+) -> None:
+    for path, clauses in (
+        (template_path, template_clauses),
+        (operation_path, operation_clauses),
+    ):
+        text = (REPO_ROOT / path).read_text(encoding="utf-8")
+        for clause in clauses:
+            assert clause in text
 
 
 def test_both_kernels_validate_and_default_remains_spanish() -> None:

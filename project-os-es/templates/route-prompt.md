@@ -29,7 +29,7 @@ BRANCH_NAME = work/{{issue}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{razon breve}}
 
-{{Una unica instruccion concreta: re-resuelve el kernel, lee la evidencia viva requerida y, sin asumir autorizacion porque este prompt no autoriza escritura, implementa, revisa, audita o draftea solo el scope.}}
+{{Una unica instruccion concreta: re-resuelve el kernel, lee la evidencia viva requerida y verifica la entrega PM, PM_AUTHORIZATION_STATUS y la coincidencia exacta de repositorio, workflow, modo, rama y scope; falla cerrado para draft, falta de entrega, `pending` o valores ausentes, desconocidos o inferidos, e implementa, revisa, audita o draftea solo el scope.}}
 ```
 
 Al draftear, lee el issue o PR vivo y sus comentarios, y referencia ese detalle
@@ -49,4 +49,14 @@ y no fuerzan herramienta. `HYDRATION_LEVEL` controla solo cuánto contrato ya
 resuelto devuelve el resolver: `compact` es el valor predeterminado práctico, `minimal`
 conserva los límites obligatorios y `full/debug` sirve para revisión, debugging
 o auditoría. Ningún nivel lee estado vivo, inventa estado ni cambia autorización.
-Este prompt no autoriza escritura.
+La plantilla y el wizard no conceden permisos por sí mismos. Un route prompt en
+draft, no entregado por el PM o con `PM_AUTHORIZATION_STATUS=pending` no
+autoriza escrituras. Cuando el PM entrega el route prompt con
+`PM_AUTHORIZATION_STATUS=granted for this exact scope and mode`, esa entrega
+satisface `evidence.pm_approval` únicamente para el repositorio, workflow,
+modo, rama y scope declarados. El agente receptor debe verificar esa
+coincidencia y la evidencia restante; un estado ausente, desconocido o
+inferido falla cerrado. No se exige un comentario adicional de GitHub como
+condición universal. El agente nunca puede completar, cambiar ni inferir
+`granted`, y esa aprobación no cubre merge, cierre, tags, releases, deploys,
+settings ni otra acción fuera del modo declarado.
