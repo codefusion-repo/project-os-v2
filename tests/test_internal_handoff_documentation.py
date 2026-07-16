@@ -233,7 +233,52 @@ def test_handoff_requires_prior_absence_and_clean_worktree() -> None:
     assert f"gh release view {TAG_V3}" in text
     assert "no debe existir local ni remotamente" in flat
     assert "el Release v3 no debe existir" in flat
-    assert "el worktree esté limpio" in flat
+    assert "el worktree debe estar limpio" in flat
+
+
+def test_handoff_local_preflight_is_executable_and_fail_closed() -> None:
+    text = HANDOFF_PATH.read_text(encoding="utf-8")
+    # Join `# `-prefixed comment continuation lines so the expected-result
+    # annotations inside the command blocks can be matched as full phrases.
+    flat = " ".join(text.replace("\n# ", " ").split())
+
+    # The v3 preflight must be executable read-only commands with expected
+    # results, not prose-only claims.
+    local_tag_absence = text.index(f"git tag --list {TAG_V3}")
+    clean_worktree = text.index("git status --short --branch")
+    head_matches_approved_sha = text.index("git rev-parse HEAD")
+    assert (
+        [local_tag_absence, clean_worktree, head_matches_approved_sha]
+        == sorted([local_tag_absence, clean_worktree, head_matches_approved_sha])
+    )
+    assert (
+        "salida vacía. El tag v3 no debe existir en el clone local."
+    ) in flat
+    assert (
+        "únicamente la línea de rama (`## ...`), sin entradas de archivos"
+    ) in flat
+    assert (
+        "sin cambios staged, unstaged ni untracked"
+    ) in flat
+    assert (
+        "exactamente el SHA post-merge aprobado, leído en vivo del head "
+        "remoto de `main`"
+    ) in flat
+    for fail_closed_marker in (
+        "Cualquier salida no vacía es drift y la operación falla cerrada",
+        "Cualquier entrada adicional falla cerrada.",
+        "diferencia entre el checkout local y ese SHA falla cerrada",
+        "si el worktree no está limpio",
+        "si `git rev-parse HEAD` no coincide con el SHA post-merge aprobado",
+    ):
+        assert fail_closed_marker in flat
+    assert (
+        "read-only, no crean, actualizan ni eliminan refs"
+    ) in flat
+    assert (
+        "el checkout local debe apuntar exactamente al SHA post-merge "
+        "aprobado"
+    ) in flat
 
 
 def test_handoff_separates_exact_pm_approvals_for_tag_and_release() -> None:
@@ -283,6 +328,9 @@ def test_handoff_contains_no_tag_or_release_mutation_commands() -> None:
         f"gh release view {TAG_V2}",
         f"gh release view {TAG_V3}",
         "gh repo view codefusion-repo/project-os-v2",
+        f"git tag --list {TAG_V3}",
+        "git status --short --branch",
+        "git rev-parse HEAD",
     ):
         assert required_verification in text
     assert "No requiere tag local" in text

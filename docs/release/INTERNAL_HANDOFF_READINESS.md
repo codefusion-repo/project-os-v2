@@ -96,8 +96,10 @@ La secuencia es estricta y no se reordena:
    único origen del commit de `v3`.
 5. **Tag**: con aprobación PM exacta y separada, se crea y pushea el tag
    anotado `project-os-internal-handoff-v3` sobre ese SHA post-merge.
-   Antes de crearlo se verifica que el tag no exista local ni remotamente y
-   que el worktree esté limpio.
+   Antes de crearlo se ejecuta el preflight local read-only de v3 (ver
+   [Verificación read-only](#verificación-read-only)) con output real: el
+   tag no debe existir local ni remotamente, el worktree debe estar limpio
+   y el checkout local debe apuntar exactamente al SHA post-merge aprobado.
 6. **Release**: con otra aprobación PM exacta y separada, se crea el único
    GitHub Release interno asociado al tag `v3`. Antes de crearlo se
    verifica que el Release no exista.
@@ -218,11 +220,35 @@ gh release view project-os-internal-handoff-v3 \
 # al tag v3, el título previsto y draft=false, prerelease=false.
 ```
 
+Preflight local de v3 (obligatorio antes de draftear el tag; los tres
+comandos son read-only, no crean, actualizan ni eliminan refs, y su output
+real se captura como evidencia):
+
+```sh
+git tag --list project-os-internal-handoff-v3
+# Resultado esperado: salida vacía. El tag v3 no debe existir en el clone
+# local. Cualquier salida no vacía es drift y la operación falla cerrada
+# sin draftear el tag.
+
+git status --short --branch
+# Resultado esperado: únicamente la línea de rama (`## ...`), sin entradas
+# de archivos. El worktree debe estar limpio: sin cambios staged, unstaged
+# ni untracked. Cualquier entrada adicional falla cerrada.
+
+git rev-parse HEAD
+# Resultado esperado: exactamente el SHA post-merge aprobado, leído en vivo
+# del head remoto de `main` en el paso 4 del orden obligatorio. Cualquier
+# diferencia entre el checkout local y ese SHA falla cerrada antes de
+# draftear el tag.
+```
+
 Si un tag histórico falta, no es anotado o resuelve a otro commit; si un
 Release no está asociado al tag esperado o su `name` vivo difiere del título
-aprobado; si `v3` existe antes de su aprobación; si el head remoto no
-corresponde al merge esperado; o si el repositorio deja de ser privado, la
-operación consumidora reporta drift y falla cerrada. Una diferencia entre el
+aprobado; si `v3` existe antes de su aprobación —local o remotamente—; si
+el head remoto no corresponde al merge esperado; si el worktree no está
+limpio; si `git rev-parse HEAD` no coincide con el SHA post-merge aprobado;
+o si el repositorio deja de ser privado, la operación consumidora reporta
+drift y falla cerrada. Una diferencia entre el
 head vivo de `main` y un marcador histórico se reporta explícitamente, pero
 no mueve ni invalida por sí sola ningún tag.
 
