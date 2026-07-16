@@ -57,7 +57,7 @@ def test_material_decision_key_excludes_source_and_chronology() -> None:
     assert result.resulting_status == "status.resolved"
 
 
-def test_earlier_generic_approval_does_not_veto_a_later_exact_decision() -> None:
+def test_earlier_generic_message_is_not_a_superseded_decision() -> None:
     earlier_generic = decision(1, exact_action=False)
     later_exact = decision(2)
 
@@ -68,11 +68,27 @@ def test_earlier_generic_approval_does_not_veto_a_later_exact_decision() -> None
     )
 
     assert result.resulting_status == "status.resolved"
-    assert result.superseded_decision == earlier_generic
+    assert result.superseded_decision is None
     assert result.current_pm_decision == later_exact
 
 
-def test_later_ambiguous_decision_needs_pm_decision_without_mutation() -> None:
+def test_current_exact_decision_supersedes_the_latest_earlier_exact_decision() -> None:
+    earlier_exact = decision(1)
+    intermediate_generic = decision(2, sufficient_scope=False)
+    current_exact = decision(3)
+
+    result = resolve_pm_decision_precedence(
+        KEY,
+        (earlier_exact, intermediate_generic, current_exact),
+        mutation_requested=True,
+    )
+
+    assert result.resulting_status == "status.resolved"
+    assert result.superseded_decision == earlier_exact
+    assert result.current_pm_decision == current_exact
+
+
+def test_ambiguous_current_decision_needs_pm_decision_without_mutation() -> None:
     result = resolve_pm_decision_precedence(
         KEY,
         (decision(1), decision(2, exact_action=False)),

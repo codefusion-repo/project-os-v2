@@ -119,7 +119,14 @@ def resolve_pm_decision_precedence(
             decision_status = "status.blocked" if mutation_requested else "status.needs_pm_decision"
         else:
             current = ordered[0]
-            superseded = ordered[1] if len(ordered) > 1 else None
+            superseded = next(
+                (
+                    decision
+                    for decision in ordered[1:]
+                    if decision.exact_action and decision.sufficient_scope
+                ),
+                None,
+            )
             follow_up = tuple(contradictory_durable_sources)
             decision_status = "status.resolved"
 

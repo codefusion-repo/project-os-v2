@@ -11,7 +11,7 @@ su resolución canónica sin rellenar con reglas repetidas.
 ## Resolución de decisión PM (solo si aplica)
 
 - decision_key: {{proyecto/target · unidad · acción material · alcance exacto}}
-- superseded_decision: {{decisión anterior o ninguna}}
+- superseded_decision: {{decisión anterior más reciente, exacta y suficiente, o ninguna}}
 - current_pm_decision: {{decisión vigente o ninguna}}
 - required_traceability_follow_up: {{drift durable a reconciliar o ninguno}}
 - remaining_gates: {{gates independientes y su estado}}
