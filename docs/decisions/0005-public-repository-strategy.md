@@ -11,6 +11,11 @@
   supersedes only Amendment 1's exclusion of an internal GitHub Release for
   that tag; see
   [Amendment 2](#amendment-2--exact-internal-github-release-for-the-fixed-handoff-baseline-issue-424).
+  The final consolidation unit
+  [issue #438](https://github.com/codefusion-repo/project-os-v2/issues/438)
+  defines `project-os-internal-handoff-v3` as the final internal handoff
+  marker after this documentary update; see
+  [Amendment 3](#amendment-3--final-internal-handoff-marker-v3-issue-438).
 - Date: 2026-07-13
 - Scope: issue #422; architecture decision on the public repository strategy,
   the source of truth, the treatment of GitHub surfaces (issues, PRs,
@@ -357,3 +362,100 @@ are not stored in this ADR.
 Rollback of this amendment is documentary only. It does not mutate the tag
 or Release, change repository settings, or reverse any remote action already
 recorded by GitHub.
+
+## Amendment 3 — final internal handoff marker v3 (issue #438)
+
+- Date: 2026-07-15 (PM local time; the final consolidation unit
+  [issue #438](https://github.com/codefusion-repo/project-os-v2/issues/438)
+  was recorded at `2026-07-16T03:35:40Z`).
+- Status: accepted as the durable contract of issue #438, the single final
+  consolidation unit of the internal handoff. This amendment preserves
+  Amendments 1 and 2 unchanged as history and updates only the identity of
+  the **final** internal handoff marker.
+- Source basis (identified from live evidence, not from memory or prior
+  reports):
+  - the original exact
+    [tag-only approval](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4976581909),
+    recorded at `2026-07-15T03:30:23Z`;
+  - the later exact
+    [internal-Release decision](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4987453334),
+    recorded at `2026-07-16T02:14:10Z`;
+  - the [#424 closure evidence](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4987701660);
+  - the [v2 PM direction](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4987758661),
+    recorded at `2026-07-16T03:08:14Z`, and the
+    [exact v2 approval](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4987814297),
+    recorded at `2026-07-16T03:19:20Z`;
+  - PR #437 and its merge commit
+    `57c6b5176cc43606191418faf884915888cd9202`;
+  - the live-verified remote tags and internal GitHub Releases for `v1` and
+    `v2` in this private repository.
+- Non-authorization: this amendment permits the final marker
+  **conceptually**; it authorizes nothing. Creating and pushing the `v3` tag
+  and creating its internal Release each require an exact, separate PM
+  approval recorded in issue #438, after the merge of the documentary work
+  of that issue.
+
+### Verified history: v1 and v2
+
+Both earlier markers exist and were verified live. They are preserved as
+immutable historical markers of earlier stages:
+
+- `project-os-internal-handoff-v1`: annotated tag object
+  `901676d358d37423d8a64896f278075469deb2e8`, peeled commit
+  `8b01e9f45b1c2449c9cc799d51ee300b6793e9dc`; one internal GitHub Release
+  with approved title `Project OS internal handoff baseline`. It marks the
+  fixed official handoff baseline governed by Amendments 1 and 2.
+- `project-os-internal-handoff-v2`: annotated tag object
+  `e9bafbf1b088e9973bd0dc6e5781415ccc09e000`, peeled commit
+  `57c6b5176cc43606191418faf884915888cd9202` (the merge commit of PR #437);
+  one internal GitHub Release with approved title
+  `Project OS final internal handoff baseline`, not draft and not
+  prerelease, approved by the exact v2 PM decisions cited above. It marks
+  the repository state immediately after PR #437 merged. Because it was
+  created **before** this documentary consolidation, it precedes the final
+  documentation and does not include it.
+
+Neither marker is moved, reused, replaced, edited, deleted or retroactively
+reinterpreted as if it had represented the state after issue #438. After
+issue #438 completes, neither `v1` nor `v2` is the final baseline; both
+remain history.
+
+### Final marker: v3
+
+`codefusion-repo/project-os-v2` will carry `project-os-internal-handoff-v3`
+as its **final** internal handoff marker:
+
+- an **annotated** git tag (never lightweight); plus
+- exactly one internal GitHub Release attached to that tag, with intended
+  title `Project OS final internal handoff baseline v3`, draft `false`,
+  prerelease `false`, in a repository that remains private.
+
+The `v3` commit is obtained **exclusively** from the live remote head of
+`main` after the documentary PR of issue #438 merges and validation passes
+on that post-merge head. The SHA is never fixed in advance in this ADR, in
+issue #438, in the readiness procedure, in tests or in the PR. The
+mandatory ordering is: documentation → validation → merge → post-merge SHA
+→ annotated tag → internal Release. Creating `v3` before the documentary
+merge would fix an incomplete baseline again and is prohibited.
+
+### Supersession bounds
+
+This amendment supersedes `v1` and `v2` **only** as the identity of the
+final internal handoff marker, and the supersession applies exclusively to
+the new internal tag and its internal Release. It supersedes nothing else:
+no boundary on publication, visibility, settings, archival, creation of
+`agent-os-cli`, content transition, CLI implementation, synchronization or
+backports is relaxed, and every one of those actions keeps its own exact,
+separate PM approval gate as recorded in this ADR and ADR 0004.
+
+### Finality
+
+There will be no `v4` and no later "finalization" follow-up derived from
+this flow. Any failure before or after `v3` is resolved **within issue
+#438** while it remains open, per that issue's fail-closed and rollback
+sections. After `v3` is published and verified, issue #438 records the
+final evidence and closes without creating another finalization unit.
+
+Rollback of this amendment before `v3` exists is documentary only. After
+`v3` exists, no tag or Release is moved or deleted automatically; any
+remote correction requires its own exact PM decision inside issue #438.
