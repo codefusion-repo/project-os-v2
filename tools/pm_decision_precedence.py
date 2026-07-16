@@ -86,10 +86,12 @@ def resolve_pm_decision_precedence(
 ) -> DecisionResolution:
     """Resolve the current PM decision without relaxing independent gates.
 
-    Only verified, chronologically ordered, exact decisions for ``decision_key``
-    can supersede one another. A durable contradiction becomes a traceability
-    follow-up after a current decision is established; it never changes status
-    by itself. Independent gates retain their own status precedence.
+    First establish the latest decision from verified, chronologically ordered
+    evidence for ``decision_key``. Its exactness determines whether it can
+    become current, so an earlier generic decision cannot veto a later exact
+    one. A durable contradiction becomes a traceability follow-up after a
+    current decision is established; it never changes status by itself.
+    Independent gates retain their own status precedence.
     """
 
     gates = tuple(remaining_gates)
@@ -105,8 +107,6 @@ def resolve_pm_decision_precedence(
         for decision in matching
     ):
         decision_status = "status.blocked" if mutation_requested else "status.needs_context"
-    elif any(not decision.exact_action or not decision.sufficient_scope for decision in matching):
-        decision_status = "status.blocked" if mutation_requested else "status.needs_pm_decision"
     else:
         ordered = sorted(
             matching,
@@ -115,6 +115,8 @@ def resolve_pm_decision_precedence(
         )
         if len(ordered) > 1 and ordered[0].chronological_order == ordered[1].chronological_order:
             decision_status = "status.needs_pm_decision"
+        elif not ordered[0].exact_action or not ordered[0].sufficient_scope:
+            decision_status = "status.blocked" if mutation_requested else "status.needs_pm_decision"
         else:
             current = ordered[0]
             superseded = ordered[1] if len(ordered) > 1 else None
