@@ -23,11 +23,14 @@ interno anotado y excluyó un GitHub Release. La aprobación exacta posterior de
 tag conservó esa exclusión en su mensaje, que forma parte del objeto tag y del
 registro histórico.
 
-Una decisión PM posterior, exacta y aplicable a la acción material de crear un
-GitHub Release interno sobre ese tag supersedió **solo** esa exclusión. No
-supersedió los límites sobre publicación, visibilidad, settings, cierre,
-archivo del repositorio, creación de `agent-os-cli`, transición de contenido,
-implementación del CLI, sincronización o backports.
+La aprobación tag-only quedó registrada el `2026-07-15T03:30:23Z`. La
+[decisión PM posterior](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4987453334),
+registrada el `2026-07-16T02:14:10Z`, es exacta y aplicable a la acción
+material de mantener un GitHub Release interno sobre ese tag, por lo que
+supersedió **solo** esa exclusión. No supersedió los límites sobre publicación,
+visibilidad, settings, cierre, archivo del repositorio, creación de
+`agent-os-cli`, transición de contenido, implementación del CLI,
+sincronización o backports.
 
 El wording anterior no se reinterpreta como si siempre hubiera permitido el
 Release: permanece como evidencia de la decisión previa. ADR 0005 Amendment 2
@@ -41,7 +44,8 @@ registra la decisión vigente y esta superficie documenta su efecto acotado.
 | Tag | `project-os-internal-handoff-v1` |
 | Tipo de tag | Anotado, nunca ligero |
 | Commit del baseline oficial | `8b01e9f45b1c2449c9cc799d51ee300b6793e9dc` |
-| GitHub Release interno | `Project OS internal handoff baseline`, asociado al tag fijado |
+| Título aprobado/histórico del GitHub Release | `Project OS internal handoff baseline` |
+| Asociación aprobada | Un único GitHub Release interno asociado al tag fijado |
 | Nueva fuente de verdad | `agent-os-cli`, únicamente después de la transición separada |
 | Fecha de transición | Se fija solo cuando esa transición sea aprobada y ejecutada |
 
@@ -51,10 +55,13 @@ incorporar commits posteriores. Cualquier head actual, incluyendo commits
 posteriores al baseline, se lee vivo y se describe por separado; nunca se
 presenta como contenido del Release por mera pertenencia a `main`.
 
-La metadata mutable del GitHub Release —por ejemplo su cuerpo, estado draft o
-prerelease, assets y disponibilidad— tampoco se congela en este archivo. La
-identidad estable es la asociación entre el Release interno, el tag anotado y
-el commit fijado; su estado operativo se verifica en GitHub.
+El título de la tabla es el valor exacto aprobado por la decisión PM y forma
+parte de su registro histórico. El `name` vivo del Release y el resto de su
+metadata mutable —por ejemplo cuerpo, estado draft o prerelease, assets y
+disponibilidad— no se congelan en este archivo: se releen en GitHub. Si el
+`name` vivo difiere del título aprobado, la operación reporta drift y falla
+cerrada antes de depender del Release; no reinterpreta la decisión ni edita la
+metadata.
 
 ## Invariantes de arquitectura
 
@@ -104,32 +111,37 @@ real de la superficie y validación o review proporcional cuando aplique.
 Antes de usar el baseline como evidencia, verificar sin mutar el repositorio:
 
 ```sh
-git ls-remote --tags origin \
+git ls-remote --exit-code --tags origin \
   refs/tags/project-os-internal-handoff-v1 \
   'refs/tags/project-os-internal-handoff-v1^{}'
+# Debe devolver el objeto tag 901676d358d37423d8a64896f278075469deb2e8
+# y el peeled commit 8b01e9f45b1c2449c9cc799d51ee300b6793e9dc.
+# Las dos refs confirman que el tag remoto es anotado. No requiere tag local.
 
-git cat-file -t project-os-internal-handoff-v1
-# Debe imprimir: tag
-
-git rev-parse 'project-os-internal-handoff-v1^{}'
-# Debe imprimir: 8b01e9f45b1c2449c9cc799d51ee300b6793e9dc
+git ls-remote --exit-code --heads origin refs/heads/main
+# Reporta el head remoto vivo de main; no usa origin/main ni exige igualdad
+# con el baseline fijado.
 
 gh release view project-os-internal-handoff-v1 \
   --repo codefusion-repo/project-os-v2 \
   --json tagName,name,isDraft,isPrerelease,publishedAt,url
+# tagName debe identificar el tag fijado. name se compara con el título
+# aprobado/histórico y los demás campos se reportan como metadata viva.
 
 gh repo view codefusion-repo/project-os-v2 \
   --json visibility,defaultBranchRef
-
-git rev-parse origin/main
-# Se reporta como head vivo y puede diferir del baseline fijado.
 ```
 
+Las consultas `git ls-remote` leen las refs directamente desde el remoto: son
+reproducibles en un clone sin tags hidratados y no dependen de remote-tracking
+refs locales potencialmente obsoletas. No crean, actualizan ni eliminan refs
+locales o remotas.
+
 Si el tag falta, no es anotado, resuelve a otro commit, el Release no está
-asociado al tag esperado o el repositorio deja de ser privado, la operación
-consumidora falla cerrada. Una diferencia entre el head vivo de `main` y el
-baseline fijado se reporta explícitamente, pero no mueve ni invalida por sí
-sola el tag.
+asociado al tag esperado, el `name` vivo difiere del título aprobado o el
+repositorio deja de ser privado, la operación consumidora falla cerrada. Una
+diferencia entre el head vivo de `main` y el baseline fijado se reporta
+explícitamente, pero no mueve ni invalida por sí sola el tag.
 
 ## Cierre y transición
 

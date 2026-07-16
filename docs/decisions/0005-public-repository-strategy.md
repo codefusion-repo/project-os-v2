@@ -7,8 +7,9 @@
   the PM decision on issue #424 (Option B) with a bounded exception for one
   internal annotated handoff tag; see
   [Amendment 1](#amendment-1--bounded-internal-handoff-tag-exception-issue-424).
-  A later exact PM decision supersedes only Amendment 1's exclusion of an
-  internal GitHub Release for that tag; see
+  A [later exact PM decision](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4987453334)
+  supersedes only Amendment 1's exclusion of an internal GitHub Release for
+  that tag; see
   [Amendment 2](#amendment-2--exact-internal-github-release-for-the-fixed-handoff-baseline-issue-424).
 - Date: 2026-07-13
 - Scope: issue #422; architecture decision on the public repository strategy,
@@ -290,15 +291,20 @@ delete, move or reuse a tag that already exists.
 
 ## Amendment 2 — exact internal GitHub Release for the fixed handoff baseline (issue #424)
 
-- Date: 2026-07-15
-- Status: accepted by a later explicit PM decision in the issue #424 flow.
+- Date: 2026-07-15 (PM local time; durable decision recorded at
+  `2026-07-16T02:14:10Z`).
+- Status: accepted by the later explicit and exact
+  [PM decision on issue #424](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4987453334).
   For the material decision key `codefusion-repo/project-os-v2` + issue #424
   + one internal GitHub Release over the approved handoff tag, this decision
   supersedes the earlier tag-only exclusion and no other action.
-- Source basis: the original tag-only decision and exact tag approval on
-  issue #424; the later exact PM decision authorizing the internal GitHub
-  Release; the resulting private repository tag and Release; and the
-  precedence contract implemented by issue #435 / PR #436.
+- Source basis: the original exact
+  [tag-only approval](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4976581909),
+  recorded at `2026-07-15T03:30:23Z`; the later exact
+  [internal-Release decision](https://github.com/codefusion-repo/project-os-v2/issues/424#issuecomment-4987453334),
+  recorded at `2026-07-16T02:14:10Z`; the resulting private repository tag
+  and Release; and the precedence contract implemented by issue #435 / PR
+  #436. These durable timestamps establish the supersession chronology.
 - Historical record: the original issue wording, Amendment 1 and the tag
   annotation correctly record the decision that governed the tag when it was
   approved. They are not retroactively rewritten as if they had always
@@ -311,10 +317,18 @@ Release** attached to the annotated tag `project-os-internal-handoff-v1`.
 The fixed official handoff baseline identified by that tag is commit
 `8b01e9f45b1c2449c9cc799d51ee300b6793e9dc`.
 
-The Release title is `Project OS internal handoff baseline`. Its purpose is
-to record the official internal closeout baseline of this repository before
-the separately approved transition to `agent-os-cli`. The tag object, not a
-moving branch name, fixes the baseline identity.
+The exact title approved by the PM decision is `Project OS internal handoff
+baseline`. This is the approved historical title in the decision record, not
+a snapshot of mutable GitHub metadata. Its purpose is to identify the
+official internal closeout baseline of this repository before the separately
+approved transition to `agent-os-cli`. The tag object, not a moving branch
+name, fixes the baseline identity.
+
+The Release's live `name`, body, draft or prerelease state, assets,
+availability and other operational metadata must be read from GitHub when
+needed. A difference between the approved historical title and the live
+`name` is traceability drift to report and review; it neither changes this
+decision silently nor authorizes editing the Release.
 
 This fixed baseline must not be described as the permanently current head of
 `main`. Later commits on `main` do not move, replace or silently extend the
