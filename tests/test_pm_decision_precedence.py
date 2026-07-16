@@ -88,6 +88,43 @@ def test_current_exact_decision_supersedes_the_latest_earlier_exact_decision() -
     assert result.current_pm_decision == current_exact
 
 
+def test_tied_latest_exact_superseded_candidates_fail_closed_regardless_of_input_order() -> None:
+    first_candidate = decision(2, source="live PM source first candidate")
+    second_candidate = decision(2, source="live PM source second candidate")
+    current_exact = decision(3)
+
+    for decisions in (
+        (first_candidate, second_candidate, current_exact),
+        (second_candidate, first_candidate, current_exact),
+    ):
+        result = resolve_pm_decision_precedence(KEY, decisions, mutation_requested=True)
+
+        assert result.resulting_status == "status.needs_pm_decision"
+        assert result.superseded_decision is None
+        assert result.current_pm_decision == current_exact
+
+
+def test_unique_exact_candidate_wins_when_generic_messages_share_its_order() -> None:
+    exact_candidate = decision(2, source="live PM source exact candidate")
+    generic_message = decision(2, exact_action=False, source="live PM source continue")
+    insufficient_message = decision(
+        2,
+        sufficient_scope=False,
+        source="live PM source do it",
+    )
+    current_exact = decision(3)
+
+    result = resolve_pm_decision_precedence(
+        KEY,
+        (generic_message, exact_candidate, insufficient_message, current_exact),
+        mutation_requested=True,
+    )
+
+    assert result.resulting_status == "status.resolved"
+    assert result.superseded_decision == exact_candidate
+    assert result.current_pm_decision == current_exact
+
+
 def test_ambiguous_current_decision_needs_pm_decision_without_mutation() -> None:
     result = resolve_pm_decision_precedence(
         KEY,
@@ -138,12 +175,25 @@ def test_later_exact_closure_keeps_review_before_close_as_an_independent_gate() 
     assert result.superseded_decision == PMDecision(close_key, "live PM source 1", 1)
 
 
-def test_ambiguous_or_unverifiable_decisions_fail_closed_with_the_specific_status() -> None:
-    ambiguous = resolve_pm_decision_precedence(KEY, (decision(2), decision(2)))
-    missing_context = resolve_pm_decision_precedence(KEY, (decision(None),))
+def test_ambiguous_current_decision_remains_unresolved() -> None:
+    earlier_exact = decision(2)
+    first_current_candidate = decision(3, source="live PM source first current candidate")
+    second_current_candidate = decision(3, source="live PM source second current candidate")
 
-    assert ambiguous.resulting_status == "status.needs_pm_decision"
-    assert missing_context.resulting_status == "status.needs_context"
+    result = resolve_pm_decision_precedence(
+        KEY,
+        (earlier_exact, first_current_candidate, second_current_candidate),
+    )
+
+    assert result.resulting_status == "status.needs_pm_decision"
+    assert result.superseded_decision is None
+    assert result.current_pm_decision is None
+
+
+def test_unverifiable_decision_needs_context_without_mutation() -> None:
+    result = resolve_pm_decision_precedence(KEY, (decision(None),))
+
+    assert result.resulting_status == "status.needs_context"
 
 
 def test_mutation_with_unverifiable_pm_approval_is_blocked() -> None:

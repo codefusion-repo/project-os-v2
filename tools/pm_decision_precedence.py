@@ -89,9 +89,11 @@ def resolve_pm_decision_precedence(
     First establish the latest decision from verified, chronologically ordered
     evidence for ``decision_key``. Its exactness determines whether it can
     become current, so an earlier generic decision cannot veto a later exact
-    one. A durable contradiction becomes a traceability follow-up after a
-    current decision is established; it never changes status by itself.
-    Independent gates retain their own status precedence.
+    one. A tie between the latest eligible earlier supersession candidates is
+    ambiguous: it never selects by input order, but retains an already
+    resolved current decision. A durable contradiction becomes a traceability
+    follow-up after a current decision is established; it never changes status
+    by itself. Independent gates retain their own status precedence.
     """
 
     gates = tuple(remaining_gates)
@@ -119,16 +121,26 @@ def resolve_pm_decision_precedence(
             decision_status = "status.blocked" if mutation_requested else "status.needs_pm_decision"
         else:
             current = ordered[0]
-            superseded = next(
-                (
-                    decision
-                    for decision in ordered[1:]
-                    if decision.exact_action and decision.sufficient_scope
-                ),
-                None,
+            eligible_superseded = tuple(
+                decision
+                for decision in ordered[1:]
+                if decision.exact_action and decision.sufficient_scope
             )
             follow_up = tuple(contradictory_durable_sources)
-            decision_status = "status.resolved"
+            if not eligible_superseded:
+                decision_status = "status.resolved"
+            else:
+                latest_prior_order = eligible_superseded[0].chronological_order
+                latest_prior_candidates = tuple(
+                    decision
+                    for decision in eligible_superseded
+                    if decision.chronological_order == latest_prior_order
+                )
+                if len(latest_prior_candidates) > 1:
+                    decision_status = "status.needs_pm_decision"
+                else:
+                    superseded = latest_prior_candidates[0]
+                    decision_status = "status.resolved"
 
     resulting_status = max(
         (decision_status, _highest_status(gates)),

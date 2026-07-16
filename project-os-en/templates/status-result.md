@@ -11,7 +11,7 @@ its canonical resolution without padding it with repeated rules.
 ## PM decision resolution (only when applicable)
 
 - decision_key: {{project/target · work unit · material action · exact scope}}
-- superseded_decision: {{most recent earlier exact, sufficient decision or none}}
+- superseded_decision: {{unique most recent earlier exact, sufficient decision; none if tied}}
 - current_pm_decision: {{current decision or none}}
 - required_traceability_follow_up: {{durable drift to reconcile or none}}
 - remaining_gates: {{independent gates and their status}}
