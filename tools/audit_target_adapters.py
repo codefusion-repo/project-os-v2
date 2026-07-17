@@ -102,6 +102,12 @@ PORTABLE_PATH_VARIABLES = {
     "REPOSITORY_LOCAL_PATH": "PROJECT_OS_TARGET_ROOT",
     "KERNEL_LOCAL_PATH": "PROJECT_OS_KERNEL_DIR",
 }
+PATH_METADATA_FIELDS = frozenset(PORTABLE_PATH_VARIABLES)
+KERNEL_SURFACES = {
+    "es": "project-os-es",
+    "en": "project-os-en",
+}
+KERNEL_MANIFEST_KEY = "manifest.kernel_es"
 
 LIVE_STATE_PATTERNS = (
     ("TAA-LIVE-BRANCH", re.compile(r"\b(?:current|active)\s+branch\b|\bbranch\s+state\b|\bon\s+branch\b", re.I)),
@@ -200,6 +206,15 @@ class Finding:
     line: int | None
     message: str
     evidence: str = ""
+    redact_evidence: bool = False
+    safe_evidence: str = ""
+
+    def _safe_evidence(self) -> str:
+        """Never expose a persisted or resolved path value in an output finding."""
+
+        if not self.redact_evidence:
+            return self.evidence
+        return self.safe_evidence
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -208,12 +223,13 @@ class Finding:
             "file": self.file,
             "line": self.line,
             "message": self.message,
-            "evidence": self.evidence,
+            "evidence": self._safe_evidence(),
         }
 
     def render(self) -> str:
         location = self.file if self.line is None else f"{self.file}:{self.line}"
-        suffix = f" Evidence: {self.evidence}" if self.evidence else ""
+        evidence = self._safe_evidence()
+        suffix = f" Evidence: {evidence}" if evidence else ""
         return f"{self.code} [{self.severity}] {location}: {self.message}{suffix}"
 
 
@@ -310,6 +326,11 @@ class PathResolutionError(ValueError):
         self.variable = variable
 
 
+def _referenced_variable_names(value: str) -> str:
+    variables = re.findall(r"\$\{?([A-Z][A-Z0-9_]*)\}?", value)
+    return ", ".join(dict.fromkeys(variables))
+
+
 def _resolve_metadata_path(field: str, value: str) -> tuple[Path, str | None]:
     """Resolve an absolute literal or the field's one exact allowlisted variable."""
 
@@ -363,7 +384,106 @@ def _path_resolution_finding(
         _line_for(metadata, field),
         f"{field} {risk}",
         error.variable or "",
+        True,
+        error.variable or "",
     )
+
+
+def _kernel_identity_finding(
+    source: Source,
+    metadata: dict[str, list[tuple[int, str]]],
+    code: str,
+    message: str,
+    variable: str | None,
+) -> Finding:
+    return Finding(
+        code,
+        "error",
+        source.name,
+        _line_for(metadata, "KERNEL_LOCAL_PATH"),
+        message,
+        variable or "",
+        True,
+        variable or "",
+    )
+
+
+def _check_kernel_identity(
+    source: Source,
+    metadata: dict[str, list[tuple[int, str]]],
+    kernel_path: Path,
+    language: str,
+    variable: str | None,
+) -> list[Finding]:
+    expected_surface = KERNEL_SURFACES[language]
+    if kernel_path.name != "kernel" or kernel_path.parent.name != expected_surface:
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-SURFACE",
+                "KERNEL_LOCAL_PATH does not match the declared language surface",
+                variable,
+            )
+        ]
+
+    manifest_path = kernel_path / "manifest.json"
+    if not manifest_path.is_file():
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-MANIFEST",
+                "KERNEL_LOCAL_PATH does not contain the expected manifest",
+                variable,
+            )
+        ]
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-IDENTITY",
+                "KERNEL_LOCAL_PATH contains an unreadable or invalid manifest",
+                variable,
+            )
+        ]
+
+    entries = payload.get("manifest") if isinstance(payload, dict) else None
+    if not isinstance(entries, list) or len(entries) != 1 or not isinstance(entries[0], dict):
+        valid_identity = False
+    else:
+        entry = entries[0]
+        valid_identity = (
+            entry.get("key") == KERNEL_MANIFEST_KEY
+            and entry.get("language") == language
+            and entry.get("active") is True
+        )
+    if not valid_identity:
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-IDENTITY",
+                "KERNEL_LOCAL_PATH manifest identity does not match the declared surface",
+                variable,
+            )
+        ]
+
+    project_os_root = kernel_path.parent.parent
+    if not (project_os_root / "tools" / "project_os_resolve.py").is_file():
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-RESOLVER",
+                "KERNEL_LOCAL_PATH is not anchored to a checkout with the canonical resolver",
+                variable,
+            )
+        ]
+    return []
 
 
 def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Finding]:
@@ -386,12 +506,27 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
                     values[1][0],
                     f"metadata field {field!r} appears more than once",
                     values[1][1],
+                    field in PATH_METADATA_FIELDS,
+                    _referenced_variable_names(values[1][1])
+                    if field in PATH_METADATA_FIELDS
+                    else "",
                 )
             )
         line_no, value = values[0]
         if _is_placeholder(value):
             findings.append(
-                Finding("TAA-META-PLACEHOLDER", "error", source.name, line_no, f"metadata field {field!r} is not filled", value)
+                Finding(
+                    "TAA-META-PLACEHOLDER",
+                    "error",
+                    source.name,
+                    line_no,
+                    f"metadata field {field!r} is not filled",
+                    value,
+                    field in PATH_METADATA_FIELDS,
+                    _referenced_variable_names(value)
+                    if field in PATH_METADATA_FIELDS
+                    else "",
+                )
             )
         if line_no < previous_line:
             findings.append(
@@ -402,6 +537,10 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
                     line_no,
                     f"metadata field {field!r} is out of the standard order",
                     value,
+                    field in PATH_METADATA_FIELDS,
+                    _referenced_variable_names(value)
+                    if field in PATH_METADATA_FIELDS
+                    else "",
                 )
             )
         previous_line = max(previous_line, line_no)
@@ -434,6 +573,8 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
                         _line_for(metadata, "REPOSITORY_LOCAL_PATH"),
                         "REPOSITORY_LOCAL_PATH does not match the audited target checkout",
                         variable or "",
+                        True,
+                        variable or "",
                     )
                 )
         except PathResolutionError as exc:
@@ -461,15 +602,14 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
             resolved_kernel_path, variable = _resolve_metadata_path(
                 "KERNEL_LOCAL_PATH", kernel_path
             )
-            if not (resolved_kernel_path / "manifest.json").is_file():
-                findings.append(
-                    Finding(
-                        "TAA-META-KERNEL-MANIFEST",
-                        "error",
-                        source.name,
-                        _line_for(metadata, "KERNEL_LOCAL_PATH"),
-                        "KERNEL_LOCAL_PATH does not contain the expected manifest",
-                        variable or "",
+            if pm_language in KERNEL_SURFACES:
+                findings.extend(
+                    _check_kernel_identity(
+                        source,
+                        metadata,
+                        resolved_kernel_path,
+                        pm_language,
+                        variable,
                     )
                 )
         except PathResolutionError as exc:

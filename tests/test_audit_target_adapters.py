@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,7 @@ from tools.audit_target_adapters import (
     Source,
     _canonical_roadmap_lines,
     _check_overlay_removals,
+    _emit_human,
     _emit_json,
     _resolve_metadata_path,
     audit_target_adapters,
@@ -82,6 +84,39 @@ def write_terminal_adapters(target: Path, agents: str) -> None:
         (target / name).write_text(
             "Usa AGENTS.md para comportamiento del repositorio.\n", encoding="utf-8"
         )
+
+
+def write_fake_kernel(
+    root: Path,
+    *,
+    surface: str = "project-os-es",
+    language: str = "es",
+    manifest_text: str | None = None,
+    with_manifest: bool = True,
+    with_resolver: bool = True,
+) -> Path:
+    kernel = root / surface / "kernel"
+    kernel.mkdir(parents=True)
+    if with_manifest:
+        payload = manifest_text
+        if payload is None:
+            payload = json.dumps(
+                {
+                    "manifest": [
+                        {
+                            "key": "manifest.kernel_es",
+                            "language": language,
+                            "active": True,
+                        }
+                    ]
+                }
+            )
+        (kernel / "manifest.json").write_text(payload, encoding="utf-8")
+    if with_resolver:
+        resolver = root / "tools" / "project_os_resolve.py"
+        resolver.parent.mkdir(parents=True)
+        resolver.write_text("raise SystemExit(0)\n", encoding="utf-8")
+    return kernel
 
 
 def filled_browser_adapter(target: Path) -> str:
@@ -257,8 +292,7 @@ def test_target_variable_resolving_to_another_checkout_fails_without_disclosure(
 def test_kernel_without_manifest_fails_without_disclosure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    empty_kernel = tmp_path / "private-kernel"
-    empty_kernel.mkdir()
+    empty_kernel = write_fake_kernel(tmp_path / "private-checkout", with_manifest=False)
     write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
     monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
     monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(empty_kernel))
@@ -268,6 +302,90 @@ def test_kernel_without_manifest_fails_without_disclosure(
 
     assert any(finding.code == "TAA-META-KERNEL-MANIFEST" for finding in findings)
     assert str(empty_kernel) not in rendered
+
+
+@pytest.mark.parametrize("manifest_text", ("", "{"))
+def test_invalid_kernel_manifest_fails_without_disclosure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    manifest_text: str,
+) -> None:
+    private_checkout = tmp_path / "private-checkout"
+    kernel = write_fake_kernel(private_checkout, manifest_text=manifest_text)
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(kernel))
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+    rendered = "\n".join(finding.render() for finding in findings)
+
+    assert any(finding.code == "TAA-META-KERNEL-IDENTITY" for finding in findings)
+    assert str(private_checkout) not in rendered
+
+
+def test_opposite_kernel_surface_fails_without_disclosure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    private_checkout = tmp_path / "private-checkout"
+    kernel = write_fake_kernel(
+        private_checkout,
+        surface="project-os-en",
+        language="en",
+    )
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(kernel))
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+    rendered = "\n".join(finding.render() for finding in findings)
+
+    assert any(finding.code == "TAA-META-KERNEL-SURFACE" for finding in findings)
+    assert str(private_checkout) not in rendered
+
+
+@pytest.mark.parametrize(
+    "manifest_entry",
+    (
+        {"key": "manifest.unexpected", "language": "es", "active": True},
+        {"key": "manifest.kernel_es", "language": "en", "active": True},
+        {"key": "manifest.kernel_es", "language": "es", "active": False},
+    ),
+)
+def test_kernel_manifest_identity_fields_are_exact(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    manifest_entry: dict[str, object],
+) -> None:
+    private_checkout = tmp_path / "private-checkout"
+    kernel = write_fake_kernel(
+        private_checkout,
+        manifest_text=json.dumps({"manifest": [manifest_entry]}),
+    )
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(kernel))
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+    rendered = "\n".join(finding.render() for finding in findings)
+
+    assert any(finding.code == "TAA-META-KERNEL-IDENTITY" for finding in findings)
+    assert str(private_checkout) not in rendered
+
+
+def test_kernel_checkout_without_canonical_resolver_fails_without_disclosure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    private_checkout = tmp_path / "private-checkout"
+    kernel = write_fake_kernel(private_checkout, with_resolver=False)
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(kernel))
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+    rendered = "\n".join(finding.render() for finding in findings)
+
+    assert any(finding.code == "TAA-META-KERNEL-RESOLVER" for finding in findings)
+    assert str(private_checkout) not in rendered
 
 
 def test_neutral_mount_is_a_valid_absolute_literal_shape() -> None:
@@ -296,6 +414,49 @@ def test_json_output_redacts_the_audited_checkout_and_expanded_values(
     assert str(private_target) not in output
     assert str(wrong_target) not in output
     assert "PROJECT_OS_TARGET_ROOT" in output
+
+
+@pytest.mark.parametrize("metadata_error", ("duplicate", "order"))
+def test_path_metadata_findings_redact_literal_values_in_human_and_json_output(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    metadata_error: str,
+) -> None:
+    private_literal = tmp_path / "private-user" / "target-checkout"
+    agents = filled_spanish_adapter(
+        tmp_path,
+        target_path=str(tmp_path),
+        kernel_path=str(REPO_ROOT / "project-os-es/kernel"),
+    )
+    if metadata_error == "duplicate":
+        agents = agents.replace(
+            f"REPOSITORY_LOCAL_PATH = {tmp_path}",
+            f"REPOSITORY_LOCAL_PATH = {tmp_path}\n"
+            f"REPOSITORY_LOCAL_PATH = {private_literal}",
+            1,
+        )
+        expected_code = "TAA-META-DUPLICATE"
+    else:
+        kernel_line = f"KERNEL_LOCAL_PATH = {REPO_ROOT / 'project-os-es/kernel'}"
+        agents = agents.replace(kernel_line + "\n", "", 1)
+        agents = agents.replace(
+            "PM_FACING_LANGUAGE = es\n",
+            f"KERNEL_LOCAL_PATH = {private_literal}\nPM_FACING_LANGUAGE = es\n",
+            1,
+        )
+        expected_code = "TAA-META-ORDER"
+    write_terminal_adapters(tmp_path, agents)
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+    assert any(finding.code == expected_code for finding in findings)
+
+    _emit_human(findings)
+    human_output = capsys.readouterr().out
+    _emit_json(tmp_path, "example/target", findings)
+    json_output = capsys.readouterr().out
+
+    assert str(private_literal) not in human_output
+    assert str(private_literal) not in json_output
 
 
 def test_spanish_roadmap_anchor_wording_is_canonical() -> None:

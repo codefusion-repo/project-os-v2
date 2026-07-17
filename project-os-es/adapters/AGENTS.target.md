@@ -1,9 +1,9 @@
 # AGENTS.md (adapter terminal para target)
 
 Copia el bloque siguiente como `AGENTS.md` en el target, reemplaza los
-`{{PLACEHOLDERS}}`, define las dos variables locales indicadas y elimina estas
-instrucciones de copia. Para una adopción privada de una sola máquina, los dos
-campos de path también aceptan paths absolutos literales.
+`{{PLACEHOLDERS}}` y elimina estas instrucciones de copia. Conserva las
+referencias portables o reemplázalas por paths absolutos literales en una
+adopción privada de una sola máquina.
 
 ---
 
@@ -35,19 +35,54 @@ KERNEL_VERSION_ADOPTED = {{version adoptada o "tracks latest"}}
 
 Antes de trabajo no trivial, lee `project-os-es/kernel/manifest.json` y sigue
 su `resolution_sequence`. En terminal, cuando el checkout del kernel esté
-disponible, usa este fast path. Falla cerrado si una variable falta o no es
-absoluta; no usa `eval` ni expande nombres arbitrarios:
+disponible, usa este fast path. Lee los dos campos persistidos, acepta solo la
+referencia portable exacta o un literal absoluto y valida la identidad del
+kernel antes del resolver; no usa `eval` ni expande nombres arbitrarios:
 
 ```sh
-: "${PROJECT_OS_TARGET_ROOT:?define PROJECT_OS_TARGET_ROOT con el path absoluto del target}"
-: "${PROJECT_OS_KERNEL_DIR:?define PROJECT_OS_KERNEL_DIR con el path absoluto del kernel}"
-TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
-KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+case "$TARGET_REF" in
+  '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
+    : "${PROJECT_OS_TARGET_ROOT:?define PROJECT_OS_TARGET_ROOT con el path absoluto del target}"
+    TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
+    ;;
+  /*) case "$TARGET_REF" in *'$'*) exit 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
+  *) exit 1 ;;
+esac
+case "$KERNEL_REF" in
+  '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
+    : "${PROJECT_OS_KERNEL_DIR:?define PROJECT_OS_KERNEL_DIR con el path absoluto del kernel}"
+    KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+    ;;
+  /*) case "$KERNEL_REF" in *'$'*) exit 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
+  *) exit 1 ;;
+esac
 case "$TARGET_ROOT" in /*) ;; *) exit 1 ;; esac
 case "$KERNEL_DIR" in /*) ;; *) exit 1 ;; esac
+case "$KERNEL_DIR" in */project-os-es/kernel) ;; *) exit 1 ;; esac
 PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
-test "$PROJECT_OS_ROOT" != "$KERNEL_DIR"
-test -f "$KERNEL_DIR/manifest.json"
+test -n "$PROJECT_OS_ROOT" || exit 1
+test -d "$TARGET_ROOT" || exit 1
+test -f "$KERNEL_DIR/manifest.json" || exit 1
+test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || exit 1
+python -c '
+import json
+import sys
+try:
+    payload = json.load(open(sys.argv[1], encoding="utf-8"))
+    entries = payload.get("manifest") if isinstance(payload, dict) else None
+    valid = (
+        isinstance(entries, list) and len(entries) == 1
+        and isinstance(entries[0], dict)
+        and entries[0].get("key") == "manifest.kernel_es"
+        and entries[0].get("language") == "es"
+        and entries[0].get("active") is True
+    )
+except (OSError, UnicodeError, json.JSONDecodeError):
+    valid = False
+raise SystemExit(0 if valid else 1)
+' "$KERNEL_DIR/manifest.json" || exit 1
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
   --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]

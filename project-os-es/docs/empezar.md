@@ -78,8 +78,9 @@ Haz esto solo cuando vayas a delegar implementación a un terminal agent:
 4. Ten Python disponible si usaras el resolver.
 5. Adopta o revisa el adapter terminal del target con
    [`project-os-es/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md) y
-   define localmente `PROJECT_OS_TARGET_ROOT` y `PROJECT_OS_KERNEL_DIR` como
-   paths absolutos al checkout target y al kernel español.
+   conserva sus referencias portables y define localmente
+   `PROJECT_OS_TARGET_ROOT` y `PROJECT_OS_KERNEL_DIR`, o usa paths absolutos
+   literales en los dos campos para una adopción privada.
 
 La adopción es copy-based por diseño: copiar el adapter al target y ajustar sus
 campos de identidad es la instalación completa. Las referencias persistidas
@@ -95,23 +96,57 @@ es requisito para operar hoy.
 Fast path del resolver para el target ya adoptado:
 
 ```sh
-: "${PROJECT_OS_TARGET_ROOT:?define PROJECT_OS_TARGET_ROOT}"
-: "${PROJECT_OS_KERNEL_DIR:?define PROJECT_OS_KERNEL_DIR}"
-TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
-KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+case "$TARGET_REF" in
+  '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
+    : "${PROJECT_OS_TARGET_ROOT:?define PROJECT_OS_TARGET_ROOT}"
+    TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
+    ;;
+  /*) case "$TARGET_REF" in *'$'*) exit 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
+  *) exit 1 ;;
+esac
+case "$KERNEL_REF" in
+  '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
+    : "${PROJECT_OS_KERNEL_DIR:?define PROJECT_OS_KERNEL_DIR}"
+    KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+    ;;
+  /*) case "$KERNEL_REF" in *'$'*) exit 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
+  *) exit 1 ;;
+esac
 case "$TARGET_ROOT" in /*) ;; *) exit 1 ;; esac
 case "$KERNEL_DIR" in /*) ;; *) exit 1 ;; esac
+case "$KERNEL_DIR" in */project-os-es/kernel) ;; *) exit 1 ;; esac
 PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
-test "$PROJECT_OS_ROOT" != "$KERNEL_DIR"
-test -f "$KERNEL_DIR/manifest.json"
+test -n "$PROJECT_OS_ROOT" || exit 1
+test -d "$TARGET_ROOT" || exit 1
+test -f "$KERNEL_DIR/manifest.json" || exit 1
+test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || exit 1
+python -c '
+import json
+import sys
+try:
+    payload = json.load(open(sys.argv[1], encoding="utf-8"))
+    entries = payload.get("manifest") if isinstance(payload, dict) else None
+    valid = (
+        isinstance(entries, list) and len(entries) == 1
+        and isinstance(entries[0], dict)
+        and entries[0].get("key") == "manifest.kernel_es"
+        and entries[0].get("language") == "es"
+        and entries[0].get("active") is True
+    )
+except (OSError, UnicodeError, json.JSONDecodeError):
+    valid = False
+raise SystemExit(0 if valid else 1)
+' "$KERNEL_DIR/manifest.json" || exit 1
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
   --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
 cd "$TARGET_ROOT"
 ```
 
-La resolución usa solo esas variables exactas, sin `eval` ni expansión de
-nombres arbitrarios. La resolución manual de
+La misma resolución consume el campo persistido en modalidad portable o
+literal, sin `eval` ni expansión de nombres arbitrarios. La resolución manual de
 `project-os-es/kernel/manifest.json` sigue siendo el fallback canónico para la
 superficie en español.
 
