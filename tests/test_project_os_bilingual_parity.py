@@ -522,6 +522,11 @@ def test_adapter_responsibilities_and_boundaries_are_preserved() -> None:
         positions = [agents.index(field) for field in fields]
         assert positions == sorted(positions)
         assert f"PM_FACING_LANGUAGE = {language}" in agents
+        assert "REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT" in agents
+        assert "KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR" in agents
+        assert "PROJECT_OS_TARGET_ROOT" in agents
+        assert "PROJECT_OS_KERNEL_DIR" in agents
+        assert "$PWD" not in agents
         assert "tools/project_os_resolve.py" in agents
         assert "AGENTS.md" in agents
         assert "BROWSER_CHAT.md" in browser

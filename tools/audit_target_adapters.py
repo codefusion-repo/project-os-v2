@@ -82,6 +82,7 @@ CANONICAL_HEADINGS = {
 
 METADATA_PATTERN = re.compile(r"^([A-Z][A-Z0-9_]*)\s*=\s*(.*?)\s*$")
 PLACEHOLDER_PATTERN = re.compile(r"\{\{.*?\}\}|<[^>]+>")
+ENV_REFERENCE_PATTERN = re.compile(r"^\$(?:([A-Z][A-Z0-9_]*)|\{([A-Z][A-Z0-9_]*)\})$")
 SHA_PATTERN = re.compile(r"\b[0-9a-f]{40}\b", re.IGNORECASE)
 GITHUB_ISSUE_URL_PATTERN = re.compile(
     r"https?://github\.com/([^/\s]+)/([^/\s]+)/issues/(\d+)\b", re.IGNORECASE
@@ -97,6 +98,16 @@ ROADMAP_ANCHOR_PATTERN = re.compile(
 )
 VERSION_PATTERN = re.compile(r"^(?:v?\d+(?:\.\d+)+(?:[-+][A-Za-z0-9._-]+)?|[0-9a-f]{40})$", re.IGNORECASE)
 VAGUE_VERSION_VALUES = {"current", "latest", "last updated", "last-updated", "up to date", "updated"}
+PORTABLE_PATH_VARIABLES = {
+    "REPOSITORY_LOCAL_PATH": "PROJECT_OS_TARGET_ROOT",
+    "KERNEL_LOCAL_PATH": "PROJECT_OS_KERNEL_DIR",
+}
+PATH_METADATA_FIELDS = frozenset(PORTABLE_PATH_VARIABLES)
+KERNEL_SURFACES = {
+    "es": "project-os-es",
+    "en": "project-os-en",
+}
+KERNEL_MANIFEST_KEY = "manifest.kernel_es"
 
 LIVE_STATE_PATTERNS = (
     ("TAA-LIVE-BRANCH", re.compile(r"\b(?:current|active)\s+branch\b|\bbranch\s+state\b|\bon\s+branch\b", re.I)),
@@ -195,6 +206,15 @@ class Finding:
     line: int | None
     message: str
     evidence: str = ""
+    redact_evidence: bool = False
+    safe_evidence: str = ""
+
+    def _safe_evidence(self) -> str:
+        """Never expose a persisted or resolved path value in an output finding."""
+
+        if not self.redact_evidence:
+            return self.evidence
+        return self.safe_evidence
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -203,12 +223,13 @@ class Finding:
             "file": self.file,
             "line": self.line,
             "message": self.message,
-            "evidence": self.evidence,
+            "evidence": self._safe_evidence(),
         }
 
     def render(self) -> str:
         location = self.file if self.line is None else f"{self.file}:{self.line}"
-        suffix = f" Evidence: {self.evidence}" if self.evidence else ""
+        evidence = self._safe_evidence()
+        suffix = f" Evidence: {evidence}" if evidence else ""
         return f"{self.code} [{self.severity}] {location}: {self.message}{suffix}"
 
 
@@ -236,12 +257,12 @@ class AuditError(RuntimeError):
 def _read_text(path: Path, name: str, required: bool = True) -> Source | None:
     if not path.exists():
         if required:
-            raise AuditError(f"required adapter not found: {path}")
+            raise AuditError(f"required adapter not found: {name}")
         return None
     try:
         return Source(name=name, text=path.read_text(encoding="utf-8"))
     except OSError as exc:
-        raise AuditError(f"could not read {path}: {exc}") from exc
+        raise AuditError(f"could not read adapter: {name}") from exc
 
 
 def _git_show(target: Path, ref: str, rel_path: str, required: bool = True) -> Source | None:
@@ -249,8 +270,7 @@ def _git_show(target: Path, ref: str, rel_path: str, required: bool = True) -> S
     proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
     if proc.returncode != 0:
         if required:
-            detail = proc.stderr.strip() or proc.stdout.strip() or f"git show failed for {ref}:{rel_path}"
-            raise AuditError(detail)
+            raise AuditError(f"git show failed for {ref}:{rel_path}")
         return None
     return Source(name=rel_path, text=proc.stdout)
 
@@ -297,12 +317,173 @@ def _is_placeholder(value: str) -> bool:
     return not value.strip() or bool(PLACEHOLDER_PATTERN.search(value))
 
 
-def _raw_expanded_path(value: str) -> Path:
-    return Path(os.path.expandvars(os.path.expanduser(value)))
+class PathResolutionError(ValueError):
+    """A metadata path cannot be resolved under the closed portable contract."""
+
+    def __init__(self, kind: str, variable: str | None = None) -> None:
+        super().__init__(kind)
+        self.kind = kind
+        self.variable = variable
 
 
-def _resolved_expanded_path(value: str) -> Path:
-    return _raw_expanded_path(value).resolve()
+def _referenced_variable_names(value: str) -> str:
+    variables = re.findall(r"\$\{?([A-Z][A-Z0-9_]*)\}?", value)
+    return ", ".join(dict.fromkeys(variables))
+
+
+def _resolve_metadata_path(field: str, value: str) -> tuple[Path, str | None]:
+    """Resolve an absolute literal or the field's one exact allowlisted variable."""
+
+    allowed_variable = PORTABLE_PATH_VARIABLES[field]
+    match = ENV_REFERENCE_PATTERN.fullmatch(value)
+    variable = next((group for group in match.groups() if group), None) if match else None
+    if variable is not None:
+        if variable != allowed_variable:
+            raise PathResolutionError("non-allowlisted", variable)
+        resolved_value = os.environ.get(variable)
+        if not resolved_value:
+            raise PathResolutionError("missing or empty", variable)
+        path = Path(resolved_value)
+        source_variable = variable
+    else:
+        if "$" in value:
+            referenced = re.search(r"\$\{?([A-Za-z_][A-Za-z0-9_]*)", value)
+            name = referenced.group(1) if referenced else "unknown"
+            raise PathResolutionError("non-exact", name)
+        path = Path(value)
+        source_variable = None
+
+    if not path.is_absolute():
+        raise PathResolutionError("non-absolute", source_variable)
+    try:
+        return path.resolve(), source_variable
+    except (OSError, RuntimeError) as exc:
+        raise PathResolutionError("unresolvable", source_variable) from exc
+
+
+def _path_resolution_finding(
+    source: Source,
+    metadata: dict[str, list[tuple[int, str]]],
+    field: str,
+    error: PathResolutionError,
+) -> Finding:
+    if error.kind == "non-allowlisted":
+        risk = "references a non-allowlisted variable"
+    elif error.kind == "non-exact":
+        risk = "must use an exact allowlisted variable reference"
+    elif error.kind == "missing or empty":
+        risk = "requires a defined, non-empty variable"
+    elif error.kind == "non-absolute":
+        risk = "must resolve to an absolute path"
+    else:
+        risk = "could not be resolved safely"
+    return Finding(
+        f"TAA-META-{'LOCAL' if field == 'REPOSITORY_LOCAL_PATH' else 'KERNEL'}-PATH",
+        "error",
+        source.name,
+        _line_for(metadata, field),
+        f"{field} {risk}",
+        error.variable or "",
+        True,
+        error.variable or "",
+    )
+
+
+def _kernel_identity_finding(
+    source: Source,
+    metadata: dict[str, list[tuple[int, str]]],
+    code: str,
+    message: str,
+    variable: str | None,
+) -> Finding:
+    return Finding(
+        code,
+        "error",
+        source.name,
+        _line_for(metadata, "KERNEL_LOCAL_PATH"),
+        message,
+        variable or "",
+        True,
+        variable or "",
+    )
+
+
+def _check_kernel_identity(
+    source: Source,
+    metadata: dict[str, list[tuple[int, str]]],
+    kernel_path: Path,
+    language: str,
+    variable: str | None,
+) -> list[Finding]:
+    expected_surface = KERNEL_SURFACES[language]
+    if kernel_path.name != "kernel" or kernel_path.parent.name != expected_surface:
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-SURFACE",
+                "KERNEL_LOCAL_PATH does not match the declared language surface",
+                variable,
+            )
+        ]
+
+    manifest_path = kernel_path / "manifest.json"
+    if not manifest_path.is_file():
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-MANIFEST",
+                "KERNEL_LOCAL_PATH does not contain the expected manifest",
+                variable,
+            )
+        ]
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-IDENTITY",
+                "KERNEL_LOCAL_PATH contains an unreadable or invalid manifest",
+                variable,
+            )
+        ]
+
+    entries = payload.get("manifest") if isinstance(payload, dict) else None
+    if not isinstance(entries, list) or len(entries) != 1 or not isinstance(entries[0], dict):
+        valid_identity = False
+    else:
+        entry = entries[0]
+        valid_identity = (
+            entry.get("key") == KERNEL_MANIFEST_KEY
+            and entry.get("language") == language
+            and entry.get("active") is True
+        )
+    if not valid_identity:
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-IDENTITY",
+                "KERNEL_LOCAL_PATH manifest identity does not match the declared surface",
+                variable,
+            )
+        ]
+
+    project_os_root = kernel_path.parent.parent
+    if not (project_os_root / "tools" / "project_os_resolve.py").is_file():
+        return [
+            _kernel_identity_finding(
+                source,
+                metadata,
+                "TAA-META-KERNEL-RESOLVER",
+                "KERNEL_LOCAL_PATH is not anchored to a checkout with the canonical resolver",
+                variable,
+            )
+        ]
+    return []
 
 
 def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Finding]:
@@ -325,12 +506,27 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
                     values[1][0],
                     f"metadata field {field!r} appears more than once",
                     values[1][1],
+                    field in PATH_METADATA_FIELDS,
+                    _referenced_variable_names(values[1][1])
+                    if field in PATH_METADATA_FIELDS
+                    else "",
                 )
             )
         line_no, value = values[0]
         if _is_placeholder(value):
             findings.append(
-                Finding("TAA-META-PLACEHOLDER", "error", source.name, line_no, f"metadata field {field!r} is not filled", value)
+                Finding(
+                    "TAA-META-PLACEHOLDER",
+                    "error",
+                    source.name,
+                    line_no,
+                    f"metadata field {field!r} is not filled",
+                    value,
+                    field in PATH_METADATA_FIELDS,
+                    _referenced_variable_names(value)
+                    if field in PATH_METADATA_FIELDS
+                    else "",
+                )
             )
         if line_no < previous_line:
             findings.append(
@@ -341,6 +537,10 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
                     line_no,
                     f"metadata field {field!r} is out of the standard order",
                     value,
+                    field in PATH_METADATA_FIELDS,
+                    _referenced_variable_names(value)
+                    if field in PATH_METADATA_FIELDS
+                    else "",
                 )
             )
         previous_line = max(previous_line, line_no)
@@ -360,41 +560,25 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
 
     local_path = _metadata_value(metadata, "REPOSITORY_LOCAL_PATH")
     if local_path and not _is_placeholder(local_path):
-        raw_local_path = _raw_expanded_path(local_path)
         try:
-            if not raw_local_path.is_absolute():
+            resolved_local_path, variable = _resolve_metadata_path(
+                "REPOSITORY_LOCAL_PATH", local_path
+            )
+            if resolved_local_path != target.resolve():
                 findings.append(
                     Finding(
                         "TAA-META-LOCAL-PATH",
-                        "warning",
-                        source.name,
-                        _line_for(metadata, "REPOSITORY_LOCAL_PATH"),
-                        "REPOSITORY_LOCAL_PATH must be absolute",
-                        local_path,
-                    )
-                )
-            elif _resolved_expanded_path(local_path) != target.resolve():
-                findings.append(
-                    Finding(
-                        "TAA-META-LOCAL-PATH",
-                        "warning",
+                        "error",
                         source.name,
                         _line_for(metadata, "REPOSITORY_LOCAL_PATH"),
                         "REPOSITORY_LOCAL_PATH does not match the audited target checkout",
-                        local_path,
+                        variable or "",
+                        True,
+                        variable or "",
                     )
                 )
-        except RuntimeError:
-            findings.append(
-                Finding(
-                    "TAA-META-LOCAL-PATH",
-                    "warning",
-                    source.name,
-                    _line_for(metadata, "REPOSITORY_LOCAL_PATH"),
-                    "REPOSITORY_LOCAL_PATH could not be resolved",
-                    local_path,
-                )
-            )
+        except PathResolutionError as exc:
+            findings.append(_path_resolution_finding(source, metadata, "REPOSITORY_LOCAL_PATH", exc))
 
     if (default_branch := _metadata_value(metadata, "DEFAULT_BRANCH")) and default_branch != "main":
         findings.append(
@@ -414,16 +598,22 @@ def _check_metadata(source: Source, target: Path, expected_repo: str) -> list[Fi
         )
     kernel_path = _metadata_value(metadata, "KERNEL_LOCAL_PATH")
     if kernel_path and not _is_placeholder(kernel_path):
-        raw_kernel_path = _raw_expanded_path(kernel_path)
         try:
-            if not raw_kernel_path.is_absolute():
-                findings.append(
-                    Finding("TAA-META-KERNEL-PATH", "warning", source.name, _line_for(metadata, "KERNEL_LOCAL_PATH"), "KERNEL_LOCAL_PATH must be absolute", kernel_path)
-                )
-        except RuntimeError:
-            findings.append(
-                Finding("TAA-META-KERNEL-PATH", "warning", source.name, _line_for(metadata, "KERNEL_LOCAL_PATH"), "KERNEL_LOCAL_PATH could not be resolved", kernel_path)
+            resolved_kernel_path, variable = _resolve_metadata_path(
+                "KERNEL_LOCAL_PATH", kernel_path
             )
+            if pm_language in KERNEL_SURFACES:
+                findings.extend(
+                    _check_kernel_identity(
+                        source,
+                        metadata,
+                        resolved_kernel_path,
+                        pm_language,
+                        variable,
+                    )
+                )
+        except PathResolutionError as exc:
+            findings.append(_path_resolution_finding(source, metadata, "KERNEL_LOCAL_PATH", exc))
     return findings
 
 
@@ -832,7 +1022,7 @@ def audit_target_adapters(
 ) -> list[Finding]:
     target_path = Path(target).resolve()
     if not target_path.is_dir():
-        raise AuditError(f"target checkout is not a directory: {target_path}")
+        raise AuditError("target checkout is not a readable directory")
 
     findings: list[Finding] = []
     head_sources = _load_repo_sources(target_path, ref=head_ref)
@@ -872,14 +1062,14 @@ def _load_browser_chat(value: str) -> Source:
     try:
         return Source(name="BROWSER_CHAT.md", text=path.read_text(encoding="utf-8"))
     except OSError as exc:
-        raise AuditError(f"could not read browser-chat adapter {path}: {exc}") from exc
+        raise AuditError("could not read browser-chat adapter") from exc
 
 
 def _emit_json(target: Path, repository: str, findings: list[Finding]) -> None:
     payload = {
         "tool": "tools.audit_target_adapters",
-        "schema_version": 1,
-        "target": str(target.resolve()),
+        "schema_version": 2,
+        "target": repository,
         "repository": repository,
         "findings": [finding.as_dict() for finding in findings],
     }
