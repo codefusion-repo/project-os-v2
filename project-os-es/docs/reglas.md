@@ -104,27 +104,46 @@ vez de forzar siempre un bloqueo total, sin debilitar ningún gate material.
   target, la SHA/ref exacta y la seguridad de secretos seguirán fallando
   cerrado sin excepción. La distinción planificada aplicaría únicamente a
   evidencia auxiliar de contexto, nunca a un hard gate.
+- **Evidencia mínima suficiente por output y acción.** La implementación
+  futura define, para cada output y cada acción material, qué evidencia
+  mínima es suficiente para proceder; lo que exceda ese mínimo es contexto
+  auxiliar cuya ausencia se registra como gap explícito, no como bloqueo
+  automático.
+- **Impacto material de cada gap.** Cada gap declara su impacto sobre la
+  decisión que sostiene: qué no pudo verificarse y si afecta autoridad,
+  alcance o solo contexto. Un comentario truncado, por ejemplo, solo bloquea
+  cuando la parte truncada afecta la autoridad o el alcance de la decisión.
+- **Resolución segura con gaps no materiales explícitos.** La implementación
+  futura debe permitir una resolución segura con gaps no materiales
+  explícitos y visibles en el output; el nombre técnico definitivo de esa
+  resolución se decide en esa implementación, no en este documento. Nunca se
+  declara completitud ocultando un gap.
 - **Fuentes equivalentes.** Cuando la fuente primaria de una evidencia
   auxiliar no esté disponible, una fuente equivalente verificable podría
   satisfacer el mismo requerimiento, registrando qué fuente se usó y por qué.
 - **Fallos de conectores.** Un fallo de conector, API o red al leer evidencia
-  auxiliar debería degradar de forma explícita, nunca silenciosa: el resultado
-  nombra qué no pudo leerse y confirma qué gates permanecen intactos.
-- **Drafts con revalidación diferida.** Un draft podría avanzar con evidencia
-  auxiliar incompleta solo si queda marcado para revalidación diferida, y esa
-  revalidación debe completarse antes de cualquier acción material.
-- **Gaps explícitos.** Toda degradación deja gaps nombrados y visibles en el
-  output correspondiente, dentro de los estados existentes del kernel; nunca
-  se declara completitud ocultando un gap.
+  auxiliar degrada de forma explícita, nunca silenciosa. Errores como 404,
+  422 o 502 se tratan como indisponibilidad de la fuente, no como estado del
+  target: el resultado nombra qué no pudo leerse y confirma qué gates
+  permanecen intactos.
+- **Drafts read-only con revalidación obligatoria.** Un draft read-only puede
+  avanzar con evidencia auxiliar incompleta solo si queda marcado para
+  revalidación obligatoria, y esa revalidación debe completarse antes de
+  cualquier mutación.
 
 **Criterios de aceptación para la implementación futura:**
 
 1. Ningún hard gate vigente se debilita ni se vuelve degradable.
-2. La clasificación material/auxiliar de cada evidencia queda definida en el
-   kernel de forma determinista y protegida por tests.
+2. La clasificación material/auxiliar y la evidencia mínima suficiente por
+   output y acción quedan definidas en el kernel de forma determinista y
+   protegidas por tests.
 3. Toda degradación es explícita, trazable y revalidable; los fallos
    silenciosos siguen prohibidos.
-4. Hasta que exista esa implementación aprobada, el fail-closed total vigente
+4. Los casos de prueba mínimos cubren: evidencia auxiliar ausente, aprobación
+   exacta ausente, fuente equivalente, respuesta truncada, draft con
+   evidencia parcial, tag sin SHA, conflicto real de decisiones y CI
+   equivalente al merge real.
+5. Hasta que exista esa implementación aprobada, el fail-closed total vigente
    se conserva íntegro.
 
 ## Siguiente paso
