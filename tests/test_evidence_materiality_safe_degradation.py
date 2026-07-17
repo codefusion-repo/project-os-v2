@@ -148,6 +148,42 @@ def test_partial_draft_can_degrade_but_issue_implementation_cannot() -> None:
     assert report["allows_non_material_gaps"] is False
 
 
+@pytest.mark.parametrize(
+    ("readme", "clauses"),
+    (
+        (
+            "project-os-es/operaciones/README.md",
+            (
+                "evidencia mínima o material faltante",
+                "hard gates no satisfechos",
+                "autoridad ambigua o validación requerida faltante o fallida",
+                "La evidencia auxiliar faltante no bloquea por sí sola",
+                "outputs read-only o draft-only que declaren degradación segura",
+                "Antes de toda mutación, revalida completamente cualquier gap",
+            ),
+        ),
+        (
+            "project-os-en/operations/README.md",
+            (
+                "missing minimum or material evidence",
+                "unsatisfied hard gates",
+                "ambiguous authority, or missing or failed required validation",
+                "Missing auxiliary evidence does not block by itself",
+                "declared read-only or draft-only outputs that allow safe degradation",
+                "Before any mutation, fully revalidate every gap",
+            ),
+        ),
+    ),
+)
+def test_bilingual_operation_contract_keeps_safe_degradation_fail_closed(
+    readme: str, clauses: tuple[str, ...]
+) -> None:
+    text = " ".join((REPO_ROOT / readme).read_text(encoding="utf-8").split())
+
+    for clause in clauses:
+        assert clause in text
+
+
 def test_resolver_keeps_the_primary_file_only_path_without_external_access() -> None:
     tree = ast.parse((REPO_ROOT / "tools/project_os_resolve.py").read_text(encoding="utf-8"))
     imported_roots = {
