@@ -87,6 +87,46 @@ logs, PRs y reportes. Se redacta como `[REDACTED]` reportando solo nombre de
 variable, ruta y tipo de riesgo. Nada de dumps amplios de entorno (`env`,
 `printenv`, `set`) sin diagnóstico redactado y acotado por el PM.
 
+## Evolución planificada: materialidad de evidencia y degradación segura
+
+**Esta sección documenta un requerimiento planificado, no comportamiento
+implementado.** Mientras esta evolución no exista en el kernel, el
+comportamiento vigente descrito arriba permanece sin cambios: ante evidencia
+requerida faltante o ambigua, el sistema se detiene fail-closed.
+
+**Objetivo.** Distinguir en una evolución futura la evidencia que sostiene un
+hard gate de la evidencia auxiliar de contexto, para que la indisponibilidad
+parcial de esta última pueda degradar de forma segura, explícita y trazable en
+vez de forzar siempre un bloqueo total, sin debilitar ningún gate material.
+
+- **Hard gates vs. evidencia auxiliar (distinción futura).** La aprobación PM
+  exacta, el branch preflight, la validación requerida, la identidad del
+  target, la SHA/ref exacta y la seguridad de secretos seguirán fallando
+  cerrado sin excepción. La distinción planificada aplicaría únicamente a
+  evidencia auxiliar de contexto, nunca a un hard gate.
+- **Fuentes equivalentes.** Cuando la fuente primaria de una evidencia
+  auxiliar no esté disponible, una fuente equivalente verificable podría
+  satisfacer el mismo requerimiento, registrando qué fuente se usó y por qué.
+- **Fallos de conectores.** Un fallo de conector, API o red al leer evidencia
+  auxiliar debería degradar de forma explícita, nunca silenciosa: el resultado
+  nombra qué no pudo leerse y confirma qué gates permanecen intactos.
+- **Drafts con revalidación diferida.** Un draft podría avanzar con evidencia
+  auxiliar incompleta solo si queda marcado para revalidación diferida, y esa
+  revalidación debe completarse antes de cualquier acción material.
+- **Gaps explícitos.** Toda degradación deja gaps nombrados y visibles en el
+  output correspondiente, dentro de los estados existentes del kernel; nunca
+  se declara completitud ocultando un gap.
+
+**Criterios de aceptación para la implementación futura:**
+
+1. Ningún hard gate vigente se debilita ni se vuelve degradable.
+2. La clasificación material/auxiliar de cada evidencia queda definida en el
+   kernel de forma determinista y protegida por tests.
+3. Toda degradación es explícita, trazable y revalidable; los fallos
+   silenciosos siguen prohibidos.
+4. Hasta que exista esa implementación aprobada, el fail-closed total vigente
+   se conserva íntegro.
+
 ## Siguiente paso
 
 Con las reglas claras, opera el ciclo día a día con [ritmo.md](ritmo.md).
