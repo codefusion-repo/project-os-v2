@@ -34,7 +34,9 @@ python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
 ```
 
-The resolver accelerates resolution; the manifest remains canonical. Both provide shape only and never authorize an action. Follow resolved artifact, template, and skill references without copying their contracts here.
+The resolver accelerates resolution; the manifest remains canonical. Both provide shape only and never authorize an action. Follow resolved artifact, template, and skill references without copying their contracts here. Use `context_plan` to distinguish internally loaded files, projected metadata, and referenced templates and skills; never treat it as proof of content delivered to the model.
+
+After resolution, open only the applicable template, requested skills, and Project OS, target, or live-evidence sources required by scope, validation, or source basis. Report actual reads in the canonical source receipt, in the output envelope alongside the artifact, using repository-relative paths or live identifiers and reasons rather than absolute machine paths or full bodies. Every additional read needs a reason allowed by the contract; do not recursively crawl Project OS by default.
 
 ## Live evidence
 

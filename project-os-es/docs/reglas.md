@@ -78,6 +78,19 @@ en vez de repetir cuerpos completos; usa subagentes solo con razón acotada y
 verifica su salida contra evidencia viva. El detalle operativo de esta
 superficie vive en `project-os-es/kernel/reglas-operativas.json`.
 
+La superficie normal de lectura parte en el manifest y se limita a la
+resolución seleccionada, límites y evidencia, output y artefacto aplicables,
+template exacto, skills solicitadas, evidencia viva mínima y fuentes del target
+requeridas por scope, validación o source basis. Tooling interno, metadata
+proyectada, contexto real del modelo y aperturas posteriores son categorías
+distintas. Cada ejecución las reporta mediante
+`context_receipt.minimum_read_surface`, en el envelope del output junto al
+artefacto, usando paths relativos al repositorio o identificadores vivos y
+razones, nunca paths absolutos de máquina ni cuerpos completos. Lecturas fuera
+de la superficie normal requieren `full/debug`, auditoría, debugging, revisión
+de seguridad/autorización, arquitectura compleja o una decisión PM concreta;
+ninguna razón sustituye evidencia ni gates.
+
 ## Secretos
 
 Prohibido imprimir, pegar, commitear, citar o resumir secretos: `.env`,

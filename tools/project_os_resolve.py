@@ -112,11 +112,11 @@ def _load(
             errors.append(f"{filename} {surface.messages['missing_collection']} '{collection}'")
             continue
         data[family] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
-        contract_field = {
-            "evidence": "materiality_contract",
-            "outputs": "safe_degradation_contract",
-        }.get(family)
-        if contract_field is not None:
+        contract_fields = {
+            "evidence": ("materiality_contract",),
+            "outputs": ("safe_degradation_contract", "context_receipt_contract"),
+        }.get(family, ())
+        for contract_field in contract_fields:
             contract = content.get(contract_field)
             if not isinstance(contract, dict):
                 errors.append(f"{filename} {surface.messages['missing_collection']} '{contract_field}'")
@@ -270,6 +270,7 @@ def _allowed_outputs(outputs: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "action_class",
             "allows_non_material_gaps",
             "safe_degradation_key",
+            "context_receipt_key",
             "must_include",
         )
         for item in outputs
@@ -321,6 +322,7 @@ def _minimal_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
             "key": workflow["key"],
             "materiality_contract": workflow["materiality_contract"],
             "safe_degradation_contract": workflow["safe_degradation_contract"],
+            "context_receipt_contract": workflow["context_receipt_contract"],
             "required_evidence": _required_evidence(workflow["required_evidence"]),
             "minimum_evidence": _required_evidence(workflow["minimum_evidence"]),
             "allowed_outputs": _allowed_outputs(workflow["allowed_outputs"]),
@@ -364,6 +366,7 @@ def _compact_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
             "required_behavior": workflow["required_behavior"],
             "materiality_contract": workflow["materiality_contract"],
             "safe_degradation_contract": workflow["safe_degradation_contract"],
+            "context_receipt_contract": workflow["context_receipt_contract"],
             "required_evidence": _required_evidence(workflow["required_evidence"]),
             "minimum_evidence": _required_evidence(workflow["minimum_evidence"]),
             "allowed_outputs": _allowed_outputs(workflow["allowed_outputs"]),
@@ -395,6 +398,73 @@ def _project_resolution(
     if hydration_level is HydrationLevel.COMPACT:
         return _compact_resolution(resolved)
     return resolved
+
+
+def _context_plan(
+    resolved: dict[str, Any],
+    projected: dict[str, Any],
+    hydration_level: HydrationLevel,
+    surface: ProjectOSSurface,
+) -> dict[str, Any]:
+    """Report resolver-observable context metadata without claiming model delivery."""
+
+    kernel_sources = {
+        "manifest": ("manifest",),
+        "reglas_operativas": ("operational_rules",),
+        "actor": ("actors",),
+        "limites": ("limits",),
+        "mode": ("modes",),
+        "workflow": ("workflows", "evidence", "outputs", "artifacts"),
+        "estados_permitidos": ("statuses",),
+        "requested_skills": ("skills",),
+    }
+
+    def kernel_path(family: str) -> str:
+        filename = surface.kernel_files[family][0]
+        return f"{surface.root_name}/kernel/{filename}"
+
+    projected_metadata: dict[str, list[str]] = {}
+    for field in projected:
+        families = kernel_sources.get(field, ())
+        if families:
+            projected_metadata[f"resuelto.{field}"] = [
+                kernel_path(family) for family in families
+            ]
+
+    contract = resolved["workflow"]["context_receipt_contract"]
+    return {
+        "contract_key": contract["key"],
+        "hydration_level": hydration_level.value,
+        "normal_read_surface": contract["normal_read_surface"],
+        "tool_internal_sources": [
+            kernel_path(family) for family in surface.kernel_files
+        ],
+        "resolver_projected_metadata": projected_metadata,
+        "resolved_templates": [
+            {
+                "artifact": artifact["key"],
+                "output": artifact["output_key"],
+                "source": artifact["required_template"],
+            }
+            for artifact in resolved["workflow"]["artefactos"]
+        ],
+        "requested_skills": [
+            {
+                "key": skill["key"],
+                "source": skill["required_skill"],
+            }
+            for skill in resolved.get("requested_skills", [])
+        ],
+        "model_context_sources": [],
+        "model_context_observation": "executor_report_required",
+        "receipt_fields": contract["fields"],
+        "additional_context_reason": (
+            HydrationLevel.FULL_DEBUG.value
+            if hydration_level is HydrationLevel.FULL_DEBUG
+            else None
+        ),
+        "resolver_external_access": contract["resolver_external_access"],
+    }
 
 
 def resolver(
@@ -540,6 +610,7 @@ def resolver(
             **_fields(workflow_entry, "key", "use_for", "required_behavior", "active"),
             "materiality_contract": data["materiality_contract"],
             "safe_degradation_contract": data["safe_degradation_contract"],
+            "context_receipt_contract": data["context_receipt_contract"],
             "required_evidence": [
                 _fields(
                     item,
@@ -579,6 +650,7 @@ def resolver(
                     "action_class",
                     "allows_non_material_gaps",
                     "safe_degradation_key",
+                    "context_receipt_key",
                     "must_include",
                     "active",
                 )
@@ -590,10 +662,17 @@ def resolver(
     }
     if requested_skills:
         resolved["requested_skills"] = requested_skills
+    projected = _project_resolution(resolved, selected_hydration_level)
     return {
         "estado": "status.resolved",
         "hydration_level": selected_hydration_level.value,
-        "resuelto": _project_resolution(resolved, selected_hydration_level),
+        "resuelto": projected,
+        "context_plan": _context_plan(
+            resolved,
+            projected,
+            selected_hydration_level,
+            surface,
+        ),
         "autorizacion": surface.authorization_notice,
         "errores": [],
     }

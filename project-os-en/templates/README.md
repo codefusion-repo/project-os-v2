@@ -10,6 +10,13 @@ The `project-os-en/kernel/artifacts.json` catalog links each artifact to
 exactly one `required_template`. The resolver exposes those references
 without copying template contents.
 
+Every output references `context_receipt.minimum_read_surface`. The agent
+renders it in the output envelope alongside the artifact, using the canonical
+kernel fields. The receipt records repository-relative paths or live
+identifiers and reasons, never absolute machine paths, bodies, secrets, or
+durable live state. When an artifact requires an exact body—such as a route
+prompt—the receipt remains outside that body and does not alter it.
+
 ## Operating bridge
 
 - PM-facing map: `project-os-en/docs/README.md`.
