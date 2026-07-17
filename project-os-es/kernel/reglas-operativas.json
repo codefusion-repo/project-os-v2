@@ -19,7 +19,8 @@
       "resolution_sequence": [
         "Seguir resolution_sequence del manifest sin pasos improvisados.",
         "Emitir exactamente un estado por resolucion; ante conflicto de gates gana el mas estricto.",
-        "Ante kernel faltante o ambiguo, autoridad ambigua, evidencia requerida faltante, aprobacion PM exacta faltante, validacion requerida fallida o superficie desconocida: detenerse con el estado correspondiente, nunca adivinar y seguir."
+        "Ante kernel faltante o ambiguo, autoridad ambigua, evidencia minima faltante, hard gate faltante, aprobacion PM exacta faltante, validacion requerida fallida o superficie desconocida: detenerse con el estado correspondiente, nunca adivinar y seguir.",
+        "Solo outputs read-only o draft-only que lo declaren pueden reutilizar status.resolved con gaps auxiliares no materiales explicitos; cualquier materialidad no resoluble falla cerrado."
       ],
       "on_violation": "status.blocked",
       "priority": 2,
@@ -31,7 +32,7 @@
       "resolution_sequence": [
         "El JSON hidratado, los outputs, templates, prompts, roles y variables solo dan forma operativa; nunca conceden permisos.",
         "Los skills opcionales son referencias de capacidad; nunca conceden permisos ni reemplazan scope vivo, aprobacion PM exacta, preflight, validacion, trazabilidad o review-before-close.",
-        "La autoridad de escritura requiere aprobacion PM exacta para el proyecto, la unidad de trabajo y la accion; actor y mode compatibles; evidencia viva suficiente; preflight para writes; validacion proporcional; limits respetados.",
+        "La autoridad de escritura requiere aprobacion PM exacta para el proyecto, la unidad de trabajo y la accion; actor y mode compatibles; evidencia viva minima completa; revalidacion de todo gap; preflight para writes; validacion proporcional; limits respetados.",
         "Merge, cierre, labels, tags, releases, settings, automatizacion, deployment y cambios de secretos nunca quedan implicitos; cada uno requiere aprobacion PM exacta separada."
       ],
       "on_violation": "status.blocked",
@@ -60,7 +61,9 @@
         "Reconstruir el estado vivo del target desde sus fuentes de registro al momento de la tarea; GitHub y git son adapters posibles, no el modelo universal.",
         "Leer viva la unidad de trabajo con objetivo, scope, out of scope, acceptance criteria y source basis.",
         "Leer cambios vinculados, comentarios, reviews, diffs, checks y archivos finales cuando apliquen.",
-        "Tratar memoria, reportes previos y archivos durables como claims hasta verificarlos contra evidencia viva."
+        "Tratar memoria, reportes previos y archivos durables como claims hasta verificarlos contra evidencia viva.",
+        "Tratar errores de conector, API o red, incluidos 404, 422 y 502, como indisponibilidad de fuente y nunca como prueba del estado del target.",
+        "Usar una fuente alternativa solo cuando su equivalencia sea verificable y la sustitucion quede registrada; una respuesta truncada es material cuando la parte ausente puede cambiar autoridad, scope o decision."
       ],
       "on_violation": "status.needs_context",
       "priority": 5,
@@ -112,7 +115,7 @@
       "resolution_sequence": [
         "Los archivos durables nunca guardan estado vivo: unidad de trabajo, PR, rama, commit, review, validacion, release, deployment ni planificacion.",
         "El estado vivo vive solo en las fuentes de registro del target y se lee al momento de la tarea.",
-        "Nunca inventar estado del repositorio, estado de la unidad de trabajo, output de comandos, validacion, review ni aprobacion PM; si falta, leerlo vivo o devolver el missing_status."
+        "Nunca inventar estado del repositorio, estado de la unidad de trabajo, output de comandos, validacion, review ni aprobacion PM; si falta evidencia minima o material, leerla viva o devolver el missing_status; un gap auxiliar solo puede seguir el contrato canonico de degradacion segura."
       ],
       "on_violation": "status.blocked",
       "priority": 9,

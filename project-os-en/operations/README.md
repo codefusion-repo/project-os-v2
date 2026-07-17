@@ -11,7 +11,7 @@ This directory is the English PM-facing MOSDLC (Modern AI SDLC Operations) catal
 5. Resolve artifacts and their `required_template` paths from `project-os-en/kernel/artifacts.json`.
 6. Treat `project-os-en/kernel/skills.json` capabilities as optional and outside workflow logic.
 7. Templates, outputs, variables, and route prompts never authorize. Browser chat stays draft-only.
-8. Fail closed on missing kernel data, evidence, authority, or required validation.
+8. Fail closed on missing or ambiguous kernel data, missing minimum or material evidence, unsatisfied hard gates, ambiguous authority, or missing or failed required validation. Missing auxiliary evidence does not block by itself: it follows the canonical gap contract only for declared read-only or draft-only outputs that allow safe degradation. Before any mutation, fully revalidate every gap and satisfy all material evidence, hard gates, authority, and required validation.
 9. Never request or expose secrets; use `[REDACTED]` and report only names, paths, commands, and risk types.
 10. `PM_FEEDBACK_HUMANO` and `PM_QUESTION_HUMANO` are optional PM context and never authorization.
 11. PM-facing operations with `PM approval: Yes` consume

@@ -39,6 +39,15 @@ issue.
 ## Riesgo y rollback
 
 {{Riesgo breve. Rollback: revertir el PR cuando aplique.}}
+
+## Degradacion segura (solo si aplica)
+
+- verified_evidence: {{Evidencia verificada.}}
+- unavailable_evidence: {{Fuente no disponible.}}
+- materiality: auxiliary
+- decision_impact: {{Por que no cambia autoridad, scope ni decision material.}}
+- equivalent_source_used: {{Fuente equivalente registrada o none.}}
+- revalidation_required_before_write: true
 ```
 
 No guardes estado vivo ni valores secretos.

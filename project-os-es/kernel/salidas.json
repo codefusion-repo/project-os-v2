@@ -1,4 +1,23 @@
 {
+  "safe_degradation_contract": {
+    "key": "safe_degradation.non_material_gaps",
+    "status_key": "status.resolved",
+    "allowed_action_classes": [
+      "action.read_only",
+      "action.draft_only"
+    ],
+    "requires_all_minimum_evidence": true,
+    "gap_fields": [
+      "verified_evidence",
+      "unavailable_evidence",
+      "materiality",
+      "decision_impact",
+      "equivalent_source_used",
+      "revalidation_required_before_write"
+    ],
+    "completion_claim_with_gaps": false,
+    "revalidation_required_before_write": true
+  },
   "outputs": [
     {
       "key": "output.execution_report",
@@ -10,6 +29,9 @@
       "mode_key": [],
       "use_for": "reportar trabajo de implementacion; nunca declarar done sin scope completo, out of scope respetado y validacion reportada",
       "status_key": "status.resolved",
+      "action_class": "action.mutable",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "unidad de trabajo o PR",
         "proyecto o repositorio",
@@ -31,6 +53,9 @@
       "mode_key": [],
       "use_for": "draftear instrucciones humano-ejecutables; nunca reclamar codigo editado ni validado",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "objetivo",
         "archivos a inspeccionar",
@@ -55,6 +80,9 @@
       "mode_key": [],
       "use_for": "reportar hallazgos de revision o analisis; un GO exige comparacion respaldada por codigo",
       "status_key": "status.resolved",
+      "action_class": "action.read_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "scope revisado",
         "evidencia revisada",
@@ -74,6 +102,9 @@
       "mode_key": [],
       "use_for": "draftear el paquete de cierre PM; solo tras review con evidencia de codigo, nunca desde claims",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "evidencia de completitud",
         "evidencia de validacion con output real",
@@ -93,6 +124,9 @@
       "mode_key": [],
       "use_for": "draftear una unidad de trabajo para revision PM; un resultado por unidad",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "por que existe",
         "objetivo",
@@ -113,6 +147,9 @@
       "mode_key": [],
       "use_for": "rutear trabajo scoped a otra superficie como bootloader compacto e issue-referential; el issue o PR vivo y sus comentarios retienen el detalle de implementacion, y la autorizacion viaja como aprobacion PM exacta",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "bloque de variables estandar",
         "skill opcional recomendado cuando ayude, sin hacerlo obligatorio ni autorizante",
@@ -135,6 +172,9 @@
       "mode_key": [],
       "use_for": "draftear command bundles copy-safe que el PM ejecuta manualmente",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "que hace el bundle y su scope en prosa",
         "comandos con targets exactos en orden de ejecucion",
@@ -151,6 +191,9 @@
       "mode_key": [],
       "use_for": "draftear un prompt de asset para un destinatario real de diseno; solo rutea trabajo y no crea assets",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "contexto leido vivo",
         "objetivo del asset",
@@ -172,6 +215,9 @@
       "mode_key": [],
       "use_for": "draftear un prompt de revision de seguridad OWASP; solo rutea revision, no ejecuta scanner ni expone secretos",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "contexto leido vivo",
         "objetivo de la revision",
@@ -193,6 +239,9 @@
       "mode_key": [],
       "use_for": "transferir trabajo entre sesiones, agentes o herramientas apuntando a evidencia viva; nunca se vuelve archivo de estado durable",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "estado actual con referencias vivas",
         "verificado versus asumido",
@@ -210,6 +259,9 @@
       "mode_key": [],
       "use_for": "reportar auditoria o bootstrap de adopcion de un target",
       "status_key": "status.resolved",
+      "action_class": "action.mutable",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "target y repositorio",
         "version del kernel adoptada",
@@ -243,6 +295,9 @@
       "mode_key": [],
       "use_for": "reportar un estado no resuelto nombrando con precision la fuente faltante o el limite que bloquea, o la resolucion PM canonica de MOS-R.3 cuando aplique",
       "status_key": null,
+      "action_class": "action.read_only",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "el estado",
         "que falta, conflictua o bloquea exactamente",

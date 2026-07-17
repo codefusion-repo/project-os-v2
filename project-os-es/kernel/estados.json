@@ -20,7 +20,7 @@
     },
     {
       "key": "status.resolved",
-      "meaning": "resolucion de forma completada; no agrega permisos; ultimo en precedencia",
+      "meaning": "resolucion completada o, solo para outputs declarados, degradada con gaps auxiliares explicitos; no agrega permisos; ultimo en precedencia",
       "type": "resuelto",
       "active": true
     }

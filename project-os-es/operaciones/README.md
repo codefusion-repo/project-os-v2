@@ -49,10 +49,14 @@ a rutas raíz.
    settings, release y despliegue exigen aprobación PM exacta separada más los
    gates resueltos del kernel para esa acción específica. Browser chat
    permanece draft-only.
-8. **Fail-closed.** Ante kernel faltante, evidencia faltante, autoridad
-   ambigua o validación fallida: detente y entrega `output.status_result` con
-   la decisión que el PM debe tomar (`status.needs_pm_decision`,
-   `status.needs_context` o `status.blocked` según corresponda).
+8. **Fail-closed y degradación segura.** Detente ante kernel faltante o
+   ambiguo, evidencia mínima o material faltante, hard gates no satisfechos,
+   autoridad ambigua o validación requerida faltante o fallida, y entrega
+   `output.status_result` con el estado correspondiente. La evidencia auxiliar
+   faltante no bloquea por sí sola: solo sigue el contrato canónico de gaps en
+   outputs read-only o draft-only que declaren degradación segura. Antes de
+   toda mutación, revalida completamente cualquier gap y satisface toda la
+   evidencia material, hard gate, autoridad y validación requerida.
 9. **Secretos.** Nunca pidas, expongas ni registres secretos, valores de
    `.env`, credenciales, tokens, cookies, JWTs, URLs de base de datos, claves
    privadas ni valores con pinta de secreto; redacta como `[REDACTED]` y

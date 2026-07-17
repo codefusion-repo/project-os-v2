@@ -19,6 +19,72 @@ except ModuleNotFoundError:  # Direct ``python tools/validate_kernel.py`` execut
     from project_os_surfaces import DEFAULT_KERNEL_DIR, SURFACES, ProjectOSSurface, select_surface  # type: ignore[no-redef]
 
 CANONICAL_STATUSES = {"status.resolved", "status.needs_context", "status.needs_pm_decision", "status.blocked"}
+MATERIALITY_VALUES = ["material", "auxiliary"]
+SOURCE_CATALOG = [
+    "source.live_work_unit",
+    "source.live_change_request",
+    "source.live_target_record",
+    "source.verified_adr",
+    "source.verified_pm_decision",
+    "source.local_branch_preflight",
+    "source.live_repository_state",
+    "source.verified_repository_adapter",
+    "source.live_pm_decision",
+    "source.agent_validation_output",
+    "source.ci_validation_output",
+    "source.live_change_diff",
+    "source.exact_commit_range_diff",
+    "source.live_review_record",
+    "source.live_closure_record",
+    "source.live_target_adoption",
+    "source.verified_target_adapter",
+    "source.live_deployment_readiness",
+    "source.exact_target_ref",
+    "source.live_auxiliary_context",
+    "source.verified_auxiliary_context",
+]
+ACTION_CLASSES = {"action.read_only", "action.draft_only", "action.mutable"}
+SAFE_DEGRADATION_KEY = "safe_degradation.non_material_gaps"
+SAFE_GAP_FIELDS = [
+    "verified_evidence",
+    "unavailable_evidence",
+    "materiality",
+    "decision_impact",
+    "equivalent_source_used",
+    "revalidation_required_before_write",
+]
+MATERIALITY_CONTRACT = {
+    "allowed_values": MATERIALITY_VALUES,
+    "source_catalog": SOURCE_CATALOG,
+    "minimum_evidence_field": "minimum_evidence",
+    "safe_gap_materiality": "auxiliary",
+    "hard_gates_degradable": False,
+    "source_unavailability_signals": [
+        "error.connector",
+        "error.api",
+        "error.network",
+        "http.404",
+        "http.422",
+        "http.502",
+    ],
+    "source_error_target_state_inference": False,
+    "truncation_material_impacts": [
+        "impact.authority",
+        "impact.scope",
+        "impact.decision",
+    ],
+    "unclassified_truncation_fails_closed": True,
+    "equivalent_source_requires": ["verifiable", "substitution_recorded"],
+}
+SAFE_DEGRADATION_CONTRACT = {
+    "key": SAFE_DEGRADATION_KEY,
+    "status_key": "status.resolved",
+    "allowed_action_classes": ["action.read_only", "action.draft_only"],
+    "requires_all_minimum_evidence": True,
+    "gap_fields": SAFE_GAP_FIELDS,
+    "completion_claim_with_gaps": False,
+    "revalidation_required_before_write": True,
+}
 SHA_PATTERN = re.compile(r"\b[0-9a-f]{40}\b")
 FORBIDDEN_KEYS = {"write_authorization_granted", "write_authorized", "permission_granted", "approval_granted"}
 
@@ -35,8 +101,8 @@ class Finding:
 
 def _load(
     kernel_dir: Path, surface: ProjectOSSurface, findings: list[Finding]
-) -> dict[str, list[dict[str, Any]]]:
-    data: dict[str, list[dict[str, Any]]] = {}
+) -> dict[str, Any]:
+    data: dict[str, Any] = {}
     for family, (filename, collection) in surface.kernel_files.items():
         path = kernel_dir / filename
         if not path.is_file():
@@ -52,6 +118,16 @@ def _load(
             findings.append(Finding("KES-002", filename, f"missing list '{collection}'"))
             continue
         data[family] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
+        contract_field = {
+            "evidence": "materiality_contract",
+            "outputs": "safe_degradation_contract",
+        }.get(family)
+        if contract_field is not None:
+            contract = content.get(contract_field)
+            if not isinstance(contract, dict):
+                findings.append(Finding("KES-012", filename, f"missing object '{contract_field}'"))
+            else:
+                data[contract_field] = contract
     return data
 
 
@@ -100,6 +176,201 @@ def _check_durable_safety(kernel_dir: Path, findings: list[Finding]) -> None:
                 stack.extend(value)
 
 
+def _check_materiality_schema(
+    data: dict[str, Any],
+    surface: ProjectOSSurface,
+    indexes: dict[str, dict[str, dict[str, Any]]],
+    findings: list[Finding],
+) -> None:
+    evidence_file = surface.kernel_files["evidence"][0]
+    workflow_file = surface.kernel_files["workflows"][0]
+    output_file = surface.kernel_files["outputs"][0]
+    materiality_contract = data.get("materiality_contract")
+    safe_contract = data.get("safe_degradation_contract")
+    if materiality_contract != MATERIALITY_CONTRACT:
+        findings.append(
+            Finding("KES-012", evidence_file, "materiality_contract does not match the canonical schema")
+        )
+    if safe_contract != SAFE_DEGRADATION_CONTRACT:
+        findings.append(
+            Finding("KES-015", output_file, "safe_degradation_contract does not match the canonical schema")
+        )
+
+    evidence = indexes["evidence"]
+    for item in data["evidence"]:
+        key = item.get("key")
+        materiality = item.get("materiality")
+        hard_gate = item.get("hard_gate")
+        if materiality not in MATERIALITY_VALUES:
+            findings.append(Finding("KES-013", evidence_file, f"{key!r} has unknown materiality {materiality!r}"))
+        if not isinstance(hard_gate, bool):
+            findings.append(Finding("KES-013", evidence_file, f"{key!r} is missing a boolean hard_gate"))
+        elif hard_gate and materiality != "material":
+            findings.append(Finding("KES-013", evidence_file, f"{key!r} hard gate must be material"))
+        if item.get("revalidation_required_before_write") is not True:
+            findings.append(
+                Finding("KES-013", evidence_file, f"{key!r} must require revalidation before write")
+            )
+        source = item.get("source")
+        if not isinstance(source, dict):
+            findings.append(Finding("KES-013", evidence_file, f"{key!r} is missing its source contract"))
+            continue
+        primary = source.get("primary")
+        equivalents = source.get("equivalents")
+        if not isinstance(primary, str) or primary not in SOURCE_CATALOG:
+            findings.append(Finding("KES-013", evidence_file, f"{key!r} has invalid primary source"))
+        if not isinstance(equivalents, list):
+            findings.append(Finding("KES-013", evidence_file, f"{key!r} equivalents must be a list"))
+            continue
+        seen_sources: set[str] = set()
+        for equivalent in equivalents:
+            source_key = equivalent.get("key") if isinstance(equivalent, dict) else None
+            verification = equivalent.get("verification") if isinstance(equivalent, dict) else None
+            if (
+                not isinstance(source_key, str)
+                or source_key not in SOURCE_CATALOG
+                or source_key == primary
+                or source_key in seen_sources
+                or not isinstance(verification, str)
+                or not verification.strip()
+            ):
+                findings.append(
+                    Finding("KES-013", evidence_file, f"{key!r} has an invalid equivalent source")
+                )
+                continue
+            seen_sources.add(source_key)
+
+    for workflow in indexes["workflows"].values():
+        key = workflow.get("key")
+        required = workflow.get("required_evidence")
+        minimum = workflow.get("minimum_evidence")
+        if not isinstance(required, list) or not isinstance(minimum, list) or not minimum:
+            findings.append(
+                Finding("KES-014", workflow_file, f"{key!r} must declare non-empty evidence lists")
+            )
+            continue
+        if len(required) != len(set(required)) or len(minimum) != len(set(minimum)):
+            findings.append(Finding("KES-014", workflow_file, f"{key!r} has duplicate evidence"))
+        if not set(minimum) <= set(required):
+            findings.append(
+                Finding("KES-014", workflow_file, f"{key!r} minimum_evidence is not a required-evidence subset")
+            )
+        for evidence_key in minimum:
+            entry = evidence.get(evidence_key)
+            if entry is not None and entry.get("materiality") != "material":
+                findings.append(
+                    Finding("KES-014", workflow_file, f"{key!r} minimum evidence {evidence_key!r} is not material")
+                )
+        for evidence_key in set(required) - set(minimum):
+            entry = evidence.get(evidence_key)
+            if entry is not None and entry.get("materiality") != "auxiliary":
+                findings.append(
+                    Finding("KES-014", workflow_file, f"{key!r} non-minimum evidence {evidence_key!r} is not auxiliary")
+                )
+        for evidence_key in required:
+            entry = evidence.get(evidence_key)
+            if entry is not None and key not in entry.get("workflow_key", []):
+                findings.append(
+                    Finding("KES-014", workflow_file, f"{evidence_key!r} does not declare workflow {key!r}")
+                )
+
+    for item in data["outputs"]:
+        key = item.get("key")
+        action_class = item.get("action_class")
+        allows_gaps = item.get("allows_non_material_gaps")
+        degradation_key = item.get("safe_degradation_key")
+        if action_class not in ACTION_CLASSES:
+            findings.append(Finding("KES-015", output_file, f"{key!r} has unknown action_class"))
+        if not isinstance(allows_gaps, bool):
+            findings.append(Finding("KES-015", output_file, f"{key!r} is missing gap policy"))
+            continue
+        if allows_gaps:
+            if (
+                action_class not in SAFE_DEGRADATION_CONTRACT["allowed_action_classes"]
+                or item.get("status_key") != "status.resolved"
+                or degradation_key != SAFE_DEGRADATION_KEY
+            ):
+                findings.append(Finding("KES-015", output_file, f"{key!r} has an unsafe gap policy"))
+        elif degradation_key is not None:
+            findings.append(
+                Finding("KES-015", output_file, f"{key!r} references safe degradation while gaps are disabled")
+            )
+
+
+def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[str, Any] | None:
+    try:
+        evidence_doc = json.loads((directory / surface.kernel_files["evidence"][0]).read_text(encoding="utf-8"))
+        workflows_doc = json.loads((directory / surface.kernel_files["workflows"][0]).read_text(encoding="utf-8"))
+        outputs_doc = json.loads((directory / surface.kernel_files["outputs"][0]).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not all(isinstance(document, dict) for document in (evidence_doc, workflows_doc, outputs_doc)):
+        return None
+
+    def active_items(document: dict[str, Any], collection: str) -> list[dict[str, Any]]:
+        entries = document.get(collection)
+        if not isinstance(entries, list):
+            return []
+        return [item for item in entries if isinstance(item, dict) and item.get("active")]
+
+    def evidence_projection(item: dict[str, Any]) -> dict[str, Any]:
+        source = item.get("source")
+        source = source if isinstance(source, dict) else {}
+        equivalents = source.get("equivalents")
+        equivalents = equivalents if isinstance(equivalents, list) else []
+        return {
+            "materiality": item.get("materiality"),
+            "hard_gate": item.get("hard_gate"),
+            "primary_source": source.get("primary"),
+            "equivalent_sources": [
+                equivalent.get("key")
+                for equivalent in equivalents
+                if isinstance(equivalent, dict)
+            ],
+            "revalidation_required_before_write": item.get("revalidation_required_before_write"),
+        }
+
+    return {
+        "materiality_contract": evidence_doc.get("materiality_contract"),
+        "safe_degradation_contract": outputs_doc.get("safe_degradation_contract"),
+        "evidence": {
+            item.get("key"): evidence_projection(item)
+            for item in active_items(evidence_doc, "evidence")
+        },
+        "workflows": {
+            item.get("key"): {
+                "required_evidence": item.get("required_evidence"),
+                "minimum_evidence": item.get("minimum_evidence"),
+            }
+            for item in active_items(workflows_doc, "workflows")
+        },
+        "outputs": {
+            item.get("key"): {
+                "status_key": item.get("status_key"),
+                "action_class": item.get("action_class"),
+                "allows_non_material_gaps": item.get("allows_non_material_gaps"),
+                "safe_degradation_key": item.get("safe_degradation_key"),
+            }
+            for item in active_items(outputs_doc, "outputs")
+        },
+    }
+
+
+def _check_bilingual_new_schema_parity(
+    directory: Path, surface: ProjectOSSurface, findings: list[Finding]
+) -> None:
+    peer_surface = next(candidate for candidate in SURFACES if candidate.language != surface.language)
+    peer_directory = directory.parent.parent / peer_surface.root_name / "kernel"
+    if not peer_directory.is_dir():
+        return
+    current = _new_schema_projection(directory, surface)
+    peer = _new_schema_projection(peer_directory, peer_surface)
+    if current is not None and peer is not None and current != peer:
+        findings.append(
+            Finding("KES-016", str(directory), "evidence-materiality schema drift between ES and EN")
+        )
+
+
 def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     """Validate one exact allowed kernel directory and return all findings."""
     surface, directory = select_surface(kernel_dir)
@@ -145,6 +416,8 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     for workflow in workflows.values():
         for key in workflow.get("required_evidence", []):
             _check_reference(evidence, key, "workflows.json", findings)
+        for key in workflow.get("minimum_evidence", []):
+            _check_reference(evidence, key, "workflows.json", findings)
         for key in workflow.get("allowed_outputs", []):
             _check_reference(outputs, key, "workflows.json", findings)
     for limit in data["limits"]:
@@ -182,6 +455,8 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
         )
     if set(statuses) != CANONICAL_STATUSES:
         findings.append(Finding("KES-010", "estados.json", f"statuses must be exactly {sorted(CANONICAL_STATUSES)}"))
+    _check_materiality_schema(data, surface, indexes, findings)
+    _check_bilingual_new_schema_parity(directory, surface, findings)
     _check_durable_safety(directory, findings)
     return findings
 

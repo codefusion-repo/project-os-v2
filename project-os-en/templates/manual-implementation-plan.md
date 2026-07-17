@@ -38,4 +38,13 @@ Responsibility: draft human-executable instructions without claiming edits.
 ## No-write statement
 
 This plan did not edit code, did not run validation and did not grant permissions.
+
+## Safe degradation (when applicable)
+
+- verified_evidence: {{Verified evidence.}}
+- unavailable_evidence: {{Unavailable source.}}
+- materiality: auxiliary
+- decision_impact: {{Why authority, scope, and the material decision are unchanged.}}
+- equivalent_source_used: {{Recorded equivalent source or none.}}
+- revalidation_required_before_write: true
 ```

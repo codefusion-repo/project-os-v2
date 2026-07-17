@@ -7,6 +7,10 @@
         "analizar el scope pedido y producir hallazgos en lugar de cambios"
       ],
       "required_evidence": [
+        "evidence.repo_state",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
         "evidence.repo_state"
       ],
       "allowed_outputs": [
@@ -27,6 +31,12 @@
         "evidence.pm_approval",
         "evidence.validation_output"
       ],
+      "minimum_evidence": [
+        "evidence.issue_scope",
+        "evidence.branch_preflight",
+        "evidence.pm_approval",
+        "evidence.validation_output"
+      ],
       "allowed_outputs": [
         "output.execution_report",
         "output.status_result"
@@ -40,6 +50,12 @@
         "draftear un plan humano-ejecutable nombrando archivos y anclas solo cuando se puedan verificar"
       ],
       "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.source_basis",
+        "evidence.repo_state",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
         "evidence.issue_scope",
         "evidence.source_basis",
         "evidence.repo_state"
@@ -57,6 +73,12 @@
         "comparar la implementacion y la validacion reales contra scope, out of scope y acceptance criteria de la unidad de trabajo"
       ],
       "required_evidence": [
+        "evidence.issue_scope",
+        "evidence.pr_diff",
+        "evidence.validation_output",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
         "evidence.issue_scope",
         "evidence.pr_diff",
         "evidence.validation_output"
@@ -77,6 +99,10 @@
         "distinguir gaps de disciplina de tradeoffs locales aceptables o convenciones explicitas del proyecto"
       ],
       "required_evidence": [
+        "evidence.repo_state",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
         "evidence.repo_state"
       ],
       "allowed_outputs": [
@@ -93,6 +119,10 @@
         "presentar explicitamente las decisiones que el PM debe tomar"
       ],
       "required_evidence": [
+        "evidence.source_basis",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
         "evidence.source_basis"
       ],
       "allowed_outputs": [
@@ -112,6 +142,11 @@
       ],
       "required_evidence": [
         "evidence.repo_state",
+        "evidence.source_basis",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
+        "evidence.repo_state",
         "evidence.source_basis"
       ],
       "allowed_outputs": [
@@ -127,6 +162,11 @@
         "identificar las superficies sensibles del target: auth, autorizacion, sesiones, input validation, uploads, redirects, dependencias, admin, secretos, logging y config"
       ],
       "required_evidence": [
+        "evidence.repo_state",
+        "evidence.source_basis",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
         "evidence.repo_state",
         "evidence.source_basis"
       ],
@@ -144,7 +184,14 @@
       ],
       "required_evidence": [
         "evidence.repo_state",
-        "evidence.validation_output"
+        "evidence.validation_output",
+        "evidence.exact_ref",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
+        "evidence.repo_state",
+        "evidence.validation_output",
+        "evidence.exact_ref"
       ],
       "allowed_outputs": [
         "output.review_result",
@@ -160,6 +207,10 @@
         "dejar todo estado transferible en las fuentes de registro del target antes de cerrar la sesion"
       ],
       "required_evidence": [
+        "evidence.repo_state",
+        "evidence.auxiliary_context"
+      ],
+      "minimum_evidence": [
         "evidence.repo_state"
       ],
       "allowed_outputs": [
@@ -177,6 +228,9 @@
         "mantener el diff de adopcion solo en adapters, sin codigo de producto ni autoridad extra"
       ],
       "required_evidence": [
+        "evidence.target_adoption"
+      ],
+      "minimum_evidence": [
         "evidence.target_adoption"
       ],
       "allowed_outputs": [
@@ -199,7 +253,17 @@
         "evidence.target_adoption",
         "evidence.deployment_readiness",
         "evidence.validation_output",
-        "evidence.repo_state"
+        "evidence.repo_state",
+        "evidence.exact_ref"
+      ],
+      "minimum_evidence": [
+        "evidence.pm_approval",
+        "evidence.source_basis",
+        "evidence.target_adoption",
+        "evidence.deployment_readiness",
+        "evidence.validation_output",
+        "evidence.repo_state",
+        "evidence.exact_ref"
       ],
       "allowed_outputs": [
         "output.execution_report",

@@ -25,4 +25,13 @@ required for the immediate task.}}
 ## Active boundaries
 
 - {{No-live-state, no-authorization, secret safety, validation, etc.}}
+
+## Safe degradation (when applicable)
+
+- verified_evidence: {{Verified evidence.}}
+- unavailable_evidence: {{Unavailable source.}}
+- materiality: auxiliary
+- decision_impact: {{Why authority, scope, and the material decision are unchanged.}}
+- equivalent_source_used: {{Recorded equivalent source or none.}}
+- revalidation_required_before_write: true
 ```

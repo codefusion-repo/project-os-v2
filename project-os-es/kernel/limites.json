@@ -67,7 +67,15 @@
     {
       "key": "boundary.fail_closed",
       "actor_key": null,
-      "rule": "Ante autoridad ambigua, kernel faltante, evidencia faltante, fuentes en conflicto, validacion fallida o aprobacion faltante: detenerse con el estado no resuelto correspondiente.",
+      "rule": "Ante autoridad ambigua, kernel faltante, evidencia minima o material faltante, hard gate faltante, fuentes en conflicto, validacion fallida o aprobacion faltante: detenerse con el estado no resuelto correspondiente.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.safe_degradation",
+      "actor_key": null,
+      "rule": "La degradacion segura solo produce status.resolved en outputs read-only o draft-only declarados, con gaps auxiliares explicitos y revalidacion completa antes de cualquier write; nunca habilita una mutacion.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true

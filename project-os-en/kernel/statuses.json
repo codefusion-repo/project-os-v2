@@ -20,7 +20,7 @@
     },
     {
       "key": "status.resolved",
-      "meaning": "shape resolution is complete and adds no permission; last in precedence",
+      "meaning": "resolution is complete or, only for declared outputs, degraded with explicit auxiliary gaps; it adds no permission and is last in precedence",
       "type": "resuelto",
       "active": true
     }

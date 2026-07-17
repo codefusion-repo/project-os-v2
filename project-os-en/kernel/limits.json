@@ -67,7 +67,15 @@
     {
       "key": "boundary.fail_closed",
       "actor_key": null,
-      "rule": "On ambiguous authority, missing kernel data, missing evidence, source conflicts, failed validation, or missing approval, stop with the corresponding unresolved status.",
+      "rule": "On ambiguous authority, missing kernel data, missing minimum or material evidence, a missing hard gate, source conflicts, failed validation, or missing approval, stop with the corresponding unresolved status.",
+      "on_violation": "status.blocked",
+      "blocking": true,
+      "active": true
+    },
+    {
+      "key": "boundary.safe_degradation",
+      "actor_key": null,
+      "rule": "Safe degradation produces status.resolved only for declared read-only or draft-only outputs, with explicit auxiliary gaps and complete revalidation before any write; it never enables a mutation.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true
