@@ -358,7 +358,13 @@ def test_prompt_toolkit_skill_completion_uses_active_catalog(
     assert result is not None
     assert "OPTIONAL_SKILL=skill.desarrollo_frontend" in result.read_text(encoding="utf-8")
     assert any(
-        {"skill.arquitectura_backend", "skill.desarrollo_frontend", "none"}
+        {
+            "skill.arquitectura_backend",
+            "skill.desarrollo_frontend",
+            "skill.desarrollo_mobile",
+            "skill.desarrollo_videojuegos",
+            "none",
+        }
         <= set(getattr(completer, "words", []))
         for completer in completers
     )
@@ -367,6 +373,8 @@ def test_prompt_toolkit_skill_completion_uses_active_catalog(
     assert "OPTIONAL_SKILL (optional)" in transcript
     assert "skill.arquitectura_backend — Arquitectura backend" in transcript
     assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
+    assert "skill.desarrollo_mobile — Desarrollo mobile" in transcript
+    assert "skill.desarrollo_videojuegos — Desarrollo de videojuegos" in transcript
     assert "none — Sin skill opcional" in transcript
     selection_toolbar = next(text for text in toolbars if "/enumerated" in text)
     for command in ("/enumerated", "/enumerator", "/phases", "/phase"):
@@ -399,6 +407,8 @@ def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_pat
     assert "OPTIONAL_SKILL (optional)" in transcript
     assert "skill.arquitectura_backend — Arquitectura backend" in transcript
     assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
+    assert "skill.desarrollo_mobile — Desarrollo mobile" in transcript
+    assert "skill.desarrollo_videojuegos — Desarrollo de videojuegos" in transcript
     assert "Select OPTIONAL_SKILL:" in transcript
     assert not list(output_dir.glob("*.md"))
 

@@ -21,6 +21,28 @@
       ],
       "non_authorization": "Optional: grants no permission and never replaces live scope, PM approval, preflight, validation, traceability, or review-before-close.",
       "active": true
+    },
+    {
+      "key": "skill.desarrollo_mobile",
+      "name": "Mobile development",
+      "responsibility": "Apply mobile judgment to lifecycle, state, connectivity, permissions, accessibility, device resources, native integrations, persistence, and cross-platform delivery.",
+      "required_skill": "project-os-en/skills/mobile-development.md",
+      "use_for": [
+        "Scopes involving mobile applications, foreground/background lifecycle, navigation, offline behavior, permissions, hardware, native APIs, local persistence, notifications, background work, performance, or iOS/Android differences."
+      ],
+      "non_authorization": "Optional: grants no permission and never replaces live scope, PM approval, preflight, validation, traceability, or review-before-close.",
+      "active": true
+    },
+    {
+      "key": "skill.desarrollo_videojuegos",
+      "name": "Game development",
+      "responsibility": "Apply game-development judgment to the game loop, frame budget, input, states, physics, memory, assets, saves, audio, networking, platforms, profiling, and gameplay QA.",
+      "required_skill": "project-os-en/skills/game-development.md",
+      "use_for": [
+        "Scopes involving gameplay, simulation, rendering, input, scenes, physics, assets, audio, save/load, networking, per-frame performance, hardware compatibility, or QA on real devices."
+      ],
+      "non_authorization": "Optional: grants no permission and never replaces live scope, PM approval, preflight, validation, traceability, or review-before-close.",
+      "active": true
     }
   ]
 }

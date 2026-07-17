@@ -21,6 +21,28 @@
       ],
       "non_authorization": "Opcional: no concede permisos, no reemplaza scope vivo, aprobacion PM, preflight, validacion, trazabilidad ni review-before-close.",
       "active": true
+    },
+    {
+      "key": "skill.desarrollo_mobile",
+      "nombre": "Desarrollo mobile",
+      "responsabilidad": "Aplicar criterio mobile sobre lifecycle, estado, conectividad, permisos, accesibilidad, recursos del dispositivo, integraciones nativas, persistencia y entrega multiplataforma.",
+      "required_skill": "project-os-es/habilidades/desarrollo-mobile.md",
+      "use_for": [
+        "Scopes que tocan aplicaciones mobile, lifecycle foreground/background, navegacion, offline, permisos, hardware, APIs nativas, persistencia local, notificaciones, tareas en background, performance o diferencias iOS/Android."
+      ],
+      "non_authorization": "Opcional: no concede permisos, no reemplaza scope vivo, aprobacion PM, preflight, validacion, trazabilidad ni review-before-close.",
+      "active": true
+    },
+    {
+      "key": "skill.desarrollo_videojuegos",
+      "nombre": "Desarrollo de videojuegos",
+      "responsabilidad": "Aplicar criterio de videojuegos sobre game loop, frame budget, input, estados, fisica, memoria, assets, guardado, audio, networking, plataformas, profiling y QA de gameplay.",
+      "required_skill": "project-os-es/habilidades/desarrollo-videojuegos.md",
+      "use_for": [
+        "Scopes que tocan gameplay, simulacion, render, input, escenas, fisica, assets, audio, save/load, networking, performance por frame, compatibilidad de hardware o QA en dispositivos reales."
+      ],
+      "non_authorization": "Opcional: no concede permisos, no reemplaza scope vivo, aprobacion PM, preflight, validacion, trazabilidad ni review-before-close.",
+      "active": true
     }
   ]
 }
