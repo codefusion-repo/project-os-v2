@@ -38,4 +38,13 @@ Responsabilidad: draftear instrucciones humano-ejecutables sin reclamar edits.
 ## Declaracion de no escritura
 
 Este plan no edito codigo, no ejecuto validacion y no concede permisos.
+
+## Degradacion segura (solo si aplica)
+
+- verified_evidence: {{Evidencia verificada.}}
+- unavailable_evidence: {{Fuente no disponible.}}
+- materiality: auxiliary
+- decision_impact: {{Por que no cambia autoridad, scope ni decision material.}}
+- equivalent_source_used: {{Fuente equivalente registrada o none.}}
+- revalidation_required_before_write: true
 ```

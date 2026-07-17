@@ -35,4 +35,13 @@ that recipient into a Project OS actor.
 ## Out of scope and authority
 
 {{Do not edit target, do not create assets from Project OS except separate scope.}}
+
+## Safe degradation (when applicable)
+
+- verified_evidence: {{Verified evidence.}}
+- unavailable_evidence: {{Unavailable source.}}
+- materiality: auxiliary
+- decision_impact: {{Why authority, scope, and the material decision are unchanged.}}
+- equivalent_source_used: {{Recorded equivalent source or none.}}
+- revalidation_required_before_write: true
 ```

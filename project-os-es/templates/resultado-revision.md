@@ -30,4 +30,13 @@ Responsabilidad: reportar hallazgos o veredicto respaldado por evidencia.
 ## No revisado
 
 {{Gaps explicitos.}}
+
+## Degradacion segura (solo si aplica)
+
+- verified_evidence: {{Evidencia verificada.}}
+- unavailable_evidence: {{Fuente no disponible.}}
+- materiality: auxiliary
+- decision_impact: {{Por que no cambia autoridad, scope ni decision material.}}
+- equivalent_source_used: {{Fuente equivalente registrada o none.}}
+- revalidation_required_before_write: true
 ```

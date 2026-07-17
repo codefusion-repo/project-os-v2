@@ -1,4 +1,55 @@
 {
+  "materiality_contract": {
+    "allowed_values": [
+      "material",
+      "auxiliary"
+    ],
+    "source_catalog": [
+      "source.live_work_unit",
+      "source.live_change_request",
+      "source.live_target_record",
+      "source.verified_adr",
+      "source.verified_pm_decision",
+      "source.local_branch_preflight",
+      "source.live_repository_state",
+      "source.verified_repository_adapter",
+      "source.live_pm_decision",
+      "source.agent_validation_output",
+      "source.ci_validation_output",
+      "source.live_change_diff",
+      "source.exact_commit_range_diff",
+      "source.live_review_record",
+      "source.live_closure_record",
+      "source.live_target_adoption",
+      "source.verified_target_adapter",
+      "source.live_deployment_readiness",
+      "source.exact_target_ref",
+      "source.live_auxiliary_context",
+      "source.verified_auxiliary_context"
+    ],
+    "minimum_evidence_field": "minimum_evidence",
+    "safe_gap_materiality": "auxiliary",
+    "hard_gates_degradable": false,
+    "source_unavailability_signals": [
+      "error.connector",
+      "error.api",
+      "error.network",
+      "http.404",
+      "http.422",
+      "http.502"
+    ],
+    "source_error_target_state_inference": false,
+    "truncation_material_impacts": [
+      "impact.authority",
+      "impact.scope",
+      "impact.decision"
+    ],
+    "unclassified_truncation_fails_closed": true,
+    "equivalent_source_requires": [
+      "verifiable",
+      "substitution_recorded"
+    ]
+  },
   "evidence": [
     {
       "key": "evidence.issue_scope",
@@ -11,6 +62,18 @@
       "satisfied_by": "a live work unit with objective, scope, out of scope, and acceptance criteria; a GitHub issue or PR is one possible adapter",
       "missing_status": "status.needs_context",
       "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.live_work_unit",
+        "equivalents": [
+          {
+            "key": "source.live_change_request",
+            "verification": "the same verifiable objective, scope, out of scope, and acceptance criteria"
+          }
+        ]
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -26,6 +89,22 @@
       "satisfied_by": "prior target work units, changes, ADRs, or decisions read live",
       "missing_status": "status.needs_context",
       "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.live_target_record",
+        "equivalents": [
+          {
+            "key": "source.verified_adr",
+            "verification": "verified provenance, currency, and exact relationship to the decision"
+          },
+          {
+            "key": "source.verified_pm_decision",
+            "verification": "verified provenance, chronology, and material decision_key"
+          }
+        ]
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -37,6 +116,13 @@
       "satisfied_by": "real current-branch, worktree, HEAD, expected-branch, and unrelated-file output captured before editing",
       "missing_status": "status.needs_context",
       "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.local_branch_preflight",
+        "equivalents": []
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -55,6 +141,18 @@
       "satisfied_by": "files, branches, diffs, history, checks, or comments needed by the task and read live",
       "missing_status": "status.needs_context",
       "required": true,
+      "materiality": "material",
+      "hard_gate": false,
+      "source": {
+        "primary": "source.live_repository_state",
+        "equivalents": [
+          {
+            "key": "source.verified_repository_adapter",
+            "verification": "the same target and exact ref with verifiable freshness and completeness"
+          }
+        ]
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -67,6 +165,13 @@
       "satisfied_by": "exact PM approval naming the project, work unit, and action or approved command bundle",
       "missing_status": "status.blocked",
       "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.live_pm_decision",
+        "equivalents": []
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -81,6 +186,18 @@
       "satisfied_by": "validation commands run for this change with their real results",
       "missing_status": "status.needs_context",
       "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.agent_validation_output",
+        "equivalents": [
+          {
+            "key": "source.ci_validation_output",
+            "verification": "the same exact SHA or ref and validation scope with verifiable results"
+          }
+        ]
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -92,6 +209,18 @@
       "satisfied_by": "real changed files and diff, plus relevant final files when the diff is insufficient",
       "missing_status": "status.needs_context",
       "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.live_change_diff",
+        "equivalents": [
+          {
+            "key": "source.exact_commit_range_diff",
+            "verification": "verified exact base and head plus relevant final files"
+          }
+        ]
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -101,6 +230,13 @@
       "satisfied_by": "review findings or verdict recorded on the work unit or change",
       "missing_status": "status.needs_context",
       "required": false,
+      "materiality": "auxiliary",
+      "hard_gate": false,
+      "source": {
+        "primary": "source.live_review_record",
+        "equivalents": []
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -110,6 +246,13 @@
       "satisfied_by": "closure comment with completion evidence, validation, preserved limits, and change references",
       "missing_status": "status.needs_pm_decision",
       "required": false,
+      "materiality": "auxiliary",
+      "hard_gate": false,
+      "source": {
+        "primary": "source.live_closure_record",
+        "equivalents": []
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -122,6 +265,18 @@
       "satisfied_by": "target identity, adapters, metadata, roadmap anchor, kernel version and path, target-owned notes, validation, and durable-state risk",
       "missing_status": "status.needs_context",
       "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.live_target_adoption",
+        "equivalents": [
+          {
+            "key": "source.verified_target_adapter",
+            "verification": "verified same target, identity, kernel version, and kernel path"
+          }
+        ]
+      },
+      "revalidation_required_before_write": true,
       "active": true
     },
     {
@@ -133,6 +288,63 @@
       "satisfied_by": "approved internal environment, documented target-owned commands, validated prerequisites, and secret safety without exposed values",
       "missing_status": "status.blocked",
       "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.live_deployment_readiness",
+        "equivalents": []
+      },
+      "revalidation_required_before_write": true,
+      "active": true
+    },
+    {
+      "key": "evidence.exact_ref",
+      "workflow_key": [
+        "workflow.release_readiness",
+        "workflow.deployment"
+      ],
+      "mode_key": [],
+      "satisfied_by": "an exact target ref resolved to an immutable SHA and verified at task time",
+      "missing_status": "status.blocked",
+      "required": true,
+      "materiality": "material",
+      "hard_gate": true,
+      "source": {
+        "primary": "source.exact_target_ref",
+        "equivalents": []
+      },
+      "revalidation_required_before_write": true,
+      "active": true
+    },
+    {
+      "key": "evidence.auxiliary_context",
+      "workflow_key": [
+        "workflow.review_only",
+        "workflow.issue_implementation_manual",
+        "workflow.review_before_close",
+        "workflow.implementation_discipline_audit",
+        "workflow.pm_intake",
+        "workflow.design_asset",
+        "workflow.security_revision",
+        "workflow.release_readiness",
+        "workflow.handoff"
+      ],
+      "mode_key": [],
+      "satisfied_by": "related comments, history, or records that enrich the result without changing authority, scope, or a material decision",
+      "missing_status": "status.needs_context",
+      "required": true,
+      "materiality": "auxiliary",
+      "hard_gate": false,
+      "source": {
+        "primary": "source.live_auxiliary_context",
+        "equivalents": [
+          {
+            "key": "source.verified_auxiliary_context",
+            "verification": "verified same claim, provenance, and task relationship with the substitution recorded"
+          }
+        ]
+      },
+      "revalidation_required_before_write": true,
       "active": true
     }
   ]

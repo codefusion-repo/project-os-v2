@@ -94,8 +94,8 @@ def _parse_hydration_level(
 
 def _load(
     kernel_dir: Path, surface: ProjectOSSurface
-) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
-    data: dict[str, list[dict[str, Any]]] = {}
+) -> tuple[dict[str, Any], list[str]]:
+    data: dict[str, Any] = {}
     errors: list[str] = []
     for family, (filename, collection) in surface.kernel_files.items():
         path = kernel_dir / filename
@@ -112,6 +112,16 @@ def _load(
             errors.append(f"{filename} {surface.messages['missing_collection']} '{collection}'")
             continue
         data[family] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
+        contract_field = {
+            "evidence": "materiality_contract",
+            "outputs": "safe_degradation_contract",
+        }.get(family)
+        if contract_field is not None:
+            contract = content.get(contract_field)
+            if not isinstance(contract, dict):
+                errors.append(f"{filename} {surface.messages['missing_collection']} '{contract_field}'")
+            else:
+                data[contract_field] = contract
     return data, errors
 
 
@@ -233,7 +243,17 @@ def _required_evidence(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Keep the complete required-evidence contract at every level."""
 
     return [
-        _fields(item, "key", "satisfied_by", "missing_status", "required")
+        _fields(
+            item,
+            "key",
+            "satisfied_by",
+            "missing_status",
+            "required",
+            "materiality",
+            "hard_gate",
+            "source",
+            "revalidation_required_before_write",
+        )
         for item in evidence
     ]
 
@@ -242,7 +262,16 @@ def _allowed_outputs(outputs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Keep allowed-output constraints rather than only their identifiers."""
 
     return [
-        _fields(item, "key", "use_for", "status_key", "must_include")
+        _fields(
+            item,
+            "key",
+            "use_for",
+            "status_key",
+            "action_class",
+            "allows_non_material_gaps",
+            "safe_degradation_key",
+            "must_include",
+        )
         for item in outputs
     ]
 
@@ -290,7 +319,10 @@ def _minimal_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
         "mode": _fields(resolved["mode"], "key", "prohibited_actions", "fallback"),
         "workflow": {
             "key": workflow["key"],
+            "materiality_contract": workflow["materiality_contract"],
+            "safe_degradation_contract": workflow["safe_degradation_contract"],
             "required_evidence": _required_evidence(workflow["required_evidence"]),
+            "minimum_evidence": _required_evidence(workflow["minimum_evidence"]),
             "allowed_outputs": _allowed_outputs(workflow["allowed_outputs"]),
         },
         "estados_permitidos": _referenced_statuses(resolved["estados_permitidos"]),
@@ -330,7 +362,10 @@ def _compact_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
             "key": workflow["key"],
             "use_for": workflow["use_for"],
             "required_behavior": workflow["required_behavior"],
+            "materiality_contract": workflow["materiality_contract"],
+            "safe_degradation_contract": workflow["safe_degradation_contract"],
             "required_evidence": _required_evidence(workflow["required_evidence"]),
+            "minimum_evidence": _required_evidence(workflow["minimum_evidence"]),
             "allowed_outputs": _allowed_outputs(workflow["allowed_outputs"]),
             "artefactos": [
                 _fields(
@@ -446,10 +481,18 @@ def resolver(
         )
         return _fail_closed([message], surface, selected_hydration_level)
 
+    evidence_index = _index(data["evidence"])
     evidence = _hydrate(
         workflow_entry.get("required_evidence", []),
-        _index(data["evidence"]),
+        evidence_index,
         "evidence",
+        surface,
+        errors,
+    )
+    minimum_evidence = _hydrate(
+        workflow_entry.get("minimum_evidence", []),
+        evidence_index,
+        "minimum evidence",
         surface,
         errors,
     )
@@ -470,6 +513,7 @@ def resolver(
     status_refs = [limit.get("on_violation") for limit in data["limits"] if limit.get("actor_key") in (None, actor_entry["key"])]
     status_refs += [item.get("missing_status") for item in evidence.values()]
     status_refs += [item.get("status_key") for item in outputs.values()]
+    status_refs.append(data["safe_degradation_contract"].get("status_key"))
     selected_statuses: list[dict[str, Any]] = []
     for status_key in dict.fromkeys(ref for ref in status_refs if ref):
         status = statuses.get(status_key)
@@ -494,8 +538,52 @@ def resolver(
         "mode": _fields(mode_entry, "key", "allowed_actions", "prohibited_actions", "fallback", "active"),
         "workflow": {
             **_fields(workflow_entry, "key", "use_for", "required_behavior", "active"),
-            "required_evidence": [_fields(item, "key", "satisfied_by", "missing_status", "required", "active") for item in evidence.values()],
-            "allowed_outputs": [_fields(item, "key", "use_for", "status_key", "must_include", "active") for item in outputs.values()],
+            "materiality_contract": data["materiality_contract"],
+            "safe_degradation_contract": data["safe_degradation_contract"],
+            "required_evidence": [
+                _fields(
+                    item,
+                    "key",
+                    "satisfied_by",
+                    "missing_status",
+                    "required",
+                    "materiality",
+                    "hard_gate",
+                    "source",
+                    "revalidation_required_before_write",
+                    "active",
+                )
+                for item in evidence.values()
+            ],
+            "minimum_evidence": [
+                _fields(
+                    item,
+                    "key",
+                    "satisfied_by",
+                    "missing_status",
+                    "required",
+                    "materiality",
+                    "hard_gate",
+                    "source",
+                    "revalidation_required_before_write",
+                    "active",
+                )
+                for item in minimum_evidence.values()
+            ],
+            "allowed_outputs": [
+                _fields(
+                    item,
+                    "key",
+                    "use_for",
+                    "status_key",
+                    "action_class",
+                    "allows_non_material_gaps",
+                    "safe_degradation_key",
+                    "must_include",
+                    "active",
+                )
+                for item in outputs.values()
+            ],
             "artefactos": artifacts,
         },
         "estados_permitidos": selected_statuses,

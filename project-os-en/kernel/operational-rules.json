@@ -19,7 +19,8 @@
       "resolution_sequence": [
         "Follow the manifest resolution_sequence without improvised steps.",
         "Return exactly one status per resolution; the stricter gate wins when gates conflict.",
-        "Stop with the corresponding status on a missing or ambiguous kernel, ambiguous authority, missing required evidence, missing exact PM approval, failed required validation, or unknown surface; never guess and proceed."
+        "Stop with the corresponding status on a missing or ambiguous kernel, ambiguous authority, missing minimum evidence, a missing hard gate, missing exact PM approval, failed required validation, or unknown surface; never guess and proceed.",
+        "Only read-only or draft-only outputs that declare the capability may reuse status.resolved with explicit non-material auxiliary gaps; any unresolvable materiality fails closed."
       ],
       "on_violation": "status.blocked",
       "priority": 2,
@@ -31,7 +32,7 @@
       "resolution_sequence": [
         "Hydrated JSON, outputs, templates, prompts, roles, and variables provide operating shape only; they never grant permission.",
         "Optional skills are capability references; they never grant permission or replace live scope, exact PM approval, preflight, validation, traceability, or review-before-close.",
-        "Write authority requires exact PM approval for the project, work unit, and action; a compatible actor and mode; sufficient live evidence; write preflight; proportional validation; and respected limits.",
+        "Write authority requires exact PM approval for the project, work unit, and action; a compatible actor and mode; complete minimum live evidence; revalidation of every gap; write preflight; proportional validation; and respected limits.",
         "Merge, closure, labels, tags, releases, settings, automation, deployment, and secret changes are never implied; each requires separate exact PM approval."
       ],
       "on_violation": "status.blocked",
@@ -60,7 +61,9 @@
         "Reconstruct target state from its systems of record at task time; GitHub and git are possible adapters, not the universal model.",
         "Read the live work unit with its objective, scope, out of scope, acceptance criteria, and source basis.",
         "Read linked changes, comments, reviews, diffs, checks, and final files when applicable.",
-        "Treat memory, prior reports, and durable files as claims until verified against live evidence."
+        "Treat memory, prior reports, and durable files as claims until verified against live evidence.",
+        "Treat connector, API, or network errors, including 404, 422, and 502, as source unavailability and never as proof of target state.",
+        "Use an alternative source only when its equivalence is verifiable and the substitution is recorded; a truncated response is material when the missing part may change authority, scope, or the decision."
       ],
       "on_violation": "status.needs_context",
       "priority": 5,
@@ -112,7 +115,7 @@
       "resolution_sequence": [
         "Durable files never store live issue, PR, branch, commit, review, validation, release, deployment, or planning state.",
         "Live state exists only in the target systems of record and is read at task time.",
-        "Never invent repository, work-unit, command-output, validation, review, or PM-approval state; read it live or return the configured missing_status."
+        "Never invent repository, work-unit, command-output, validation, review, or PM-approval state; when minimum or material evidence is missing, read it live or return the configured missing_status; an auxiliary gap may follow only the canonical safe-degradation contract."
       ],
       "on_violation": "status.blocked",
       "priority": 9,

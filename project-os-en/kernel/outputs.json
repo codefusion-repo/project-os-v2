@@ -1,4 +1,23 @@
 {
+  "safe_degradation_contract": {
+    "key": "safe_degradation.non_material_gaps",
+    "status_key": "status.resolved",
+    "allowed_action_classes": [
+      "action.read_only",
+      "action.draft_only"
+    ],
+    "requires_all_minimum_evidence": true,
+    "gap_fields": [
+      "verified_evidence",
+      "unavailable_evidence",
+      "materiality",
+      "decision_impact",
+      "equivalent_source_used",
+      "revalidation_required_before_write"
+    ],
+    "completion_claim_with_gaps": false,
+    "revalidation_required_before_write": true
+  },
   "outputs": [
     {
       "key": "output.execution_report",
@@ -10,6 +29,9 @@
       "mode_key": [],
       "use_for": "report implementation work; never claim completion without complete scope, respected out of scope, and reported validation",
       "status_key": "status.resolved",
+      "action_class": "action.mutable",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "work unit or PR",
         "project or repository",
@@ -31,6 +53,9 @@
       "mode_key": [],
       "use_for": "draft human-executable instructions; never claim code was edited or validated",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "objective",
         "files to inspect",
@@ -55,6 +80,9 @@
       "mode_key": [],
       "use_for": "report review or analysis findings; a GO verdict requires code-backed comparison",
       "status_key": "status.resolved",
+      "action_class": "action.read_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "scope reviewed",
         "evidence reviewed",
@@ -74,6 +102,9 @@
       "mode_key": [],
       "use_for": "draft the PM closure packet only after review with code evidence, never from claims alone",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "completion evidence",
         "validation evidence with real output",
@@ -93,6 +124,9 @@
       "mode_key": [],
       "use_for": "draft a work unit for PM review; one outcome per unit",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "why it exists",
         "objective",
@@ -113,6 +147,9 @@
       "mode_key": [],
       "use_for": "route scoped work to another surface as a compact, issue-referential bootloader; the live issue or PR and its comments retain implementation detail, with authorization carried as exact PM approval",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "standard variable block",
         "recommended optional skill when useful, without making it mandatory or authorizing",
@@ -135,6 +172,9 @@
       "mode_key": [],
       "use_for": "draft copy-safe command bundles that the PM runs manually",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "what the bundle does and its scope in prose",
         "commands with exact targets in execution order",
@@ -151,6 +191,9 @@
       "mode_key": [],
       "use_for": "draft an asset prompt for a real design recipient; routes work only and creates no assets",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "live context read",
         "asset objective",
@@ -172,6 +215,9 @@
       "mode_key": [],
       "use_for": "draft an OWASP security-review prompt; routes review only, runs no scanner, and exposes no secrets",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "live context read",
         "review objective",
@@ -193,6 +239,9 @@
       "mode_key": [],
       "use_for": "transfer work between sessions, agents, or tools by pointing to live evidence; never becomes a durable state file",
       "status_key": "status.resolved",
+      "action_class": "action.draft_only",
+      "allows_non_material_gaps": true,
+      "safe_degradation_key": "safe_degradation.non_material_gaps",
       "must_include": [
         "current state with live references",
         "verified versus assumed",
@@ -210,6 +259,9 @@
       "mode_key": [],
       "use_for": "report an audit or bootstrap of target adoption",
       "status_key": "status.resolved",
+      "action_class": "action.mutable",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "target and repository",
         "adopted kernel version",
@@ -243,6 +295,9 @@
       "mode_key": [],
       "use_for": "report an unresolved status and name precisely the missing source or blocking limit, or the canonical MOS-R.3 PM resolution when applicable",
       "status_key": null,
+      "action_class": "action.read_only",
+      "allows_non_material_gaps": false,
+      "safe_degradation_key": null,
       "must_include": [
         "the status",
         "exactly what is missing, conflicting, or blocking",
