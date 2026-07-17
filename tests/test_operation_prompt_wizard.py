@@ -703,12 +703,16 @@ def test_optional_skill_choices_are_dynamic_and_fail_closed(tmp_path: Path) -> N
     assert load_active_skill_choices() == (
         "skill.arquitectura_backend",
         "skill.desarrollo_frontend",
+        "skill.desarrollo_mobile",
+        "skill.desarrollo_videojuegos",
         "none",
     )
     variable = InputVariable("OPTIONAL_SKILL", "<OPTIONAL_SKILL>", False, "")
     assert validate_variable_value(variable, "") is None
     assert validate_variable_value(variable, "skill.arquitectura_backend") is None
     assert validate_variable_value(variable, "skill.desarrollo_frontend") is None
+    assert validate_variable_value(variable, "skill.desarrollo_mobile") is None
+    assert validate_variable_value(variable, "skill.desarrollo_videojuegos") is None
     assert validate_variable_value(variable, "none") is None
     assert "active skill or none" in (validate_variable_value(variable, "skill.inactiva") or "")
 
@@ -806,6 +810,8 @@ def test_line_wizard_shows_dynamic_skill_choices_and_rejects_unknown_value(tmp_p
     assert "OPTIONAL_SKILL (optional)" in transcript
     assert "skill.arquitectura_backend — Arquitectura backend" in transcript
     assert "skill.desarrollo_frontend — Desarrollo frontend" in transcript
+    assert "skill.desarrollo_mobile — Desarrollo mobile" in transcript
+    assert "skill.desarrollo_videojuegos — Desarrollo de videojuegos" in transcript
     assert "none — Sin skill opcional" in transcript
     assert "Enter — Dejar vacío" in transcript
     assert "OPTIONAL_SKILL must be an active skill or none" in transcript
@@ -1038,6 +1044,8 @@ def test_english_language_loads_coherent_english_bundle(tmp_path: Path) -> None:
     assert "Kernel (reference only, not applied): project-os-en/kernel" in transcript
     assert "skill.arquitectura_backend — Backend architecture" in transcript
     assert "skill.desarrollo_frontend — Frontend development" in transcript
+    assert "skill.desarrollo_mobile — Mobile development" in transcript
+    assert "skill.desarrollo_videojuegos — Game development" in transcript
     assert "MOS-3.5 — Draft correction route prompt" in content
     assert "project-os-en/operations/README.md" in content
     assert "project-os-es" not in content
@@ -1048,8 +1056,15 @@ def test_english_skills_catalog_loads_names_from_name_field() -> None:
     assert [option.key for option in options] == [
         "skill.arquitectura_backend",
         "skill.desarrollo_frontend",
+        "skill.desarrollo_mobile",
+        "skill.desarrollo_videojuegos",
     ]
-    assert [option.name for option in options] == ["Backend architecture", "Frontend development"]
+    assert [option.name for option in options] == [
+        "Backend architecture",
+        "Frontend development",
+        "Mobile development",
+        "Game development",
+    ]
 
 
 def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejected(tmp_path: Path) -> None:
