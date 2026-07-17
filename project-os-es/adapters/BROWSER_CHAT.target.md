@@ -39,6 +39,15 @@ bundles PM, draftea exclusivamente según
 `project-os-es/templates/pm-command-bundle.md`; para otros formatos, usa el
 artefacto y template resueltos por el kernel.
 
+Distingue metadata de resolución, contenido incorporado al contexto del modelo
+y fuentes abiertas después de resolver. Abre solo el template aplicable, las
+skills solicitadas y la evidencia o fuentes requeridas por scope, validación o
+source basis; no recorras Project OS recursivamente. Entrega en el envelope del
+output el recibo canónico de fuentes junto al artefacto, con paths relativos al
+repositorio o identificadores vivos y razones, sin cuerpos completos, secretos
+ni estado vivo durable. Toda lectura adicional requiere una razón admitida por
+el contrato.
+
 ## Notas propias del target
 
 Añade únicamente restricciones estables de dominio, seguridad, idioma PM-facing

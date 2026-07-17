@@ -31,6 +31,18 @@ Responsibility: report findings or verdict supported by evidence.
 
 {{Explicit gaps.}}
 
+## Source receipt
+
+- project_os_sources_read: {{List of source + reason, or [].}}
+- target_sources_read: {{List of source + reason, or [].}}
+- live_evidence_sources: {{List of source + reason, or [].}}
+- resolved_template: {{Exact path or none.}}
+- requested_skills: {{List of key + source, or [].}}
+- tool_internal_sources: {{List of source + reason, or [].}}
+- resolver_projected_metadata: {{List of source + reason, or [].}}
+- model_context_sources: {{List of source + incorporation, or [].}}
+- additional_context_reason: {{Allowed value or none.}}
+
 ## Safe degradation (when applicable)
 
 - verified_evidence: {{Verified evidence.}}

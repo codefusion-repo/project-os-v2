@@ -85,6 +85,50 @@ SAFE_DEGRADATION_CONTRACT = {
     "completion_claim_with_gaps": False,
     "revalidation_required_before_write": True,
 }
+CONTEXT_RECEIPT_KEY = "context_receipt.minimum_read_surface"
+CONTEXT_RECEIPT_FIELDS = [
+    "project_os_sources_read",
+    "target_sources_read",
+    "live_evidence_sources",
+    "resolved_template",
+    "requested_skills",
+    "tool_internal_sources",
+    "resolver_projected_metadata",
+    "model_context_sources",
+    "additional_context_reason",
+]
+CONTEXT_RECEIPT_CONTRACT = {
+    "key": CONTEXT_RECEIPT_KEY,
+    "default_hydration_level": "compact",
+    "normal_read_surface": [
+        "selected_resolution",
+        "required_limits_and_evidence",
+        "applicable_output_and_artifact",
+        "resolved_template",
+        "requested_skills",
+        "minimum_live_evidence",
+        "target_scope_validation_or_source_basis",
+    ],
+    "fields": CONTEXT_RECEIPT_FIELDS,
+    "source_reference_fields": ["source", "reason"],
+    "source_reference_format": "repository_relative_path_or_live_identifier",
+    "reason_format": "short_non_sensitive_identifier",
+    "model_context_reference_fields": ["source", "incorporation"],
+    "model_context_incorporation_values": ["metadata", "excerpt", "full"],
+    "additional_context_reason_values": [
+        "full/debug",
+        "audit",
+        "debugging",
+        "security_or_authorization_review",
+        "complex_architecture",
+        "pm_decision",
+    ],
+    "output_placement": "output_envelope",
+    "stores_source_bodies": False,
+    "stores_secret_values": False,
+    "stores_durable_live_state": False,
+    "resolver_external_access": False,
+}
 SHA_PATTERN = re.compile(r"\b[0-9a-f]{40}\b")
 FORBIDDEN_KEYS = {"write_authorization_granted", "write_authorized", "permission_granted", "approval_granted"}
 
@@ -118,11 +162,11 @@ def _load(
             findings.append(Finding("KES-002", filename, f"missing list '{collection}'"))
             continue
         data[family] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
-        contract_field = {
-            "evidence": "materiality_contract",
-            "outputs": "safe_degradation_contract",
-        }.get(family)
-        if contract_field is not None:
+        contract_fields = {
+            "evidence": ("materiality_contract",),
+            "outputs": ("safe_degradation_contract", "context_receipt_contract"),
+        }.get(family, ())
+        for contract_field in contract_fields:
             contract = content.get(contract_field)
             if not isinstance(contract, dict):
                 findings.append(Finding("KES-012", filename, f"missing object '{contract_field}'"))
@@ -297,6 +341,31 @@ def _check_materiality_schema(
             )
 
 
+def _check_context_receipt_schema(
+    data: dict[str, Any],
+    surface: ProjectOSSurface,
+    findings: list[Finding],
+) -> None:
+    output_file = surface.kernel_files["outputs"][0]
+    if data.get("context_receipt_contract") != CONTEXT_RECEIPT_CONTRACT:
+        findings.append(
+            Finding(
+                "KES-017",
+                output_file,
+                "context_receipt_contract does not match the canonical schema",
+            )
+        )
+    for output in data["outputs"]:
+        if output.get("context_receipt_key") != CONTEXT_RECEIPT_KEY:
+            findings.append(
+                Finding(
+                    "KES-017",
+                    output_file,
+                    f"{output.get('key')!r} does not reference the canonical context receipt",
+                )
+            )
+
+
 def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[str, Any] | None:
     try:
         evidence_doc = json.loads((directory / surface.kernel_files["evidence"][0]).read_text(encoding="utf-8"))
@@ -333,6 +402,7 @@ def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[s
     return {
         "materiality_contract": evidence_doc.get("materiality_contract"),
         "safe_degradation_contract": outputs_doc.get("safe_degradation_contract"),
+        "context_receipt_contract": outputs_doc.get("context_receipt_contract"),
         "evidence": {
             item.get("key"): evidence_projection(item)
             for item in active_items(evidence_doc, "evidence")
@@ -350,6 +420,7 @@ def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[s
                 "action_class": item.get("action_class"),
                 "allows_non_material_gaps": item.get("allows_non_material_gaps"),
                 "safe_degradation_key": item.get("safe_degradation_key"),
+                "context_receipt_key": item.get("context_receipt_key"),
             }
             for item in active_items(outputs_doc, "outputs")
         },
@@ -456,6 +527,7 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     if set(statuses) != CANONICAL_STATUSES:
         findings.append(Finding("KES-010", "estados.json", f"statuses must be exactly {sorted(CANONICAL_STATUSES)}"))
     _check_materiality_schema(data, surface, indexes, findings)
+    _check_context_receipt_schema(data, surface, findings)
     _check_bilingual_new_schema_parity(directory, surface, findings)
     _check_durable_safety(directory, findings)
     return findings

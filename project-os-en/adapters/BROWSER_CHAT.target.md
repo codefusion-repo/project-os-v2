@@ -28,6 +28,8 @@ Before non-trivial work, read `project-os-en/kernel/manifest.json` from `KERNEL_
 
 Templates and resolution provide shape only and never authorize. Draft PM command bundles only from `project-os-en/templates/pm-command-bundle.md`; use kernel-resolved artifacts and templates for all other forms.
 
+Distinguish resolution metadata, content incorporated into model context, and sources opened after resolution. Open only the applicable template, requested skills, and evidence or sources required by scope, validation, or source basis; do not recursively crawl Project OS. Return the canonical source receipt in the output envelope alongside the artifact, using repository-relative paths or live identifiers and reasons without absolute machine paths, full bodies, secrets, or durable live state. Every additional read requires a reason allowed by the contract.
+
 ## Target-specific notes
 
 Add only stable domain, security, PM-language, or escalation constraints. Never store issues, PRs, branches, commits, reviews, or validation state in this adapter.

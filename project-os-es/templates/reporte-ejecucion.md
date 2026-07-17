@@ -41,4 +41,16 @@ merge/cierre.
 ## Trabajo restante
 
 {{Follow-ups o ninguno.}}
+
+## Recibo de fuentes
+
+- project_os_sources_read: {{Lista de source + reason, o [].}}
+- target_sources_read: {{Lista de source + reason, o [].}}
+- live_evidence_sources: {{Lista de source + reason, o [].}}
+- resolved_template: {{Path exacto o none.}}
+- requested_skills: {{Lista de key + source, o [].}}
+- tool_internal_sources: {{Lista de source + reason, o [].}}
+- resolver_projected_metadata: {{Lista de source + reason, o [].}}
+- model_context_sources: {{Lista de source + incorporation, o [].}}
+- additional_context_reason: {{Valor permitido o none.}}
 ```
