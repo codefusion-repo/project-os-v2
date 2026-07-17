@@ -11,7 +11,13 @@ una acción ni guarda estado vivo.
   read-only, draft-only y sin fast path local.
 
 Para adoptar un target, copia el adapter de la superficie, reemplaza los
-placeholders y conserva el bloque estándar de metadata en el mismo orden. Usa
+placeholders y conserva el bloque estándar de metadata en el mismo orden. El
+adapter terminal compartido usa únicamente las referencias allowlisted
+`$PROJECT_OS_TARGET_ROOT` y `$PROJECT_OS_KERNEL_DIR`; define sus valores como
+paths absolutos en el entorno local de cada máquina y no los commitees. Un
+adapter privado puede conservar paths absolutos literales, incluidos mounts
+neutrales como `/workspace/...`. No se admiten `$PWD`, otras variables,
+composición de variables ni expansión shell arbitraria. Usa
 `Notas propias del target` solo para comandos estables, paths protegidos,
 restricciones de dominio o seguridad, idioma PM-facing y escalaciones. No
 copies contratos de actores, modos, workflows, límites, evidencia, outputs,

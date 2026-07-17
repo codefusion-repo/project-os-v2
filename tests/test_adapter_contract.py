@@ -62,6 +62,19 @@ def test_agents_is_the_only_complete_terminal_bootloader() -> None:
         assert "--actor" not in text
 
 
+def test_target_terminal_adapter_uses_only_portable_allowlisted_path_references() -> None:
+    target_adapter = (REPO_ROOT / "project-os-es/adapters/AGENTS.target.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT" in target_adapter
+    assert "KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR" in target_adapter
+    assert "$PWD" not in target_adapter
+    assert "eval" in target_adapter
+    assert "no usa `eval`" in target_adapter
+    assert 'python "$PROJECT_OS_ROOT/tools/project_os_resolve.py"' in target_adapter
+
+
 def test_browser_adapter_keeps_its_read_only_manual_resolution_boundary() -> None:
     browser = (REPO_ROOT / "project-os-es/adapters/BROWSER_CHAT.target.md").read_text(encoding="utf-8")
 

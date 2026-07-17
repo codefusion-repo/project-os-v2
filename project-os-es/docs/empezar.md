@@ -78,22 +78,42 @@ Haz esto solo cuando vayas a delegar implementación a un terminal agent:
 4. Ten Python disponible si usaras el resolver.
 5. Adopta o revisa el adapter terminal del target con
    [`project-os-es/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md) y
-   conoce `KERNEL_LOCAL_PATH` desde ese adapter.
+   define localmente `PROJECT_OS_TARGET_ROOT` y `PROJECT_OS_KERNEL_DIR` como
+   paths absolutos al checkout target y al kernel español.
 
 La adopción es copy-based por diseño: copiar el adapter al target y ajustar sus
-campos de identidad es la instalación completa. No hay installer, package ni
-CLI; cualquier tooling futuro tiene su propio gate y no es requisito para
-operar hoy.
+campos de identidad es la instalación completa. Las referencias persistidas
+`$PROJECT_OS_TARGET_ROOT` y `$PROJECT_OS_KERNEL_DIR` permiten compartir el
+adapter sin commitear paths personales. Define sus valores solo en el entorno
+local, por ejemplo con `export`, y verifica la adopción con el auditor. Para un
+adapter privado de una máquina también se admiten paths absolutos literales;
+un mount neutral como `/workspace/...` es válido, pero no obligatorio. `$PWD`,
+variables distintas, valores compuestos y placeholders fallan cerrado. No hay
+installer, package ni CLI; cualquier tooling futuro tiene su propio gate y no
+es requisito para operar hoy.
 
-Fast path del resolver cuando el repo ya está listo:
+Fast path del resolver para el target ya adoptado:
 
 ```sh
-python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
-  --mode <mode> --kernel-dir project-os-es/kernel [--skill skill.<id>]
+: "${PROJECT_OS_TARGET_ROOT:?define PROJECT_OS_TARGET_ROOT}"
+: "${PROJECT_OS_KERNEL_DIR:?define PROJECT_OS_KERNEL_DIR}"
+TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
+KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+case "$TARGET_ROOT" in /*) ;; *) exit 1 ;; esac
+case "$KERNEL_DIR" in /*) ;; *) exit 1 ;; esac
+PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
+test "$PROJECT_OS_ROOT" != "$KERNEL_DIR"
+test -f "$KERNEL_DIR/manifest.json"
+python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
+  --actor <actor> --workflow <workflow> --mode <mode> \
+  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
+cd "$TARGET_ROOT"
 ```
 
-La resolución manual de `project-os-es/kernel/manifest.json` sigue siendo el
-fallback canónico para la superficie en español.
+La resolución usa solo esas variables exactas, sin `eval` ni expansión de
+nombres arbitrarios. La resolución manual de
+`project-os-es/kernel/manifest.json` sigue siendo el fallback canónico para la
+superficie en español.
 
 ### Nivel de hidratación
 

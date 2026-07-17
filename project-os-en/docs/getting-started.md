@@ -78,25 +78,44 @@ Do this only when you will delegate implementation to a terminal agent:
 4. Have Python available when you will use the resolver.
 5. Adopt or review the target's terminal adapter with
    [`project-os-en/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md)
-   and learn `KERNEL_LOCAL_PATH` from that adapter.
+   and define `PROJECT_OS_TARGET_ROOT` and `PROJECT_OS_KERNEL_DIR` locally as
+   absolute paths to the target checkout and the English kernel.
 
 Adoption is copy-based by design: copying the adapter into the target and
-filling its identity fields is the complete install. There is no installer,
-package, or CLI; any future tooling has its own gate and is not required to
-operate today.
+filling its identity fields is the complete install. The persisted
+`$PROJECT_OS_TARGET_ROOT` and `$PROJECT_OS_KERNEL_DIR` references let the
+adapter be shared without committing personal paths. Define their values only
+in the local environment, for example with `export`, and verify adoption with
+the auditor. A private single-machine adapter may instead use literal absolute
+paths; a neutral mount such as `/workspace/...` is valid but not required.
+`$PWD`, other variables, composed values, and placeholders fail closed. There
+is no installer, package, or CLI; any future tooling has its own gate and is
+not required to operate today.
 
-Resolver fast path once the repo is ready:
+Resolver fast path for the adopted target:
 
 ```sh
-python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
-  --mode <mode> --kernel-dir project-os-en/kernel [--skill skill.<id>]
+: "${PROJECT_OS_TARGET_ROOT:?set PROJECT_OS_TARGET_ROOT}"
+: "${PROJECT_OS_KERNEL_DIR:?set PROJECT_OS_KERNEL_DIR}"
+TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
+KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+case "$TARGET_ROOT" in /*) ;; *) exit 1 ;; esac
+case "$KERNEL_DIR" in /*) ;; *) exit 1 ;; esac
+PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-en/kernel}"
+test "$PROJECT_OS_ROOT" != "$KERNEL_DIR"
+test -f "$KERNEL_DIR/manifest.json"
+python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
+  --actor <actor> --workflow <workflow> --mode <mode> \
+  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
+cd "$TARGET_ROOT"
 ```
 
-Manual resolution of `project-os-en/kernel/manifest.json` remains the
-canonical fallback. The resolver output never grants permission and never
-reads GitHub/git on your behalf. Browser chat does not run local Python; it
-reads the manifest through available sources and stays read-only and
-draft-only.
+The fast path uses only those exact variables, without `eval` or arbitrary
+name expansion. Manual resolution of `project-os-en/kernel/manifest.json`
+remains the canonical fallback. The resolver output never grants permission
+and never reads GitHub/git on your behalf. Browser chat does not run local
+Python; it reads the manifest through available sources and stays read-only
+and draft-only.
 
 ### Hydration level
 

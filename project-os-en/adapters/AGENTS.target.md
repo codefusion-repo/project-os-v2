@@ -1,6 +1,6 @@
 # AGENTS.md (target terminal adapter)
 
-Copy the block below to the target as `AGENTS.md`, replace `{{PLACEHOLDERS}}`, and remove these copy instructions.
+Copy the block below to the target as `AGENTS.md`, replace `{{PLACEHOLDERS}}`, define the two local variables shown below, and remove these copy instructions. For a private single-machine adoption, the two path fields also accept literal absolute paths.
 
 ---
 
@@ -10,28 +10,36 @@ AGENTS.md is the terminal bootloader for `{{ORG/REPO}}`. It is not a source of t
 
 ## Repository identity
 
-These paths and the adopted version are machine/adoption configuration, not live state. Preserve these fields and their order.
+These paths and the adopted version are machine/adoption configuration, not live state. Preserve these fields and their order. The portable references are exactly `PROJECT_OS_TARGET_ROOT` for the target checkout and `PROJECT_OS_KERNEL_DIR` for the kernel; their absolute values live only in the local environment and never in this file.
 
 PROJECT_NAME = {{PROJECT_NAME}}
 REPOSITORY_NAME = {{ORG/REPO}}
-REPOSITORY_LOCAL_PATH = {{absolute path to target repo}}
+REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT
 DEFAULT_BRANCH = main
 WORK_BRANCH_PATTERN = work/*
 PM_FACING_LANGUAGE = en
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
-KERNEL_LOCAL_PATH = {{absolute path to project-os-v2/project-os-en/kernel}}
+KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR
 KERNEL_VERSION_ADOPTED = {{adopted version or "tracks latest"}}
 
 ## Kernel resolution
 
-Before non-trivial work, read `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. When the kernel checkout is available in a terminal, use this fast path:
+Before non-trivial work, read `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. When the kernel checkout is available in a terminal, use this fast path. It fails closed when either variable is missing or non-absolute; it does not use `eval` or expand arbitrary names:
 
 ```sh
-KERNEL_DIR="{{absolute path to project-os-v2/project-os-en/kernel}}"
+: "${PROJECT_OS_TARGET_ROOT:?set PROJECT_OS_TARGET_ROOT to the absolute target path}"
+: "${PROJECT_OS_KERNEL_DIR:?set PROJECT_OS_KERNEL_DIR to the absolute kernel path}"
+TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
+KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+case "$TARGET_ROOT" in /*) ;; *) exit 1 ;; esac
+case "$KERNEL_DIR" in /*) ;; *) exit 1 ;; esac
 PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-en/kernel}"
+test "$PROJECT_OS_ROOT" != "$KERNEL_DIR"
+test -f "$KERNEL_DIR/manifest.json"
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
   --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
+cd "$TARGET_ROOT"
 ```
 
 The resolver accelerates resolution; the manifest remains canonical. Both provide shape only and never authorize an action. Follow resolved artifact, template, and skill references without copying their contracts here. Use `context_plan` to distinguish internally loaded files, projected metadata, and referenced templates and skills; never treat it as proof of content delivered to the model.

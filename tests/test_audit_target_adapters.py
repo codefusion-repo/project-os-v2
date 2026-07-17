@@ -10,6 +10,8 @@ from tools.audit_target_adapters import (
     Source,
     _canonical_roadmap_lines,
     _check_overlay_removals,
+    _emit_json,
+    _resolve_metadata_path,
     audit_target_adapters,
 )
 
@@ -45,22 +47,41 @@ LEGACY_GENERIC_POLICY = """Security / project constraints:
 """
 
 
-def filled_spanish_adapter(target: Path) -> str:
+def filled_spanish_adapter(
+    target: Path,
+    *,
+    target_path: str | None = None,
+    kernel_path: str | None = None,
+) -> str:
     text = (REPO_ROOT / "project-os-es/adapters/AGENTS.target.md").read_text(encoding="utf-8")
     replacements = {
         "{{PLACEHOLDERS}}": "placeholders",
         "{{ORG/REPO}}": "example/target",
         "{{PROJECT_NAME}}": "target",
-        "{{ruta absoluta al repo target}}": str(target),
-        "{{ruta absoluta a project-os-v2/project-os-es/kernel}}": str(
-            REPO_ROOT / "project-os-es/kernel"
-        ),
         '{{version adoptada o "tracks latest"}}': "tracks latest",
         "{{#ROADMAP_ISSUE}}": "#274",
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
+    if target_path is not None:
+        text = text.replace(
+            "REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT",
+            f"REPOSITORY_LOCAL_PATH = {target_path}",
+        )
+    if kernel_path is not None:
+        text = text.replace(
+            "KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR",
+            f"KERNEL_LOCAL_PATH = {kernel_path}",
+        )
     return text
+
+
+def write_terminal_adapters(target: Path, agents: str) -> None:
+    (target / "AGENTS.md").write_text(agents, encoding="utf-8")
+    for name in ("CLAUDE.md", "GEMINI.md"):
+        (target / name).write_text(
+            "Usa AGENTS.md para comportamiento del repositorio.\n", encoding="utf-8"
+        )
 
 
 def filled_browser_adapter(target: Path) -> str:
@@ -79,9 +100,14 @@ def filled_browser_adapter(target: Path) -> str:
 
 
 def test_spanish_template_headings_and_project_os_es_kernel_path_are_accepted(tmp_path: Path) -> None:
-    (tmp_path / "AGENTS.md").write_text(filled_spanish_adapter(tmp_path), encoding="utf-8")
-    for name in ("CLAUDE.md", "GEMINI.md"):
-        (tmp_path / name).write_text("Usa AGENTS.md para comportamiento del repositorio.\n", encoding="utf-8")
+    write_terminal_adapters(
+        tmp_path,
+        filled_spanish_adapter(
+            tmp_path,
+            target_path=str(tmp_path),
+            kernel_path=str(REPO_ROOT / "project-os-es/kernel"),
+        ),
+    )
 
     findings = audit_target_adapters(tmp_path, expected_repository="example/target")
     codes = {finding.code for finding in findings}
@@ -92,9 +118,14 @@ def test_spanish_template_headings_and_project_os_es_kernel_path_are_accepted(tm
 
 
 def test_browser_adapter_needs_no_roadmap_anchor_to_pass_the_target_audit(tmp_path: Path) -> None:
-    (tmp_path / "AGENTS.md").write_text(filled_spanish_adapter(tmp_path), encoding="utf-8")
-    for name in ("CLAUDE.md", "GEMINI.md"):
-        (tmp_path / name).write_text("Usa AGENTS.md para comportamiento del repositorio.\n", encoding="utf-8")
+    write_terminal_adapters(
+        tmp_path,
+        filled_spanish_adapter(
+            tmp_path,
+            target_path=str(tmp_path),
+            kernel_path=str(REPO_ROOT / "project-os-es/kernel"),
+        ),
+    )
 
     findings = audit_target_adapters(
         tmp_path,
@@ -103,6 +134,168 @@ def test_browser_adapter_needs_no_roadmap_anchor_to_pass_the_target_audit(tmp_pa
     )
 
     assert findings == []
+
+
+def test_canonical_portable_variables_resolve_exact_target_and_kernel(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(REPO_ROOT / "project-os-es/kernel"))
+
+    assert audit_target_adapters(tmp_path, expected_repository="example/target") == []
+
+
+def test_braced_canonical_variable_references_are_exact_and_supported(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    agents = filled_spanish_adapter(tmp_path)
+    agents = agents.replace(
+        "REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT",
+        "REPOSITORY_LOCAL_PATH = ${PROJECT_OS_TARGET_ROOT}",
+    ).replace(
+        "KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR",
+        "KERNEL_LOCAL_PATH = ${PROJECT_OS_KERNEL_DIR}",
+    )
+    write_terminal_adapters(tmp_path, agents)
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(REPO_ROOT / "project-os-es/kernel"))
+
+    assert audit_target_adapters(tmp_path, expected_repository="example/target") == []
+
+
+def test_canonical_variable_must_resolve_to_an_absolute_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", "relative-target")
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(REPO_ROOT / "project-os-es/kernel"))
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+
+    assert any(
+        finding.code == "TAA-META-LOCAL-PATH"
+        and finding.severity == "error"
+        and finding.evidence == "PROJECT_OS_TARGET_ROOT"
+        for finding in findings
+    )
+
+
+@pytest.mark.parametrize("variable", ("PROJECT_OS_TARGET_ROOT", "PROJECT_OS_KERNEL_DIR"))
+@pytest.mark.parametrize("value", (None, ""))
+def test_missing_or_empty_canonical_variable_fails_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    variable: str,
+    value: str | None,
+) -> None:
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(REPO_ROOT / "project-os-es/kernel"))
+    if value is None:
+        monkeypatch.delenv(variable)
+    else:
+        monkeypatch.setenv(variable, value)
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+
+    path_findings = [finding for finding in findings if finding.code.endswith("-PATH")]
+    assert len(path_findings) == 1
+    assert path_findings[0].severity == "error"
+    assert path_findings[0].evidence == variable
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "variable"),
+    (
+        ("REPOSITORY_LOCAL_PATH", "$ARBITRARY_TARGET", "ARBITRARY_TARGET"),
+        ("REPOSITORY_LOCAL_PATH", "$PWD", "PWD"),
+        ("REPOSITORY_LOCAL_PATH", "$PROJECT_OS_TARGET_ROOT/subdir", "PROJECT_OS_TARGET_ROOT"),
+        ("KERNEL_LOCAL_PATH", "$PROJECT_OS_TARGET_ROOT", "PROJECT_OS_TARGET_ROOT"),
+    ),
+)
+def test_non_allowlisted_or_non_exact_variable_reference_fails_closed_without_value(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    value: str,
+    variable: str,
+) -> None:
+    private_value = tmp_path / "private-user-path"
+    monkeypatch.setenv(variable, str(private_value))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(REPO_ROOT / "project-os-es/kernel"))
+    agents = filled_spanish_adapter(tmp_path).replace(
+        f"{field} = ${'PROJECT_OS_TARGET_ROOT' if field == 'REPOSITORY_LOCAL_PATH' else 'PROJECT_OS_KERNEL_DIR'}",
+        f"{field} = {value}",
+    )
+    write_terminal_adapters(tmp_path, agents)
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+    rendered = "\n".join(finding.render() for finding in findings)
+
+    assert any(finding.severity == "error" and finding.evidence == variable for finding in findings)
+    assert str(private_value) not in rendered
+
+
+def test_target_variable_resolving_to_another_checkout_fails_without_disclosure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    other_checkout = tmp_path / "private-other-checkout"
+    other_checkout.mkdir()
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(other_checkout))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(REPO_ROOT / "project-os-es/kernel"))
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+    rendered = "\n".join(finding.render() for finding in findings)
+
+    assert any(finding.code == "TAA-META-LOCAL-PATH" for finding in findings)
+    assert str(other_checkout) not in rendered
+
+
+def test_kernel_without_manifest_fails_without_disclosure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    empty_kernel = tmp_path / "private-kernel"
+    empty_kernel.mkdir()
+    write_terminal_adapters(tmp_path, filled_spanish_adapter(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(tmp_path))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(empty_kernel))
+
+    findings = audit_target_adapters(tmp_path, expected_repository="example/target")
+    rendered = "\n".join(finding.render() for finding in findings)
+
+    assert any(finding.code == "TAA-META-KERNEL-MANIFEST" for finding in findings)
+    assert str(empty_kernel) not in rendered
+
+
+def test_neutral_mount_is_a_valid_absolute_literal_shape() -> None:
+    resolved, variable = _resolve_metadata_path("REPOSITORY_LOCAL_PATH", "/workspace/example")
+
+    assert resolved == Path("/workspace/example")
+    assert variable is None
+
+
+def test_json_output_redacts_the_audited_checkout_and_expanded_values(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    private_target = tmp_path / "private-user-checkout"
+    private_target.mkdir()
+    write_terminal_adapters(private_target, filled_spanish_adapter(private_target))
+    wrong_target = tmp_path / "private-wrong-checkout"
+    wrong_target.mkdir()
+    monkeypatch.setenv("PROJECT_OS_TARGET_ROOT", str(wrong_target))
+    monkeypatch.setenv("PROJECT_OS_KERNEL_DIR", str(REPO_ROOT / "project-os-es/kernel"))
+    findings = audit_target_adapters(private_target, expected_repository="example/target")
+
+    _emit_json(private_target, "example/target", findings)
+    output = capsys.readouterr().out
+
+    assert '"schema_version": 2' in output
+    assert str(private_target) not in output
+    assert str(wrong_target) not in output
+    assert "PROJECT_OS_TARGET_ROOT" in output
 
 
 def test_spanish_roadmap_anchor_wording_is_canonical() -> None:
