@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -211,6 +212,33 @@ def test_report_templates_expose_the_complete_receipt_without_source_bodies() ->
             assert field in text, relative_path
         assert "source + reason" in text
         assert "source + incorporation" in text
+
+
+@pytest.mark.parametrize(
+    ("relative_path", "no_close_clause"),
+    (
+        (
+            "project-os-es/templates/pull-request.md",
+            "Merge y cierre no se solicitan por este PR.",
+        ),
+        (
+            "project-os-en/templates/pull-request.md",
+            "Merge and closure are not requested by this PR.",
+        ),
+    ),
+)
+def test_pull_request_templates_without_close_requests_avoid_closing_keywords(
+    relative_path: str,
+    no_close_clause: str,
+) -> None:
+    text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+    assert no_close_clause in text
+    assert not re.search(
+        r"(?im)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#\{\{issue\}\}",
+        text,
+    )
+    assert text.rstrip().endswith("Related to #{{issue}}.\n```")
 
 
 @pytest.mark.parametrize(

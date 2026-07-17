@@ -35,5 +35,5 @@ prueba de completitud hasta review contra diff/archivos finales.
 - model_context_sources: {{Lista de source + incorporation, o [].}}
 - additional_context_reason: {{Valor permitido o none.}}
 
-Closes #{{issue}} (on PM merge decision).
+Related to #{{issue}}.
 ```
