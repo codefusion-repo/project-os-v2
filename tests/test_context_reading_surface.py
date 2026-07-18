@@ -40,6 +40,8 @@ RECEIPT_HEADINGS = (
     "## Source receipt",
     "## Source Receipt",
 )
+RECEIPT_BLOCK_OPEN = "<!-- context-receipt:pm-facing-conditional -->"
+RECEIPT_BLOCK_CLOSE = "<!-- /context-receipt -->"
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -57,8 +59,8 @@ def copy_surface(tmp_path: Path, language: str = "es") -> Path:
 
 
 def assert_one_conditional_receipt(relative_path: str, text: str) -> None:
-    assert text.count("<!-- context-receipt:pm-facing-conditional -->") == 1
-    assert text.count("<!-- /context-receipt -->") == 1
+    assert text.count(RECEIPT_BLOCK_OPEN) == 1
+    assert text.count(RECEIPT_BLOCK_CLOSE) == 1
     receipt_match = RECEIPT_BLOCK_PATTERN.search(text)
     assert receipt_match, relative_path
     internal_receipt = receipt_match.group(0)
@@ -73,6 +75,23 @@ def assert_one_conditional_receipt(relative_path: str, text: str) -> None:
     assert "context-receipt" not in outside_receipt, relative_path
     assert "source + reason" in internal_receipt
     assert "source + incorporation" in internal_receipt
+
+
+def compose_pm_facing_artifact(template: str, visibility: str) -> str:
+    """Apply the receipt visibility contract without introducing a renderer."""
+    receipt_match = RECEIPT_BLOCK_PATTERN.search(template)
+    assert receipt_match
+
+    if visibility == "hidden":
+        receipt = ""
+    elif visibility == "full":
+        receipt = receipt_match.group(0).replace(RECEIPT_BLOCK_OPEN, "").replace(
+            RECEIPT_BLOCK_CLOSE, ""
+        )
+    else:
+        raise AssertionError(f"unsupported PM-facing visibility: {visibility}")
+
+    return RECEIPT_BLOCK_PATTERN.sub(receipt, template, count=1)
 
 
 def test_bilingual_kernel_has_one_canonical_context_receipt_for_every_output() -> None:
@@ -275,6 +294,47 @@ def test_report_templates_mark_one_complete_conditional_internal_receipt() -> No
         assert "context_receipt_contract.pm_facing_visibility" in text
         assert "internal receipt intact" in text or "recibo interno íntegro" in text
         assert_one_conditional_receipt(relative_path, text)
+
+
+@pytest.mark.parametrize("relative_path", REPORT_TEMPLATES)
+@pytest.mark.parametrize("level", LEVELS)
+def test_visibility_contract_composes_with_bilingual_pm_facing_templates(
+    relative_path: str,
+    level: str,
+) -> None:
+    kernel_dir = ES_KERNEL if relative_path.startswith("project-os-es/") else EN_KERNEL
+    resolver_payload = resolve(
+        "actor.terminal_agent",
+        "workflow.issue_implementation",
+        "mode.delegated_commit_push",
+        kernel_dir=kernel_dir,
+        hydration_level=level,
+    )
+    raw_resolver_json = json.dumps(resolver_payload, ensure_ascii=False)
+    contract = resolver_payload["resuelto"]["workflow"]["context_receipt_contract"]
+    template = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+    assert len(CONTEXT_RECEIPT_FIELDS) == 9
+    assert not any(heading in raw_resolver_json for heading in RECEIPT_HEADINGS)
+    assert "context-receipt:" not in raw_resolver_json
+    assert all(field in raw_resolver_json for field in CONTEXT_RECEIPT_FIELDS)
+
+    pm_facing_artifact = compose_pm_facing_artifact(
+        template,
+        contract["pm_facing_visibility"][level],
+    )
+
+    assert "context-receipt:" not in pm_facing_artifact
+    if level in {"minimal", "compact"}:
+        assert not any(heading in pm_facing_artifact for heading in RECEIPT_HEADINGS)
+        assert all(field not in pm_facing_artifact for field in CONTEXT_RECEIPT_FIELDS)
+    else:
+        assert sum(
+            pm_facing_artifact.count(heading) for heading in RECEIPT_HEADINGS
+        ) == 1
+        assert all(
+            pm_facing_artifact.count(field) == 1 for field in CONTEXT_RECEIPT_FIELDS
+        )
 
 
 @pytest.mark.parametrize(
