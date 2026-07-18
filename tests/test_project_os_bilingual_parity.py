@@ -223,6 +223,37 @@ def test_route_prompt_and_pm_command_bundle_keep_authorization_contracts() -> No
     assert "--squash" not in bundle
 
 
+def test_pm_command_bundle_uses_rest_for_body_only_issue_and_pr_edits() -> None:
+    for surface in ("project-os-es", "project-os-en"):
+        bundle = (REPO_ROOT / surface / "templates/pm-command-bundle.md").read_text(
+            encoding="utf-8"
+        )
+        issue_block = re.search(
+            r"```sh\n(?P<body>cat > /tmp/issue-body\.md.*?\n)```", bundle, re.DOTALL
+        )
+        pr_block = re.search(
+            r"```sh\n(?P<body>cat > /tmp/pr-body\.md.*?\n)```", bundle, re.DOTALL
+        )
+
+        assert issue_block and pr_block
+        issue_commands = issue_block.group("body")
+        pr_commands = pr_block.group("body")
+
+        for commands, endpoint, body_file in (
+            (issue_commands, "repos/<owner>/<repo>/issues/<issue-number>", "/tmp/issue-body.md"),
+            (pr_commands, "repos/<owner>/<repo>/pulls/<pr-number>", "/tmp/pr-body.md"),
+        ):
+            assert f'gh api --method PATCH "{endpoint}"' in commands
+            assert f'-F "body=@{body_file}" --silent' in commands
+            assert f'gh api --method GET "{endpoint}"' in commands
+            assert commands.count(endpoint) == 2
+
+        assert "/pulls/" not in issue_commands
+        assert "/issues/" not in pr_commands
+        assert "gh issue edit" not in issue_commands
+        assert "gh pr edit" not in pr_commands
+
+
 @pytest.mark.parametrize(
     (
         "kernel_path",

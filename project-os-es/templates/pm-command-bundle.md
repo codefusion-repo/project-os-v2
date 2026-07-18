@@ -45,6 +45,40 @@ que se autoaborta.
 Los valores angulares son valores exactos leídos en vivo al redactar, no datos
 que el PM deba descubrir ejecutando el bundle.
 
+Reemplazo body-only de un issue existente. Esta es la ruta predeterminada solo
+cuando cambia el body completo; para labels, assignees, milestones u otras
+propiedades, `gh issue edit` continúa permitido. Riesgo: un target incorrecto
+reemplaza el body de otro issue; rollback: repetir la secuencia con el body
+anterior revisado.
+
+```sh
+cat > /tmp/issue-body.md <<'ISSUE_BODY_END'
+<cuerpo Markdown revisado>
+ISSUE_BODY_END
+
+gh api --method PATCH "repos/<owner>/<repo>/issues/<issue-number>" \
+  -F "body=@/tmp/issue-body.md" --silent
+gh api --method GET "repos/<owner>/<repo>/issues/<issue-number>" \
+  --jq '{number,html_url,updated_at}'
+```
+
+Reemplazo body-only de un PR existente. Esta es la ruta predeterminada solo
+cuando cambia el body completo; para reviewers, base branch u otras
+propiedades, `gh pr edit` continúa permitido. Riesgo: un target incorrecto
+reemplaza el body de otro PR; rollback: repetir la secuencia con el body
+anterior revisado.
+
+```sh
+cat > /tmp/pr-body.md <<'PR_BODY_END'
+<cuerpo Markdown revisado>
+PR_BODY_END
+
+gh api --method PATCH "repos/<owner>/<repo>/pulls/<pr-number>" \
+  -F "body=@/tmp/pr-body.md" --silent
+gh api --method GET "repos/<owner>/<repo>/pulls/<pr-number>" \
+  --jq '{number,html_url,updated_at}'
+```
+
 Comentario mediante body file. Scope y rollback: publica solo el comentario
 revisado; el rollback humano es una corrección posterior.
 
