@@ -35,6 +35,11 @@ RECEIPT_BLOCK_PATTERN = re.compile(
     r"<!-- context-receipt:pm-facing-conditional -->.*?<!-- /context-receipt -->",
     re.DOTALL,
 )
+RECEIPT_HEADINGS = (
+    "## Recibo de fuentes",
+    "## Source receipt",
+    "## Source Receipt",
+)
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -49,6 +54,25 @@ def copy_surface(tmp_path: Path, language: str = "es") -> Path:
     shutil.copytree(REPO_ROOT / surface / "templates", root / surface / "templates")
     shutil.copytree(REPO_ROOT / surface / skill_dir, root / surface / skill_dir)
     return root / surface / "kernel"
+
+
+def assert_one_conditional_receipt(relative_path: str, text: str) -> None:
+    assert text.count("<!-- context-receipt:pm-facing-conditional -->") == 1
+    assert text.count("<!-- /context-receipt -->") == 1
+    receipt_match = RECEIPT_BLOCK_PATTERN.search(text)
+    assert receipt_match, relative_path
+    internal_receipt = receipt_match.group(0)
+    outside_receipt = RECEIPT_BLOCK_PATTERN.sub("", text, count=1)
+
+    assert sum(text.count(heading) for heading in RECEIPT_HEADINGS) == 1
+    assert any(heading in internal_receipt for heading in RECEIPT_HEADINGS)
+    assert not any(heading in outside_receipt for heading in RECEIPT_HEADINGS)
+    for field in CONTEXT_RECEIPT_FIELDS:
+        assert field in internal_receipt, relative_path
+        assert field not in outside_receipt, relative_path
+    assert "context-receipt" not in outside_receipt, relative_path
+    assert "source + reason" in internal_receipt
+    assert "source + incorporation" in internal_receipt
 
 
 def test_bilingual_kernel_has_one_canonical_context_receipt_for_every_output() -> None:
@@ -250,17 +274,28 @@ def test_report_templates_mark_one_complete_conditional_internal_receipt() -> No
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         assert "context_receipt_contract.pm_facing_visibility" in text
         assert "internal receipt intact" in text or "recibo interno íntegro" in text
-        assert text.count("<!-- context-receipt:pm-facing-conditional -->") == 1
-        assert text.count("<!-- /context-receipt -->") == 1
-        receipt_match = RECEIPT_BLOCK_PATTERN.search(text)
-        assert receipt_match, relative_path
-        internal_receipt = receipt_match.group(0)
-        for field in CONTEXT_RECEIPT_FIELDS:
-            assert field in internal_receipt, relative_path
-        assert "source + reason" in internal_receipt
-        assert "source + incorporation" in internal_receipt
-        headings = ("## Recibo de fuentes", "## Source receipt", "## Source Receipt")
-        assert any(heading in internal_receipt for heading in headings)
+        assert_one_conditional_receipt(relative_path, text)
+
+
+@pytest.mark.parametrize(
+    "unconditional_receipt_fragment",
+    (
+        "## Recibo de fuentes",
+        CONTEXT_RECEIPT_FIELDS[0],
+        "<!-- context-receipt:unexpected -->",
+    ),
+)
+def test_report_template_guard_rejects_unconditional_receipt_fragments(
+    unconditional_receipt_fragment: str,
+) -> None:
+    relative_path = "project-os-es/templates/reporte-ejecucion.md"
+    text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+    with pytest.raises(AssertionError):
+        assert_one_conditional_receipt(
+            relative_path,
+            f"{text}\n{unconditional_receipt_fragment}\n",
+        )
 
 
 @pytest.mark.parametrize(
