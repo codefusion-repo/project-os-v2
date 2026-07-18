@@ -3,6 +3,9 @@
 Responsibility: return a status and, when MOS-R.3 processes a PM decision,
 its canonical resolution without padding it with repeated rules.
 
+PM-facing presentation: apply `context_receipt_contract.pm_facing_visibility`
+to the marked block; always keep the internal receipt intact.
+
 ```markdown
 ## Status
 
@@ -30,6 +33,7 @@ its canonical resolution without padding it with repeated rules.
 
 {{Minimum step that preserves limits.}}
 
+<!-- context-receipt:pm-facing-conditional -->
 ## Source receipt
 
 - project_os_sources_read: {{List of source + reason, or [].}}
@@ -41,4 +45,5 @@ its canonical resolution without padding it with repeated rules.
 - resolver_projected_metadata: {{List of source + reason, or [].}}
 - model_context_sources: {{List of source + incorporation, or [].}}
 - additional_context_reason: {{Allowed value or none.}}
+<!-- /context-receipt -->
 ```

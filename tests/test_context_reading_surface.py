@@ -31,6 +31,10 @@ REPORT_TEMPLATES = (
     "project-os-es/templates/pull-request.md",
     "project-os-en/templates/pull-request.md",
 )
+RECEIPT_BLOCK_PATTERN = re.compile(
+    r"<!-- context-receipt:pm-facing-conditional -->.*?<!-- /context-receipt -->",
+    re.DOTALL,
+)
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -56,6 +60,12 @@ def test_bilingual_kernel_has_one_canonical_context_receipt_for_every_output() -
     assert contract["key"] == CONTEXT_RECEIPT_KEY
     assert contract["default_hydration_level"] == "compact"
     assert contract["fields"] == CONTEXT_RECEIPT_FIELDS
+    assert contract["internal_receipt_required"] is True
+    assert contract["pm_facing_visibility"] == {
+        "minimal": "hidden",
+        "compact": "hidden",
+        "full/debug": "full",
+    }
     assert contract["output_placement"] == "output_envelope"
     assert contract["source_reference_format"] == (
         "repository_relative_path_or_live_identifier"
@@ -103,6 +113,24 @@ def test_resolver_reports_observable_context_plan_without_claiming_model_deliver
     assert plan["contract_key"] == CONTEXT_RECEIPT_KEY
     assert plan["hydration_level"] == level
     assert plan["receipt_fields"] == CONTEXT_RECEIPT_FIELDS
+    assert set(plan) == {
+        "contract_key",
+        "hydration_level",
+        "normal_read_surface",
+        "tool_internal_sources",
+        "resolver_projected_metadata",
+        "resolved_templates",
+        "requested_skills",
+        "model_context_sources",
+        "model_context_observation",
+        "receipt_fields",
+        "additional_context_reason",
+        "resolver_external_access",
+    }
+    assert workflow["context_receipt_contract"]["internal_receipt_required"] is True
+    assert workflow["context_receipt_contract"]["pm_facing_visibility"][level] == (
+        "full" if level == "full/debug" else "hidden"
+    )
     assert plan["model_context_sources"] == []
     assert plan["model_context_observation"] == "executor_report_required"
     assert plan["resolver_external_access"] is False
@@ -174,27 +202,39 @@ def test_adapters_require_actual_receipts_and_forbid_recursive_project_os_crawls
     adapter_expectations = {
         "project-os-es/adapters/AGENTS.target.md": (
             "`context_plan`",
-            "recibo canónico de fuentes",
+            "recibo canónico interno",
             "no recorras recursivamente Project OS",
             "contenido entregado al modelo",
+            "`pm_facing_visibility`",
+            "omite únicamente la representación del recibo en `minimal` y `compact`",
+            "muéstralo completo en el envelope PM-facing de `full/debug`",
         ),
         "project-os-es/adapters/BROWSER_CHAT.target.md": (
             "contexto del modelo",
-            "recibo canónico de fuentes",
+            "recibo canónico interno",
             "no recorras Project OS recursivamente",
             "razón admitida",
+            "`pm_facing_visibility`",
+            "omite únicamente la representación del recibo en `minimal` y `compact`",
+            "muéstralo completo en el envelope PM-facing de `full/debug`",
         ),
         "project-os-en/adapters/AGENTS.target.md": (
             "`context_plan`",
-            "canonical source receipt",
+            "canonical internal source receipt",
             "do not recursively crawl Project OS",
             "content delivered to the model",
+            "`pm_facing_visibility`",
+            "omit only the receipt representation in `minimal` and `compact`",
+            "show it in full in the PM-facing envelope for `full/debug`",
         ),
         "project-os-en/adapters/BROWSER_CHAT.target.md": (
             "model context",
-            "canonical source receipt",
+            "canonical internal source receipt",
             "do not recursively crawl Project OS",
             "reason allowed",
+            "`pm_facing_visibility`",
+            "omit only the receipt representation in `minimal` and `compact`",
+            "show it in full in the PM-facing envelope for `full/debug`",
         ),
     }
     for relative_path, clauses in adapter_expectations.items():
@@ -205,13 +245,22 @@ def test_adapters_require_actual_receipts_and_forbid_recursive_project_os_crawls
             assert clause in text, relative_path
 
 
-def test_report_templates_expose_the_complete_receipt_without_source_bodies() -> None:
+def test_report_templates_mark_one_complete_conditional_internal_receipt() -> None:
     for relative_path in REPORT_TEMPLATES:
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "context_receipt_contract.pm_facing_visibility" in text
+        assert "internal receipt intact" in text or "recibo interno íntegro" in text
+        assert text.count("<!-- context-receipt:pm-facing-conditional -->") == 1
+        assert text.count("<!-- /context-receipt -->") == 1
+        receipt_match = RECEIPT_BLOCK_PATTERN.search(text)
+        assert receipt_match, relative_path
+        internal_receipt = receipt_match.group(0)
         for field in CONTEXT_RECEIPT_FIELDS:
-            assert field in text, relative_path
-        assert "source + reason" in text
-        assert "source + incorporation" in text
+            assert field in internal_receipt, relative_path
+        assert "source + reason" in internal_receipt
+        assert "source + incorporation" in internal_receipt
+        headings = ("## Recibo de fuentes", "## Source receipt", "## Source Receipt")
+        assert any(heading in internal_receipt for heading in headings)
 
 
 @pytest.mark.parametrize(
@@ -247,6 +296,15 @@ def test_pull_request_templates_without_close_requests_avoid_closing_keywords(
         lambda payload: payload["context_receipt_contract"].__setitem__(
             "default_hydration_level", "minimal"
         ),
+        lambda payload: payload["context_receipt_contract"].pop(
+            "internal_receipt_required"
+        ),
+        lambda payload: payload["context_receipt_contract"][
+            "pm_facing_visibility"
+        ].__setitem__("compact", "full"),
+        lambda payload: payload["context_receipt_contract"][
+            "pm_facing_visibility"
+        ].__setitem__("debug", "full"),
         lambda payload: payload["outputs"][0].pop("context_receipt_key"),
     ),
 )

@@ -20,7 +20,7 @@ overridden by explicit PM feedback.
 
 **Variables**
 - Required: — (none)
-- Optional: ISSUE_NUMBER, ROADMAP_ISSUE, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the skill, level, PM feedback, and PM questions are context only and never authorize an action). `HYDRATION_LEVEL` accepts `minimal`, `compact` (default), or `full/debug` and controls only the resolver's hydrated content. The wizard requires `PM_AUTHORIZATION_STATUS` and preloads `HYDRATION_LEVEL=compact` before generating this route prompt.
+- Optional: ISSUE_NUMBER, ROADMAP_ISSUE, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the skill, level, PM feedback, and PM questions are context only and never authorize an action). `HYDRATION_LEVEL` accepts `minimal`, `compact` (default), or `full/debug`; it controls the resolver's hydrated content and applies the contractual PM-facing receipt visibility without altering the internal receipt or `context_plan`. The wizard requires `PM_AUTHORIZATION_STATUS` and preloads `HYDRATION_LEVEL=compact` before generating this route prompt.
 
 **Authorization contract:** Browser chat only drafts and can never self-assign,
 complete, change, or infer `granted`. A route prompt that is a draft, was not

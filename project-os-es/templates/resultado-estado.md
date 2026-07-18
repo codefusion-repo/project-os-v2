@@ -3,6 +3,9 @@
 Responsabilidad: devolver un estado y, cuando MOS-R.3 procesa una decisión PM,
 su resolución canónica sin rellenar con reglas repetidas.
 
+Presentación PM-facing: aplica `context_receipt_contract.pm_facing_visibility`
+al bloque marcado; conserva siempre el recibo interno íntegro.
+
 ```markdown
 ## Estado
 
@@ -30,6 +33,7 @@ su resolución canónica sin rellenar con reglas repetidas.
 
 {{Paso minimo que preserva limites.}}
 
+<!-- context-receipt:pm-facing-conditional -->
 ## Recibo de fuentes
 
 - project_os_sources_read: {{Lista de source + reason, o [].}}
@@ -41,4 +45,5 @@ su resolución canónica sin rellenar con reglas repetidas.
 - resolver_projected_metadata: {{Lista de source + reason, o [].}}
 - model_context_sources: {{Lista de source + incorporation, o [].}}
 - additional_context_reason: {{Valor permitido o none.}}
+<!-- /context-receipt -->
 ```

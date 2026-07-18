@@ -3,6 +3,9 @@
 Responsabilidad: documentar claims, scope y validacion de un PR draft. No es
 prueba de completitud hasta review contra diff/archivos finales.
 
+Presentación PM-facing: aplica `context_receipt_contract.pm_facing_visibility`
+al bloque marcado; conserva siempre el recibo interno íntegro.
+
 ```markdown
 ## Summary
 
@@ -23,6 +26,7 @@ prueba de completitud hasta review contra diff/archivos finales.
 
 - {{Manejo de datos sensibles o "sin superficies sensibles tocadas".}}
 
+<!-- context-receipt:pm-facing-conditional -->
 ## Source Receipt
 
 - project_os_sources_read: {{Lista de source + reason, o [].}}
@@ -34,6 +38,7 @@ prueba de completitud hasta review contra diff/archivos finales.
 - resolver_projected_metadata: {{Lista de source + reason, o [].}}
 - model_context_sources: {{Lista de source + incorporation, o [].}}
 - additional_context_reason: {{Valor permitido o none.}}
+<!-- /context-receipt -->
 
 Related to #{{issue}}.
 ```

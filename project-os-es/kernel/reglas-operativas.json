@@ -102,7 +102,7 @@
         "Usar solo el contexto y los subagentes que la tarea scoped necesita.",
         "Citar fuentes largas con ubicacion minima; no repetir cuerpos completos de unidades de trabajo, diffs, logs, reportes ni reglas que el kernel ya posee.",
         "Usar subagentes solo con razon scoped que reduzca riesgo, complejidad o carga experta; su salida es claim hasta verificarla contra evidencia viva.",
-        "Distinguir fuentes cargadas internamente por tooling, metadata proyectada por el resolver, contenido incorporado al contexto del modelo y fuentes abiertas despues de resolver; reportarlas mediante el recibo canonico sin cuerpos completos.",
+        "Distinguir fuentes cargadas internamente por tooling, metadata proyectada por el resolver, contenido incorporado al contexto del modelo y fuentes abiertas despues de resolver; conservarlas mediante el recibo canonico interno sin cuerpos completos y aplicar su politica contractual de visibilidad PM-facing.",
         "La superficie normal incluye solo resolucion seleccionada, limites, evidencia, output y artefacto aplicables, template resuelto, skills solicitadas, evidencia viva minima y fuentes del target requeridas por scope, validacion o source basis; toda lectura adicional requiere una razon admitida por el contrato.",
         "Usar contexto grande solo cuando el riesgo lo justifica: seguridad, autorizacion, deployment, migraciones, billing, storage o arquitectura compleja.",
         "La economia nunca elimina evidencia requerida, lecturas vivas, preflight, validacion, secret safety ni gates de aprobacion PM exacta."

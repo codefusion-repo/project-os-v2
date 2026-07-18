@@ -2,6 +2,9 @@
 
 Responsibility: draft human-executable instructions without claiming edits.
 
+PM-facing presentation: apply `context_receipt_contract.pm_facing_visibility`
+to the marked block; always keep the internal receipt intact.
+
 ```markdown
 ## Objective
 
@@ -39,6 +42,7 @@ Responsibility: draft human-executable instructions without claiming edits.
 
 This plan did not edit code, did not run validation and did not grant permissions.
 
+<!-- context-receipt:pm-facing-conditional -->
 ## Source receipt
 
 - project_os_sources_read: {{List of source + reason, or [].}}
@@ -50,6 +54,7 @@ This plan did not edit code, did not run validation and did not grant permission
 - resolver_projected_metadata: {{List of source + reason, or [].}}
 - model_context_sources: {{List of source + incorporation, or [].}}
 - additional_context_reason: {{Allowed value or none.}}
+<!-- /context-receipt -->
 
 ## Safe degradation (when applicable)
 

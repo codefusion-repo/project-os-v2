@@ -45,6 +45,12 @@
       "complex_architecture",
       "pm_decision"
     ],
+    "internal_receipt_required": true,
+    "pm_facing_visibility": {
+      "minimal": "hidden",
+      "compact": "hidden",
+      "full/debug": "full"
+    },
     "output_placement": "output_envelope",
     "stores_source_bodies": false,
     "stores_secret_values": false,

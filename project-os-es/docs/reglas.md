@@ -83,13 +83,15 @@ resolución seleccionada, límites y evidencia, output y artefacto aplicables,
 template exacto, skills solicitadas, evidencia viva mínima y fuentes del target
 requeridas por scope, validación o source basis. Tooling interno, metadata
 proyectada, contexto real del modelo y aperturas posteriores son categorías
-distintas. Cada ejecución las reporta mediante
-`context_receipt.minimum_read_surface`, en el envelope del output junto al
-artefacto, usando paths relativos al repositorio o identificadores vivos y
-razones, nunca paths absolutos de máquina ni cuerpos completos. Lecturas fuera
-de la superficie normal requieren `full/debug`, auditoría, debugging, revisión
-de seguridad/autorización, arquitectura compleja o una decisión PM concreta;
-ninguna razón sustituye evidencia ni gates.
+distintas. Cada ejecución las conserva internamente mediante
+`context_receipt.minimum_read_surface`, usando paths relativos al repositorio o
+identificadores vivos y razones, nunca paths absolutos de máquina ni cuerpos
+completos. `context_plan` y el recibo interno permanecen íntegros en todos los
+niveles; `pm_facing_visibility` omite solo la representación Markdown del recibo
+en `minimal` y `compact`, y la muestra completa en el envelope de `full/debug`.
+Lecturas fuera de la superficie normal requieren `full/debug`, auditoría,
+debugging, revisión de seguridad/autorización, arquitectura compleja o una
+decisión PM concreta; ninguna razón sustituye evidencia ni gates.
 
 ## Secretos
 

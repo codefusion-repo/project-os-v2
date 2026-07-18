@@ -42,11 +42,14 @@ artefacto y template resueltos por el kernel.
 Distingue metadata de resolución, contenido incorporado al contexto del modelo
 y fuentes abiertas después de resolver. Abre solo el template aplicable, las
 skills solicitadas y la evidencia o fuentes requeridas por scope, validación o
-source basis; no recorras Project OS recursivamente. Entrega en el envelope del
-output el recibo canónico de fuentes junto al artefacto, con paths relativos al
-repositorio o identificadores vivos y razones, sin cuerpos completos, secretos
-ni estado vivo durable. Toda lectura adicional requiere una razón admitida por
-el contrato.
+source basis; no recorras Project OS recursivamente. Conserva íntegro el
+`context_plan` cuando esté disponible y siempre el recibo canónico interno.
+Aplica `pm_facing_visibility` del
+contrato resuelto: omite únicamente la representación del recibo en `minimal` y
+`compact`, y muéstralo completo en el envelope PM-facing de `full/debug`, con
+paths relativos al repositorio o identificadores vivos y razones, sin cuerpos
+completos, secretos ni estado vivo durable. Toda lectura adicional requiere una
+razón admitida por el contrato.
 
 ## Notas propias del target
 

@@ -2,6 +2,9 @@
 
 Responsabilidad: reportar hallazgos o veredicto respaldado por evidencia.
 
+Presentación PM-facing: aplica `context_receipt_contract.pm_facing_visibility`
+al bloque marcado; conserva siempre el recibo interno íntegro.
+
 ```markdown
 ## Scope revisado
 
@@ -31,6 +34,7 @@ Responsabilidad: reportar hallazgos o veredicto respaldado por evidencia.
 
 {{Gaps explicitos.}}
 
+<!-- context-receipt:pm-facing-conditional -->
 ## Recibo de fuentes
 
 - project_os_sources_read: {{Lista de source + reason, o [].}}
@@ -42,6 +46,7 @@ Responsabilidad: reportar hallazgos o veredicto respaldado por evidencia.
 - resolver_projected_metadata: {{Lista de source + reason, o [].}}
 - model_context_sources: {{Lista de source + incorporation, o [].}}
 - additional_context_reason: {{Valor permitido o none.}}
+<!-- /context-receipt -->
 
 ## Degradacion segura (solo si aplica)
 

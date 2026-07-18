@@ -169,10 +169,29 @@ def test_levels_have_deterministic_monotonic_contract_shapes_and_keep_safety() -
     expected_outputs = item_keys(full_debug["workflow"]["allowed_outputs"])
     expected_statuses = item_keys(full_debug["estados_permitidos"])
     expected_prohibited_actions = full_debug["mode"]["prohibited_actions"]
+    expected_context_plan_keys = set(results["full/debug"]["context_plan"])
 
     for level, result in results.items():
         resolved = result["resuelto"]
         assert result["estado"] == "status.resolved", level
+        assert set(result["context_plan"]) == expected_context_plan_keys
+        assert result["context_plan"]["receipt_fields"] == [
+            "project_os_sources_read",
+            "target_sources_read",
+            "live_evidence_sources",
+            "resolved_template",
+            "requested_skills",
+            "tool_internal_sources",
+            "resolver_projected_metadata",
+            "model_context_sources",
+            "additional_context_reason",
+        ]
+        assert resolved["workflow"]["context_receipt_contract"][
+            "internal_receipt_required"
+        ] is True
+        assert resolved["workflow"]["context_receipt_contract"][
+            "pm_facing_visibility"
+        ][level] == ("full" if level == "full/debug" else "hidden")
         assert "nunca concede permisos" in result["autorizacion"]
         assert item_keys(resolved["limites"]) == expected_limits
         assert SAFETY_LIMITS <= item_keys(resolved["limites"])
