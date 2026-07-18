@@ -45,6 +45,39 @@ program.
 Angle-bracket values are exact values read live while drafting, not data the PM
 must discover by running the bundle.
 
+Body-only replacement for an existing issue. This is the default route only
+when replacing the complete body; `gh issue edit` remains allowed for labels,
+assignees, milestones, or other properties. Risk: an incorrect target replaces
+another issue's body; rollback: repeat the sequence with the reviewed previous
+body.
+
+```sh
+cat > /tmp/issue-body.md <<'ISSUE_BODY_END'
+<reviewed Markdown body>
+ISSUE_BODY_END
+
+gh api --method PATCH "repos/<owner>/<repo>/issues/<issue-number>" \
+  -F "body=@/tmp/issue-body.md" --silent
+gh api --method GET "repos/<owner>/<repo>/issues/<issue-number>" \
+  --jq '{number,html_url,updated_at}'
+```
+
+Body-only replacement for an existing PR. This is the default route only when
+replacing the complete body; `gh pr edit` remains allowed for reviewers, the
+base branch, or other properties. Risk: an incorrect target replaces another
+PR's body; rollback: repeat the sequence with the reviewed previous body.
+
+```sh
+cat > /tmp/pr-body.md <<'PR_BODY_END'
+<reviewed Markdown body>
+PR_BODY_END
+
+gh api --method PATCH "repos/<owner>/<repo>/pulls/<pr-number>" \
+  -F "body=@/tmp/pr-body.md" --silent
+gh api --method GET "repos/<owner>/<repo>/pulls/<pr-number>" \
+  --jq '{number,html_url,updated_at}'
+```
+
 Comment through a body file. Scope and rollback: publish only the reviewed
 comment; human rollback is a later correction.
 
