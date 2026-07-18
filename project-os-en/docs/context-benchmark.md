@@ -29,8 +29,8 @@ Spanish version: [benchmark-contexto.md](../../project-os-es/docs/benchmark-cont
 
 ## Declared method
 
-- **Measurement date:** 2026-07-14.
-- **Inputs:** commit `84a615d2b838` of `codefusion-repo/project-os-v2`; the
+- **Measurement date:** 2026-07-18.
+- **Inputs:** commit `7a7aab501983` of `codefusion-repo/project-os-v2`; the
   measured inputs (both kernel directories and
   `tools/project_os_resolve.py`) do not change after that commit on the
   branch correcting this document.
@@ -61,16 +61,16 @@ Two references, built from the real kernel content:
 
 | Alternative | Bytes | Characters | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 6696 | 6696 | 1646 | 1757 |
-| Resolver `compact` | 15218 | 15213 | 3566 | 3885 |
-| Per-tuple baseline (= `full/debug`) | 16504 | 16499 | 3939 | 4259 |
-| Full kernel (11 files) | 47584 | 47579 | 11000 | 11576 |
+| Resolver `minimal` | 15516 | 15516 | 3739 | 3856 |
+| Resolver `compact` | 27801 | 27760 | 6418 | 6868 |
+| Per-tuple baseline (= `full/debug`) | 29251 | 29210 | 6839 | 7290 |
+| Full kernel (11 files) | 67020 | 66979 | 15334 | 16055 |
 
-Reduction against the per-tuple baseline: `minimal` −59.4% bytes (−58.2%
-`o200k_base` tokens, −58.7% `cl100k_base`); `compact` −7.8% bytes (−9.5%,
-−8.8%). Against the full kernel (internal profile only): `minimal` −85.9%
-bytes (−85.0%, −84.8%); `compact` −68.0% (−67.6%, −66.4%); `full/debug`
-−65.3% (−64.2%, −63.2%).
+Reduction against the per-tuple baseline: `minimal` −47.0% bytes (−45.3%
+`o200k_base` tokens, −47.1% `cl100k_base`); `compact` −5.0% bytes (−6.2%,
+−5.8%). Against the full kernel (internal profile only): `minimal` −76.8%
+bytes (−75.6%, −76.0%); `compact` −58.5% (−58.1%, −57.2%); `full/debug`
+−56.4% (−55.4%, −54.6%).
 
 ## English kernel (explicit selection)
 
@@ -78,14 +78,14 @@ Same tuple, same commands, with `--kernel-dir project-os-en/kernel`:
 
 | Alternative | Bytes | Characters | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 6509 | 6509 | 1530 | 1539 |
-| Resolver `compact` | 14384 | 14384 | 3202 | 3221 |
-| Per-tuple baseline (= `full/debug`) | 15670 | 15670 | 3575 | 3595 |
-| Full kernel (11 files) | 46000 | 46000 | 10183 | 10200 |
+| Resolver `minimal` | 15288 | 15288 | 3576 | 3565 |
+| Resolver `compact` | 26836 | 26836 | 5949 | 5946 |
+| Per-tuple baseline (= `full/debug`) | 28286 | 28286 | 6370 | 6368 |
+| Full kernel (11 files) | 65285 | 65285 | 14390 | 14368 |
 
-Reduction against the per-tuple baseline: `minimal` −58.5% bytes; `compact`
-−8.2%. Against the full kernel (internal profile only): `minimal` −85.9%
-bytes; `compact` −68.7%; `full/debug` −65.9%.
+Reduction against the per-tuple baseline: `minimal` −46.0% bytes; `compact`
+−5.1%. Against the full kernel (internal profile only): `minimal` −76.6%
+bytes; `compact` −58.9%; `full/debug` −56.7%.
 
 ## What each alternative keeps
 

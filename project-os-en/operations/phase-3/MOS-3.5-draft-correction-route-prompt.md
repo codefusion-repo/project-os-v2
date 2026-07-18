@@ -14,7 +14,7 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Variables**
 - Required: ISSUE_NUMBER
-- Optional: PR_NUMBER, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the skill, level, PM feedback, and PM questions are context only and never authorize an action). `HYDRATION_LEVEL` accepts `minimal`, `compact` (default), or `full/debug` and controls only the resolver's hydrated content. The wizard requires `PM_AUTHORIZATION_STATUS` and preloads `HYDRATION_LEVEL=compact` before generating this route prompt.
+- Optional: PR_NUMBER, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the skill, level, PM feedback, and PM questions are context only and never authorize an action). `HYDRATION_LEVEL` accepts `minimal`, `compact` (default), or `full/debug`; it controls the resolver's hydrated content and applies the contractual PM-facing receipt visibility without altering the internal receipt or `context_plan`. The wizard requires `PM_AUTHORIZATION_STATUS` and preloads `HYDRATION_LEVEL=compact` before generating this route prompt.
 
 **Deliver:** output.route_prompt. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

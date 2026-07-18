@@ -2,6 +2,9 @@
 
 Responsabilidad: draftear instrucciones humano-ejecutables sin reclamar edits.
 
+Presentación PM-facing: aplica `context_receipt_contract.pm_facing_visibility`
+al bloque marcado; conserva siempre el recibo interno íntegro.
+
 ```markdown
 ## Objetivo
 
@@ -39,6 +42,7 @@ Responsabilidad: draftear instrucciones humano-ejecutables sin reclamar edits.
 
 Este plan no edito codigo, no ejecuto validacion y no concede permisos.
 
+<!-- context-receipt:pm-facing-conditional -->
 ## Recibo de fuentes
 
 - project_os_sources_read: {{Lista de source + reason, o [].}}
@@ -50,6 +54,7 @@ Este plan no edito codigo, no ejecuto validacion y no concede permisos.
 - resolver_projected_metadata: {{Lista de source + reason, o [].}}
 - model_context_sources: {{Lista de source + incorporation, o [].}}
 - additional_context_reason: {{Valor permitido o none.}}
+<!-- /context-receipt -->
 
 ## Degradacion segura (solo si aplica)
 

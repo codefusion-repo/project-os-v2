@@ -169,14 +169,22 @@ La respuesta declara `hydration_level` y usa estos shapes deterministas:
 - `full/debug`: todo `compact` más los metadatos completos de la resolución
   seleccionada, incluidos flags de actividad y enlaces internos de auditoría.
 
+El resolver conserva `context_plan` íntegro en los tres niveles. En la
+ejecución, el ejecutor conserva siempre el recibo interno y aplica la política
+canónica `pm_facing_visibility`: oculta únicamente su sección Markdown en
+`minimal` y `compact`, y la muestra completa en `full/debug`. `debug` aislado
+no es un alias válido.
+
 ```sh
 python tools/project_os_resolve.py --actor actor.terminal_agent \
   --workflow workflow.issue_implementation --mode mode.delegated_commit_pr \
   --kernel-dir project-os-es/kernel --hydration-level compact
 ```
 
-El nivel cambia solo el contenido devuelto: no lee GitHub/git, no inventa estado
-y nunca concede permisos. Los tamaños medidos por nivel, con metodología y
+Dentro del resolver, el nivel cambia solo el contenido devuelto: no lee
+GitHub/git, no inventa estado y nunca concede permisos. El ejecutor usa el mismo
+selector únicamente para la presentación PM-facing del recibo. Los tamaños
+medidos por nivel, con metodología y
 fecha declaradas, están en [benchmark-contexto.md](benchmark-contexto.md). Los otros niveles se solicitan con el mismo flag; un
 valor desconocido falla cerrado. En Python el parámetro canónico es
 `hydration_level`; `compact` sigue disponible como alias de compatibilidad. El

@@ -120,7 +120,10 @@ Al draftear `MOS-3.4` o `MOS-3.5`, el wizard también captura
 `HYDRATION_LEVEL` para el receptor terminal: acepta `minimal`, `compact` o
 `full/debug` y precarga `compact` como valor predeterminado. Esta ayuda es local a esos route prompts;
 no convierte el nivel en variable canónica del catálogo completo ni autoriza
-escritura. El nivel solo controla la vista devuelta por el resolver.
+escritura. El nivel controla la vista devuelta por el resolver y la visibilidad
+PM-facing contractual del recibo: `minimal` y `compact` ocultan solo esa
+representación; `full/debug` la muestra completa. No altera el recibo interno
+ni `context_plan`.
 
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
 también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de

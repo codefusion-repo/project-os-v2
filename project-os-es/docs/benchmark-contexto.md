@@ -29,8 +29,8 @@ Versión inglesa: [context-benchmark.md](../../project-os-en/docs/context-benchm
 
 ## Metodología declarada
 
-- **Fecha de medición:** 2026-07-14.
-- **Insumos:** commit `84a615d2b838` de `codefusion-repo/project-os-v2`; los
+- **Fecha de medición:** 2026-07-18.
+- **Insumos:** commit `7a7aab501983` de `codefusion-repo/project-os-v2`; los
   insumos medidos (ambos directorios de kernel y
   `tools/project_os_resolve.py`) no cambian después de ese commit en la rama
   que corrige este documento.
@@ -61,16 +61,16 @@ Dos referencias, construidas desde el kernel real:
 
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 6696 | 6696 | 1646 | 1757 |
-| Resolver `compact` | 15218 | 15213 | 3566 | 3885 |
-| Baseline por tupla (= `full/debug`) | 16504 | 16499 | 3939 | 4259 |
-| Kernel completo (11 archivos) | 47584 | 47579 | 11000 | 11576 |
+| Resolver `minimal` | 15516 | 15516 | 3739 | 3856 |
+| Resolver `compact` | 27801 | 27760 | 6418 | 6868 |
+| Baseline por tupla (= `full/debug`) | 29251 | 29210 | 6839 | 7290 |
+| Kernel completo (11 archivos) | 67020 | 66979 | 15334 | 16055 |
 
-Reducción frente al baseline por tupla: `minimal` −59,4 % bytes (−58,2 %
-tokens `o200k_base`, −58,7 % `cl100k_base`); `compact` −7,8 % bytes (−9,5 %,
-−8,8 %). Frente al kernel completo (solo perfil interno): `minimal` −85,9 %
-bytes (−85,0 %, −84,8 %); `compact` −68,0 % (−67,6 %, −66,4 %); `full/debug`
-−65,3 % (−64,2 %, −63,2 %).
+Reducción frente al baseline por tupla: `minimal` −47,0 % bytes (−45,3 %
+tokens `o200k_base`, −47,1 % `cl100k_base`); `compact` −5,0 % bytes (−6,2 %,
+−5,8 %). Frente al kernel completo (solo perfil interno): `minimal` −76,8 %
+bytes (−75,6 %, −76,0 %); `compact` −58,5 % (−58,1 %, −57,2 %); `full/debug`
+−56,4 % (−55,4 %, −54,6 %).
 
 ## Kernel inglés (selección explícita)
 
@@ -78,14 +78,14 @@ Misma tupla, mismos comandos, con `--kernel-dir project-os-en/kernel`:
 
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 6509 | 6509 | 1530 | 1539 |
-| Resolver `compact` | 14384 | 14384 | 3202 | 3221 |
-| Baseline por tupla (= `full/debug`) | 15670 | 15670 | 3575 | 3595 |
-| Kernel completo (11 archivos) | 46000 | 46000 | 10183 | 10200 |
+| Resolver `minimal` | 15288 | 15288 | 3576 | 3565 |
+| Resolver `compact` | 26836 | 26836 | 5949 | 5946 |
+| Baseline por tupla (= `full/debug`) | 28286 | 28286 | 6370 | 6368 |
+| Kernel completo (11 archivos) | 65285 | 65285 | 14390 | 14368 |
 
-Reducción frente al baseline por tupla: `minimal` −58,5 % bytes; `compact`
-−8,2 %. Frente al kernel completo (solo perfil interno): `minimal` −85,9 %
-bytes; `compact` −68,7 %; `full/debug` −65,9 %.
+Reducción frente al baseline por tupla: `minimal` −46,0 % bytes; `compact`
+−5,1 %. Frente al kernel completo (solo perfil interno): `minimal` −76,6 %
+bytes; `compact` −58,9 %; `full/debug` −56,7 %.
 
 ## Qué información conserva cada alternativa
 

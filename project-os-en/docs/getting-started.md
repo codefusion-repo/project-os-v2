@@ -172,14 +172,22 @@ The response declares `hydration_level` and has these deterministic shapes:
 - `full/debug`: all of `compact` plus complete selected-resolution metadata,
   including active flags and internal audit links.
 
+The resolver keeps `context_plan` intact at all three levels. During execution,
+the executor always keeps the internal receipt and applies the canonical
+`pm_facing_visibility` policy: it hides only the receipt's Markdown section in
+`minimal` and `compact`, and shows it in full in `full/debug`. Bare `debug` is
+not a valid alias.
+
 ```sh
 python tools/project_os_resolve.py --actor actor.terminal_agent \
   --workflow workflow.issue_implementation --mode mode.delegated_commit_pr \
   --kernel-dir project-os-en/kernel --hydration-level full/debug
 ```
 
-The level changes returned content only: it does not read GitHub/git, invent
-project state, or grant permission. Unknown values fail closed. The canonical
+Within the resolver, the level changes returned content only: it does not read
+GitHub/git, invent project state, or grant permission. The executor uses the
+same selector only for the receipt's PM-facing presentation. Unknown values
+fail closed. The canonical
 Python parameter is `hydration_level`; `compact` remains a compatibility
 alias. The pre-existing `--compact` flag only controls JSON indentation.
 Measured sizes per level, with declared method and date, live in

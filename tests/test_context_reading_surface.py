@@ -31,6 +31,17 @@ REPORT_TEMPLATES = (
     "project-os-es/templates/pull-request.md",
     "project-os-en/templates/pull-request.md",
 )
+RECEIPT_BLOCK_PATTERN = re.compile(
+    r"<!-- context-receipt:pm-facing-conditional -->.*?<!-- /context-receipt -->",
+    re.DOTALL,
+)
+RECEIPT_HEADINGS = (
+    "## Recibo de fuentes",
+    "## Source receipt",
+    "## Source Receipt",
+)
+RECEIPT_BLOCK_OPEN = "<!-- context-receipt:pm-facing-conditional -->"
+RECEIPT_BLOCK_CLOSE = "<!-- /context-receipt -->"
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -47,6 +58,42 @@ def copy_surface(tmp_path: Path, language: str = "es") -> Path:
     return root / surface / "kernel"
 
 
+def assert_one_conditional_receipt(relative_path: str, text: str) -> None:
+    assert text.count(RECEIPT_BLOCK_OPEN) == 1
+    assert text.count(RECEIPT_BLOCK_CLOSE) == 1
+    receipt_match = RECEIPT_BLOCK_PATTERN.search(text)
+    assert receipt_match, relative_path
+    internal_receipt = receipt_match.group(0)
+    outside_receipt = RECEIPT_BLOCK_PATTERN.sub("", text, count=1)
+
+    assert sum(text.count(heading) for heading in RECEIPT_HEADINGS) == 1
+    assert any(heading in internal_receipt for heading in RECEIPT_HEADINGS)
+    assert not any(heading in outside_receipt for heading in RECEIPT_HEADINGS)
+    for field in CONTEXT_RECEIPT_FIELDS:
+        assert field in internal_receipt, relative_path
+        assert field not in outside_receipt, relative_path
+    assert "context-receipt" not in outside_receipt, relative_path
+    assert "source + reason" in internal_receipt
+    assert "source + incorporation" in internal_receipt
+
+
+def compose_pm_facing_artifact(template: str, visibility: str) -> str:
+    """Apply the receipt visibility contract without introducing a renderer."""
+    receipt_match = RECEIPT_BLOCK_PATTERN.search(template)
+    assert receipt_match
+
+    if visibility == "hidden":
+        receipt = ""
+    elif visibility == "full":
+        receipt = receipt_match.group(0).replace(RECEIPT_BLOCK_OPEN, "").replace(
+            RECEIPT_BLOCK_CLOSE, ""
+        )
+    else:
+        raise AssertionError(f"unsupported PM-facing visibility: {visibility}")
+
+    return RECEIPT_BLOCK_PATTERN.sub(receipt, template, count=1)
+
+
 def test_bilingual_kernel_has_one_canonical_context_receipt_for_every_output() -> None:
     spanish = load(ES_KERNEL / "salidas.json")
     english = load(EN_KERNEL / "outputs.json")
@@ -56,6 +103,12 @@ def test_bilingual_kernel_has_one_canonical_context_receipt_for_every_output() -
     assert contract["key"] == CONTEXT_RECEIPT_KEY
     assert contract["default_hydration_level"] == "compact"
     assert contract["fields"] == CONTEXT_RECEIPT_FIELDS
+    assert contract["internal_receipt_required"] is True
+    assert contract["pm_facing_visibility"] == {
+        "minimal": "hidden",
+        "compact": "hidden",
+        "full/debug": "full",
+    }
     assert contract["output_placement"] == "output_envelope"
     assert contract["source_reference_format"] == (
         "repository_relative_path_or_live_identifier"
@@ -103,6 +156,24 @@ def test_resolver_reports_observable_context_plan_without_claiming_model_deliver
     assert plan["contract_key"] == CONTEXT_RECEIPT_KEY
     assert plan["hydration_level"] == level
     assert plan["receipt_fields"] == CONTEXT_RECEIPT_FIELDS
+    assert set(plan) == {
+        "contract_key",
+        "hydration_level",
+        "normal_read_surface",
+        "tool_internal_sources",
+        "resolver_projected_metadata",
+        "resolved_templates",
+        "requested_skills",
+        "model_context_sources",
+        "model_context_observation",
+        "receipt_fields",
+        "additional_context_reason",
+        "resolver_external_access",
+    }
+    assert workflow["context_receipt_contract"]["internal_receipt_required"] is True
+    assert workflow["context_receipt_contract"]["pm_facing_visibility"][level] == (
+        "full" if level == "full/debug" else "hidden"
+    )
     assert plan["model_context_sources"] == []
     assert plan["model_context_observation"] == "executor_report_required"
     assert plan["resolver_external_access"] is False
@@ -174,27 +245,39 @@ def test_adapters_require_actual_receipts_and_forbid_recursive_project_os_crawls
     adapter_expectations = {
         "project-os-es/adapters/AGENTS.target.md": (
             "`context_plan`",
-            "recibo canónico de fuentes",
+            "recibo canónico interno",
             "no recorras recursivamente Project OS",
             "contenido entregado al modelo",
+            "`pm_facing_visibility`",
+            "omite únicamente la representación del recibo en `minimal` y `compact`",
+            "muéstralo completo en el envelope PM-facing de `full/debug`",
         ),
         "project-os-es/adapters/BROWSER_CHAT.target.md": (
             "contexto del modelo",
-            "recibo canónico de fuentes",
+            "recibo canónico interno",
             "no recorras Project OS recursivamente",
             "razón admitida",
+            "`pm_facing_visibility`",
+            "omite únicamente la representación del recibo en `minimal` y `compact`",
+            "muéstralo completo en el envelope PM-facing de `full/debug`",
         ),
         "project-os-en/adapters/AGENTS.target.md": (
             "`context_plan`",
-            "canonical source receipt",
+            "canonical internal source receipt",
             "do not recursively crawl Project OS",
             "content delivered to the model",
+            "`pm_facing_visibility`",
+            "omit only the receipt representation in `minimal` and `compact`",
+            "show it in full in the PM-facing envelope for `full/debug`",
         ),
         "project-os-en/adapters/BROWSER_CHAT.target.md": (
             "model context",
-            "canonical source receipt",
+            "canonical internal source receipt",
             "do not recursively crawl Project OS",
             "reason allowed",
+            "`pm_facing_visibility`",
+            "omit only the receipt representation in `minimal` and `compact`",
+            "show it in full in the PM-facing envelope for `full/debug`",
         ),
     }
     for relative_path, clauses in adapter_expectations.items():
@@ -205,13 +288,74 @@ def test_adapters_require_actual_receipts_and_forbid_recursive_project_os_crawls
             assert clause in text, relative_path
 
 
-def test_report_templates_expose_the_complete_receipt_without_source_bodies() -> None:
+def test_report_templates_mark_one_complete_conditional_internal_receipt() -> None:
     for relative_path in REPORT_TEMPLATES:
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
-        for field in CONTEXT_RECEIPT_FIELDS:
-            assert field in text, relative_path
-        assert "source + reason" in text
-        assert "source + incorporation" in text
+        assert "context_receipt_contract.pm_facing_visibility" in text
+        assert "internal receipt intact" in text or "recibo interno íntegro" in text
+        assert_one_conditional_receipt(relative_path, text)
+
+
+@pytest.mark.parametrize("relative_path", REPORT_TEMPLATES)
+@pytest.mark.parametrize("level", LEVELS)
+def test_visibility_contract_composes_with_bilingual_pm_facing_templates(
+    relative_path: str,
+    level: str,
+) -> None:
+    kernel_dir = ES_KERNEL if relative_path.startswith("project-os-es/") else EN_KERNEL
+    resolver_payload = resolve(
+        "actor.terminal_agent",
+        "workflow.issue_implementation",
+        "mode.delegated_commit_push",
+        kernel_dir=kernel_dir,
+        hydration_level=level,
+    )
+    raw_resolver_json = json.dumps(resolver_payload, ensure_ascii=False)
+    contract = resolver_payload["resuelto"]["workflow"]["context_receipt_contract"]
+    template = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+    assert len(CONTEXT_RECEIPT_FIELDS) == 9
+    assert not any(heading in raw_resolver_json for heading in RECEIPT_HEADINGS)
+    assert "context-receipt:" not in raw_resolver_json
+    assert all(field in raw_resolver_json for field in CONTEXT_RECEIPT_FIELDS)
+
+    pm_facing_artifact = compose_pm_facing_artifact(
+        template,
+        contract["pm_facing_visibility"][level],
+    )
+
+    assert "context-receipt:" not in pm_facing_artifact
+    if level in {"minimal", "compact"}:
+        assert not any(heading in pm_facing_artifact for heading in RECEIPT_HEADINGS)
+        assert all(field not in pm_facing_artifact for field in CONTEXT_RECEIPT_FIELDS)
+    else:
+        assert sum(
+            pm_facing_artifact.count(heading) for heading in RECEIPT_HEADINGS
+        ) == 1
+        assert all(
+            pm_facing_artifact.count(field) == 1 for field in CONTEXT_RECEIPT_FIELDS
+        )
+
+
+@pytest.mark.parametrize(
+    "unconditional_receipt_fragment",
+    (
+        "## Recibo de fuentes",
+        CONTEXT_RECEIPT_FIELDS[0],
+        "<!-- context-receipt:unexpected -->",
+    ),
+)
+def test_report_template_guard_rejects_unconditional_receipt_fragments(
+    unconditional_receipt_fragment: str,
+) -> None:
+    relative_path = "project-os-es/templates/reporte-ejecucion.md"
+    text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+
+    with pytest.raises(AssertionError):
+        assert_one_conditional_receipt(
+            relative_path,
+            f"{text}\n{unconditional_receipt_fragment}\n",
+        )
 
 
 @pytest.mark.parametrize(
@@ -247,6 +391,15 @@ def test_pull_request_templates_without_close_requests_avoid_closing_keywords(
         lambda payload: payload["context_receipt_contract"].__setitem__(
             "default_hydration_level", "minimal"
         ),
+        lambda payload: payload["context_receipt_contract"].pop(
+            "internal_receipt_required"
+        ),
+        lambda payload: payload["context_receipt_contract"][
+            "pm_facing_visibility"
+        ].__setitem__("compact", "full"),
+        lambda payload: payload["context_receipt_contract"][
+            "pm_facing_visibility"
+        ].__setitem__("debug", "full"),
         lambda payload: payload["outputs"][0].pop("context_receipt_key"),
     ),
 )

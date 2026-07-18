@@ -42,10 +42,12 @@ contenido entregado al modelo.
 
 Abre después de resolver solo el template aplicable, las skills solicitadas y
 las fuentes Project OS, target o evidencia viva exigidas por scope, validación
-o source basis. Reporta las lecturas reales en el recibo canónico de fuentes,
-en el envelope del output junto al artefacto, con paths relativos al repositorio
-o identificadores vivos y razones, nunca con cuerpos completos. Una lectura
-adicional requiere una razón admitida por el contrato; no recorras
+o source basis. Conserva íntegros `context_plan` y el recibo canónico interno
+con las lecturas reales. Aplica `pm_facing_visibility` del contrato resuelto:
+omite únicamente la representación del recibo en `minimal` y `compact`, y
+muéstralo completo en el envelope PM-facing de `full/debug`, con paths relativos
+al repositorio o identificadores vivos y razones, nunca con cuerpos completos.
+Una lectura adicional requiere una razón admitida por el contrato; no recorras
 recursivamente Project OS por defecto.
 
 ## Evidencia viva

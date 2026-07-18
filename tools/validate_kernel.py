@@ -123,6 +123,12 @@ CONTEXT_RECEIPT_CONTRACT = {
         "complex_architecture",
         "pm_decision",
     ],
+    "internal_receipt_required": True,
+    "pm_facing_visibility": {
+        "minimal": "hidden",
+        "compact": "hidden",
+        "full/debug": "full",
+    },
     "output_placement": "output_envelope",
     "stores_source_bodies": False,
     "stores_secret_values": False,

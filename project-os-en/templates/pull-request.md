@@ -3,6 +3,9 @@
 Responsibility: document claims, scope and validation of a PR draft. It is not
 completeness test until review against diff/final files.
 
+PM-facing presentation: apply `context_receipt_contract.pm_facing_visibility`
+to the marked block; always keep the internal receipt intact.
+
 ```markdown
 ## Summary
 
@@ -23,6 +26,7 @@ completeness test until review against diff/final files.
 
 - {{Handling sensitive data or "no sensitive surfaces touched."}}
 
+<!-- context-receipt:pm-facing-conditional -->
 ## Source Receipt
 
 - project_os_sources_read: {{List of source + reason, or [].}}
@@ -34,6 +38,7 @@ completeness test until review against diff/final files.
 - resolver_projected_metadata: {{List of source + reason, or [].}}
 - model_context_sources: {{List of source + incorporation, or [].}}
 - additional_context_reason: {{Allowed value or none.}}
+<!-- /context-receipt -->
 
 Related to #{{issue}}.
 ```

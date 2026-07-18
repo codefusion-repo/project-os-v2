@@ -78,7 +78,7 @@ cd "$TARGET_ROOT"
 
 The resolver accelerates resolution; the manifest remains canonical. Both provide shape only and never authorize an action. Follow resolved artifact, template, and skill references without copying their contracts here. Use `context_plan` to distinguish internally loaded files, projected metadata, and referenced templates and skills; never treat it as proof of content delivered to the model.
 
-After resolution, open only the applicable template, requested skills, and Project OS, target, or live-evidence sources required by scope, validation, or source basis. Report actual reads in the canonical source receipt, in the output envelope alongside the artifact, using repository-relative paths or live identifiers and reasons rather than absolute machine paths or full bodies. Every additional read needs a reason allowed by the contract; do not recursively crawl Project OS by default.
+After resolution, open only the applicable template, requested skills, and Project OS, target, or live-evidence sources required by scope, validation, or source basis. Keep `context_plan` and the canonical internal source receipt intact with the actual reads. Apply the resolved contract's `pm_facing_visibility`: omit only the receipt representation in `minimal` and `compact`, and show it in full in the PM-facing envelope for `full/debug`, using repository-relative paths or live identifiers and reasons rather than absolute machine paths or full bodies. Every additional read needs a reason allowed by the contract; do not recursively crawl Project OS by default.
 
 ## Live evidence
 

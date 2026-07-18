@@ -10,13 +10,16 @@ El catalogo `project-os-es/kernel/artefactos.json` enlaza cada artefacto con
 exactamente un `required_template`. El resolver debe exponer esas referencias,
 no copiar el contenido del template.
 
-Todo output referencia `context_receipt.minimum_read_surface`. El agente lo
-renderiza en el envelope del output, junto al artefacto, con los campos
-canónicos del kernel. El recibo registra paths relativos al repositorio o
-identificadores vivos y razones; nunca paths absolutos de máquina, cuerpos,
-secretos ni estado vivo durable. Cuando un artefacto exige un cuerpo exacto
-—por ejemplo un route prompt— el recibo queda fuera de ese cuerpo y no lo
-altera.
+Todo output referencia `context_receipt.minimum_read_surface`. El agente
+conserva íntegro el recibo interno con los campos canónicos del kernel y aplica
+`pm_facing_visibility`: omite el bloque marcado del Markdown PM-facing en
+`minimal` y `compact`, y lo muestra completo en el envelope de `full/debug`.
+Los comentarios `context-receipt:*` son sintaxis de control: se eliminan siempre
+y nunca forman parte del Markdown PM-facing.
+El recibo registra paths relativos al repositorio o identificadores vivos y
+razones; nunca paths absolutos de máquina, cuerpos, secretos ni estado vivo
+durable. Cuando un artefacto exige un cuerpo exacto —por ejemplo un route
+prompt— el recibo queda fuera de ese cuerpo y no lo altera.
 
 ## Puente operativo
 

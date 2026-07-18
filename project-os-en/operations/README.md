@@ -58,7 +58,10 @@ When drafting `MOS-3.4` or `MOS-3.5`, the wizard also captures
 `HYDRATION_LEVEL` for the terminal recipient: it accepts `minimal`, `compact`,
 or `full/debug` and preloads `compact`. This assistance is local to those route
 prompts; it does not make the level a canonical variable across the catalog or
-authorize writing. The level controls only the resolver view returned.
+authorize writing. The level controls the resolver view returned and the
+contractual PM-facing receipt visibility: `minimal` and `compact` hide only
+that representation; `full/debug` shows it in full. It does not alter the
+internal receipt or `context_plan`.
 
 ## Index
 
