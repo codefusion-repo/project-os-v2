@@ -178,9 +178,40 @@ def test_duplicate_identity_requires_pm_decision_and_is_never_auto_aliased(tmp_p
     )
 
 
-def test_similar_wording_with_distinct_stable_purposes_is_not_auto_aliased(tmp_path: Path) -> None:
+def test_duplicate_contract_with_distinct_ids_and_wording_requires_pm_decision(
+    tmp_path: Path,
+) -> None:
     _write_canonical(tmp_path / "MOS-9.1-first.md", "MOS-9.1", "first-outcome")
     _write_canonical(tmp_path / "MOS-9.2-second.md", "MOS-9.2", "second-outcome")
+    second = tmp_path / "MOS-9.2-second.md"
+    second.write_text(
+        second.read_text(encoding="utf-8").replace(
+            "**Does:** Stable purpose.", "**Does:** Different incidental wording."
+        ),
+        encoding="utf-8",
+    )
+
+    sources = load_operation_sources(tmp_path)
+    findings = validate_operation_catalog(sources)
+
+    assert not any(item.code == "OPS-015" for item in findings)
+    assert any(
+        item.code == "OPS-016" and item.status == "status.needs_pm_decision"
+        for item in findings
+    )
+    assert all(not source.is_alias for source in sources)
+
+
+def test_material_contract_difference_avoids_duplicate_candidate(tmp_path: Path) -> None:
+    _write_canonical(tmp_path / "MOS-9.1-first.md", "MOS-9.1", "first-outcome")
+    _write_canonical(tmp_path / "MOS-9.2-second.md", "MOS-9.2", "second-outcome")
+    second = tmp_path / "MOS-9.2-second.md"
+    second.write_text(
+        second.read_text(encoding="utf-8").replace(
+            "output.status_result", "output.execution_report"
+        ),
+        encoding="utf-8",
+    )
 
     assert validate_operation_catalog(load_operation_sources(tmp_path)) == []
 

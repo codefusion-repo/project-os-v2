@@ -32,6 +32,17 @@ ALIAS_CONTRACT_MARKERS = (
     "**Entrega:**",
     "**Deliver:**",
 )
+CLASSIFIED_DISTINCT_CONTRACT_GROUPS = frozenset(
+    {
+        frozenset({"MOS-0.3", "MOS-0.4"}),
+        frozenset({"MOS-2.1", "MOS-2.2", "MOS-2.3", "MOS-2.4", "MOS-2.5"}),
+        frozenset({"MOS-2.9", "MOS-2.10", "MOS-2.11", "MOS-2.12", "MOS-2.13"}),
+        frozenset({"MOS-2.6", "MOS-2.14"}),
+        frozenset({"MOS-3.19", "MOS-3.20", "MOS-3.21", "MOS-3.22"}),
+        frozenset({"MOS-5.11", "MOS-5.13"}),
+        frozenset({"MOS-6.8", "MOS-6.12"}),
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -59,10 +70,9 @@ class OperationSource:
 
 
 @dataclass(frozen=True)
-class OperationSignature:
-    """Stable contract fields; incidental prose is intentionally excluded."""
+class OperationContractSignature:
+    """Stable contract fields, independent from declared identity and prose."""
 
-    operation_id: str
     workflows: tuple[str, ...]
     modes: tuple[str, ...]
     outputs: tuple[str, ...]
@@ -226,9 +236,8 @@ def _next_operations(text: str) -> tuple[str, ...]:
     return tuple(_code(item) for item in re.findall(r"MOS-(?:\d+\.\d+|R\.\d+)", " ".join(parts[1:]), re.IGNORECASE))
 
 
-def operation_signature(source: OperationSource) -> OperationSignature:
-    return OperationSignature(
-        operation_id=source.metadata.operation_id,
+def operation_contract_signature(source: OperationSource) -> OperationContractSignature:
+    return OperationContractSignature(
         workflows=_refs(source.text, "workflow"),
         modes=_refs(source.text, "mode"),
         outputs=_refs(source.text, "output"),
@@ -290,16 +299,20 @@ def validate_operation_catalog(sources: list[OperationSource]) -> list[Operation
             findings.append(OperationCatalogFinding("OPS-014", alias.relative_path, "alias stub duplicates operational fields instead of inheriting the canonical prompt", "status.blocked"))
 
     identities: dict[str, list[OperationSource]] = {}
-    signatures: dict[OperationSignature, list[OperationSource]] = {}
+    signatures: dict[OperationContractSignature, list[OperationSource]] = {}
     for source in canonicals:
         identities.setdefault(source.metadata.operation_id, []).append(source)
-        signatures.setdefault(operation_signature(source), []).append(source)
+        signatures.setdefault(operation_contract_signature(source), []).append(source)
     for identity, matches in identities.items():
         if identity and len(matches) > 1:
             paths = ", ".join(item.relative_path for item in matches)
             findings.append(OperationCatalogFinding("OPS-015", paths, f"multiple canonical operations claim identity {identity!r}", "status.needs_pm_decision"))
     for signature, matches in signatures.items():
-        if signature.operation_id and len(matches) > 1:
+        classified_codes = frozenset(item.code for item in matches)
+        if (
+            len(matches) > 1
+            and classified_codes not in CLASSIFIED_DISTINCT_CONTRACT_GROUPS
+        ):
             paths = ", ".join(item.relative_path for item in matches)
             findings.append(OperationCatalogFinding("OPS-016", paths, "undeclared contractual duplicate candidates; PM classification is required", "status.needs_pm_decision"))
     return findings
