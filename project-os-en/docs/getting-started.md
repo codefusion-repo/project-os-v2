@@ -207,7 +207,12 @@ referenced by `required_skill` under
    terminal agent runs delegated implementation; the Human PM keeps merge,
    close, settings, secrets, and deployments.
 2. **Activate browser chat with
-   [MOS-0.1](../operations/phase-0/MOS-0.1-activate-browser-session.md).**
+   [MOS-0.1](../operations/phase-0/MOS-0.1-activate-browser-session.md),
+   declaring `TARGET_REPOSITORY` in `owner/repo` format.** MOS-0.1 asks for
+   the target before resolving the initial state and rebuilds
+   `evidence.repo_state` only against that repository; when the target is
+   missing, invalid, or unreadable, it returns `status.needs_context` without
+   using another connected repository.
 3. **Verify adoption when a target exists with
    [MOS-0.5](../operations/phase-0/MOS-0.5-verify-target-adoption.md).** When
    the target has not adopted Project OS yet, use

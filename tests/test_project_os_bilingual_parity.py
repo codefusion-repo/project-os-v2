@@ -165,6 +165,64 @@ def test_mos_r3_keeps_exact_bilingual_variable_contract_and_semantics() -> None:
             assert clause in text
 
 
+def test_mos_0_1_requires_target_repository_and_fails_closed_bilingually() -> None:
+    expected = (
+        ("TARGET_REPOSITORY", True),
+        ("PM_FEEDBACK_HUMANO", False),
+        ("PM_QUESTION_HUMANO", False),
+    )
+    for operations_dir in (
+        REPO_ROOT / "project-os-es" / "operaciones",
+        REPO_ROOT / "project-os-en" / "operations",
+    ):
+        operation = next(
+            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-0.1"
+        )
+        assert tuple((variable.name, variable.required) for variable in operation.variables) == expected
+
+    fail_closed_clauses = {
+        REPO_ROOT / "project-os-es/operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md": (
+            "`owner/repo`",
+            "`status.needs_context`",
+            "está ausente",
+            "corresponde a otro repositorio",
+            "nunca usa silenciosamente otro repositorio conectado",
+            "read-only y draft-only",
+            "exclusivamente contra `TARGET_REPOSITORY`",
+            "identificando explícitamente el target revisado",
+        ),
+        REPO_ROOT / "project-os-en/operations/phase-0/MOS-0.1-activate-browser-session.md": (
+            "`owner/repo`",
+            "`status.needs_context`",
+            "is absent",
+            "belongs to another repository",
+            "never silently use another connected repository",
+            "read-only and draft-only",
+            "exclusively against `TARGET_REPOSITORY`",
+            "naming the reviewed target explicitly",
+        ),
+    }
+    for path, clauses in fail_closed_clauses.items():
+        text = path.read_text(encoding="utf-8")
+        for clause in clauses:
+            assert clause in text, f"{path.name} lost fail-closed clause: {clause}"
+
+    guide_clauses = {
+        REPO_ROOT / "project-os-es/docs/empezar.md": (
+            "declarando `TARGET_REPOSITORY` en formato `owner/repo`",
+            "solicita\n   el target antes de resolver el estado inicial",
+        ),
+        REPO_ROOT / "project-os-en/docs/getting-started.md": (
+            "declaring `TARGET_REPOSITORY` in `owner/repo` format",
+            "asks for\n   the target before resolving the initial state",
+        ),
+    }
+    for path, clauses in guide_clauses.items():
+        text = path.read_text(encoding="utf-8")
+        for clause in clauses:
+            assert clause in text, f"{path.name} lost activation-target guidance: {clause}"
+
+
 def test_english_operation_does_and_how_avoid_known_third_person_regressions() -> None:
     """Protect the observed voice regression without attempting general grammar validation."""
     operations = discover_operations(REPO_ROOT / "project-os-en/operations")

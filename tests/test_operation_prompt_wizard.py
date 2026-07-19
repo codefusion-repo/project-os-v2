@@ -248,6 +248,50 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
         assert f"{HYDRATION_LEVEL_NAME}=full/debug" in rendered
 
 
+def test_target_repository_uses_generic_repository_validation() -> None:
+    variable = InputVariable("TARGET_REPOSITORY", "<TARGET_REPOSITORY>", True, "")
+
+    error = validate_variable_value(variable, "")
+    assert error is not None and "TARGET_REPOSITORY is required" in error
+    for invalid in ("owner", "owner/", "/repo", "owner repo", "https://github.com/o/r", "o/r/extra"):
+        error = validate_variable_value(variable, invalid)
+        assert error is not None and "must look like owner/repo" in error
+    assert validate_variable_value(variable, "codefusion-repo/project-os-v2") is None
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_mos_0_1_wizard_requires_valid_target_and_renders_it_exactly(
+    tmp_path: Path, language: str
+) -> None:
+    stream = StringIO()
+    output = run_wizard(
+        language=language,
+        output_dir=tmp_path,
+        input_func=answers(
+            "MOS-0.1",
+            "not a repo",
+            "",
+            "codefusion-repo/project-os-v2",
+            "",
+            "",
+            "write",
+            "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    transcript = stream.getvalue()
+    assert "must look like owner/repo" in transcript
+    assert "TARGET_REPOSITORY is required" in transcript
+    content = output.read_text(encoding="utf-8")
+    assert content.count("TARGET_REPOSITORY=") == 1
+    assert "TARGET_REPOSITORY=codefusion-repo/project-os-v2" in content
+    assert "PM_FEEDBACK_HUMANO=" in content
+    assert "PM_QUESTION_HUMANO=" in content
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}=" not in content
+
+
 def test_mos_r3_exposes_only_the_six_decision_variables_in_both_languages() -> None:
     expected = [
         ("DECISION_SOURCE", True),

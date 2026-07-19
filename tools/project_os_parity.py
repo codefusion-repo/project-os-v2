@@ -271,6 +271,14 @@ TEMPLATE_REQUIRED_HEADINGS = {
 }
 
 CRITICAL_OPERATION_TERMS = {
+    "MOS-0.1": (
+        "target_repository",
+        "owner/repo",
+        "status.needs_context",
+        "never silently use another connected repository",
+        "read-only",
+        "draft-only",
+    ),
     "MOS-3.4": (
         "recommended_terminal_agent_family",
         "advisory",
