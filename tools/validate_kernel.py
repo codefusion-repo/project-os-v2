@@ -14,8 +14,18 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from tools.operation_catalog import (
+        load_operation_sources,
+        validate_bilingual_alias_parity,
+        validate_operation_catalog,
+    )
     from tools.project_os_surfaces import DEFAULT_KERNEL_DIR, SURFACES, ProjectOSSurface, select_surface
 except ModuleNotFoundError:  # Direct ``python tools/validate_kernel.py`` execution.
+    from operation_catalog import (  # type: ignore[no-redef]
+        load_operation_sources,
+        validate_bilingual_alias_parity,
+        validate_operation_catalog,
+    )
     from project_os_surfaces import DEFAULT_KERNEL_DIR, SURFACES, ProjectOSSurface, select_surface  # type: ignore[no-redef]
 
 CANONICAL_STATUSES = {"status.resolved", "status.needs_context", "status.needs_pm_decision", "status.blocked"}
@@ -448,6 +458,41 @@ def _check_bilingual_new_schema_parity(
         )
 
 
+def _check_operation_catalogs(
+    directory: Path, surface: ProjectOSSurface, findings: list[Finding]
+) -> None:
+    """Apply canonical-operation, alias, duplicate, and bilingual guards."""
+
+    try:
+        current_sources = load_operation_sources(surface.operations_dir)
+    except (OSError, ValueError) as exc:
+        findings.append(Finding("OPS-000", str(surface.operations_dir), str(exc)))
+        return
+    for item in validate_operation_catalog(current_sources):
+        findings.append(
+            Finding(item.code, item.path, f"{item.message}; resulting_status={item.status}")
+        )
+
+    peer_surface = next(candidate for candidate in SURFACES if candidate.language != surface.language)
+    peer_root = directory.parent.parent / peer_surface.root_name / peer_surface.operations_name
+    if not peer_root.is_dir():
+        return
+    try:
+        peer_sources = load_operation_sources(peer_root)
+    except (OSError, ValueError) as exc:
+        findings.append(Finding("OPS-000", str(peer_root), str(exc)))
+        return
+    spanish, english = (
+        (current_sources, peer_sources)
+        if surface.language == "es"
+        else (peer_sources, current_sources)
+    )
+    for item in validate_bilingual_alias_parity(spanish, english):
+        findings.append(
+            Finding(item.code, item.path, f"{item.message}; resulting_status={item.status}")
+        )
+
+
 def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     """Validate one exact allowed kernel directory and return all findings."""
     surface, directory = select_surface(kernel_dir)
@@ -535,6 +580,7 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     _check_materiality_schema(data, surface, indexes, findings)
     _check_context_receipt_schema(data, surface, findings)
     _check_bilingual_new_schema_parity(directory, surface, findings)
+    _check_operation_catalogs(directory, surface, findings)
     _check_durable_safety(directory, findings)
     return findings
 

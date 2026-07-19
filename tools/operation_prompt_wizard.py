@@ -38,12 +38,14 @@ except ImportError:
     HAVE_PROMPT_TOOLKIT = False
 
 try:
+    from tools.operation_catalog import load_operation_sources, validate_operation_catalog
     from tools.project_os_surfaces import (
         ProjectOSSurface,
         surface_for_language,
         surface_for_operations_dir,
     )
 except ModuleNotFoundError:  # Direct ``python tools/operation_prompt_wizard.py`` execution.
+    from operation_catalog import load_operation_sources, validate_operation_catalog  # type: ignore[no-redef]
     from project_os_surfaces import (  # type: ignore[no-redef]
         ProjectOSSurface,
         surface_for_language,
@@ -152,6 +154,12 @@ class OperationTemplate:
     text: str
     variables: tuple[InputVariable, ...]
     catalog_root: Path | None = None
+    canonical_code: str | None = None
+    canonical_path: Path | None = None
+    aliases: tuple[str, ...] = ()
+    alias_of: str | None = None
+    deprecation: str = "none"
+    compatibility_reason: str = ""
 
     @property
     def filename(self) -> str:
@@ -161,6 +169,14 @@ class OperationTemplate:
     def mos_code(self) -> str | None:
         match = MOS_CODE_PATTERN.match(self.path.stem)
         return match.group(1).upper() if match else None
+
+    @property
+    def is_alias(self) -> bool:
+        return self.alias_of is not None
+
+    @property
+    def resolved_canonical_code(self) -> str | None:
+        return self.canonical_code or self.mos_code
 
     @property
     def relative_path(self) -> str:
@@ -342,34 +358,79 @@ def display_path(path: Path) -> str:
 
 
 def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[OperationTemplate]:
-    """Discover active operation Markdown files recursively and deterministically."""
+    """Discover canonical operations plus explicit historical alias selectors."""
 
     operations_dir = operations_dir.expanduser()
     if not operations_dir.is_dir():
         raise WizardError(f"operations directory not found: {operations_dir}")
 
-    paths = sorted(
-        (path for path in operations_dir.rglob("*.md") if path.name != "README.md"),
-        key=lambda path: path.relative_to(operations_dir).as_posix(),
-    )
-    if not paths:
-        raise WizardError(f"no .md operation templates found in: {operations_dir}")
+    try:
+        sources = load_operation_sources(operations_dir)
+    except (OSError, ValueError) as exc:
+        raise WizardError(str(exc)) from exc
+    findings = validate_operation_catalog(sources)
+    if findings:
+        raise WizardError("operation catalog validation failed:\n" + "\n".join(item.render() for item in findings))
 
+    source_by_code = {source.code: source for source in sources}
+    index_by_code: dict[str, int] = {}
     operations: list[OperationTemplate] = []
-    for index, path in enumerate(paths, start=1):
-        text = path.read_text(encoding="utf-8")
+    for source in (item for item in sources if not item.is_alias):
+        index = len(index_by_code) + 1
+        index_by_code[source.code] = index
         operations.append(
             OperationTemplate(
                 index=index,
-                path=path,
-                title=extract_title(text, path),
-                description=extract_description(text, path),
-                text=text,
-                variables=parse_input_variables(text),
+                path=source.path,
+                title=extract_title(source.text, source.path),
+                description=extract_description(source.text, source.path),
+                text=source.text,
+                variables=parse_input_variables(source.text),
                 catalog_root=operations_dir,
+                canonical_code=source.code,
+                canonical_path=source.path,
+                aliases=source.metadata.aliases,
+                deprecation=source.metadata.deprecation,
+                compatibility_reason=source.metadata.compatibility_reason,
+            )
+        )
+    for source in (item for item in sources if item.is_alias):
+        canonical = source_by_code[source.metadata.alias_of or ""]
+        operations.append(
+            OperationTemplate(
+                index=index_by_code[canonical.code],
+                path=source.path,
+                title=extract_title(source.text, source.path),
+                description=extract_description(canonical.text, canonical.path),
+                text=canonical.text,
+                variables=parse_input_variables(canonical.text),
+                catalog_root=operations_dir,
+                canonical_code=canonical.code,
+                canonical_path=canonical.path,
+                alias_of=canonical.code,
+                deprecation=source.metadata.deprecation,
+                compatibility_reason=source.metadata.compatibility_reason,
             )
         )
     return operations
+
+
+def canonical_operations(operations: list[OperationTemplate]) -> list[OperationTemplate]:
+    """Return the normal catalog view, with aliases represented only on canonicals."""
+
+    return [operation for operation in operations if not operation.is_alias]
+
+
+def canonical_operation_for(
+    operations: list[OperationTemplate], operation: OperationTemplate
+) -> OperationTemplate:
+    if not operation.is_alias:
+        return operation
+    return next(
+        candidate
+        for candidate in operations
+        if not candidate.is_alias and candidate.mos_code == operation.resolved_canonical_code
+    )
 
 
 def extract_title(text: str, path: Path) -> str:
@@ -519,7 +580,11 @@ def filter_operations(
             searchable.add(phase.lower())
         if any(normalized in value for value in searchable if value):
             matches.append(operation)
-    return matches
+    canonical_matches: dict[Path, OperationTemplate] = {}
+    for operation in matches:
+        canonical = canonical_operation_for(operations, operation)
+        canonical_matches[canonical.path.resolve()] = canonical
+    return list(canonical_matches.values())
 
 
 def resolve_operation_selection(
@@ -533,10 +598,14 @@ def resolve_operation_selection(
 
     explicit_index = re.fullmatch(r"(?:index|indice|índice):?(\d+)", normalized)
     if explicit_index:
-        return _unique_operation(op for op in operations if op.index == int(explicit_index.group(1)))
+        return _unique_operation(
+            op for op in operations if not op.is_alias and op.index == int(explicit_index.group(1))
+        )
 
     if normalized.isdigit():
-        index_match = _unique_operation(op for op in operations if op.index == int(normalized))
+        index_match = _unique_operation(
+            op for op in operations if not op.is_alias and op.index == int(normalized)
+        )
         return index_match
 
     return _unique_operation(
@@ -903,6 +972,14 @@ def render_prompt(
     """Render the filled local prompt artifact inline."""
 
     lines = operation.text.splitlines()
+    if operation.is_alias:
+        notice = (
+            f"> Alias requested: `{operation.mos_code}`; canonical operation resolved: "
+            f"`{operation.resolved_canonical_code}`. The canonical prompt below is the "
+            "single operational source of truth."
+        )
+        insert_at = 1 if lines and lines[0].lstrip().startswith("#") else 0
+        lines[insert_at:insert_at] = ["", notice]
     variables = wizard_variables(
         operation,
         include_route_prompt_authorization=include_route_prompt_authorization,
@@ -1011,7 +1088,7 @@ def load_phase_map(
 
     phase_by_operation = {
         operation.index: operation.phase_label
-        for operation in operations or []
+        for operation in canonical_operations(operations or [])
         if operation.phase_label
     }
     if flows_path is not None:
@@ -1111,7 +1188,7 @@ def display_operations(operations: list[OperationTemplate], output_stream: TextI
 
     print("", file=output_stream)
     print("Available operations:", file=output_stream)
-    for operation in operations:
+    for operation in canonical_operations(operations):
         print(f"  {operation_display_line(operation)}", file=output_stream)
 
 
@@ -1129,7 +1206,10 @@ def operation_display_line(operation: OperationTemplate, include_phase: bool = T
     phase = operation.phase_label or operation.phase_path or "Catálogo"
     phase_part = f"[{phase}] " if include_phase else ""
     identity = operation.mos_code or operation.path.stem
-    return f"{operation.index:>3}. {phase_part}{identity} — {operation.description}"
+    if operation.is_alias:
+        identity = f"{identity} → canonical {operation.resolved_canonical_code}"
+    alias_part = f" [aliases: {', '.join(operation.aliases)}]" if operation.aliases else ""
+    return f"{operation.index:>3}. {phase_part}{identity} — {operation.description}{alias_part}"
 
 
 def print_phase_groups(
@@ -1149,7 +1229,7 @@ def print_phase_groups(
     print("Operations grouped by SDLC phase:", file=output_stream)
     grouped: dict[str, list[OperationTemplate]] = {}
     ordered_phases: list[str] = []
-    for operation in operations:
+    for operation in canonical_operations(operations):
         phase = _operation_phase(operation, phase_by_operation)
         if phase not in grouped:
             grouped[phase] = []
@@ -1270,6 +1350,15 @@ def variable_summary_lines(operation: OperationTemplate) -> list[str]:
     """Return a compact selected-operation summary for variable entry."""
 
     lines = [f"Selected: {operation_display_line(operation).strip()}"]
+    if operation.is_alias:
+        lines.append(
+            f"Canonical resolution: {operation.mos_code} -> {operation.resolved_canonical_code} "
+            f"({operation.deprecation})"
+        )
+        if operation.canonical_path is not None and operation.catalog_root is not None:
+            lines.append(
+                f"Canonical path: {operation.canonical_path.relative_to(operation.catalog_root).as_posix()}"
+            )
     lines.append(f"Path: {operation.relative_path}")
     variables = wizard_variables(operation)
     required = [variable for variable in variables if variable.required]
@@ -1374,7 +1463,7 @@ def select_operation(
     """Interactively search/filter/group and select one operation."""
 
     phase_by_operation = phase_by_operation or {}
-    filtered = list(operations)
+    filtered = canonical_operations(operations)
     print_stage("Step 1/3", "Search and select an operation", output_stream)
     print(
         "Commands: /enumerated (aliases /enumerator, /), /phases (alias /phase), "
@@ -1393,19 +1482,19 @@ def select_operation(
             print_selection_help(output_stream)
             continue
         if is_phase_view_command(query):
-            filtered = list(operations)
+            filtered = canonical_operations(operations)
             print_phase_groups(operations, phase_by_operation, output_stream)
             continue
         if is_enumerated_view_command(query):
-            filtered = list(operations)
+            filtered = canonical_operations(operations)
             print_enumerated_view(filtered, output_stream)
             continue
         if is_search_command(query):
-            filtered = list(operations)
+            filtered = canonical_operations(operations)
             print_enumerated_view(filtered, output_stream)
             continue
         if query:
-            operation = resolve_operation_selection(filtered, query)
+            operation = resolve_operation_selection(operations, query)
             if operation is not None:
                 return operation
             matches = filter_operations(operations, query, phase_by_operation)
@@ -1425,11 +1514,11 @@ def select_operation(
             display_operations(filtered, output_stream)
             continue
         if is_phase_view_command(selection):
-            filtered = list(operations)
+            filtered = canonical_operations(operations)
             print_phase_groups(operations, phase_by_operation, output_stream)
             continue
         if is_enumerated_view_command(selection):
-            filtered = list(operations)
+            filtered = canonical_operations(operations)
             print_enumerated_view(filtered, output_stream)
             continue
         if is_help_command(selection):
@@ -1437,7 +1526,7 @@ def select_operation(
             continue
         if is_cancel_command(selection):
             return None
-        operation = resolve_operation_selection(filtered, selection)
+        operation = resolve_operation_selection(operations, selection)
         if operation is not None:
             return operation
         print(
@@ -2008,7 +2097,8 @@ if HAVE_PROMPT_TOOLKIT:
 
         def get_completions(self, document, complete_event):
             text = document.text.lower()
-            for op in self.operations:
+            visible_operations = self.operations if text else canonical_operations(self.operations)
+            for op in visible_operations:
                 phase = _operation_phase(op, self.phase_by_operation)
                 if (
                     text in op.filename.lower()

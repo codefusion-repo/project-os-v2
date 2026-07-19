@@ -1,5 +1,13 @@
 # MOS-0.4 — Update project adoption
 
+<!-- project-os-operation
+canonical_code: MOS-0.4
+operation_id: update-project-adoption
+aliases: MOS-R.10
+deprecation: none
+compatibility_reason: MOS-R.10 keeps historical compatible resolution without duplicating this operational contract.
+-->
+
 MOSDLC operation `update-project-adoption` · Phase 0 — Adoption · Risk: medium.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
 

@@ -1,0 +1,203 @@
+"""Canonical operation, alias compatibility, and duplicate-contract guards."""
+
+from __future__ import annotations
+
+from io import StringIO
+from pathlib import Path
+
+from tools.operation_catalog import (
+    load_operation_sources,
+    validate_bilingual_alias_parity,
+    validate_operation_catalog,
+)
+from tools.operation_prompt_wizard import (
+    canonical_operations,
+    discover_operations,
+    display_operations,
+    render_prompt,
+    resolve_operation_selection,
+    variable_summary_lines,
+)
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SPANISH_OPERATIONS = REPO_ROOT / "project-os-es/operaciones"
+ENGLISH_OPERATIONS = REPO_ROOT / "project-os-en/operations"
+
+
+def _write_canonical(path: Path, code: str, identity: str, aliases: str = "") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"""# {code} — Canonical
+
+<!-- project-os-operation
+canonical_code: {code}
+operation_id: {identity}
+aliases: {aliases}
+deprecation: none
+compatibility_reason: Compatibility is explicit when an alias exists.
+-->
+
+MOSDLC operation `{identity}` · Phase 0 · Risk: low.
+
+- Surface: browser_chat
+- Kernel: workflow.pm_intake · mode.review_only · output.status_result
+- Evidence: evidence.issue_scope
+- PM approval: No
+
+**Does:** Stable purpose.
+
+**Variables**
+- Required: TARGET_REPOSITORY
+- Optional: PM_FEEDBACK_HUMANO
+
+**Deliver:** output.status_result.
+
+**Connections:** Next: MOS-R.2. Recommended: MOS-R.2.
+""",
+        encoding="utf-8",
+    )
+
+
+def _write_alias(path: Path, code: str, canonical: str, extra: str = "") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f"""# {code} — Alias
+
+<!-- project-os-operation
+canonical_code: {canonical}
+alias_of: {canonical}
+deprecation: supported
+compatibility_reason: Historical code resolves to the canonical prompt.
+-->
+
+Compatibility stub only.
+{extra}
+""",
+        encoding="utf-8",
+    )
+
+
+def test_active_alias_metadata_and_bilingual_parity_have_no_findings() -> None:
+    spanish = load_operation_sources(SPANISH_OPERATIONS)
+    english = load_operation_sources(ENGLISH_OPERATIONS)
+
+    assert validate_operation_catalog(spanish) == []
+    assert validate_operation_catalog(english) == []
+    assert validate_bilingual_alias_parity(spanish, english) == []
+
+    for sources in (spanish, english):
+        canonical = next(source for source in sources if source.code == "MOS-0.4")
+        alias = next(source for source in sources if source.code == "MOS-R.10")
+        assert canonical.metadata.aliases == ("MOS-R.10",)
+        assert alias.metadata.alias_of == "MOS-0.4"
+        assert alias.metadata.deprecation == "supported"
+        assert "**Variables**" not in alias.text
+
+
+def test_wizard_hides_alias_as_an_outcome_but_resolves_code_filename_and_path() -> None:
+    operations = discover_operations(SPANISH_OPERATIONS)
+    canonical = resolve_operation_selection(operations, "MOS-0.4")
+    alias = next(operation for operation in operations if operation.mos_code == "MOS-R.10")
+
+    assert canonical is not None
+    assert len(operations) == 121
+    assert len(canonical_operations(operations)) == 120
+    assert resolve_operation_selection(operations, "MOS-R.10") == alias
+    assert resolve_operation_selection(operations, alias.filename) == alias
+    assert resolve_operation_selection(operations, alias.relative_path) == alias
+    assert alias.text == canonical.text
+    assert alias.variables == canonical.variables
+
+    stream = StringIO()
+    display_operations(operations, stream)
+    transcript = stream.getvalue()
+    assert "MOS-R.10 → canonical" not in transcript
+    assert transcript.count("MOS-R.10") == 1
+    assert "MOS-0.4" in transcript
+
+
+def test_alias_selection_reports_and_renders_the_canonical_resolution() -> None:
+    operations = discover_operations(ENGLISH_OPERATIONS)
+    alias = resolve_operation_selection(operations, "phase-0/MOS-R.10-update-target-adapters-catalog.md")
+    canonical = resolve_operation_selection(operations, "MOS-0.4")
+
+    assert alias is not None and canonical is not None
+    summary = "\n".join(variable_summary_lines(alias))
+    rendered = render_prompt(alias, {"TARGET_REPOSITORY": "owner/repo"})
+    canonical_rendered = render_prompt(canonical, {"TARGET_REPOSITORY": "owner/repo"})
+
+    assert "Canonical resolution: MOS-R.10 -> MOS-0.4 (supported)" in summary
+    assert "Canonical path: phase-0/MOS-0.4-update-project-adoption.md" in summary
+    assert "Alias requested: `MOS-R.10`; canonical operation resolved: `MOS-0.4`" in rendered
+    assert "TARGET_REPOSITORY=owner/repo" in rendered
+    assert canonical_rendered.replace("# MOS-0.4 — Update project adoption\n", "", 1) in rendered
+
+
+def test_alias_guards_fail_closed_for_dangling_cycles_and_copied_contracts(tmp_path: Path) -> None:
+    dangling_root = tmp_path / "dangling"
+    _write_alias(dangling_root / "MOS-R.10-alias.md", "MOS-R.10", "MOS-0.4")
+    dangling = validate_operation_catalog(load_operation_sources(dangling_root))
+    assert any(item.code == "OPS-007" and item.status == "status.blocked" for item in dangling)
+
+    cycle_root = tmp_path / "cycle"
+    _write_alias(cycle_root / "MOS-R.10-alias.md", "MOS-R.10", "MOS-R.11")
+    _write_alias(cycle_root / "MOS-R.11-alias.md", "MOS-R.11", "MOS-R.10")
+    cycle = validate_operation_catalog(load_operation_sources(cycle_root))
+    assert any(item.code == "OPS-008" and item.status == "status.blocked" for item in cycle)
+
+    copied_root = tmp_path / "copied"
+    _write_canonical(copied_root / "MOS-0.4-canonical.md", "MOS-0.4", "adoption", "MOS-R.10")
+    _write_alias(
+        copied_root / "MOS-R.10-alias.md",
+        "MOS-R.10",
+        "MOS-0.4",
+        extra="\n**Variables**\n- Required: DIFFERENT_GATE",
+    )
+    copied = validate_operation_catalog(load_operation_sources(copied_root))
+    assert any(item.code == "OPS-014" and item.status == "status.blocked" for item in copied)
+
+
+def test_duplicate_identity_requires_pm_decision_and_is_never_auto_aliased(tmp_path: Path) -> None:
+    _write_canonical(tmp_path / "MOS-9.1-first.md", "MOS-9.1", "same-outcome")
+    _write_canonical(tmp_path / "MOS-9.2-second.md", "MOS-9.2", "same-outcome")
+    second = tmp_path / "MOS-9.2-second.md"
+    second.write_text(
+        second.read_text(encoding="utf-8").replace("**Does:** Stable purpose.", "**Does:** Different incidental wording."),
+        encoding="utf-8",
+    )
+
+    findings = validate_operation_catalog(load_operation_sources(tmp_path))
+
+    assert any(item.code == "OPS-015" for item in findings)
+    assert any(item.code == "OPS-016" for item in findings)
+    assert all(
+        item.status == "status.needs_pm_decision"
+        for item in findings
+        if item.code in {"OPS-015", "OPS-016"}
+    )
+
+
+def test_similar_wording_with_distinct_stable_purposes_is_not_auto_aliased(tmp_path: Path) -> None:
+    _write_canonical(tmp_path / "MOS-9.1-first.md", "MOS-9.1", "first-outcome")
+    _write_canonical(tmp_path / "MOS-9.2-second.md", "MOS-9.2", "second-outcome")
+
+    assert validate_operation_catalog(load_operation_sources(tmp_path)) == []
+
+
+def test_bilingual_alias_drift_is_blocking(tmp_path: Path) -> None:
+    es = tmp_path / "es"
+    en = tmp_path / "en"
+    for root in (es, en):
+        _write_canonical(root / "MOS-0.4-canonical.md", "MOS-0.4", "adoption", "MOS-R.10")
+        _write_alias(root / "MOS-R.10-alias.md", "MOS-R.10", "MOS-0.4")
+    en_alias = en / "MOS-R.10-alias.md"
+    en_alias.write_text(
+        en_alias.read_text(encoding="utf-8").replace("deprecation: supported", "deprecation: deprecated"),
+        encoding="utf-8",
+    )
+
+    findings = validate_bilingual_alias_parity(
+        load_operation_sources(es), load_operation_sources(en)
+    )
+    assert any(item.code == "OPS-018" and item.status == "status.blocked" for item in findings)
