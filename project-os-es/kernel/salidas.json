@@ -205,7 +205,8 @@
     {
       "key": "output.route_prompt",
       "workflow_key": [
-        "workflow.pm_intake"
+        "workflow.pm_intake",
+        "workflow.target_adoption"
       ],
       "mode_key": [],
       "use_for": "rutear trabajo scoped a otra superficie como bootloader compacto e issue-referential; el issue o PR vivo y sus comentarios retienen el detalle de implementacion, y la autorizacion viaja como aprobacion PM exacta",
@@ -231,7 +232,8 @@
       "workflow_key": [
         "workflow.review_before_close",
         "workflow.pm_intake",
-        "workflow.release_readiness"
+        "workflow.release_readiness",
+        "workflow.target_adoption"
       ],
       "mode_key": [],
       "use_for": "draftear command bundles copy-safe que el PM ejecuta manualmente",
@@ -325,22 +327,25 @@
         "workflow.target_adoption"
       ],
       "mode_key": [],
-      "use_for": "reportar auditoria o bootstrap de adopcion de un target",
+      "use_for": "reportar auditoria o draft de adopcion de un target sin ejecutar la mutacion; la mutacion efectiva se reporta con output.execution_report",
       "status_key": "status.resolved",
-      "action_class": "action.mutable",
+      "action_class": "action.draft_only",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
       "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "target y repositorio",
         "version del kernel adoptada",
-        "estado de adopcion actual",
-        "archivos presentes y faltantes",
-        "hallazgos de auditoria",
-        "diff o draft de adapters",
-        "scope exacto de escritura cuando aplique",
-        "checklist de adopcion",
-        "que queda target-owned",
+        "estado del roadmap",
+        "estado de adopcion browser",
+        "estado de adopcion terminal",
+        "draft del adapter browser",
+        "hallazgos del adapter terminal",
+        "estado del route prompt",
+        "acciones manuales del PM",
+        "acciones del agente",
+        "constraints target-owned",
+        "validacion",
         "rollback"
       ],
       "active": true

@@ -59,7 +59,8 @@
     {
       "key": "artefacto.route_prompt",
       "workflow_key": [
-        "workflow.pm_intake"
+        "workflow.pm_intake",
+        "workflow.target_adoption"
       ],
       "output_key": "output.route_prompt",
       "responsabilidad": "Rutear trabajo scoped a otra superficie sin pegar el issue completo ni conceder permisos.",
@@ -81,7 +82,8 @@
       "workflow_key": [
         "workflow.review_before_close",
         "workflow.pm_intake",
-        "workflow.release_readiness"
+        "workflow.release_readiness",
+        "workflow.target_adoption"
       ],
       "output_key": "output.pm_command_bundle",
       "responsabilidad": "Draftear comandos PM copy-safe con targets exactos, verificacion y rollback en prosa.",

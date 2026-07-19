@@ -1055,6 +1055,88 @@ def audit_target_adapters(
     return _sorted_findings(findings)
 
 
+# Browser adoption is PM-applied and lives outside the checkout, so the auditor
+# never claims its readiness from a repo file. When its content is not supplied
+# the state stays a deterministic not_supplied rather than a silent pass.
+BROWSER_NOT_SUPPLIED = "not_supplied"
+BROWSER_READY = "ready"
+BROWSER_DRIFT = "drift"
+TERMINAL_READY = "ready"
+TERMINAL_DRIFT = "drift"
+TERMINAL_MISSING = "missing"
+READINESS_GO = "go"
+READINESS_NO_GO = "no_go"
+READINESS_NEEDS_CONTEXT = "needs_context"
+
+BROWSER_FILE = "BROWSER_CHAT.md"
+AGENTS_MISSING_CODE = "TAA-ADOPTION-AGENTS-MISSING"
+
+
+@dataclass(frozen=True)
+class AdoptionReadiness:
+    """Separate browser, terminal, and overall adoption readiness.
+
+    A global GO requires both applicable surfaces to be ready. When the browser
+    adapter content is not supplied the overall verdict is needs_context, never
+    GO: an unaudited surface is never assumed ready.
+    """
+
+    browser: str
+    terminal: str
+    overall: str
+
+    def as_dict(self) -> dict[str, str]:
+        return {"browser": self.browser, "terminal": self.terminal, "overall": self.overall}
+
+
+def _terminal_state(findings: Iterable[Finding]) -> str:
+    terminal = [finding for finding in findings if not finding.file.startswith(BROWSER_FILE)]
+    if any(finding.code == AGENTS_MISSING_CODE for finding in terminal):
+        return TERMINAL_MISSING
+    return TERMINAL_DRIFT if terminal else TERMINAL_READY
+
+
+def _browser_state(browser_chat: Source | None, findings: Iterable[Finding]) -> str:
+    if browser_chat is None:
+        return BROWSER_NOT_SUPPLIED
+    browser = [finding for finding in findings if finding.file.startswith(BROWSER_FILE)]
+    return BROWSER_DRIFT if browser else BROWSER_READY
+
+
+def _overall_readiness(browser: str, terminal: str) -> str:
+    if browser == BROWSER_NOT_SUPPLIED:
+        return READINESS_NEEDS_CONTEXT
+    if browser == BROWSER_READY and terminal == TERMINAL_READY:
+        return READINESS_GO
+    return READINESS_NO_GO
+
+
+def evaluate_adoption_readiness(
+    target: Path | str,
+    expected_repository: str,
+    browser_chat: Source | None = None,
+    base_ref: str | None = None,
+    head_ref: str | None = None,
+) -> tuple[list[Finding], AdoptionReadiness]:
+    """Audit adapters and report browser, terminal, and overall readiness apart.
+
+    Reuses the read-only adapter audit and derives readiness from the findings.
+    It grants no permission, requires no repo-owned ``BROWSER_CHAT.md``, and
+    exposes no path or secret beyond what the audit already redacts.
+    """
+
+    findings = audit_target_adapters(
+        target,
+        expected_repository,
+        browser_chat=browser_chat,
+        base_ref=base_ref,
+        head_ref=head_ref,
+    )
+    browser = _browser_state(browser_chat, findings)
+    terminal = _terminal_state(findings)
+    return findings, AdoptionReadiness(browser, terminal, _overall_readiness(browser, terminal))
+
+
 def _load_browser_chat(value: str) -> Source:
     if value == "-":
         return Source(name="BROWSER_CHAT.md", text=sys.stdin.read())
@@ -1082,6 +1164,28 @@ def _emit_human(findings: list[Finding]) -> None:
     print(f"target adapter audit: {'FAIL' if findings else 'OK'} ({len(findings)} finding(s))")
 
 
+def _emit_readiness_json(repository: str, findings: list[Finding], readiness: AdoptionReadiness) -> None:
+    payload = {
+        "tool": "tools.audit_target_adapters",
+        "schema_version": 3,
+        "target": repository,
+        "repository": repository,
+        "readiness": readiness.as_dict(),
+        "findings": [finding.as_dict() for finding in findings],
+    }
+    print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def _emit_readiness_human(findings: list[Finding], readiness: AdoptionReadiness) -> None:
+    for finding in findings:
+        print(finding.render())
+    print(
+        "adoption readiness: "
+        f"browser={readiness.browser} terminal={readiness.terminal} overall={readiness.overall} "
+        f"({len(findings)} finding(s))"
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", required=True, help="target repository checkout to inspect")
@@ -1090,23 +1194,42 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--base-ref", help="optional git ref to compare protected overlays against")
     parser.add_argument("--head-ref", help="optional git ref to audit instead of the worktree")
     parser.add_argument("--json", action="store_true", help="emit deterministic JSON")
+    parser.add_argument(
+        "--readiness",
+        action="store_true",
+        help="report separate browser, terminal, and overall adoption readiness",
+    )
     args = parser.parse_args(argv)
 
     target = Path(args.target)
     try:
         browser_chat = _load_browser_chat(args.browser_chat) if args.browser_chat else None
-        findings = audit_target_adapters(
-            target=target,
-            expected_repository=args.repository,
-            browser_chat=browser_chat,
-            base_ref=args.base_ref,
-            head_ref=args.head_ref,
-        )
+        if args.readiness:
+            findings, readiness = evaluate_adoption_readiness(
+                target=target,
+                expected_repository=args.repository,
+                browser_chat=browser_chat,
+                base_ref=args.base_ref,
+                head_ref=args.head_ref,
+            )
+        else:
+            findings = audit_target_adapters(
+                target=target,
+                expected_repository=args.repository,
+                browser_chat=browser_chat,
+                base_ref=args.base_ref,
+                head_ref=args.head_ref,
+            )
     except AuditError as exc:
         print(f"tooling error: {exc}", file=sys.stderr)
         return 2
 
-    if args.json:
+    if args.readiness:
+        if args.json:
+            _emit_readiness_json(args.repository, findings, readiness)
+        else:
+            _emit_readiness_human(findings, readiness)
+    elif args.json:
         _emit_json(target, args.repository, findings)
     else:
         _emit_human(findings)

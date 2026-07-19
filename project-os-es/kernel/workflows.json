@@ -235,6 +235,8 @@
       ],
       "allowed_outputs": [
         "output.adoption_packet",
+        "output.route_prompt",
+        "output.pm_command_bundle",
         "output.execution_report",
         "output.status_result"
       ],

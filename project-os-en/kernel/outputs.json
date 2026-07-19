@@ -205,7 +205,8 @@
     {
       "key": "output.route_prompt",
       "workflow_key": [
-        "workflow.pm_intake"
+        "workflow.pm_intake",
+        "workflow.target_adoption"
       ],
       "mode_key": [],
       "use_for": "route scoped work to another surface as a compact, issue-referential bootloader; the live issue or PR and its comments retain implementation detail, with authorization carried as exact PM approval",
@@ -231,7 +232,8 @@
       "workflow_key": [
         "workflow.review_before_close",
         "workflow.pm_intake",
-        "workflow.release_readiness"
+        "workflow.release_readiness",
+        "workflow.target_adoption"
       ],
       "mode_key": [],
       "use_for": "draft copy-safe command bundles that the PM runs manually",
@@ -325,22 +327,25 @@
         "workflow.target_adoption"
       ],
       "mode_key": [],
-      "use_for": "report an audit or bootstrap of target adoption",
+      "use_for": "report an audit or draft of target adoption without executing the mutation; the executed mutation is reported with output.execution_report",
       "status_key": "status.resolved",
-      "action_class": "action.mutable",
+      "action_class": "action.draft_only",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
       "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "target and repository",
         "adopted kernel version",
-        "current adoption state",
-        "present and missing files",
-        "audit findings",
-        "adapter diff or draft",
-        "exact write scope when applicable",
-        "adoption checklist",
-        "what remains target-owned",
+        "roadmap state",
+        "browser adoption state",
+        "terminal adoption state",
+        "browser adapter draft",
+        "terminal adapter findings",
+        "route prompt state",
+        "manual PM actions",
+        "agent actions",
+        "target-owned constraints",
+        "validation",
         "rollback"
       ],
       "active": true
