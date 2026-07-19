@@ -54,6 +54,31 @@ name the same surface, the wizard fails closed instead of mixing; an
 catalog from that same surface; any other directory is a custom catalog that
 keeps the existing programmatic API and is labeled neither es nor en.
 
+## Canonical operations and aliases
+
+Each canonical operation keeps its complete prompt and stable operational
+identity in its own Markdown file. When compatible historical codes exist, the
+canonical file's `project-os-operation` metadata declares `canonical_code`,
+`operation_id`, `aliases`, `deprecation`, and `compatibility_reason`. An alias
+file is only a stub pointing through `alias_of`; it never repeats workflows,
+modes, outputs, evidence, approval, variables, or connections. The canonical
+Markdown is therefore the single source of operational semantics.
+
+The confirmed pair is `MOS-0.4` (canonical) / `MOS-R.10` (supported,
+non-deprecated historical alias). Normal wizard views show only `MOS-0.4`, but
+an explicit `MOS-R.10` selection by code, filename, or path reports the
+canonical code and renders exactly the `MOS-0.4` contract and variables.
+
+The initial audit classified the asset request/delivery families
+(`MOS-3.15`–`MOS-3.22`), environment-specific deploy flows (`MOS-5.*`), and the
+draft/update or analysis/processing pairs in requirements, design, and
+maintenance as related but materially distinct. Their purposes, inputs,
+artifacts, or environments differ, so they are not aliases. No other alias was
+confirmed. Catalog guards reject dangling, ambiguous, or cyclic aliases,
+copied contracts in stubs, ES/EN drift, and two canonicals for one identity. An
+additional undeclared contractual match returns `status.needs_pm_decision` and
+is never merged automatically.
+
 When drafting `MOS-3.4` or `MOS-3.5`, the wizard also captures
 `HYDRATION_LEVEL` for the terminal recipient: it accepts `minimal`, `compact`,
 or `full/debug` and preloads `compact`. This assistance is local to those route
@@ -77,9 +102,9 @@ internal receipt or `context_plan`.
 - [MOS-0.2 — Bootstrap new project](phase-0/MOS-0.2-bootstrap-new-project.md)
 - [MOS-0.3 — Adopt existing project](phase-0/MOS-0.3-adopt-existing-project.md)
 - [MOS-0.4 — Update project adoption](phase-0/MOS-0.4-update-project-adoption.md)
+  - Compatible alias: [MOS-R.10](phase-0/MOS-R.10-update-target-adapters-catalog.md)
 - [MOS-0.5 — Verify target adoption](phase-0/MOS-0.5-verify-target-adoption.md)
 - [MOS-0.6 — Handoff session context](phase-0/MOS-0.6-handoff-session-context.md)
-- [MOS-R.10 — Update target adapters catalog](phase-0/MOS-R.10-update-target-adapters-catalog.md)
 - [MOS-R.5 — Audit target adoption batch](phase-0/MOS-R.5-audit-target-adoption-batch.md)
 
 ### Phase 1 — Requirements, planning, and feasibility

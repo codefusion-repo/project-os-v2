@@ -107,6 +107,32 @@ el catálogo de skills de esa misma superficie; cualquier otro directorio es un
 catálogo custom que conserva la API programática existente y no se etiqueta
 como es ni en.
 
+## Operaciones canónicas y aliases
+
+Cada operación canónica conserva el prompt completo y una identidad operativa
+estable en su propio Markdown. Cuando existen códigos históricos compatibles,
+la metadata `project-os-operation` del canónico declara `canonical_code`,
+`operation_id`, `aliases`, `deprecation` y `compatibility_reason`. El archivo
+del alias es solo un stub que apunta mediante `alias_of`; nunca repite workflow,
+mode, outputs, evidencia, aprobación, variables ni conexiones. Por tanto, el
+Markdown canónico es la única fuente de semántica operativa.
+
+El par confirmado es `MOS-0.4` (canónica) / `MOS-R.10` (alias histórico
+soportado, no deprecado). El wizard muestra solo `MOS-0.4` en las vistas
+normales, pero resuelve `MOS-R.10` de forma explícita por código, filename o
+path, informa el código canónico y renderiza exactamente el contrato y las
+variables de `MOS-0.4`.
+
+La auditoría inicial clasificó como relacionadas pero materialmente distintas
+las familias de solicitud/entrega de assets (`MOS-3.15`–`MOS-3.22`), los flujos
+por entorno de deploy (`MOS-5.*`) y los pares de draft/actualización o
+análisis/procesamiento de requisitos, diseño y mantenimiento. Sus propósitos,
+inputs, artefactos o entornos difieren, así que no son aliases. No se confirmó
+otro alias. Los guards del catálogo fallan ante aliases colgantes, ambiguos o
+cíclicos, contratos copiados en stubs, drift ES/EN y dos canónicas con la misma
+identidad. Una coincidencia contractual adicional no declarada devuelve
+`status.needs_pm_decision`; nunca se fusiona automáticamente.
+
 El wizard
 descubre recursivamente estas operaciones, excluye este README y muestra por
 defecto una lista compacta con índice, fase, código MOS y propósito extraído de
@@ -146,10 +172,10 @@ vida: `project-os-es/operaciones/cross-fase/`,
 - [MOS-0.2 — Iniciar un proyecto nuevo](fase-0/MOS-0.2-iniciar-proyecto-nuevo.md)
 - [MOS-0.3 — Adoptar un proyecto existente](fase-0/MOS-0.3-adoptar-proyecto-existente.md)
 - [MOS-0.4 — Actualizar la adopción de un proyecto](fase-0/MOS-0.4-actualizar-adopcion-de-proyecto.md)
+  - Alias compatible: [MOS-R.10](fase-0/MOS-R.10-actualizar-catalogo-de-adapters-del-target.md)
 - [MOS-0.5 — Verificar la adopción del target](fase-0/MOS-0.5-verificar-adopcion-del-target.md)
 - [MOS-0.6 — Transferir el contexto de sesión](fase-0/MOS-0.6-transferir-contexto-de-sesion.md)
 - [MOS-R.5 — Auditar adopción de targets en lote](fase-0/MOS-R.5-auditar-adopcion-de-targets-en-lote.md)
-- [MOS-R.10 — Actualizar catálogo de adapters del target](fase-0/MOS-R.10-actualizar-catalogo-de-adapters-del-target.md)
 
 ### Fase 1 — Requerimientos, planificación y viabilidad
 

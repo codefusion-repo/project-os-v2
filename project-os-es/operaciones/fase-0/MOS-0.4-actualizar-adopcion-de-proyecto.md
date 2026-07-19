@@ -1,5 +1,13 @@
 # MOS-0.4 — Actualizar la adopción de un proyecto
 
+<!-- project-os-operation
+canonical_code: MOS-0.4
+operation_id: update-project-adoption
+aliases: MOS-R.10
+deprecation: none
+compatibility_reason: MOS-R.10 conserva resolución histórica compatible sin duplicar este contrato operativo.
+-->
+
 Operación MOSDLC `update-project-adoption` · Fase 0 — Adaptación · Riesgo: medium.
 Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 

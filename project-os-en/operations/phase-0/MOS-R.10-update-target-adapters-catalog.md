@@ -1,21 +1,12 @@
-# MOS-R.10 — Update target adapters catalog
+# MOS-R.10 — Compatible alias of MOS-0.4
 
-MOSDLC operation `update-target-adapters-catalog` · Phase 0 — Adoption · Risk: medium.
-Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
+<!-- project-os-operation
+canonical_code: MOS-0.4
+alias_of: MOS-0.4
+deprecation: supported
+compatibility_reason: This historical code keeps selection by code, filename, and path; all semantics resolve from MOS-0.4.
+-->
 
-- Surface: browser_chat a terminal_agent
-- Kernel: workflow.target_adoption · mode.delegated_commit_pr · output.adoption_packet (+output.route_prompt)
-- Evidence: evidence.target_adoption, evidence.branch_preflight, evidence.pm_approval, evidence.validation_output
-- PM approval: Yes (exact approval to write in the target)
-
-**Does:** Update adapters of a target to a new catalog/kernel version.
-**For:** To propagate catalog upgrades without massive drift.
-**How:** Draft the adoption packet and delegated route; require exact approval, preflight, and proportional validation for writing.
-
-**Variables**
-- Required: TARGET_REPOSITORY
-- Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
-
-**Deliver:** output.adoption_packet (+output.route_prompt). In case of missing adoption, version, approval, preflight or validation, fail closed: report with `output.status_result` and return the decision to the PM.
-
-**Connections:** Previous: MOS-R.5 or MOS-0.4. Next: MOS-0.5 per updated target. Recommended: MOS-0.5.
+Supported historical alias. Use the single canonical contract in
+[MOS-0.4](MOS-0.4-update-project-adoption.md); this file defines no workflow,
+mode, outputs, evidence, approval, variables, or transitions.

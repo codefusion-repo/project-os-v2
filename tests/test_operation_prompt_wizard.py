@@ -167,15 +167,12 @@ def test_selection_help_announces_only_supported_view_commands() -> None:
         assert command in transcript
 
 
-def test_duplicate_filename_or_stem_fails_safely_but_relative_path_selects(tmp_path: Path) -> None:
+def test_duplicate_mos_code_fails_catalog_discovery_closed(tmp_path: Path) -> None:
     write_spanish_operation(tmp_path / "fase-1" / "MOS-1.1-duplicada.md", "MOS-1.1", "Uno")
     write_spanish_operation(tmp_path / "fase-2" / "MOS-1.1-duplicada.md", "MOS-1.1", "Dos")
-    operations = discover_operations(tmp_path)
 
-    assert resolve_operation_selection(operations, "MOS-1.1-duplicada.md") is None
-    assert resolve_operation_selection(operations, "MOS-1.1-duplicada") is None
-    assert resolve_operation_selection(operations, "MOS-1.1") is None
-    assert resolve_operation_selection(operations, "fase-2/MOS-1.1-duplicada.md") == operations[1]
+    with pytest.raises(WizardError, match="OPS-002.*status.needs_pm_decision"):
+        discover_operations(tmp_path)
 
 
 def test_filter_matches_active_spanish_search_surface() -> None:
