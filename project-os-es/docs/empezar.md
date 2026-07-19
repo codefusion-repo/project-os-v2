@@ -205,7 +205,12 @@ artefactos/templates, referenciado por `required_skill` bajo
    terminal agent para implementación delegada; Humano PM para cierre, merge,
    settings, secretos y despliegues.
 2. **Activa browser chat con
-   [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md).**
+   [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md),
+   declarando `TARGET_REPOSITORY` en formato `owner/repo`.** MOS-0.1 solicita
+   el target antes de resolver el estado inicial y reconstruye
+   `evidence.repo_state` solo contra ese repositorio; si el target falta, es
+   inválido o no puede leerse, devuelve `status.needs_context` sin usar otro
+   repositorio conectado.
 3. **Verifica adopción cuando haya target con
    [MOS-0.5](../operaciones/fase-0/MOS-0.5-verificar-adopcion-del-target.md).**
    Si el target aún no adoptó Project OS, usa
