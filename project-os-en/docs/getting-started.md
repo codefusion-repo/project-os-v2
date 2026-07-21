@@ -96,8 +96,16 @@ not required to operate today.
 Resolver fast path for the adopted target:
 
 ```sh
-TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
-KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+AGENTS_FILE=
+probe=$(pwd)
+while :; do
+  test -f "$probe/AGENTS.md" && { AGENTS_FILE="$probe/AGENTS.md"; break; }
+  test "$probe" = / && break
+  probe=$(dirname "$probe")
+done
+test -n "$AGENTS_FILE" || exit 1
+TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
+KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
 case "$TARGET_REF" in
   '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
     : "${PROJECT_OS_TARGET_ROOT:?set PROJECT_OS_TARGET_ROOT}"
@@ -120,6 +128,7 @@ case "$KERNEL_DIR" in */project-os-en/kernel) ;; *) exit 1 ;; esac
 PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-en/kernel}"
 test -n "$PROJECT_OS_ROOT" || exit 1
 test -d "$TARGET_ROOT" || exit 1
+test "$AGENTS_FILE" -ef "$TARGET_ROOT/AGENTS.md" || exit 1
 test -f "$KERNEL_DIR/manifest.json" || exit 1
 test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || exit 1
 python -c '
@@ -141,12 +150,19 @@ raise SystemExit(0 if valid else 1)
 ' "$KERNEL_DIR/manifest.json" || exit 1
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
-cd "$TARGET_ROOT"
+  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>] || exit $?
+cd "$TARGET_ROOT" || exit 1
 ```
 
 The same resolution consumes either persisted modality, without `eval` or
-arbitrary name expansion. Manual resolution of `project-os-en/kernel/manifest.json`
+arbitrary name expansion, and behaves identically from the target root or any
+of its subdirectories. The preceding checks are structural: they require the
+read `AGENTS.md` to be the resolved target's own and reject references outside
+the allowlist, relative paths, kernels on another surface, and manifests that
+are unreadable, inactive, or in another language. They do not verify provenance,
+signature, hash, or checkout integrity, so they are not a trust anchor. A
+non-zero resolver exit code aborts the fast path with that same code and enables
+no later step. Manual resolution of `project-os-en/kernel/manifest.json`
 remains the canonical fallback. The resolver output never grants permission
 and never reads GitHub/git on your behalf. Browser chat does not run local
 Python; it reads the manifest through available sources and stays read-only

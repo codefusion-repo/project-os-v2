@@ -27,14 +27,23 @@ KERNEL_VERSION_ADOPTED = tracks latest
 
 Antes de trabajo no trivial, lee `project-os-es/kernel/manifest.json` y sigue
 su `resolution_sequence`. En esta superficie terminal, cuando el checkout del
-kernel esté disponible, usa este fast path. Lee los dos campos persistidos,
-acepta solo la referencia portable exacta o un literal absoluto y valida la
-identidad del kernel antes del resolver; no usa `eval` ni expande nombres
-arbitrarios:
+kernel esté disponible, usa este fast path. Localiza `AGENTS.md` subiendo desde
+el directorio actual, lee los dos campos persistidos, acepta solo la referencia
+portable exacta o un literal absoluto y comprueba la identidad estructural del
+kernel antes del resolver; no usa `eval`, no expande nombres arbitrarios y
+propaga sin alterar cualquier código de salida no cero del resolver:
 
 ```sh
-TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
-KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+AGENTS_FILE=
+probe=$(pwd)
+while :; do
+  test -f "$probe/AGENTS.md" && { AGENTS_FILE="$probe/AGENTS.md"; break; }
+  test "$probe" = / && break
+  probe=$(dirname "$probe")
+done
+test -n "$AGENTS_FILE" || exit 1
+TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
+KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
 case "$TARGET_REF" in
   '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
     : "${PROJECT_OS_TARGET_ROOT:?define PROJECT_OS_TARGET_ROOT con el path absoluto del target}"
@@ -57,6 +66,7 @@ case "$KERNEL_DIR" in */project-os-es/kernel) ;; *) exit 1 ;; esac
 PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
 test -n "$PROJECT_OS_ROOT" || exit 1
 test -d "$TARGET_ROOT" || exit 1
+test "$AGENTS_FILE" -ef "$TARGET_ROOT/AGENTS.md" || exit 1
 test -f "$KERNEL_DIR/manifest.json" || exit 1
 test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || exit 1
 python -c '
@@ -78,9 +88,18 @@ raise SystemExit(0 if valid else 1)
 ' "$KERNEL_DIR/manifest.json" || exit 1
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
-cd "$TARGET_ROOT"
+  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>] || exit $?
+cd "$TARGET_ROOT" || exit 1
 ```
+
+El alcance de esas comprobaciones es estructural y demostrable: exigen que el
+`AGENTS.md` leído sea el del target resuelto, rechazan referencias fuera del
+allowlist, paths relativos, kernels ubicados en otra superficie y manifests
+ilegibles, no activos o de otro idioma, y no invocan el resolver cuando alguna
+falla. No verifican procedencia del repositorio, commit, firma, hash ni
+integridad del checkout, así que no son un trust anchor: un directorio local que
+reproduzca esa estructura sigue siendo ejecutable. Si un código no cero del
+resolver aborta el fast path, ningún paso posterior queda habilitado.
 
 El resolver acelera la resolución; el manifest sigue siendo canónico. Ambos
 solo dan forma y nunca autorizan una acción. Consulta artefactos, templates y

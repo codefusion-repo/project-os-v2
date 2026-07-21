@@ -24,11 +24,19 @@ KERNEL_VERSION_ADOPTED = {{adopted version or "tracks latest"}}
 
 ## Kernel resolution
 
-Before non-trivial work, read `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. When the kernel checkout is available in a terminal, use this fast path. It reads the two persisted fields, accepts only the exact portable reference or an absolute literal, and validates kernel identity before the resolver; it does not use `eval` or expand arbitrary names:
+Before non-trivial work, read `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. When the kernel checkout is available in a terminal, use this fast path. It locates `AGENTS.md` by walking up from the current directory, reads the two persisted fields, accepts only the exact portable reference or an absolute literal, and checks structural kernel identity before the resolver; it does not use `eval`, does not expand arbitrary names, and propagates any non-zero resolver exit code unchanged:
 
 ```sh
-TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
-KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+AGENTS_FILE=
+probe=$(pwd)
+while :; do
+  test -f "$probe/AGENTS.md" && { AGENTS_FILE="$probe/AGENTS.md"; break; }
+  test "$probe" = / && break
+  probe=$(dirname "$probe")
+done
+test -n "$AGENTS_FILE" || exit 1
+TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
+KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
 case "$TARGET_REF" in
   '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
     : "${PROJECT_OS_TARGET_ROOT:?set PROJECT_OS_TARGET_ROOT to the absolute target path}"
@@ -51,6 +59,7 @@ case "$KERNEL_DIR" in */project-os-en/kernel) ;; *) exit 1 ;; esac
 PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-en/kernel}"
 test -n "$PROJECT_OS_ROOT" || exit 1
 test -d "$TARGET_ROOT" || exit 1
+test "$AGENTS_FILE" -ef "$TARGET_ROOT/AGENTS.md" || exit 1
 test -f "$KERNEL_DIR/manifest.json" || exit 1
 test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || exit 1
 python -c '
@@ -72,9 +81,11 @@ raise SystemExit(0 if valid else 1)
 ' "$KERNEL_DIR/manifest.json" || exit 1
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
-cd "$TARGET_ROOT"
+  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>] || exit $?
+cd "$TARGET_ROOT" || exit 1
 ```
+
+Those checks are structural and demonstrable in scope: they require the read `AGENTS.md` to be the resolved target's own, and they reject references outside the allowlist, relative paths, kernels located on another surface, and manifests that are unreadable, inactive, or in another language, without invoking the resolver when any of them fails. They do not verify repository provenance, commit, signature, hash, or checkout integrity, so they are not a trust anchor: a local directory reproducing that structure remains executable. When a non-zero resolver exit code aborts the fast path, no later step is enabled.
 
 The resolver accelerates resolution; the manifest remains canonical. Both provide shape only and never authorize an action. Follow resolved artifact, template, and skill references without copying their contracts here. Use `context_plan` to distinguish internally loaded files, projected metadata, and referenced templates and skills; never treat it as proof of content delivered to the model.
 
