@@ -96,42 +96,36 @@ es requisito para operar hoy.
 Fast path del resolver para el target ya adoptado:
 
 ```sh
-AGENTS_FILE=
-probe=$(pwd)
-while :; do
-  test -f "$probe/AGENTS.md" && { AGENTS_FILE="$probe/AGENTS.md"; break; }
-  test "$probe" = / && break
-  probe=$(dirname "$probe")
-done
-test -n "$AGENTS_FILE" || exit 1
-TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
-KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
-case "$TARGET_REF" in
-  '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
-    : "${PROJECT_OS_TARGET_ROOT:?define PROJECT_OS_TARGET_ROOT}"
-    TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
-    ;;
-  /*) case "$TARGET_REF" in *'$'*) exit 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
-  *) exit 1 ;;
-esac
-case "$KERNEL_REF" in
-  '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
-    : "${PROJECT_OS_KERNEL_DIR:?define PROJECT_OS_KERNEL_DIR}"
-    KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
-    ;;
-  /*) case "$KERNEL_REF" in *'$'*) exit 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
-  *) exit 1 ;;
-esac
-case "$TARGET_ROOT" in /*) ;; *) exit 1 ;; esac
-case "$KERNEL_DIR" in /*) ;; *) exit 1 ;; esac
-case "$KERNEL_DIR" in */project-os-es/kernel) ;; *) exit 1 ;; esac
-PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
-test -n "$PROJECT_OS_ROOT" || exit 1
-test -d "$TARGET_ROOT" || exit 1
-test "$AGENTS_FILE" -ef "$TARGET_ROOT/AGENTS.md" || exit 1
-test -f "$KERNEL_DIR/manifest.json" || exit 1
-test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || exit 1
-python -c '
+select_target_bootloader() {
+  AGENTS_FILE=$1
+  TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
+  KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
+  case "$TARGET_REF" in
+    '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
+      test -n "${PROJECT_OS_TARGET_ROOT:-}" || return 1
+      TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
+      ;;
+    /*) case "$TARGET_REF" in *'$'*) return 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
+    *) return 1 ;;
+  esac
+  case "$KERNEL_REF" in
+    '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
+      test -n "${PROJECT_OS_KERNEL_DIR:-}" || return 1
+      KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+      ;;
+    /*) case "$KERNEL_REF" in *'$'*) return 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
+    *) return 1 ;;
+  esac
+  case "$TARGET_ROOT" in /*) ;; *) return 1 ;; esac
+  case "$KERNEL_DIR" in /*) ;; *) return 1 ;; esac
+  case "$KERNEL_DIR" in */project-os-es/kernel) ;; *) return 1 ;; esac
+  PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
+  test -n "$PROJECT_OS_ROOT" || return 1
+  test -d "$TARGET_ROOT" || return 1
+  test "$AGENTS_FILE" -ef "$TARGET_ROOT/AGENTS.md" || return 1
+  test -f "$KERNEL_DIR/manifest.json" || return 1
+  test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || return 1
+  python -c '
 import json
 import sys
 try:
@@ -147,7 +141,22 @@ try:
 except (OSError, UnicodeError, json.JSONDecodeError):
     valid = False
 raise SystemExit(0 if valid else 1)
-' "$KERNEL_DIR/manifest.json" || exit 1
+' "$KERNEL_DIR/manifest.json" || return 1
+}
+AGENTS_FILE=
+probe=$(pwd)
+while :; do
+  if test -f "$probe/AGENTS.md" && select_target_bootloader "$probe/AGENTS.md"; then
+    break
+  fi
+  AGENTS_FILE=
+  test "$probe" = / && break
+  probe=$(dirname "$probe")
+done
+test -n "$AGENTS_FILE" || {
+  echo 'sin AGENTS.md raiz coherente con el target adoptado' >&2
+  exit 1
+}
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
   --kernel-dir "$KERNEL_DIR" [--skill skill.<id>] || exit $?
@@ -156,10 +165,14 @@ cd "$TARGET_ROOT" || exit 1
 
 La misma resolución consume el campo persistido en modalidad portable o
 literal, sin `eval` ni expansión de nombres arbitrarios, y funciona igual desde
-la raíz del target o desde cualquiera de sus subcarpetas. Las comprobaciones
-previas son estructurales: exigen que el `AGENTS.md` leído sea el del target
-resuelto y rechazan referencias fuera del allowlist, paths relativos, kernels de
-otra superficie y manifests ilegibles, no activos o de otro idioma. No verifican
+la raíz del target o desde cualquiera de sus subcarpetas, incluidas las que
+tienen su propio `AGENTS.md`: la búsqueda ascendente valida cada candidato y
+continúa hasta el bootloader raíz coherente con el target. Las comprobaciones
+previas son estructurales: exigen que el `AGENTS.md` seleccionado sea el del
+target resuelto y rechazan referencias fuera del allowlist, paths relativos,
+kernels de otra superficie y manifests ilegibles, no activos o de otro idioma.
+Si ningún ancestro las satisface, el fast path falla cerrado sin invocar el
+resolver. No verifican
 procedencia, firma, hash ni integridad del checkout, así que no son un trust
 anchor. Un código de salida no cero del resolver aborta el fast path con ese
 mismo código y no habilita ningún paso posterior. La resolución manual de

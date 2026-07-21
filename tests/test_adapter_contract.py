@@ -93,9 +93,12 @@ def write_fast_path_kernel(
     if with_resolver:
         resolver = root / "tools" / "project_os_resolve.py"
         resolver.parent.mkdir(parents=True)
+        # One line per invocation, so tests can assert the resolver ran exactly
+        # once and not merely at least once.
         resolver.write_text(
-            "import os\nfrom pathlib import Path\n"
-            "Path(os.environ['RESOLVER_SENTINEL']).touch()\n"
+            "import os\n"
+            "with open(os.environ['RESOLVER_SENTINEL'], 'a', encoding='utf-8') as handle:\n"
+            "    handle.write('invoked\\n')\n"
             "raise SystemExit(int(os.environ['RESOLVER_EXIT']))\n",
             encoding="utf-8",
         )
@@ -291,6 +294,45 @@ def test_resolver_fast_path_runs_from_a_target_subdirectory(
     (("project-os-es", "es"), ("project-os-en", "en")),
 )
 @pytest.mark.parametrize("source_kind", ("adapter", "docs"))
+def test_resolver_fast_path_walks_past_an_intermediate_agents_file(
+    tmp_path: Path,
+    surface: str,
+    language: str,
+    source_kind: str,
+) -> None:
+    target = tmp_path / "target"
+    component = target / "packages" / "component"
+    nested = component / "src"
+    nested.mkdir(parents=True)
+    # A legitimate subtree with its own nested instructions: it is not the root
+    # bootloader, so the upward search must skip it instead of failing there.
+    (component / "AGENTS.md").write_text(
+        "# component notes\nREPOSITORY_LOCAL_PATH = ./packages/component\n",
+        encoding="utf-8",
+    )
+    kernel = write_fast_path_kernel(tmp_path / "project-os", surface, language)
+
+    result, sentinel, after_resolver = run_resolver_fast_path(
+        target,
+        surface,
+        source_kind,
+        "$PROJECT_OS_TARGET_ROOT",
+        "$PROJECT_OS_KERNEL_DIR",
+        target_variable=str(target),
+        kernel_variable=str(kernel),
+        cwd=nested,
+    )
+
+    assert result.returncode == 0
+    assert sentinel.read_text(encoding="utf-8") == "invoked\n"
+    assert after_resolver.is_file()
+
+
+@pytest.mark.parametrize(
+    ("surface", "language"),
+    (("project-os-es", "es"), ("project-os-en", "en")),
+)
+@pytest.mark.parametrize("source_kind", ("adapter", "docs"))
 @pytest.mark.parametrize(
     "invalid_kernel",
     (
@@ -300,6 +342,7 @@ def test_resolver_fast_path_runs_from_a_target_subdirectory(
         "wrong-identity",
         "invalid-root",
         "foreign-agents-file",
+        "intermediate-agents-file-without-root",
     ),
 )
 def test_resolver_fast_path_never_invokes_lure_before_invalid_kernel_preconditions(
@@ -328,6 +371,18 @@ def test_resolver_fast_path_never_invokes_lure_before_invalid_kernel_preconditio
         foreign = tmp_path / "foreign"
         foreign.mkdir()
         (foreign / "AGENTS.md").write_text(
+            f"REPOSITORY_LOCAL_PATH = {target}\nKERNEL_LOCAL_PATH = {kernel}\n",
+            encoding="utf-8",
+        )
+        cwd = foreign
+    elif invalid_kernel == "intermediate-agents-file-without-root":
+        # Walking past an intermediate AGENTS.md must not degrade into accepting
+        # an ancestor that is not the resolved target's own root bootloader.
+        kernel = write_fast_path_kernel(root, surface, language)
+        foreign = tmp_path / "foreign" / "packages" / "component"
+        foreign.mkdir(parents=True)
+        (foreign / "AGENTS.md").write_text("# component notes\n", encoding="utf-8")
+        (foreign.parents[1] / "AGENTS.md").write_text(
             f"REPOSITORY_LOCAL_PATH = {target}\nKERNEL_LOCAL_PATH = {kernel}\n",
             encoding="utf-8",
         )
