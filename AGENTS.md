@@ -8,8 +8,10 @@ reconstruyen desde la evidencia viva de este repositorio.
 ## Identidad del repositorio
 
 Estas rutas y la versión adoptada son configuración de máquina/adopción, no
-estado vivo. Conserva estos campos y orden al adaptar esta superficie. Los
-valores absolutos de las referencias portables viven solo en el entorno local.
+estado vivo. Conserva estos campos y orden al adaptar esta superficie. Las
+referencias portables son exactamente `PROJECT_OS_TARGET_ROOT` para el checkout
+target y `PROJECT_OS_KERNEL_DIR` para el kernel; sus valores absolutos viven
+solo en el entorno local y nunca en este archivo.
 
 PROJECT_NAME = project-os-v2
 REPOSITORY_NAME = codefusion-repo/project-os-v2
@@ -24,13 +26,60 @@ KERNEL_VERSION_ADOPTED = tracks latest
 ## Resolución del kernel
 
 Antes de trabajo no trivial, lee `project-os-es/kernel/manifest.json` y sigue
-su `resolution_sequence`. En esta superficie terminal, el fast path es:
+su `resolution_sequence`. En esta superficie terminal, cuando el checkout del
+kernel esté disponible, usa este fast path. Lee los dos campos persistidos,
+acepta solo la referencia portable exacta o un literal absoluto y valida la
+identidad del kernel antes del resolver; no usa `eval` ni expande nombres
+arbitrarios:
 
 ```sh
-cd "$(git rev-parse --show-toplevel)"
-if [ -d .venv ]; then . .venv/bin/activate; fi
-python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \
-  --mode <mode> --kernel-dir project-os-es/kernel [--skill skill.<id>]
+TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
+case "$TARGET_REF" in
+  '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
+    : "${PROJECT_OS_TARGET_ROOT:?define PROJECT_OS_TARGET_ROOT con el path absoluto del target}"
+    TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
+    ;;
+  /*) case "$TARGET_REF" in *'$'*) exit 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
+  *) exit 1 ;;
+esac
+case "$KERNEL_REF" in
+  '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
+    : "${PROJECT_OS_KERNEL_DIR:?define PROJECT_OS_KERNEL_DIR con el path absoluto del kernel}"
+    KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+    ;;
+  /*) case "$KERNEL_REF" in *'$'*) exit 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
+  *) exit 1 ;;
+esac
+case "$TARGET_ROOT" in /*) ;; *) exit 1 ;; esac
+case "$KERNEL_DIR" in /*) ;; *) exit 1 ;; esac
+case "$KERNEL_DIR" in */project-os-es/kernel) ;; *) exit 1 ;; esac
+PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
+test -n "$PROJECT_OS_ROOT" || exit 1
+test -d "$TARGET_ROOT" || exit 1
+test -f "$KERNEL_DIR/manifest.json" || exit 1
+test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || exit 1
+python -c '
+import json
+import sys
+try:
+    payload = json.load(open(sys.argv[1], encoding="utf-8"))
+    entries = payload.get("manifest") if isinstance(payload, dict) else None
+    valid = (
+        isinstance(entries, list) and len(entries) == 1
+        and isinstance(entries[0], dict)
+        and entries[0].get("key") == "manifest.kernel_es"
+        and entries[0].get("language") == "es"
+        and entries[0].get("active") is True
+    )
+except (OSError, UnicodeError, json.JSONDecodeError):
+    valid = False
+raise SystemExit(0 if valid else 1)
+' "$KERNEL_DIR/manifest.json" || exit 1
+python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
+  --actor <actor> --workflow <workflow> --mode <mode> \
+  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
+cd "$TARGET_ROOT"
 ```
 
 El resolver acelera la resolución; el manifest sigue siendo canónico. Ambos
