@@ -82,7 +82,7 @@ After resolution, open only the applicable template, requested skills, and Proje
 
 ## Live evidence
 
-Reconstruct state from GitHub, git, the canonical roadmap `{{#ROADMAP_ISSUE}}`, and target ADRs when applicable. Do not store it here. Fail closed under the resolved kernel when required kernel data, evidence, authority, or validation is missing or ambiguous.
+Reconstruct state from GitHub, git, the canonical target roadmap when one exists, and target ADRs when applicable. Do not store their numbers or any other live reference here. Fail closed under the resolved kernel when required kernel data, evidence, authority, or validation is missing or ambiguous.
 
 ## Target-specific notes
 

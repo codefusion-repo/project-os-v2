@@ -59,7 +59,8 @@
     {
       "key": "artefacto.route_prompt",
       "workflow_key": [
-        "workflow.pm_intake"
+        "workflow.pm_intake",
+        "workflow.target_adoption"
       ],
       "output_key": "output.route_prompt",
       "required_template": "project-os-en/templates/route-prompt.md",
@@ -81,7 +82,8 @@
       "workflow_key": [
         "workflow.review_before_close",
         "workflow.pm_intake",
-        "workflow.release_readiness"
+        "workflow.release_readiness",
+        "workflow.target_adoption"
       ],
       "output_key": "output.pm_command_bundle",
       "required_template": "project-os-en/templates/pm-command-bundle.md",

@@ -262,7 +262,7 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "satisfied_by": "identidad del target, adapters, metadata, anchor de roadmap, version y path del kernel, notas target-owned, validacion y riesgo durable",
+      "satisfied_by": "identidad del target, adapters, metadata, scope de adapters repo-owned, rama de trabajo, version y path del kernel, notas target-owned, validacion, riesgo durable y anchor de roadmap solo cuando ya exista",
       "missing_status": "status.needs_context",
       "required": true,
       "materiality": "material",

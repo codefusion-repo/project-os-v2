@@ -108,8 +108,9 @@ recursivamente Project OS por defecto.
 
 ## Evidencia viva
 
-Reconstruye el estado desde GitHub, git, el roadmap canónico `{{#ROADMAP_ISSUE}}`
-y los ADRs del target cuando apliquen. No lo guardes en este archivo. Ante
+Reconstruye el estado desde GitHub, git, el roadmap canónico del target cuando
+exista y los ADRs del target cuando apliquen. No guardes aquí sus números ni
+ninguna otra referencia viva. Ante
 kernel, evidencia, autoridad o validación requerida faltantes o ambiguos, falla
 cerrado según el kernel resuelto.
 

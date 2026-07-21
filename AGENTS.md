@@ -52,8 +52,9 @@ recursivamente Project OS por defecto.
 
 ## Evidencia viva
 
-Reconstruye el estado del trabajo desde GitHub, git, el roadmap canónico `#274`
-y los ADRs de `docs/decisions/` cuando apliquen. No lo guardes en este archivo.
+Reconstruye el estado del trabajo desde GitHub, git, el roadmap canónico del
+repositorio cuando exista y los ADRs de `docs/decisions/` cuando apliquen. No
+guardes aquí sus números ni ninguna otra referencia viva.
 Ante kernel, evidencia, autoridad o validación requerida faltantes o ambiguos,
 falla cerrado según el kernel resuelto.
 

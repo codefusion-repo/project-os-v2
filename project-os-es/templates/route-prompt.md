@@ -1,8 +1,8 @@
 # Route prompt
 
 Responsabilidad: rutear trabajo scoped a otra superficie como bootloader compacto
-e issue-referential, sin pegar el issue, PR o comentarios completos ni conceder
-permisos. El detalle de implementacion permanece en la evidencia viva.
+referenciado a una unidad viva, sin pegar el issue, PR o comentarios completos ni
+conceder permisos. El detalle de implementacion permanece en la evidencia viva.
 
 El bloque siguiente es el route prompt completo: contiene un unico bloque
 estandar de variables y una unica instruccion concreta al final.
@@ -13,7 +13,7 @@ REPOSITORY_NAME = {{org/repo}}
 TARGET_REPOSITORY = {{org/repo si difiere}}
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = {{ruta a kernel}}
-ISSUE_OR_PR = {{#N}}
+ISSUE_OR_PR = {{#N cuando el workflow resuelto exige evidence.issue_scope; si no, la referencia viva de scope equivalente}}
 TARGET_ACTOR_TYPE = {{actor id}}
 WORKFLOW = {{workflow id}}
 EXECUTION_MODE = {{mode id}}
@@ -25,15 +25,26 @@ SCOPE = {{1-3 lineas; no restatar issue, PR, cuerpos, comentarios, acceptance cr
 OUT_OF_SCOPE = {{errores plausibles a evitar}}
 EVIDENCE_REQUIRED = {{evidence ids requeridas}}
 VALIDATION_REQUIRED = {{agent-run | PM-run | manual PM | none con razon}}
-BRANCH_NAME = work/{{issue}}-{{slug}}
+BRANCH_NAME = work/{{unidad}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{razon breve}}
 
 {{Una unica instruccion concreta: re-resuelve el kernel, lee la evidencia viva requerida y verifica la entrega PM, PM_AUTHORIZATION_STATUS y la coincidencia exacta de repositorio, workflow, modo, rama y scope; falla cerrado para draft, falta de entrega, `pending` o valores ausentes, desconocidos o inferidos, e implementa, revisa, audita o draftea solo el scope.}}
 ```
 
-Al draftear, lee el issue o PR vivo y sus comentarios, y referencia ese detalle
-en vez de copiarlo. No agregues encabezados, secciones, listas, checklists ni
+`ISSUE_OR_PR` nombra la unidad viva del workflow resuelto. Cuando ese workflow
+exige `evidence.issue_scope`, esa unidad es un issue o PR vivo y el route prompt
+sigue siendo issue-referential. Cuando no lo exige —por ejemplo
+`workflow.target_adoption`, cuya unidad es la adopcion acotada por target, scope
+de adapters repo-owned y rama— transporta esa referencia viva equivalente en vez
+de inventar un issue artificial. En ambos casos la referencia debe ser
+verificable viva; nunca se completa con un numero inventado ni con un
+placeholder durable.
+
+Al draftear, lee el issue o PR vivo y sus comentarios cuando la unidad sea
+issue-referential, y referencia ese detalle en vez de copiarlo. Cuando no lo
+sea, lee la evidencia viva equivalente del target con el mismo criterio.
+No agregues encabezados, secciones, listas, checklists ni
 planes de implementacion antes o despues del bloque: fuera de las variables, el
 unico contenido permitido es la instruccion concreta final. El agente receptor
 re-resuelve el kernel, lee evidencia viva y falla cerrado si falta contexto,

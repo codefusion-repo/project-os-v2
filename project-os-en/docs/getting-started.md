@@ -214,12 +214,17 @@ referenced by `required_skill` under
    missing, invalid, or unreadable, it returns `status.needs_context` without
    using another connected repository.
 3. **Verify adoption when a target exists with
-   [MOS-0.5](../operations/phase-0/MOS-0.5-verify-target-adoption.md).** When
-   the target has not adopted Project OS yet, use
+   [MOS-0.5](../operations/phase-0/MOS-0.5-verify-target-adoption.md),** which
+   audits browser and terminal readiness separately and only returns a global GO
+   when both applicable surfaces are ready. When the target has not adopted
+   Project OS yet, use
    [MOS-0.2](../operations/phase-0/MOS-0.2-bootstrap-new-project.md) on a new
    project or
    [MOS-0.3](../operations/phase-0/MOS-0.3-adopt-existing-project.md) on an
-   existing one.
+   existing one: both are browser-first and first draft a PM-applicable browser
+   adapter (without blocking startup on a missing roadmap), then route adapter
+   writes to the terminal agent in `mode.delegated_commit_pr` through a route
+   prompt with exact PM approval.
 4. **Use
    [MOS-0.6](../operations/phase-0/MOS-0.6-handoff-session-context.md) only
    when the session is incoherent, exhausted, or needs handoff.**

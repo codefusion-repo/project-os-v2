@@ -458,6 +458,99 @@ def _check_bilingual_new_schema_parity(
         )
 
 
+_OPERATION_SURFACE_RE = re.compile(r"^- (?:Superficie|Surface):\s*(.+)$", re.MULTILINE)
+_OPERATION_KERNEL_RE = re.compile(r"^- Kernel:\s*(.+)$", re.MULTILINE)
+_OPERATION_ACTOR_TOKEN_RE = re.compile(r"\b(browser_chat|terminal_agent|human_pm)\b")
+
+
+def _check_operation_kernel_coherence(
+    surface: ProjectOSSurface,
+    actors: dict[str, dict[str, Any]],
+    workflows: dict[str, dict[str, Any]],
+    artifacts: list[dict[str, Any]],
+    findings: list[Finding],
+) -> None:
+    """Fail closed on operations that declare kernel-incompatible contracts.
+
+    Guards the relationships the resolver otherwise skips silently: an operation
+    whose initial-surface actor cannot run the declared mode, an output the
+    declared workflow does not allow, or an artifact whose output is not allowed
+    by a workflow it claims.
+    """
+
+    try:
+        sources = load_operation_sources(surface.operations_dir)
+    except (OSError, ValueError):
+        return  # _check_operation_catalogs already reports catalog-load failures.
+
+    for source in sources:
+        if source.is_alias:
+            continue
+        kernel_match = _OPERATION_KERNEL_RE.search(source.text)
+        if not kernel_match:
+            continue
+        kernel_line = kernel_match.group(1)
+        workflow_match = re.search(r"workflow\.[a-z_]+", kernel_line)
+        mode_match = re.search(r"mode\.[a-z_]+", kernel_line)
+        outputs = re.findall(r"output\.[a-z_]+", kernel_line)
+
+        surface_match = _OPERATION_SURFACE_RE.search(source.text)
+        actor_token = (
+            _OPERATION_ACTOR_TOKEN_RE.search(surface_match.group(1)) if surface_match else None
+        )
+        if actor_token and mode_match:
+            actor = actors.get(f"actor.{actor_token.group(1)}")
+            if actor is not None and mode_match.group(0) not in actor.get("allowed_modes", []):
+                findings.append(
+                    Finding(
+                        "OPS-020",
+                        source.relative_path,
+                        f"{mode_match.group(0)!r} is not an allowed mode for the initial "
+                        f"surface actor {actor['key']!r}; resulting_status=status.blocked",
+                    )
+                )
+
+        if workflow_match:
+            workflow = workflows.get(workflow_match.group(0))
+            if workflow is None:
+                findings.append(
+                    Finding(
+                        "OPS-021",
+                        source.relative_path,
+                        f"declares unknown workflow {workflow_match.group(0)!r}; "
+                        "resulting_status=status.blocked",
+                    )
+                )
+            else:
+                allowed = workflow.get("allowed_outputs", [])
+                for output in outputs:
+                    if output not in allowed:
+                        findings.append(
+                            Finding(
+                                "OPS-021",
+                                source.relative_path,
+                                f"declares {output!r}, not allowed by "
+                                f"{workflow['key']!r}; resulting_status=status.blocked",
+                            )
+                        )
+
+    for artifact in artifacts:
+        output_key = artifact.get("output_key")
+        if output_key is None:
+            continue
+        for workflow_key in artifact.get("workflow_key", []):
+            workflow = workflows.get(workflow_key)
+            if workflow is not None and output_key not in workflow.get("allowed_outputs", []):
+                findings.append(
+                    Finding(
+                        "OPS-022",
+                        surface.kernel_files["artifacts"][0],
+                        f"{artifact.get('key')!r} maps {output_key!r} to {workflow_key!r}, "
+                        "which does not allow it; resulting_status=status.blocked",
+                    )
+                )
+
+
 def _check_operation_catalogs(
     directory: Path, surface: ProjectOSSurface, findings: list[Finding]
 ) -> None:
@@ -581,6 +674,7 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     _check_context_receipt_schema(data, surface, findings)
     _check_bilingual_new_schema_parity(directory, surface, findings)
     _check_operation_catalogs(directory, surface, findings)
+    _check_operation_kernel_coherence(surface, actors, workflows, data["artifacts"], findings)
     _check_durable_safety(directory, findings)
     return findings
 

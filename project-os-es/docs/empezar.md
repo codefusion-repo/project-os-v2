@@ -212,12 +212,17 @@ artefactos/templates, referenciado por `required_skill` bajo
    inválido o no puede leerse, devuelve `status.needs_context` sin usar otro
    repositorio conectado.
 3. **Verifica adopción cuando haya target con
-   [MOS-0.5](../operaciones/fase-0/MOS-0.5-verificar-adopcion-del-target.md).**
-   Si el target aún no adoptó Project OS, usa
+   [MOS-0.5](../operaciones/fase-0/MOS-0.5-verificar-adopcion-del-target.md),**
+   que audita la readiness browser y terminal por separado y solo da GO global
+   cuando ambas superficies aplicables están listas. Si el target aún no adoptó
+   Project OS, usa
    [MOS-0.2](../operaciones/fase-0/MOS-0.2-iniciar-proyecto-nuevo.md) para
    proyecto nuevo o
    [MOS-0.3](../operaciones/fase-0/MOS-0.3-adoptar-proyecto-existente.md) para
-   proyecto existente.
+   proyecto existente: ambas son browser-first y draftean primero un adapter
+   browser aplicable por el PM (sin bloquear el arranque en la falta de
+   roadmap), y luego rutean la escritura de adapters al terminal agent en
+   `mode.delegated_commit_pr` mediante un route prompt con aprobación PM exacta.
 4. **Usa
    [MOS-0.6](../operaciones/fase-0/MOS-0.6-transferir-contexto-de-sesion.md)
    solo si la sesión está incoherente, agotada o necesita traspaso.**

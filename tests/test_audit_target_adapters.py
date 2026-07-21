@@ -61,7 +61,6 @@ def filled_spanish_adapter(
         "{{ORG/REPO}}": "example/target",
         "{{PROJECT_NAME}}": "target",
         '{{version adoptada o "tracks latest"}}': "tracks latest",
-        "{{#ROADMAP_ISSUE}}": "#274",
     }
     for old, new in replacements.items():
         text = text.replace(old, new)

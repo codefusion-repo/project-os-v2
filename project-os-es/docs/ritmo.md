@@ -65,10 +65,12 @@ El ciclo central es la ruta más común, no la única. Estas son las rutas
 típicas, solo como navegación (cada operación conserva sus propios gates;
 el prompt de cada una vive en el catálogo):
 
-- **Nuevo proyecto desde cero:** MOS-0.2 → requerimientos (fase 1) →
-  roadmap → ciclo central.
-- **Repo target existente:** adopción (MOS-0.3 → MOS-0.5) → primer issue
-  (MOS-3.1) → ciclo central.
+- **Nuevo proyecto desde cero:** MOS-0.2 browser-first (adapter browser
+  primero y ruta terminal acotada por target, sin roadmap ni issue previos) →
+  requerimientos (fase 1) → roadmap → ciclo central.
+- **Repo target existente:** adopción browser-first (MOS-0.3 → MOS-0.5, con
+  readiness browser y terminal por separado) → primer issue (MOS-3.1) → ciclo
+  central.
 - **Issue listo con terminal agent:** route prompt (MOS-3.4) →
   implementación delegada → PR en draft → review (MOS-3.7) → closeout
   (MOS-3.6).
