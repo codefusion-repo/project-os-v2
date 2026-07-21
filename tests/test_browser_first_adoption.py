@@ -23,10 +23,12 @@ from tests.test_audit_target_adapters import (
 from tools.audit_target_adapters import (
     Source,
     evaluate_adoption_readiness,
+    main as audit_main,
 )
 from tools.operation_prompt_wizard import (
     InputVariable,
     PM_AUTHORIZATION_GRANTED,
+    PM_AUTHORIZATION_PENDING,
     PM_AUTHORIZATION_STATUS_NAME,
     discover_operations,
     operation_output_refs,
@@ -109,6 +111,43 @@ def test_route_prompt_and_pm_bundle_outputs_and_artifacts_include_target_adoptio
     assert "workflow.target_adoption" in artifacts["artefacto.pm_command_bundle"]["workflow_key"]
 
 
+@pytest.mark.parametrize(
+    ("outputs_family", "template_path", "issue_clause", "scope_clause"),
+    (
+        (
+            KERNEL_FILES["es"]["outputs"],
+            REPO_ROOT / "project-os-es/templates/route-prompt.md",
+            "issue o PR vivo como fuente del detalle de implementacion",
+            "referencia viva de scope equivalente",
+        ),
+        (
+            KERNEL_FILES["en"]["outputs"],
+            REPO_ROOT / "project-os-en/templates/route-prompt.md",
+            "live issue or PR as the source of implementation detail",
+            "equivalent live scope reference",
+        ),
+    ),
+)
+def test_route_prompt_accepts_a_non_issue_live_scope_without_losing_issue_shape(
+    outputs_family: tuple[Path, str],
+    template_path: Path,
+    issue_clause: str,
+    scope_clause: str,
+) -> None:
+    """`workflow.target_adoption` routes a target-scoped unit; issue workflows keep theirs."""
+
+    outputs = {o["key"]: o for o in _load(outputs_family)}
+    contract = " ".join(outputs["output.route_prompt"]["must_include"])
+    template = template_path.read_text(encoding="utf-8")
+
+    for text in (contract, template):
+        assert issue_clause in text or "issue-referential" in text
+        assert scope_clause in text
+    assert "evidence.issue_scope" in contract
+    assert "evidence.issue_scope" in template
+    assert "workflow.target_adoption" in template
+
+
 # --- Operation prompt guards ------------------------------------------------
 
 
@@ -137,12 +176,32 @@ def test_adoption_operations_never_assign_a_delegated_mode_to_browser_chat(
     "operations_dir",
     (REPO_ROOT / "project-os-es/operaciones", REPO_ROOT / "project-os-en/operations"),
 )
-def test_adoption_operations_expose_adoption_issue_number_optional(operations_dir: Path) -> None:
+def test_adoption_operations_require_no_adoption_issue_and_only_the_target(
+    operations_dir: Path,
+) -> None:
+    """The bounded target adoption is the live unit; no adoption issue exists."""
+
+    operations = {op.mos_code: op for op in discover_operations(operations_dir)}
+    for code in ADOPTION_CODES:
+        operation = operations[code]
+        variables = {v.name: v for v in operation.variables}
+        assert "ADOPTION_ISSUE_NUMBER" not in variables
+        assert "ADOPTION_ISSUE_NUMBER" not in operation.text
+        assert [name for name, v in variables.items() if v.required] == ["TARGET_REPOSITORY"]
+
+
+@pytest.mark.parametrize(
+    "operations_dir",
+    (REPO_ROOT / "project-os-es/operaciones", REPO_ROOT / "project-os-en/operations"),
+)
+def test_adoption_operations_keep_the_roadmap_optional(operations_dir: Path) -> None:
+    """A roadmap is optional live evidence, never an adoption prerequisite."""
+
     operations = {op.mos_code: op for op in discover_operations(operations_dir)}
     for code in ADOPTION_CODES:
         variables = {v.name: v for v in operations[code].variables}
-        assert "ADOPTION_ISSUE_NUMBER" in variables
-        assert variables["ADOPTION_ISSUE_NUMBER"].required is False
+        assert variables["ROADMAP_ISSUE"].required is False
+        assert "{{#ROADMAP_ISSUE}}" not in operations[code].text
 
 
 @pytest.mark.parametrize(
@@ -271,6 +330,143 @@ def test_readiness_is_no_go_when_terminal_adapter_is_missing(tmp_path: Path) -> 
     assert readiness.browser == "ready"
     assert readiness.terminal == "missing"
     assert readiness.overall == "no_go"
+
+
+def test_terminal_adapter_without_a_roadmap_anchor_is_ready(tmp_path: Path) -> None:
+    """A target may adopt before it has any roadmap; the anchor is optional."""
+
+    agents = filled_spanish_adapter(
+        tmp_path,
+        target_path=str(tmp_path),
+        kernel_path=str(REPO_ROOT / "project-os-es/kernel"),
+    )
+    assert "roadmap canónico" in agents
+    assert not re.search(r"#\d+", agents)
+    write_terminal_adapters(tmp_path, agents)
+
+    findings, readiness = evaluate_adoption_readiness(
+        tmp_path,
+        expected_repository="example/target",
+        browser_chat=Source("BROWSER_CHAT.md", filled_browser_adapter(tmp_path)),
+    )
+
+    assert [f.code for f in findings if f.code.startswith("TAA-ROADMAP")] == []
+    assert readiness.terminal == "ready"
+    assert readiness.overall == "go"
+
+
+def test_canonical_terminal_adapters_carry_no_durable_roadmap_placeholder() -> None:
+    for path in (
+        REPO_ROOT / "project-os-es/adapters/AGENTS.target.md",
+        REPO_ROOT / "project-os-en/adapters/AGENTS.target.md",
+        REPO_ROOT / "AGENTS.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        assert "{{#ROADMAP_ISSUE}}" not in text, path
+        assert not re.search(r"roadmap[^.\n]*`#\d+`", text), path
+
+
+# --- Readiness CLI exit status ---------------------------------------------
+
+
+def _readiness_exit(argv: list[str], capsys: pytest.CaptureFixture[str]) -> tuple[int, str]:
+    code = audit_main(argv)
+    return code, capsys.readouterr().out
+
+
+def test_readiness_cli_exits_zero_only_for_go(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    write_terminal_adapters(
+        tmp_path,
+        filled_spanish_adapter(
+            tmp_path,
+            target_path=str(tmp_path),
+            kernel_path=str(REPO_ROOT / "project-os-es/kernel"),
+        ),
+    )
+    browser = tmp_path / "browser.md"
+    browser.write_text(filled_browser_adapter(tmp_path), encoding="utf-8")
+
+    code, out = _readiness_exit(
+        [
+            "--target",
+            str(tmp_path),
+            "--repository",
+            "example/target",
+            "--browser-chat",
+            str(browser),
+            "--readiness",
+        ],
+        capsys,
+    )
+
+    assert "overall=go" in out
+    assert code == 0
+
+
+def test_readiness_cli_fails_closed_on_needs_context_without_findings(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Zero findings plus an unaudited browser surface must not exit 0."""
+
+    write_terminal_adapters(
+        tmp_path,
+        filled_spanish_adapter(
+            tmp_path,
+            target_path=str(tmp_path),
+            kernel_path=str(REPO_ROOT / "project-os-es/kernel"),
+        ),
+    )
+
+    code, out = _readiness_exit(
+        ["--target", str(tmp_path), "--repository", "example/target", "--readiness"],
+        capsys,
+    )
+
+    assert "browser=not_supplied" in out
+    assert "overall=needs_context" in out
+    assert "(0 finding(s))" in out
+    assert code != 0
+
+
+def test_readiness_cli_fails_closed_on_no_go(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    browser = tmp_path / "browser.md"
+    browser.write_text(filled_browser_adapter(tmp_path), encoding="utf-8")
+
+    code, out = _readiness_exit(
+        [
+            "--target",
+            str(tmp_path),
+            "--repository",
+            "example/target",
+            "--browser-chat",
+            str(browser),
+            "--readiness",
+        ],
+        capsys,
+    )
+
+    assert "overall=no_go" in out
+    assert code != 0
+
+
+def test_readiness_cli_reports_a_tooling_error_as_two(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    code = audit_main(
+        [
+            "--target",
+            str(tmp_path / "missing"),
+            "--repository",
+            "example/target",
+            "--readiness",
+        ]
+    )
+
+    assert code == 2
 
 
 def test_readiness_never_requires_browser_chat_as_a_repo_file(tmp_path: Path) -> None:
@@ -410,12 +606,15 @@ def test_coherence_accepts_a_browser_first_adoption_operation(tmp_path: Path) ->
 # --- Wizard route selection and variable validation -------------------------
 
 
-def test_adoption_issue_number_uses_generic_numeric_validation() -> None:
-    variable = InputVariable("ADOPTION_ISSUE_NUMBER", "<ADOPTION_ISSUE_NUMBER>", False, "")
+def test_roadmap_issue_stays_optional_under_generic_numeric_validation() -> None:
+    variable = InputVariable("ROADMAP_ISSUE", "<ROADMAP_ISSUE>", False, "")
 
+    # Optional: a blank value is accepted, so a target with no roadmap can still
+    # complete an adoption prompt.
+    assert validate_variable_value(variable, "") is None
     assert validate_variable_value(variable, "not-a-number") is not None
-    assert validate_variable_value(variable, "456") is None
-    assert validate_variable_value(variable, "#456") is None
+    assert validate_variable_value(variable, "274") is None
+    assert validate_variable_value(variable, "#274") is None
 
 
 def test_mos_0_3_requires_explicit_route_path_selection() -> None:
@@ -426,50 +625,56 @@ def test_mos_0_3_requires_explicit_route_path_selection() -> None:
     assert operation_requires_route_prompt_path_selection(operation) is True
 
 
-def test_mos_0_3_route_path_collects_adoption_issue_and_authorization(tmp_path: Path) -> None:
+ADOPTION_VALUES = ("codefusion-repo/project-os-v2", "", "", "", "", "")
+"""TARGET_REPOSITORY plus the five optional adoption variables left blank."""
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_mos_0_3_route_path_needs_no_adoption_issue_or_roadmap(
+    language: str, tmp_path: Path
+) -> None:
+    """A route-capable adoption prompt completes with target scope alone."""
+
     output = run_wizard(
-        language="es",
+        language=language,
         output_dir=tmp_path,
-        input_func=answers(
-            "MOS-0.3",
-            "codefusion-repo/project-os-v2",
-            "",
-            "",
-            "",
-            "456",
-            "",
-            "",
-            "1",
-            "2",
-            "write",
-            "exit",
-        ),
+        input_func=answers("MOS-0.3", *ADOPTION_VALUES, "1", "2", "write", "exit"),
         output_stream=StringIO(),
     )
 
     assert output is not None
     content = output.read_text(encoding="utf-8")
-    assert "ADOPTION_ISSUE_NUMBER=456" in content
+    assert "ADOPTION_ISSUE_NUMBER" not in content
+    assert "ROADMAP_ISSUE=\n" in content
+    assert "TARGET_REPOSITORY=codefusion-repo/project-os-v2" in content
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
 
 
-def test_mos_0_3_non_route_path_omits_authorization(tmp_path: Path) -> None:
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_mos_0_3_route_path_keeps_pending_authorization_non_authorizing(
+    language: str, tmp_path: Path
+) -> None:
     output = run_wizard(
-        language="es",
+        language=language,
         output_dir=tmp_path,
-        input_func=answers(
-            "MOS-0.3",
-            "codefusion-repo/project-os-v2",
-            "",
-            "",
-            "",
-            "456",
-            "",
-            "",
-            "2",
-            "write",
-            "exit",
-        ),
+        input_func=answers("MOS-0.3", *ADOPTION_VALUES, "1", "1", "write", "exit"),
+        output_stream=StringIO(),
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
+    # The prose still explains what a granted status would mean; the rendered
+    # INPUT line must stay pending and authorize nothing.
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" not in content
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_mos_0_3_non_route_path_omits_authorization(language: str, tmp_path: Path) -> None:
+    output = run_wizard(
+        language=language,
+        output_dir=tmp_path,
+        input_func=answers("MOS-0.3", *ADOPTION_VALUES, "2", "write", "exit"),
         output_stream=StringIO(),
     )
 

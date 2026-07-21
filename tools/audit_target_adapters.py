@@ -4,6 +4,8 @@ This diagnostic checks target-repository adapters. It does not validate the
 kernel itself, edit target files, grant permission, or mutate git/GitHub state.
 
 Exit codes: 0 = no findings, 1 = findings, 2 = tooling or evidence error.
+Under ``--readiness`` the exit code follows the overall verdict instead:
+0 = go, 1 = no_go or needs_context, 2 = tooling or evidence error.
 """
 
 from __future__ import annotations
@@ -702,6 +704,13 @@ def _canonical_roadmap_lines(source: Source, expected_repo: str) -> list[tuple[i
 
 
 def _check_roadmaps(full_sources: Iterable[Source], expected_repo: str) -> tuple[list[Finding], set[str]]:
+    """Validate roadmap anchors as optional evidence, never as an adoption gate.
+
+    A target may adopt Project OS before it has any roadmap, so a missing anchor
+    is not a finding. When an adapter does carry one, it must still be single,
+    point at the audited repository, and agree across supplied adapters.
+    """
+
     findings: list[Finding] = []
     canonical_anchors: set[str] = set()
     per_source: dict[str, str] = {}
@@ -709,15 +718,6 @@ def _check_roadmaps(full_sources: Iterable[Source], expected_repo: str) -> tuple
         anchors = _canonical_roadmap_lines(source, expected_repo)
         anchor_count = sum(len(anchor_list) for _, _, anchor_list in anchors)
         if anchor_count == 0:
-            findings.append(
-                Finding(
-                    "TAA-ROADMAP-MISSING",
-                    "error",
-                    source.name,
-                    None,
-                    "full adapter must contain exactly one canonical roadmap issue anchor",
-                )
-            )
             continue
         if anchor_count > 1:
             first_line = anchors[0][0] if anchors else None
@@ -1197,7 +1197,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--readiness",
         action="store_true",
-        help="report separate browser, terminal, and overall adoption readiness",
+        help=(
+            "report separate browser, terminal, and overall adoption readiness; "
+            "exit 0 only for overall=go"
+        ),
     )
     args = parser.parse_args(argv)
 
@@ -1229,7 +1232,11 @@ def main(argv: list[str] | None = None) -> int:
             _emit_readiness_json(args.repository, findings, readiness)
         else:
             _emit_readiness_human(findings, readiness)
-    elif args.json:
+        # Fail closed on the overall verdict, not on the finding count: a
+        # not_supplied browser surface yields needs_context with zero findings
+        # and must never look like a successful audit to a script or agent.
+        return 0 if readiness.overall == READINESS_GO else 1
+    if args.json:
         _emit_json(target, args.repository, findings)
     else:
         _emit_human(findings)

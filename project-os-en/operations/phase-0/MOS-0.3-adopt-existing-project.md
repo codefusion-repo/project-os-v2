@@ -16,11 +16,11 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Variables**
 - Required: TARGET_REPOSITORY
-- Optional: PROJECT_NAME, KERNEL_VERSION_ADOPTED, ROADMAP_ISSUE, ADOPTION_ISSUE_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Optional: PROJECT_NAME, KERNEL_VERSION_ADOPTED, ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
 
 **Browser adapter first:** Always produce a complete PM-applicable `BROWSER_CHAT.md` draft. It is PM-applied and need not be stored inside the target repo; keep its read-only and draft-only boundaries.
 
-**Adoption packet and route prompt:** Report `browser_adoption_state` and `terminal_adoption_state` separately. Produce the draft-only adoption packet and, when a live work unit exists (`ADOPTION_ISSUE_NUMBER`), a route prompt that delegates the repo-owned adapter bootstrap to the terminal agent in `mode.delegated_commit_pr`, with branch preflight, validation, and exact PM approval. The route prompt references the live unit and does not restate the issue body; never invent the work unit.
+**Adoption packet and route prompt:** Report `browser_adoption_state` and `terminal_adoption_state` separately. Produce the draft-only adoption packet and a route prompt that delegates the repo-owned adapter bootstrap to the terminal agent in `mode.delegated_commit_pr`, with branch preflight, validation, and exact PM approval. The live unit is the bounded target adoption — `TARGET_REPOSITORY`, the exact adapter scope, the branch, and `evidence.target_adoption` — and requires no prior roadmap or adoption issue; an existing roadmap is optional evidence. Never invent the work unit or the scope.
 
 **Deliver:** output.adoption_packet (+output.route_prompt). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

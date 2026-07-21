@@ -16,8 +16,9 @@ stores no live state and grants no permission.
 
 ## Roadmap state
 
-{{roadmap_state: present <verified owner/repo#N> | missing. When missing, do not
-invent a number or fill {{#ROADMAP_ISSUE}} with durable placeholders.}}
+{{roadmap_state: present <verified owner/repo#N> | missing. The roadmap is
+optional live evidence, never an adoption prerequisite. When missing, do not
+invent a number or store one as durable adapter configuration.}}
 
 ## Browser adoption state
 
@@ -26,7 +27,7 @@ PM-applied and need not exist as a repo file.}}
 
 ## Terminal adoption state
 
-{{terminal_adoption_state: ready | drift | missing | blocked_on_roadmap.}}
+{{terminal_adoption_state: ready | drift | missing.}}
 
 ## Browser adapter draft
 
@@ -40,14 +41,15 @@ routes and summary, no secrets.}}
 
 ## Route prompt state
 
-{{route_prompt_state: not_needed | blocked_on_roadmap | blocked_on_work_unit |
-drafted. A write-capable route prompt requires a live roadmap and a live work
-unit; neither is ever invented.}}
+{{route_prompt_state: not_needed | blocked_on_target_scope | drafted. A
+write-capable route prompt requires the live unit bounded by target, adapter
+scope, and branch, plus branch preflight, validation, and exact PM approval on
+delivery; it requires no prior roadmap or issue and never invents the scope.}}
 
 ## Manual PM actions
 
-- {{What the PM applies or delivers by hand: paste the browser adapter, create
-  the roadmap with the bundle, deliver the route prompt.}}
+- {{What the PM applies or delivers by hand: paste the browser adapter, deliver
+  the route prompt, and create the roadmap with the bundle if they choose to.}}
 
 ## Agent actions
 

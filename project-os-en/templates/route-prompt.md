@@ -1,7 +1,7 @@
 # Route prompt
 
-Responsibility: route scoped work to another surface as a compact,
-issue-referential bootloader, without pasting the full issue, PR, or comments
+Responsibility: route scoped work to another surface as a compact bootloader
+referenced to a live unit, without pasting the full issue, PR, or comments
 and without granting permission. Implementation detail remains in live evidence.
 
 The following block is the complete route prompt: it contains one standard
@@ -13,7 +13,7 @@ REPOSITORY_NAME = {{org/repo}}
 TARGET_REPOSITORY = {{org/repo if different}}
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = {{path to kernel}}
-ISSUE_OR_PR = {{#N}}
+ISSUE_OR_PR = {{#N when the resolved workflow requires evidence.issue_scope; otherwise the equivalent live scope reference}}
 TARGET_ACTOR_TYPE = {{actor id}}
 WORKFLOW = {{workflow id}}
 EXECUTION_MODE = {{mode id}}
@@ -25,15 +25,26 @@ SCOPE = {{1-3 lines; do not restate the issue, PR, bodies, comments, acceptance 
 OUT_OF_SCOPE = {{plausible mistakes to avoid}}
 EVIDENCE_REQUIRED = {{required evidence ids}}
 VALIDATION_REQUIRED = {{agent-run | PM-run | manual PM | none with reason}}
-BRANCH_NAME = work/{{issue}}-{{slug}}
+BRANCH_NAME = work/{{unit}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{brief reason}}
 
 {{One concrete instruction: re-resolve the kernel, read the required live evidence, and verify PM delivery, PM_AUTHORIZATION_STATUS, and the exact repository, workflow, mode, branch, and scope match; fail closed for a draft, missing delivery, `pending`, or absent, unknown, or inferred values, and implement, review, audit, or draft only the scoped work.}}
 ```
 
-When drafting, read the live issue or PR and its comments, then reference that
-detail instead of copying it. Do not add headings, sections, lists, checklists,
+`ISSUE_OR_PR` names the live unit of the resolved workflow. When that workflow
+requires `evidence.issue_scope`, the unit is a live issue or PR and the route
+prompt stays issue-referential. When it does not — for example
+`workflow.target_adoption`, whose unit is the adoption bounded by target,
+repo-owned adapter scope, and branch — carry that equivalent live reference
+instead of inventing an artificial issue. In both cases the reference must be
+live-verifiable; it is never filled with an invented number or a durable
+placeholder.
+
+When drafting, read the live issue or PR and its comments when the unit is
+issue-referential, then reference that detail instead of copying it. When it is
+not, read the equivalent live target evidence with the same discipline.
+Do not add headings, sections, lists, checklists,
 or implementation plans before or after the block: outside the variables, the
 single final concrete instruction is the only permitted content. The receiving
 agent re-resolves the kernel, reads live evidence, and fails closed when context,

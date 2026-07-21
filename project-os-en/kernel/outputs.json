@@ -219,7 +219,7 @@
         "standard variable block",
         "recommended optional skill when useful, without making it mandatory or authorizing",
         "recommended terminal-agent family when useful, such as Codex, Claude, or Gemini, without making it binding",
-        "reference to the live issue or PR as the source of implementation detail",
+        "reference to the live issue or PR as the source of implementation detail when the resolved workflow requires evidence.issue_scope, and the equivalent live scope reference when it does not",
         "1-3 line scope that does not restate the issue, PR, bodies, comments, acceptance criteria, source basis, or checklists",
         "one standard variable block followed by one concrete instruction, with no additional section, checklist, or implementation plan",
         "recommended effort with rationale",

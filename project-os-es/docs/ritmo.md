@@ -66,8 +66,8 @@ típicas, solo como navegación (cada operación conserva sus propios gates;
 el prompt de cada una vive en el catálogo):
 
 - **Nuevo proyecto desde cero:** MOS-0.2 browser-first (adapter browser
-  primero; roadmap y ruta terminal cuando existan) → requerimientos (fase 1) →
-  roadmap → ciclo central.
+  primero y ruta terminal acotada por target, sin roadmap ni issue previos) →
+  requerimientos (fase 1) → roadmap → ciclo central.
 - **Repo target existente:** adopción browser-first (MOS-0.3 → MOS-0.5, con
   readiness browser y terminal por separado) → primer issue (MOS-3.1) → ciclo
   central.

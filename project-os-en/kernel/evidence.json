@@ -262,7 +262,7 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "satisfied_by": "target identity, adapters, metadata, roadmap anchor, kernel version and path, target-owned notes, validation, and durable-state risk",
+      "satisfied_by": "target identity, adapters, metadata, repo-owned adapter scope, work branch, kernel version and path, target-owned notes, validation, durable-state risk, and a roadmap anchor only when one already exists",
       "missing_status": "status.needs_context",
       "required": true,
       "materiality": "material",

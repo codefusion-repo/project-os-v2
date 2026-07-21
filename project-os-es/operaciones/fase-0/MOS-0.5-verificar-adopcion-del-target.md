@@ -14,11 +14,11 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Variables**
 - Requeridas: TARGET_REPOSITORY
-- Opcionales: ADOPTION_ISSUE_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Opcionales: ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
 
 **Auditoría separada:** Reporta `browser_adoption_state` y `terminal_adoption_state` de forma independiente. Cuando no se suministre el contenido del adapter browser, no declares su readiness: márcalo como no suministrado y devuelve `status.needs_context`. Devuelve GO global solo cuando ambas superficies aplicables estén listas.
 
-**Reparación:** Cuando la auditoría detecte que el adapter browser falta o está desactualizado, incluye un draft corregido en el adoption packet. Cuando los findings requieran una corrección terminal y exista una unidad de trabajo viva (`ADOPTION_ISSUE_NUMBER`), draftea un route prompt que delega la reparación de adapters repo-owned al terminal agent en `mode.delegated_commit_pr`, con branch preflight, validación y aprobación PM exacta; nunca inventes la unidad de trabajo.
+**Reparación:** Cuando la auditoría detecte que el adapter browser falta o está desactualizado, incluye un draft corregido en el adoption packet. Cuando los findings requieran una corrección terminal, draftea un route prompt que delega la reparación de adapters repo-owned al terminal agent en `mode.delegated_commit_pr`, con branch preflight, validación y aprobación PM exacta. La unidad viva es la adopción acotada del target —`TARGET_REPOSITORY`, scope exacto de adapters, rama y `evidence.target_adoption`— y no requiere un roadmap ni un issue de adopción previos; nunca inventes la unidad de trabajo ni el scope.
 
 **Entrega:** output.status_result (+output.adoption_packet, +output.route_prompt). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

@@ -16,8 +16,9 @@ vivo ni concede permisos.
 
 ## Estado del roadmap
 
-{{roadmap_state: present <owner/repo#N verificado> | missing. Cuando falta, no
-inventes un numero ni rellenes {{#ROADMAP_ISSUE}} con placeholders durables.}}
+{{roadmap_state: present <owner/repo#N verificado> | missing. El roadmap es
+evidencia viva opcional, nunca prerequisito de adopcion. Cuando falta, no
+inventes un numero ni lo guardes como configuracion durable del adapter.}}
 
 ## Estado de adopcion browser
 
@@ -26,7 +27,7 @@ PM-applied y no tiene por que existir como archivo del repo.}}
 
 ## Estado de adopcion terminal
 
-{{terminal_adoption_state: ready | drift | missing | blocked_on_roadmap.}}
+{{terminal_adoption_state: ready | drift | missing.}}
 
 ## Draft del adapter browser
 
@@ -40,14 +41,15 @@ resumen, sin secretos.}}
 
 ## Estado del route prompt
 
-{{route_prompt_state: not_needed | blocked_on_roadmap | blocked_on_work_unit |
-drafted. Un route prompt write-capable exige un roadmap vivo y una unidad de
-trabajo viva; nunca se inventan.}}
+{{route_prompt_state: not_needed | blocked_on_target_scope | drafted. Un route
+prompt write-capable exige la unidad viva de adopcion acotada por target, scope
+de adapters y rama, mas branch preflight, validacion y aprobacion PM exacta al
+entregarse; no exige roadmap ni issue previos y nunca se inventa el scope.}}
 
 ## Acciones manuales del PM
 
-- {{Lo que el PM aplica o entrega a mano: pegar el adapter browser, crear el
-  roadmap con el bundle, entregar el route prompt.}}
+- {{Lo que el PM aplica o entrega a mano: pegar el adapter browser, entregar el
+  route prompt y, si lo decide, crear el roadmap con el bundle.}}
 
 ## Acciones del agente
 
