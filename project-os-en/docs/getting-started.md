@@ -96,33 +96,36 @@ not required to operate today.
 Resolver fast path for the adopted target:
 
 ```sh
-TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
-KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' AGENTS.md)
-case "$TARGET_REF" in
-  '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
-    : "${PROJECT_OS_TARGET_ROOT:?set PROJECT_OS_TARGET_ROOT}"
-    TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
-    ;;
-  /*) case "$TARGET_REF" in *'$'*) exit 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
-  *) exit 1 ;;
-esac
-case "$KERNEL_REF" in
-  '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
-    : "${PROJECT_OS_KERNEL_DIR:?set PROJECT_OS_KERNEL_DIR}"
-    KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
-    ;;
-  /*) case "$KERNEL_REF" in *'$'*) exit 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
-  *) exit 1 ;;
-esac
-case "$TARGET_ROOT" in /*) ;; *) exit 1 ;; esac
-case "$KERNEL_DIR" in /*) ;; *) exit 1 ;; esac
-case "$KERNEL_DIR" in */project-os-en/kernel) ;; *) exit 1 ;; esac
-PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-en/kernel}"
-test -n "$PROJECT_OS_ROOT" || exit 1
-test -d "$TARGET_ROOT" || exit 1
-test -f "$KERNEL_DIR/manifest.json" || exit 1
-test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || exit 1
-python -c '
+select_target_bootloader() {
+  AGENTS_FILE=$1
+  TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
+  KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
+  case "$TARGET_REF" in
+    '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
+      test -n "${PROJECT_OS_TARGET_ROOT:-}" || return 1
+      TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
+      ;;
+    /*) case "$TARGET_REF" in *'$'*) return 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
+    *) return 1 ;;
+  esac
+  case "$KERNEL_REF" in
+    '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
+      test -n "${PROJECT_OS_KERNEL_DIR:-}" || return 1
+      KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
+      ;;
+    /*) case "$KERNEL_REF" in *'$'*) return 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
+    *) return 1 ;;
+  esac
+  case "$TARGET_ROOT" in /*) ;; *) return 1 ;; esac
+  case "$KERNEL_DIR" in /*) ;; *) return 1 ;; esac
+  case "$KERNEL_DIR" in */project-os-en/kernel) ;; *) return 1 ;; esac
+  PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-en/kernel}"
+  test -n "$PROJECT_OS_ROOT" || return 1
+  test -d "$TARGET_ROOT" || return 1
+  test "$AGENTS_FILE" -ef "$TARGET_ROOT/AGENTS.md" || return 1
+  test -f "$KERNEL_DIR/manifest.json" || return 1
+  test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || return 1
+  python -c '
 import json
 import sys
 try:
@@ -138,15 +141,41 @@ try:
 except (OSError, UnicodeError, json.JSONDecodeError):
     valid = False
 raise SystemExit(0 if valid else 1)
-' "$KERNEL_DIR/manifest.json" || exit 1
+' "$KERNEL_DIR/manifest.json" || return 1
+}
+AGENTS_FILE=
+probe=$(pwd)
+while :; do
+  if test -f "$probe/AGENTS.md" && select_target_bootloader "$probe/AGENTS.md"; then
+    break
+  fi
+  AGENTS_FILE=
+  test "$probe" = / && break
+  probe=$(dirname "$probe")
+done
+test -n "$AGENTS_FILE" || {
+  echo 'no root AGENTS.md coherent with the adopted target' >&2
+  exit 1
+}
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>]
-cd "$TARGET_ROOT"
+  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>] || exit $?
+cd "$TARGET_ROOT" || exit 1
 ```
 
 The same resolution consumes either persisted modality, without `eval` or
-arbitrary name expansion. Manual resolution of `project-os-en/kernel/manifest.json`
+arbitrary name expansion, and behaves identically from the target root or any
+of its subdirectories, including those carrying their own `AGENTS.md`: the
+upward search validates every candidate and continues until the root bootloader
+coherent with the target. The preceding checks are structural: they require the
+selected `AGENTS.md` to be the resolved target's own and reject references
+outside the allowlist, relative paths, kernels on another surface, and manifests
+that are unreadable, inactive, or in another language. When no ancestor
+satisfies them, the fast path fails closed without invoking the resolver. They
+do not verify provenance,
+signature, hash, or checkout integrity, so they are not a trust anchor. A
+non-zero resolver exit code aborts the fast path with that same code and enables
+no later step. Manual resolution of `project-os-en/kernel/manifest.json`
 remains the canonical fallback. The resolver output never grants permission
 and never reads GitHub/git on your behalf. Browser chat does not run local
 Python; it reads the manifest through available sources and stays read-only
