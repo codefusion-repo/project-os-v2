@@ -217,11 +217,7 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
         ],
         "MOS-3.5": [
             ("WORK_UNIT", True),
-            ("SOURCE_REVIEW", True),
-            ("PR_NUMBER", True),
-            ("CHANGE_CLASS", True),
             ("OPTIONAL_SKILL", False),
-            (HYDRATION_LEVEL_NAME, False),
             ("PM_FEEDBACK_HUMANO", False),
             ("PM_QUESTION_HUMANO", False),
         ],
@@ -248,7 +244,33 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
         )
         assert rendered.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
         assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in rendered
-        assert f"{HYDRATION_LEVEL_NAME}=full/debug" in rendered
+
+    # MOS-3.4 still preloads the class density into the route prompt. MOS-3.5 no
+    # longer asks for the source review, PR, class, or density: browser chat
+    # reconstructs them from live evidence, so they never become manual wizard
+    # inputs and never render as INPUT variables.
+    mos34 = next(candidate for candidate in operations if candidate.mos_code == "MOS-3.4")
+    rendered34 = render_prompt(
+        mos34,
+        {
+            "WORK_UNIT": "issue #405",
+            HYDRATION_LEVEL_NAME: "full/debug",
+            PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED,
+        },
+    )
+    assert f"{HYDRATION_LEVEL_NAME}=full/debug" in rendered34
+
+    mos35 = next(candidate for candidate in operations if candidate.mos_code == "MOS-3.5")
+    mos35_names = [variable.name for variable in mos35.variables]
+    for derived in ("SOURCE_REVIEW", "PR_NUMBER", "CHANGE_CLASS", HYDRATION_LEVEL_NAME):
+        assert derived not in mos35_names
+    rendered35 = render_prompt(
+        mos35,
+        {"WORK_UNIT": "issue #405", PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED},
+    )
+    assert "WORK_UNIT=issue #405" in rendered35
+    for derived in ("SOURCE_REVIEW=", "PR_NUMBER=", "CHANGE_CLASS=", f"{HYDRATION_LEVEL_NAME}="):
+        assert derived not in rendered35
 
 
 def test_target_repository_uses_generic_repository_validation() -> None:
@@ -512,7 +534,7 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
             "",
             "/phases",
             "MOS-3.5",
-            "405", "#5054784601", "463", "change_class.standard", "none", "", "", "", "1",
+            "405", "none", "", "", "1",
             "write", "exit",
         ),
         output_stream=stream,
@@ -529,7 +551,10 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
     assert "WORK_UNIT=405" in content
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
-    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content
+    # Derived metadata is reconstructed by browser chat, never a manual wizard
+    # input, so none of it renders as an INPUT variable.
+    for derived in ("SOURCE_REVIEW=", "PR_NUMBER=", "CHANGE_CLASS=", f"{HYDRATION_LEVEL_NAME}="):
+        assert derived not in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode." in transcript
     assert WIZARD_PROMPT_MARKER in content
@@ -873,8 +898,15 @@ def test_route_prompt_template_keeps_ai_advisory_field_without_pm_input() -> Non
     for mos_code in ("MOS-3.4", "MOS-3.5"):
         operation = next(candidate for candidate in discover_operations() if candidate.mos_code == mos_code)
         assert "RECOMMENDED_TERMINAL_AGENT_FAMILY" not in [variable.name for variable in operation.variables]
-        assert HYDRATION_LEVEL_NAME in [variable.name for variable in operation.variables]
         assert "browser chat" in operation.text
+
+    # MOS-3.4 exposes HYDRATION_LEVEL as an optional route-prompt input; MOS-3.5
+    # derives it (with the source review, PR, and class) from live evidence, so it
+    # is not a manual variable there.
+    mos34 = next(candidate for candidate in discover_operations() if candidate.mos_code == "MOS-3.4")
+    assert HYDRATION_LEVEL_NAME in [variable.name for variable in mos34.variables]
+    mos35 = next(candidate for candidate in discover_operations() if candidate.mos_code == "MOS-3.5")
+    assert HYDRATION_LEVEL_NAME not in [variable.name for variable in mos35.variables]
 
 
 def test_hydration_level_rejects_unknown_values_and_is_absent_from_unrelated_operations() -> None:

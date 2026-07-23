@@ -267,7 +267,7 @@ def test_active_mos35_collects_authorization_and_never_requests_agent_family(
     monkeypatch.setattr(
         "tools.operation_prompt_wizard.prompt",
         mock_prompt([
-            "MOS-3.5", "405", "#5054784601", "463", "change_class.standard", "none", "", "", "", "1", "write", "exit",
+            "MOS-3.5", "405", "none", "", "", "1", "write", "exit",
         ]),
     )
     result = run_wizard_pt(
@@ -280,7 +280,10 @@ def test_active_mos35_collects_authorization_and_never_requests_agent_family(
     content = result.read_text(encoding="utf-8")
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
-    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content
+    # The source review, PR, class, and density are reconstructed by browser
+    # chat, never manual wizard inputs, so none render as INPUT variables.
+    for derived in ("SOURCE_REVIEW=", "PR_NUMBER=", "CHANGE_CLASS=", f"{HYDRATION_LEVEL_NAME}="):
+        assert derived not in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY (" not in stream.getvalue()
 
