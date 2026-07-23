@@ -77,7 +77,9 @@ exige evidencia del fallo observable que evita, su ocurrencia real, la
 ausencia de una comprobación equivalente, su capa (core, adapter o
 dogfooding), su costo de mantenimiento y por qué no basta una solución más
 pequeña. La clase del cambio (lectura, pequeño, estándar, crítico) gobierna
-además unidad, PR, review y densidad del reporte.
+además unidad, PR, review y densidad del reporte según el contrato
+estructurado `proportionality.change_class` del kernel; el resolver verifica
+la coherencia clase/workflow con `--change-class`.
 
 ## Economía de contexto
 
