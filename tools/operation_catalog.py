@@ -38,6 +38,7 @@ CLASSIFIED_DISTINCT_CONTRACT_GROUPS = frozenset(
         frozenset({"MOS-2.1", "MOS-2.2", "MOS-2.3", "MOS-2.4", "MOS-2.5"}),
         frozenset({"MOS-2.9", "MOS-2.10", "MOS-2.11", "MOS-2.12", "MOS-2.13"}),
         frozenset({"MOS-2.6", "MOS-2.14"}),
+        frozenset({"MOS-3.14", "MOS-3.26"}),
         frozenset({"MOS-3.19", "MOS-3.20", "MOS-3.21", "MOS-3.22"}),
         frozenset({"MOS-5.11", "MOS-5.13"}),
         frozenset({"MOS-6.8", "MOS-6.12"}),

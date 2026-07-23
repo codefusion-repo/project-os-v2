@@ -54,11 +54,10 @@ la unidad viva.
    ([MOS-3.3](../operaciones/fase-3/MOS-3.3-draftear-follow-up-issue.md)) y
    `preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios.
 5. **Cierra tú.** Con GO, MOS-3.7 entrega en la misma respuesta el bundle de
-   closeout y su verificación final; tú lo ejecutas.
-   [MOS-3.6](../operaciones/fase-3/MOS-3.6-draftear-comandos-de-closeout.md)
-   queda para regenerar el bundle si se perdió, y
-   [MOS-3.9](../operaciones/fase-3/MOS-3.9-verificar-estado-post-merge.md)
-   para fallos de cierre, auditorías o verificación independiente.
+   closeout y su verificación final; tú lo ejecutas. Si el bundle se pierde,
+   queda obsoleto o el cierre falla, vuelve a ejecutar MOS-3.7 sobre la
+   evidencia vigente; una verificación posterior independiente usa
+   [MOS-3.27](../operaciones/fase-3/MOS-3.27-revisar-estado-del-proyecto.md).
    El cierre deja evidencia de reconstrucción en la unidad viva.
 
 ## Las fases, de un vistazo
@@ -101,15 +100,16 @@ el prompt de cada una vive en el catálogo):
 - **Repo target existente:** adopción browser-first (MOS-0.3 → MOS-0.5, con
   readiness browser y terminal por separado) → primer issue (MOS-3.1) → ciclo
   central.
-- **Issue listo con terminal agent:** route prompt (MOS-3.4) →
-  implementación delegada → PR en draft → review (MOS-3.7) → closeout
-  (MOS-3.6).
+- **Unidad lista con terminal agent:** route prompt (MOS-3.4) →
+  implementación delegada → PR en draft → review (MOS-3.7) → closeout con el
+  GO en la misma respuesta.
 - **Sin terminal agent:** plan de implementación manual (MOS-3.30) →
   ejecución PM/humana → procesar resultado (MOS-3.31) → review normal.
 - **QA humano:** checklist (MOS-4.1) → tú lo ejecutas → procesar resultado
   (MOS-4.4) → corrección (MOS-4.8) o follow-up (MOS-4.7).
 - **Seguridad / auditoría read-only:** solicitar revisión (MOS-3.23) →
-  procesar hallazgos (MOS-3.25) → follow-ups o correcciones (MOS-3.29).
+  procesar hallazgos (MOS-3.25) → follow-ups (MOS-3.3) o correcciones
+  (MOS-3.5).
 - **Release / deploy readiness:** análisis (MOS-3.10 o MOS-R.11) → comandos
   drafteados y PM-gated (MOS-3.11, MOS-3.12 o fase 5 por entorno).
 - **Sesión agotada:** transferir contexto (MOS-0.6) → sesión nueva

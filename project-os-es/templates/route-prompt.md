@@ -1,8 +1,9 @@
 # Route prompt
 
 Responsabilidad: rutear trabajo scoped a otra superficie como bootloader compacto
-referenciado a una unidad viva, sin pegar el issue, PR o comentarios completos ni
-conceder permisos. El detalle de implementacion permanece en la evidencia viva.
+referenciado a una unidad viva, sin pegar la unidad, sus registros o comentarios
+completos ni conceder permisos. El detalle de implementacion permanece en la
+evidencia viva.
 
 El bloque siguiente es el route prompt completo: contiene un unico bloque
 estandar de variables y una unica instruccion concreta al final.
@@ -13,7 +14,8 @@ REPOSITORY_NAME = {{org/repo}}
 TARGET_REPOSITORY = {{org/repo si difiere}}
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = {{ruta a kernel}}
-ISSUE_OR_PR = {{#N cuando el workflow resuelto exige evidence.issue_scope; si no, la referencia viva de scope equivalente}}
+WORK_UNIT = {{referencia viva de la unidad: issue #N o PR #N cuando el target usa GitHub; si no, el change request, registro del target o instruccion PM exacta equivalente}}
+CHANGE_CLASS = {{change_class.read | change_class.small | change_class.standard | change_class.critical}}
 TARGET_ACTOR_TYPE = {{actor id}}
 WORKFLOW = {{workflow id}}
 EXECUTION_MODE = {{mode id}}
@@ -21,7 +23,7 @@ OUTPUT_CONTRACT = {{output id}}
 OPTIONAL_SKILL = {{skill.<id> | none}}
 HYDRATION_LEVEL = {{minimal | compact | full/debug}}
 RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}
-SCOPE = {{1-3 lineas; no restatar issue, PR, cuerpos, comentarios, acceptance criteria, source basis ni checklists}}
+SCOPE = {{1-3 lineas; no restatar la unidad viva, sus cuerpos, comentarios, acceptance criteria, source basis ni checklists}}
 OUT_OF_SCOPE = {{errores plausibles a evitar}}
 EVIDENCE_REQUIRED = {{evidence ids requeridas}}
 VALIDATION_REQUIRED = {{agent-run | PM-run | manual PM | none con razon}}
@@ -29,21 +31,27 @@ BRANCH_NAME = work/{{unidad}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{razon breve}}
 
-{{Una unica instruccion concreta: re-resuelve el kernel, lee la evidencia viva requerida y verifica la entrega PM, PM_AUTHORIZATION_STATUS y la coincidencia exacta de repositorio, workflow, modo, rama y scope; falla cerrado para draft, falta de entrega, `pending` o valores ausentes, desconocidos o inferidos, e implementa, revisa, audita o draftea solo el scope.}}
+{{Una unica instruccion concreta: re-resuelve el kernel con la CHANGE_CLASS declarada, lee la evidencia viva requerida y verifica la entrega PM, PM_AUTHORIZATION_STATUS y la coincidencia exacta de repositorio, workflow, modo, rama y scope; falla cerrado para draft, falta de entrega, `pending` o valores ausentes, desconocidos o inferidos, e implementa, revisa, audita o draftea solo el scope.}}
 ```
 
-`ISSUE_OR_PR` nombra la unidad viva del workflow resuelto. Cuando ese workflow
-exige `evidence.issue_scope`, esa unidad es un issue o PR vivo y el route prompt
-sigue siendo issue-referential. Cuando no lo exige —por ejemplo
-`workflow.target_adoption`, cuya unidad es la adopcion acotada por target, scope
-de adapters repo-owned y rama— transporta esa referencia viva equivalente en vez
-de inventar un issue artificial. En ambos casos la referencia debe ser
-verificable viva; nunca se completa con un numero inventado ni con un
-placeholder durable.
+`WORK_UNIT` nombra la unidad viva del workflow resuelto. Cuando el target usa
+GitHub suele ser un issue o PR vivo; cuando no, transporta la referencia viva
+equivalente: un change request, un registro del target o, para un
+`change_class.small` admitido por la politica del target, la instruccion PM
+exacta y verificable. En todos los casos la referencia debe ser verificable
+viva y desde ella deben poder leerse objetivo, scope, out of scope, acceptance
+criteria y resultado observable; nunca se completa con un numero inventado ni
+con un placeholder durable.
 
-Al draftear, lee el issue o PR vivo y sus comentarios cuando la unidad sea
-issue-referential, y referencia ese detalle en vez de copiarlo. Cuando no lo
-sea, lee la evidencia viva equivalente del target con el mismo criterio.
+`CHANGE_CLASS` declara la clase del contrato `proportionality.change_class`
+del kernel. El agente receptor la pasa al resolver (`--change-class`), que
+falla cerrado cuando la clase es desconocida o incompatible con el workflow, y
+usa la densidad contractual de la clase cuando `HYDRATION_LEVEL` no se declara.
+La clase nunca autoriza nada.
+
+Al draftear, lee la unidad viva y sus registros (el issue o PR y sus
+comentarios cuando el target usa GitHub; la evidencia viva equivalente cuando
+no) y referencia ese detalle en vez de copiarlo.
 No agregues encabezados, secciones, listas, checklists ni
 planes de implementacion antes o despues del bloque: fuera de las variables, el
 unico contenido permitido es la instruccion concreta final. El agente receptor

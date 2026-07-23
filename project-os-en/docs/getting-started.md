@@ -287,12 +287,12 @@ The full cycle of one unit of work, once the session is active:
    [MOS-3.5](../operations/phase-3/MOS-3.5-draft-correction-route-prompt.md)
    on the same branch and the same PR; do not open new units to correct live
    scope.
-4. **Close and verify post-merge.** Merge and close always belong to the
-   Human PM:
-   [MOS-3.6](../operations/phase-3/MOS-3.6-draft-closeout-commands.md) drafts
-   the copy-safe closeout commands and
-   [MOS-3.9](../operations/phase-3/MOS-3.9-verify-post-merge.md) verifies the
-   real post-merge outcome on live evidence.
+4. **Close on the review's GO.** Merge and close always belong to the Human
+   PM: the GO of
+   [MOS-3.7](../operations/phase-3/MOS-3.7-review-pr-before-close.md) delivers
+   the copy-safe closeout commands and their final read-only verification in
+   the same response; if the bundle is lost or the closure fails, run MOS-3.7
+   again over the current evidence.
 
 Stop with the resolved status whenever the kernel, scope, authority, evidence,
 or validation is missing or ambiguous.

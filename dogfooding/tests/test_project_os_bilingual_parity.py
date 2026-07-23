@@ -45,7 +45,7 @@ def test_kernel_and_operation_contracts_have_no_parity_findings() -> None:
     assert report["findings"] == []
     assert report["kernel_ids"]
     assert report["reference_edges"] > 0
-    assert report["operations"]["mos_codes"] == 121
+    assert report["operations"]["mos_codes"] == 117
     assert report["operations"]["path_matrix"]
     assert report["structural_findings"] == []
     assert report["semantic_invariant_findings"] == []
@@ -244,7 +244,7 @@ def test_wizard_discovers_and_parses_explicit_english_catalog() -> None:
     spanish = discover_operations(REPO_ROOT / "project-os-es/operaciones")
     english = discover_operations(REPO_ROOT / "project-os-en/operations")
 
-    assert len(spanish) == len(english) == 121
+    assert len(spanish) == len(english) == 117
     assert {item.mos_code for item in spanish} == {item.mos_code for item in english}
     assert all(item.description and item.phase_label for item in english)
     assert any(item.variables for item in english)

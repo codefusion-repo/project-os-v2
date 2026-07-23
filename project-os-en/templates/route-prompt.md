@@ -1,8 +1,9 @@
 # Route prompt
 
 Responsibility: route scoped work to another surface as a compact bootloader
-referenced to a live unit, without pasting the full issue, PR, or comments
-and without granting permission. Implementation detail remains in live evidence.
+referenced to a live unit, without pasting the full unit, its records, or
+comments and without granting permission. Implementation detail remains in
+live evidence.
 
 The following block is the complete route prompt: it contains one standard
 variable block and one concrete instruction at the end.
@@ -13,7 +14,8 @@ REPOSITORY_NAME = {{org/repo}}
 TARGET_REPOSITORY = {{org/repo if different}}
 KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = {{path to kernel}}
-ISSUE_OR_PR = {{#N when the resolved workflow requires evidence.issue_scope; otherwise the equivalent live scope reference}}
+WORK_UNIT = {{live unit reference: issue #N or PR #N when the target uses GitHub; otherwise the equivalent change request, target record, or exact PM instruction}}
+CHANGE_CLASS = {{change_class.read | change_class.small | change_class.standard | change_class.critical}}
 TARGET_ACTOR_TYPE = {{actor id}}
 WORKFLOW = {{workflow id}}
 EXECUTION_MODE = {{mode id}}
@@ -21,7 +23,7 @@ OUTPUT_CONTRACT = {{output id}}
 OPTIONAL_SKILL = {{skill.<id> | none}}
 HYDRATION_LEVEL = {{minimal | compact | full/debug}}
 RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}
-SCOPE = {{1-3 lines; do not restate the issue, PR, bodies, comments, acceptance criteria, source basis, or checklists}}
+SCOPE = {{1-3 lines; do not restate the live unit, its bodies, comments, acceptance criteria, source basis, or checklists}}
 OUT_OF_SCOPE = {{plausible mistakes to avoid}}
 EVIDENCE_REQUIRED = {{required evidence ids}}
 VALIDATION_REQUIRED = {{agent-run | PM-run | manual PM | none with reason}}
@@ -29,21 +31,27 @@ BRANCH_NAME = work/{{unit}}-{{slug}}
 PM_AUTHORIZATION_STATUS = {{pending | granted for this exact scope and mode}}
 recommended_effort: {{medium|high|xhigh}} - {{brief reason}}
 
-{{One concrete instruction: re-resolve the kernel, read the required live evidence, and verify PM delivery, PM_AUTHORIZATION_STATUS, and the exact repository, workflow, mode, branch, and scope match; fail closed for a draft, missing delivery, `pending`, or absent, unknown, or inferred values, and implement, review, audit, or draft only the scoped work.}}
+{{One concrete instruction: re-resolve the kernel with the declared CHANGE_CLASS, read the required live evidence, and verify PM delivery, PM_AUTHORIZATION_STATUS, and the exact repository, workflow, mode, branch, and scope match; fail closed for a draft, missing delivery, `pending`, or absent, unknown, or inferred values, and implement, review, audit, or draft only the scoped work.}}
 ```
 
-`ISSUE_OR_PR` names the live unit of the resolved workflow. When that workflow
-requires `evidence.issue_scope`, the unit is a live issue or PR and the route
-prompt stays issue-referential. When it does not — for example
-`workflow.target_adoption`, whose unit is the adoption bounded by target,
-repo-owned adapter scope, and branch — carry that equivalent live reference
-instead of inventing an artificial issue. In both cases the reference must be
-live-verifiable; it is never filled with an invented number or a durable
+`WORK_UNIT` names the live unit of the resolved workflow. When the target uses
+GitHub, it is usually a live issue or PR; when it does not, it carries the
+equivalent live reference: a change request, a target record, or, for a
+`change_class.small` admitted by target policy, the exact verifiable PM
+instruction. In every case the reference must be live-verifiable and the
+objective, scope, out of scope, acceptance criteria, and observable result must
+be readable from it; it is never filled with an invented number or a durable
 placeholder.
 
-When drafting, read the live issue or PR and its comments when the unit is
-issue-referential, then reference that detail instead of copying it. When it is
-not, read the equivalent live target evidence with the same discipline.
+`CHANGE_CLASS` declares one class from the kernel's
+`proportionality.change_class` contract. The receiving agent passes it to the
+resolver (`--change-class`), which fails closed when the class is unknown or
+incompatible with the workflow and uses the class's contractual density when
+`HYDRATION_LEVEL` is not declared. The class never authorizes anything.
+
+When drafting, read the live unit and its records (the issue or PR and its
+comments when the target uses GitHub; the equivalent live evidence when it
+does not), then reference that detail instead of copying it.
 Do not add headings, sections, lists, checklists,
 or implementation plans before or after the block: outside the variables, the
 single final concrete instruction is the only permitted content. The receiving

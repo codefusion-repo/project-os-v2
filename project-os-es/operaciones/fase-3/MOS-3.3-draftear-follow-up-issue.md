@@ -8,14 +8,19 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Evidencia: evidence.source_basis, evidence.repo_state
 - Aprobación PM: No (draft-only; el Humano PM decide y ejecuta el bundle)
 
-**Hace:** Draftea un issue de follow-up desde un issue incompleto.
-**Para:** No perder trabajo pendiente cuando un issue cierra incompleto.
-**Cómo:** Aísla lo faltante en un follow-up con scope propio.
+**Hace:** Draftea un follow-up desde cualquier fuente viva: un issue
+incompleto, un review, una auditoría de disciplina o una revisión de seguridad.
+**Para:** Diferir con trazabilidad trabajo pendiente y hallazgos no bloqueantes.
+**Cómo:** Aísla lo faltante o diferido en un follow-up con scope propio; la
+fuente viva queda referenciada, no copiada.
 
 **Variables**
-- Requeridas: ISSUE_NUMBER
-- Opcionales: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Requeridas: FOLLOW_UP_SOURCE (issue incompleto, review, resultado de
+  auditoría o de revisión de seguridad, u otro registro vivo)
+- Opcionales: ISSUE_NUMBER, PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO
+  (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
 
 **Entrega:** output.pm_command_bundle. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-3.13 o MOS-3.31. Después: MOS-3.4. Recomendada: MOS-3.4.
+**Conexiones:** Antes: MOS-3.7, MOS-3.13, MOS-3.25, MOS-3.26 o MOS-3.31.
+Después: MOS-3.4 cuando se priorice. Recomendada: MOS-3.4.

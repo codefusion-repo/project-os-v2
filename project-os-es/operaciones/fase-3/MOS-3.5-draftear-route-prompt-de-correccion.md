@@ -8,18 +8,22 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Evidencia: evidence.source_basis, evidence.repo_state
 - Aprobación PM: No (el route-prompt no autoriza; la escritura exige aprobación PM exacta)
 
-**Hace:** Draftea el route-prompt de corrección de un PR/issue desde findings
-con disposición `blocking-correction`.
+**Hace:** Draftea el route-prompt de corrección de una unidad viva desde
+findings con disposición `blocking-correction`.
 **Para:** Corregir solo incumplimientos materiales sin expandir el scope original.
 **Cómo:** Encapsula únicamente los findings `blocking-correction` en una ruta de
 corrección delegada; los `non-blocking-follow-up` se difieren a MOS-3.3 y
-`preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios. El browser chat
-puede recomendar un skill opcional e infiere
-`RECOMMENDED_TERMINAL_AGENT_FAMILY` según el trabajo. La recomendación es
-advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
+`preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios. Completa
+`WORK_UNIT` con la unidad viva corregida y conserva su `CHANGE_CLASS`. Los
+findings se transportan por intención: el incumplimiento material y su criterio
+observable son vinculantes; la redacción y las propuestas de solución del
+reviewer son advisory. El browser chat puede recomendar un skill opcional e
+infiere `RECOMMENDED_TERMINAL_AGENT_FAMILY` según el trabajo. La recomendación
+es advisory, no autoriza nada y el feedback explícito del PM puede
+reemplazarla.
 
 **Variables**
-- Requeridas: ISSUE_NUMBER
+- Requeridas: WORK_UNIT
 - Opcionales: PR_NUMBER, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO,
   PM_QUESTION_HUMANO (el skill, el nivel, el feedback y la pregunta del PM son
   contexto; nunca autorizan nada). `HYDRATION_LEVEL` acepta `minimal`,

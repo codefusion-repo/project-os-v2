@@ -207,7 +207,7 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
     operations = discover_operations()
     expected_variables = {
         "MOS-3.4": [
-            ("ISSUE_NUMBER", False),
+            ("WORK_UNIT", False),
             ("ROADMAP_ISSUE", False),
             ("OPTIONAL_SKILL", False),
             (HYDRATION_LEVEL_NAME, False),
@@ -215,7 +215,7 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
             ("PM_QUESTION_HUMANO", False),
         ],
         "MOS-3.5": [
-            ("ISSUE_NUMBER", True),
+            ("WORK_UNIT", True),
             ("PR_NUMBER", False),
             ("OPTIONAL_SKILL", False),
             (HYDRATION_LEVEL_NAME, False),
@@ -238,7 +238,7 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
         rendered = render_prompt(
             operation,
             {
-                "ISSUE_NUMBER": "405",
+                "WORK_UNIT": "issue #405",
                 HYDRATION_LEVEL_NAME: "full/debug",
                 PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED,
             },
@@ -523,7 +523,7 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
     assert "Kernel (reference only, not applied): project-os-es/kernel" in transcript
     assert "Operations grouped by SDLC phase:" in transcript
     assert "Fase 3:" in transcript
-    assert "ISSUE_NUMBER=405" in content
+    assert "WORK_UNIT=405" in content
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
     assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content

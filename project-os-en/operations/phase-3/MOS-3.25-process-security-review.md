@@ -21,4 +21,4 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.23. Next: MOS-3.5, MOS-3.29 or MOS-3.7. Recommended: MOS-3.5 for blockers.
+**Connections:** Previous: MOS-3.23. Next: MOS-3.5, MOS-3.3 or MOS-3.7. Recommended: MOS-3.5 for blockers.

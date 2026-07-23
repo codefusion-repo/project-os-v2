@@ -2,6 +2,12 @@
 
 Responsibility: draft a verifiable unit of work with one outcome per issue.
 
+Interpretation: the executor reads the unit by intent per
+`boundary.implementation_discipline`. The objective, scope, out of scope,
+acceptance criteria, and the decisions under `Included decisions` are binding;
+examples, illustrative schemas, and implementation proposals in the body are
+advisory.
+
 ```markdown
 ## Why it exists
 

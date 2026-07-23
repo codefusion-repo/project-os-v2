@@ -18,6 +18,13 @@ This directory is the English PM-facing MOSDLC (Modern AI SDLC Operations) catal
     `rule.precedencia_decision_pm` from the shared kernel: a later decision
     supersedes another only for the same `decision_key`; separate limits and
     gates remain in force.
+12. Read PM instructions, units, and findings by intent per
+    `boundary.implementation_discipline`: only authorization and allowed
+    actions, target identity, hard constraints, scope and out of scope,
+    security, and expressly binding decisions are literal; examples,
+    hypotheses, preferences, tentative names, and implementation proposals are
+    advisory and are never copied automatically into rules, fields, files, or
+    tests.
 
 Explicit resolver example:
 
@@ -163,17 +170,13 @@ internal receipt or `context_plan`.
 - [MOS-3.25 — Process security review](phase-3/MOS-3.25-process-security-review.md)
 - [MOS-3.26 — Process discipline audit](phase-3/MOS-3.26-process-discipline-audit.md)
 - [MOS-3.27 — Review PRoject state](phase-3/MOS-3.27-review-project-state.md)
-- [MOS-3.28 — Draft follow up from audit](phase-3/MOS-3.28-draft-follow-up-from-audit.md)
-- [MOS-3.29 — Draft follow up from security](phase-3/MOS-3.29-draft-follow-up-from-security.md)
-- [MOS-3.3 — Draft follow up issue](phase-3/MOS-3.3-draft-follow-up-issue.md)
+- [MOS-3.3 — Draft a follow-up](phase-3/MOS-3.3-draft-follow-up-issue.md)
 - [MOS-3.30 — Draft manual implementation plan](phase-3/MOS-3.30-draft-manual-implementation-plan.md)
 - [MOS-3.31 — Process manual implementation result](phase-3/MOS-3.31-process-manual-implementation-result.md)
 - [MOS-3.4 — Draft implementation route prompt](phase-3/MOS-3.4-draft-implementation-route-prompt.md)
 - [MOS-3.5 — Draft correction route prompt](phase-3/MOS-3.5-draft-correction-route-prompt.md)
-- [MOS-3.6 — Draft closeout commands](phase-3/MOS-3.6-draft-closeout-commands.md)
 - [MOS-3.7 — Review PR before close](phase-3/MOS-3.7-review-pr-before-close.md)
 - [MOS-3.8 — Draft issue from description](phase-3/MOS-3.8-draft-issue-from-description.md)
-- [MOS-3.9 — Verify post merge](phase-3/MOS-3.9-verify-post-merge.md)
 - [MOS-R.22 — Public packaging safety review](phase-3/MOS-R.22-public-packaging-safety-review.md)
 - [MOS-R.23 — Convert internal operations before release](phase-3/MOS-R.23-convert-internal-operations-before-release.md)
 - [MOS-R.7 — Review licensing publication readiness](phase-3/MOS-R.7-review-licensing-publication-readiness.md)

@@ -285,10 +285,10 @@ El ciclo completo de una unidad de trabajo, una vez activa la sesión:
    [MOS-3.5](../operaciones/fase-3/MOS-3.5-draftear-route-prompt-de-correccion.md)
    sobre la misma rama y el mismo PR; no abras unidades nuevas para corregir
    scope vigente.
-4. **Cerrar y verificar post-merge.** Merge y cierre son siempre del Humano
-   PM: [MOS-3.6](../operaciones/fase-3/MOS-3.6-draftear-comandos-de-closeout.md)
-   draftea los comandos copy-safe de closeout y
-   [MOS-3.9](../operaciones/fase-3/MOS-3.9-verificar-estado-post-merge.md)
-   verifica el estado real post-merge con evidencia viva.
+4. **Cerrar con el GO del review.** Merge y cierre son siempre del Humano PM:
+   el GO de [MOS-3.7](../operaciones/fase-3/MOS-3.7-revisar-pr-antes-de-cerrar.md)
+   entrega en la misma respuesta los comandos copy-safe de closeout y su
+   verificación final read-only; si el bundle se pierde o el cierre falla,
+   vuelve a ejecutar MOS-3.7 sobre la evidencia vigente.
 
 **Siguiente paso:** lee [reglas.md](reglas.md) y luego [ritmo.md](ritmo.md).

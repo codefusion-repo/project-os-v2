@@ -8,14 +8,19 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Evidencia: evidence.issue_scope, evidence.pr_diff, evidence.validation_output
 - Aprobación PM: No (no mergea ni cierra; draftea cierre solo si el review resuelve)
 
-**Hace:** Revisa el PR contra el issue vinculado, clasifica cada hallazgo por
+**Hace:** Revisa el cambio contra su unidad viva, clasifica cada hallazgo por
 disposición y, con veredicto GO, entrega el closeout en la misma respuesta.
 **Para:** Gate de calidad previo a todo cierre, sin turnos redundantes.
 **Cómo:** Compara diff, validación y scope; consume execution reports como
-evidence leads. Clasifica cada hallazgo como `blocking-correction`,
-`non-blocking-follow-up`, `preference`, `accepted-risk` o `invalid-finding`;
-solo `blocking-correction` vuelve a corrección. Con GO, draftea en la misma
-respuesta el bundle completo de closeout y su verificación final.
+evidence leads. Los findings se leen por intención: el incumplimiento material
+es vinculante, la propuesta de solución es advisory. Clasifica cada hallazgo
+como `blocking-correction`, `non-blocking-follow-up`, `preference`,
+`accepted-risk` o `invalid-finding`; solo `blocking-correction` vuelve a
+corrección. Con GO, draftea en la misma respuesta el bundle completo de
+closeout y su verificación final read-only. Si ese bundle se pierde, queda
+obsoleto o el cierre falla, vuelve a ejecutar esta operación sobre la
+evidencia vigente para regenerarlo; una verificación posterior independiente
+usa MOS-3.27.
 
 **Variables**
 - Requeridas: PR_NUMBER
@@ -23,7 +28,8 @@ respuesta el bundle completo de closeout y su verificación final.
 
 **Entrega:** output.review_result (+output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-3.4 o MOS-3.5. Después: con GO, el closeout va en la
-misma respuesta y MOS-3.6 queda solo como regeneración excepcional; MOS-3.5
-solo con findings `blocking-correction`; follow-ups no bloqueantes a MOS-3.3.
-Recomendada: MOS-3.5 solo si hay `blocking-correction`.
+**Conexiones:** Antes: MOS-3.4 o MOS-3.5. Después: con GO, el closeout y su
+verificación van en la misma respuesta; MOS-3.5 solo con findings
+`blocking-correction`; follow-ups no bloqueantes a MOS-3.3; verificación
+posterior independiente con MOS-3.27. Recomendada: MOS-3.5 solo si hay
+`blocking-correction`.

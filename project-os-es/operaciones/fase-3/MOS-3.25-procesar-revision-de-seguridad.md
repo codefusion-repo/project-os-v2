@@ -21,4 +21,4 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.status_result (+output.route_prompt, output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-3.23. Después: MOS-3.5, MOS-3.29 o MOS-3.7. Recomendada: MOS-3.5 para bloqueantes.
+**Conexiones:** Antes: MOS-3.23. Después: MOS-3.5, MOS-3.3 o MOS-3.7. Recomendada: MOS-3.5 para bloqueantes.

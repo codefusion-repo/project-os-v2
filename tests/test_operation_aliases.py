@@ -101,8 +101,8 @@ def test_wizard_hides_alias_as_an_outcome_but_resolves_code_filename_and_path() 
     alias = next(operation for operation in operations if operation.mos_code == "MOS-R.10")
 
     assert canonical is not None
-    assert len(operations) == 121
-    assert len(canonical_operations(operations)) == 120
+    assert len(operations) == 117
+    assert len(canonical_operations(operations)) == 116
     assert resolve_operation_selection(operations, "MOS-R.10") == alias
     assert resolve_operation_selection(operations, alias.filename) == alias
     assert resolve_operation_selection(operations, alias.relative_path) == alias
