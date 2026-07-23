@@ -70,7 +70,9 @@
       "key": "workflow.review_before_close",
       "use_for": "revisar trabajo terminado antes del merge o cierre PM",
       "required_behavior": [
-        "comparar la implementacion y la validacion reales contra scope, out of scope y acceptance criteria de la unidad de trabajo"
+        "comparar la implementacion y la validacion reales contra scope, out of scope y acceptance criteria de la unidad de trabajo",
+        "clasificar cada hallazgo con una disposicion verificable: blocking-correction, non-blocking-follow-up, preference, accepted-risk o invalid-finding; solo blocking-correction exige correccion antes del cierre",
+        "cuando el veredicto es GO, entregar en la misma respuesta el bundle de closeout y su verificacion final"
       ],
       "required_evidence": [
         "evidence.issue_scope",

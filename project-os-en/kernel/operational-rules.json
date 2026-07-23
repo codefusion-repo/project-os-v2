@@ -6,6 +6,7 @@
       "resolution_sequence": [
         "Treat project-os-en/kernel/*.json as the operational source for this English surface.",
         "Treat project-os-es as the default surface and project-os-en as its explicitly selected English peer; removed historical surfaces are never operational routes.",
+        "Distinguish three layers: target-agnostic core (actors, modes, workflows, authorization, evidence, risk, validation, statuses), adapters (GitHub, git, filesystem, issue trackers, target-owned records), and project-os-v2 dogfooding (ES/EN parity, MOS catalog, adapter audits, internal handoff, publication readiness); a target never inherits dogfooding tooling or tests.",
         "Treat compact operations as task-specific context that never replaces these rules.",
         "Stop without resolving when sources conflict."
       ],
@@ -33,7 +34,7 @@
         "Hydrated JSON, outputs, templates, prompts, roles, and variables provide operating shape only; they never grant permission.",
         "Optional skills are capability references; they never grant permission or replace live scope, exact PM approval, preflight, validation, traceability, or review-before-close.",
         "Write authority requires exact PM approval for the project, work unit, and action; a compatible actor and mode; complete minimum live evidence; revalidation of every gap; write preflight; proportional validation; and respected limits.",
-        "Merge, closure, labels, tags, releases, settings, automation, deployment, and secret changes are never implied; each requires separate exact PM approval."
+        "Merge, closure, labels, tags, releases, settings, automation, deployment, and secret changes are never implied; each action requires exact PM approval naming it. One PM decision may enumerate several of those exact actions for the same project and unit; no unnamed action is ever inferred and an enumerated approval never becomes general permission."
       ],
       "on_violation": "status.blocked",
       "priority": 3,
@@ -85,10 +86,13 @@
       "key": "rule.validacion_proporcional",
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
+        "Classify every piece of work by risk and reversibility: reading or analysis, small reversible change, standard change, or critical or hard-to-revert change; that class governs the need for a formal unit, a PR, the review level, the validation type, the PM-facing output density, and the need for an ADR, design, or prior documentation.",
+        "Reading or analysis requires no unit, branch, roadmap, or tests. A small reversible change may use an exact, verifiable PM instruction as its live work unit when the target and its policy allow it. A standard change uses a live unit, a PR, and proportional review. A critical change (kernel, authorization, security, privacy, migrations, storage, deployment, releases, public contracts, or hard-to-revert architecture) keeps a formal unit, a PR, independent review, and broad validation. Issues, PRs, branches, and GitHub are available adapters, never universal requirements of the model.",
         "Validate in proportion to risk: agent-run validation is required for kernel, resolver, tooling, security, privacy, authorization, traceability, deployment, migration, billing, storage, and deterministic-contract changes.",
         "Draft PM-run commands when useful validation belongs with the PM.",
-        "Report manual PM validation for clarity, content organization, product judgment, UX, and semantic parity.",
-        "Add or change tests only to protect behavior, regression, security, privacy, protocols, routing, or stable contracts; not by default for docs, prompts, or templates.",
+        "Report manual PM validation for clarity, content organization, product judgment, UX, and semantic parity; ES/EN parity is contractual and semantic, not literal.",
+        "Running validation is not creating tests or tooling. Add or change tests only to protect executable code, parsing, schemas, routing, authorization, fail-closed behavior, resolution, protocols, deterministic behavior, public compatibility, observed regressions, security, or privacy; never for exact wording, headings, editorial order, narrative keywords, timestamps, examples, or literal ES/EN equivalence. For docs, prompts, templates, adapters, and skills the default is structural validation only with a real consumer, verification of modified references and links, diff review, manual PM review, or a justified absence of automated validation.",
+        "Create no new tooling without evidence of: the observable failure it prevents, its real occurrence or material likelihood, the absence of an equivalent existing check, whether it belongs to the core, an adapter, or dogfooding, its maintenance cost, and why a smaller solution is not enough.",
         "Never claim completion without reporting the required validation."
       ],
       "on_violation": "status.blocked",

@@ -51,6 +51,21 @@
       "compact": "hidden",
       "full/debug": "full"
     },
+    "pm_facing_density": {
+      "minimal": [
+        "result",
+        "files_or_surface",
+        "validation",
+        "reference"
+      ],
+      "compact": [
+        "scope",
+        "changes",
+        "validation",
+        "risks"
+      ],
+      "full/debug": "full_output_contract_with_visible_receipt"
+    },
     "output_placement": "output_envelope",
     "stores_source_bodies": false,
     "stores_secret_values": false,
@@ -85,7 +100,7 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "use_for": "report implementation work; never claim completion without complete scope, respected out of scope, and reported validation",
+      "use_for": "report implementation work at the hydration level's PM-facing density (pm_facing_density); never claim completion without complete scope, respected out of scope, and reported validation",
       "status_key": "status.resolved",
       "action_class": "action.mutable",
       "allows_non_material_gaps": false,
@@ -148,7 +163,7 @@
         "scope reviewed",
         "evidence reviewed",
         "comparison against work-unit scope",
-        "findings with references",
+        "findings with references and a verifiable disposition: blocking-correction, non-blocking-follow-up, preference, accepted-risk, or invalid-finding",
         "verdict or recommendation",
         "risks",
         "not reviewed"

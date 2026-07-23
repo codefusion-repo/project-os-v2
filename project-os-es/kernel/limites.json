@@ -27,7 +27,7 @@
     {
       "key": "boundary.separate_pm_approval",
       "actor_key": null,
-      "rule": "Merge, cierre, labels, tags, releases, settings, automatizacion y artefactos del target requieren aprobacion PM exacta separada que nombre proyecto, unidad de trabajo y accion.",
+      "rule": "Merge, cierre, labels, tags, releases, settings, automatizacion y artefactos del target requieren aprobacion PM exacta que nombre proyecto, unidad de trabajo y accion; una unica decision PM puede enumerar varias acciones exactas sobre la misma unidad, sin inferir acciones no nombradas ni convertirse en permiso general.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true
@@ -91,7 +91,7 @@
     {
       "key": "boundary.implementation_discipline",
       "actor_key": null,
-      "rule": "Completar el scope vivo de la unidad de trabajo sin rewrites ajenos, abstraccion especulativa, over-implementation ni under-implementation disfrazada de minimalismo.",
+      "rule": "Implementar la solucion completa mas pequena que satisface outcome, scope, acceptance criteria y convenciones del target, prefiriendo cambios dirigidos sobre rewrites amplios; no modificar codigo, tests, docs, tooling ni arquitectura cercanos sin necesidad demostrable para el resultado observable; prohibidos under-implementation, over-implementation, over-correction, abstraccion especulativa, rewrites ajenos y expansion encubierta del scope.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true
@@ -107,7 +107,7 @@
     {
       "key": "boundary.validation_discipline",
       "actor_key": null,
-      "rule": "Validacion proporcional al riesgo; tests solo para comportamiento, regresion, seguridad o contratos que lo justifican.",
+      "rule": "Validacion proporcional al riesgo; ejecutar validacion no equivale a crear tests o tooling: tests solo para comportamiento ejecutable, regresion, seguridad o contratos que lo justifican, nunca por defecto para docs, prompts o templates.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true

@@ -6,6 +6,7 @@
       "resolution_sequence": [
         "Tratar project-os-es/kernel/*.json como fuente operativa de esta superficie en espanol.",
         "Tratar project-os-es como la superficie default y project-os-en como su par ingles de seleccion explicita; cualquier superficie anterior solo es recuperable desde el historial git y nunca es una ruta operativa.",
+        "Distinguir tres capas: core target-agnostic (actores, modos, workflows, autorizacion, evidencia, riesgo, validacion, estados), adapters (GitHub, git, filesystem, issue trackers, registros propios del target) y dogfooding de project-os-v2 (paridad ES/EN, catalogo MOS, auditoria de adapters, handoff interno, preparacion de publicacion); un target nunca hereda tooling ni tests de dogfooding.",
         "Tratar las operaciones compactas como contexto task-specific que nunca reemplaza estas reglas.",
         "Ante conflicto entre fuentes, detenerse sin resolver."
       ],
@@ -33,7 +34,7 @@
         "El JSON hidratado, los outputs, templates, prompts, roles y variables solo dan forma operativa; nunca conceden permisos.",
         "Los skills opcionales son referencias de capacidad; nunca conceden permisos ni reemplazan scope vivo, aprobacion PM exacta, preflight, validacion, trazabilidad o review-before-close.",
         "La autoridad de escritura requiere aprobacion PM exacta para el proyecto, la unidad de trabajo y la accion; actor y mode compatibles; evidencia viva minima completa; revalidacion de todo gap; preflight para writes; validacion proporcional; limits respetados.",
-        "Merge, cierre, labels, tags, releases, settings, automatizacion, deployment y cambios de secretos nunca quedan implicitos; cada uno requiere aprobacion PM exacta separada."
+        "Merge, cierre, labels, tags, releases, settings, automatizacion, deployment y cambios de secretos nunca quedan implicitos; cada accion requiere aprobacion PM exacta que la nombre. Una unica decision PM puede enumerar varias de esas acciones exactas para el mismo proyecto y unidad; ninguna accion no nombrada se infiere y la aprobacion enumerada nunca se convierte en permiso general."
       ],
       "on_violation": "status.blocked",
       "priority": 3,
@@ -85,10 +86,13 @@
       "key": "rule.validacion_proporcional",
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
+        "Clasificar cada trabajo por riesgo y reversibilidad: lectura o analisis, cambio pequeno y reversible, cambio estandar, o cambio critico o dificil de revertir; esa clase gobierna la necesidad de unidad formal, PR, nivel de review, tipo de validacion, densidad del output PM-facing y necesidad de ADR, diseno o documentacion previa.",
+        "Lectura o analisis no requiere unidad, rama, roadmap ni tests. Un cambio pequeno y reversible puede usar una instruccion PM exacta y verificable como unidad viva cuando el target y su politica lo permitan. Un cambio estandar usa unidad viva, PR y review proporcional. Un cambio critico (kernel, autorizacion, seguridad, privacidad, migraciones, storage, deployment, releases, contratos publicos o arquitectura dificil de revertir) conserva unidad formal, PR, review independiente y validacion amplia. Issues, PRs, branches y GitHub son adapters disponibles, nunca requisitos universales del modelo.",
         "Validar proporcional al riesgo: validacion agent-run requerida para kernel, resolver, tooling, seguridad, privacidad, autorizacion, trazabilidad, deployment, migraciones, billing, storage y contratos deterministicos.",
         "Draftear comandos PM-run cuando la validacion util debe quedar en manos del PM.",
-        "Reportar validacion manual PM para claridad, organizacion de contenido, juicio de producto, UX y paridad semantica.",
-        "Agregar o cambiar tests solo para proteger comportamiento deterministico, regresion, seguridad, privacidad, protocolos, routing o contratos estables; nunca por defecto para docs, prompts o templates.",
+        "Reportar validacion manual PM para claridad, organizacion de contenido, juicio de producto, UX y paridad semantica; la paridad ES/EN es contractual y semantica, no literal.",
+        "Ejecutar validacion no equivale a crear tests ni tooling. Agregar o cambiar tests solo para proteger codigo ejecutable, parsing, schemas, routing, autorizacion, fail-closed, resolucion, protocolos, comportamiento deterministico, compatibilidad publica, regresiones observadas, seguridad o privacidad; nunca para wording exacto, titulos, orden editorial, keywords narrativas, timestamps, ejemplos ni equivalencia literal ES/EN. Para docs, prompts, templates, adapters y skills el default es validacion estructural solo con consumidor real, verificacion de referencias y links modificados, diff review, revision manual PM o ausencia justificada de validacion automatizada.",
+        "No crear tooling nuevo sin evidencia de: el fallo observable que evita, su ocurrencia real o probabilidad material, la ausencia de una comprobacion existente equivalente, su pertenencia al core, a un adapter o al dogfooding, su costo de mantenimiento y por que una solucion mas pequena no basta.",
         "Nunca declarar done sin reportar la validacion requerida."
       ],
       "on_violation": "status.blocked",

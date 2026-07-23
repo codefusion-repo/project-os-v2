@@ -27,7 +27,7 @@
     {
       "key": "boundary.separate_pm_approval",
       "actor_key": null,
-      "rule": "Merge, closure, labels, tags, releases, settings, automation, and target artifacts require separate exact PM approval naming the project, work unit, and action.",
+      "rule": "Merge, closure, labels, tags, releases, settings, automation, and target artifacts require exact PM approval naming the project, work unit, and action; one PM decision may enumerate several exact actions on the same unit, without inferring unnamed actions or becoming general permission.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true
@@ -91,7 +91,7 @@
     {
       "key": "boundary.implementation_discipline",
       "actor_key": null,
-      "rule": "Complete the live work-unit scope without unrelated rewrites, speculative abstraction, over-implementation, or under-implementation disguised as minimalism.",
+      "rule": "Implement the smallest complete solution that satisfies the outcome, scope, acceptance criteria, and target conventions, preferring targeted changes over broad rewrites; do not modify nearby code, tests, docs, tooling, or architecture without demonstrable need for the observable result; under-implementation, over-implementation, over-correction, speculative abstraction, unrelated rewrites, and covert scope expansion are prohibited.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true
@@ -107,7 +107,7 @@
     {
       "key": "boundary.validation_discipline",
       "actor_key": null,
-      "rule": "Validate in proportion to risk; add tests only for behavior, regression, security, or contracts that justify them.",
+      "rule": "Validate in proportion to risk; running validation is not creating tests or tooling: tests only for executable behavior, regression, security, or contracts that justify them, never by default for docs, prompts, or templates.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true

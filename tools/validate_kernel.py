@@ -139,6 +139,11 @@ CONTEXT_RECEIPT_CONTRACT = {
         "compact": "hidden",
         "full/debug": "full",
     },
+    "pm_facing_density": {
+        "minimal": ["result", "files_or_surface", "validation", "reference"],
+        "compact": ["scope", "changes", "validation", "risks"],
+        "full/debug": "full_output_contract_with_visible_receipt",
+    },
     "output_placement": "output_envelope",
     "stores_source_bodies": False,
     "stores_secret_values": False,
