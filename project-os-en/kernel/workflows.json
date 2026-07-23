@@ -57,8 +57,11 @@
         "output_density": "compact",
         "prior_docs": "conditional",
         "allowed_workflows": [
+          "workflow.pm_intake",
           "workflow.issue_implementation",
-          "workflow.target_adoption"
+          "workflow.target_adoption",
+          "workflow.review_before_close",
+          "workflow.review_only"
         ]
       },
       {
@@ -74,7 +77,10 @@
         "output_density": "full/debug",
         "prior_docs": "expected",
         "allowed_workflows": [
+          "workflow.pm_intake",
           "workflow.issue_implementation",
+          "workflow.review_before_close",
+          "workflow.review_only",
           "workflow.deployment"
         ]
       }
@@ -83,9 +89,10 @@
   "workflows": [
     {
       "key": "workflow.review_only",
-      "use_for": "analysis, audits, questions, and findings without changes",
+      "use_for": "analysis, audits, questions, postcondition verification, and findings without changes",
       "required_behavior": [
-        "analyze the requested scope and produce findings instead of changes"
+        "analyze the requested scope and produce findings instead of changes",
+        "when an executed action, a reviewed reference, and its expected postconditions are declared, verify each postcondition against the corresponding live evidence (for example effective merge, the main branch's final SHA, correspondence with the reviewed head, post-merge checks, unit closure, remote branch deletion, and local cleanup) and report the state of each without running any mutation"
       ],
       "required_evidence": [
         "evidence.repo_state",
@@ -104,7 +111,8 @@
       "key": "workflow.issue_implementation",
       "use_for": "implement a traceable, bounded work unit in a target; a GitHub issue is one possible adapter",
       "required_behavior": [
-        "implement the complete change within the live work-unit scope and nothing else"
+        "implement the complete change within the live work-unit scope and nothing else",
+        "when the unit corrects an already-reviewed PR, publish exactly one append-only correction report on that PR that references the source review or comment, records the previous and corrected heads, maps each blocking-correction to its outcome, identifies the commits or range and the real validation, states remaining work, and confirms no merge or close happened, without editing the body or any prior comment"
       ],
       "required_evidence": [
         "evidence.issue_scope",

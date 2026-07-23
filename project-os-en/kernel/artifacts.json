@@ -65,17 +65,7 @@
       "output_key": "output.route_prompt",
       "required_template": "project-os-en/templates/route-prompt.md",
       "active": true,
-      "responsibility": "Route scoped work to another surface without pasting the full issue or granting permission."
-    },
-    {
-      "key": "artefacto.route_prompt_correccion",
-      "workflow_key": [
-        "workflow.pm_intake"
-      ],
-      "output_key": "output.route_prompt",
-      "required_template": "project-os-en/templates/route-prompt.md",
-      "active": true,
-      "responsibility": "Route bounded corrections from concrete findings without expanding scope."
+      "responsibility": "Route scoped work or bounded corrections to another surface without pasting the full issue or granting permission; a correction also carries the source review reference."
     },
     {
       "key": "artefacto.pm_command_bundle",
@@ -88,17 +78,7 @@
       "output_key": "output.pm_command_bundle",
       "required_template": "project-os-en/templates/pm-command-bundle.md",
       "active": true,
-      "responsibility": "Draft copy-safe PM commands with exact targets, verification, and rollback in prose."
-    },
-    {
-      "key": "artefacto.closeout_command_bundle",
-      "workflow_key": [
-        "workflow.review_before_close"
-      ],
-      "output_key": "output.pm_command_bundle",
-      "required_template": "project-os-en/templates/pm-command-bundle.md",
-      "active": true,
-      "responsibility": "Draft closure and cleanup commands only after review-before-close."
+      "responsibility": "Draft copy-safe PM commands with exact targets, verification, and rollback in prose, including the closure and cleanup bundle after review-before-close."
     },
     {
       "key": "artefacto.prompt_asset",

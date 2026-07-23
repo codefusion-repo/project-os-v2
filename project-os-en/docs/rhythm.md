@@ -9,7 +9,8 @@ validation, and report density:
   no unit, roadmap, branch, tests, or durable artifact.
 - **Level 1 — Small reversible change.** An exact, verifiable PM instruction
   may be the live unit when the target allows it: preflight, scoped branch,
-  smallest complete solution, sufficient minimal validation, `minimal` report.
+  the complete solution that best satisfies the outcome, sufficient minimal
+  validation, `minimal` report.
   No issue, roadmap, ADR, new tests, or new tooling by default.
 - **Level 2 — Standard change.** The core loop below.
 - **Level 3 — Critical or hard-to-revert change.** Kernel, authorization,
@@ -25,10 +26,10 @@ requirements of the model.
 2. Use a PM-intake operation to draft one bounded unit or route prompt.
 3. Resolve `workflow.issue_implementation` with the exact allowed mode.
 4. Run branch preflight before the first edit; work only on `work/<unit>-<slug>`.
-5. Implement the smallest complete solution for the scope and run proportional validation.
+5. Implement the complete solution that best satisfies the scope's outcome and run proportional validation.
 6. Commit, push, and open a draft PR only when the mode and exact PM approval allow it.
-7. Run `workflow.review_before_close` against the real changed files, diff, relevant final files, validation, and linked unit; give every finding a disposition — only `blocking-correction` returns to correction.
-8. Leave merge and closure with the PM; on GO the review delivers the closeout bundle and its final verification in the same response, and separate post-merge verification remains for failures, audits, or an explicit PM request.
+7. Run `workflow.review_before_close` against the real changed files, diff, relevant final files, validation, and linked unit; give every finding a disposition — only `blocking-correction` returns to correction, and each correction is recorded as an append-only correction report (source review, previous and corrected heads, findings, validation) without editing the body or prior comments before the next review.
+8. Leave merge and closure with the PM; on GO the review delivers the closeout bundle and its final verification in the same response, and a separate postcondition verification (merge, final SHA, closure, cleanup) via MOS-3.27 remains for failures, audits, or an explicit PM request.
 
 ## Alternate branches
 

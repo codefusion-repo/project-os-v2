@@ -65,6 +65,7 @@
         "commit",
         "push a la rama de trabajo",
         "abrir draft PR",
+        "publicar exactamente un comentario append-only de correction report en el PR de la unidad cuando la unidad corrige un PR revisado",
         "reportar"
       ],
       "prohibited_actions": [
@@ -72,7 +73,10 @@
         "cerrar la unidad de trabajo",
         "aplicar labels",
         "crear tags o releases",
-        "cambiar settings"
+        "cambiar settings",
+        "editar el body del PR",
+        "editar o reemplazar comentarios o reviews previos",
+        "publicar cualquier otro comentario o mutar el target remoto de otro modo"
       ],
       "fallback": "mode.review_only",
       "active": true

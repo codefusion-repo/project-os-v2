@@ -1,9 +1,9 @@
 # Ritmo: el ciclo de trabajo día a día
 
 **Este es el pulso de Project OS: clasificar el trabajo por riesgo, usar solo
-el proceso que ese riesgo justifica e implementar la solución completa más
-pequeña. El ciclo central de abajo es la ruta del cambio estándar, no un
-peaje universal.**
+el proceso que ese riesgo justifica e implementar la solución completa que
+mejor satisface el outcome. El ciclo central de abajo es la ruta del cambio
+estándar, no un peaje universal.**
 
 ## Proporcionalidad: cuatro niveles de trabajo
 
@@ -15,9 +15,9 @@ PR, review, validación y densidad del reporte:
   durable.
 - **Nivel 1 — Cambio pequeño y reversible.** Una instrucción PM exacta y
   verificable puede ser la unidad viva cuando el target lo permite. Preflight,
-  rama scoped, solución completa más pequeña, validación mínima suficiente y
-  reporte `minimal`. No requiere por defecto issue, roadmap, ADR, tests
-  nuevos ni tooling nuevo.
+  rama scoped, solución completa que mejor satisface el outcome, validación
+  mínima suficiente y reporte `minimal`. No requiere por defecto issue,
+  roadmap, ADR, tests nuevos ni tooling nuevo.
 - **Nivel 2 — Cambio estándar.** El ciclo central de abajo: unidad viva,
   route prompt, implementación con validación, draft PR, review y closeout.
 - **Nivel 3 — Cambio crítico o difícil de revertir.** Kernel, autorización,
@@ -52,11 +52,15 @@ la unidad viva.
    [MOS-3.5](../operaciones/fase-3/MOS-3.5-draftear-route-prompt-de-correccion.md);
    los `non-blocking-follow-up` se difieren
    ([MOS-3.3](../operaciones/fase-3/MOS-3.3-draftear-follow-up-issue.md)) y
-   `preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios.
+   `preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios. Cada
+   corrección del PR se registra como un correction report append-only (review
+   fuente, head anterior, head corregido, findings y validación), sin editar el
+   body ni comentarios previos, y vuelve a MOS-3.7 sobre el head corregido.
 5. **Cierra tú.** Con GO, MOS-3.7 entrega en la misma respuesta el bundle de
    closeout y su verificación final; tú lo ejecutas. Si el bundle se pierde,
    queda obsoleto o el cierre falla, vuelve a ejecutar MOS-3.7 sobre la
-   evidencia vigente; una verificación posterior independiente usa
+   evidencia vigente; una verificación posterior independiente de postcondiciones
+   (merge, SHA final, cierre, limpieza) usa
    [MOS-3.27](../operaciones/fase-3/MOS-3.27-revisar-estado-del-proyecto.md).
    El cierre deja evidencia de reconstrucción en la unidad viva.
 

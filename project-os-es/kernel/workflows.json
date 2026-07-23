@@ -57,8 +57,11 @@
         "output_density": "compact",
         "prior_docs": "conditional",
         "allowed_workflows": [
+          "workflow.pm_intake",
           "workflow.issue_implementation",
-          "workflow.target_adoption"
+          "workflow.target_adoption",
+          "workflow.review_before_close",
+          "workflow.review_only"
         ]
       },
       {
@@ -74,7 +77,10 @@
         "output_density": "full/debug",
         "prior_docs": "expected",
         "allowed_workflows": [
+          "workflow.pm_intake",
           "workflow.issue_implementation",
+          "workflow.review_before_close",
+          "workflow.review_only",
           "workflow.deployment"
         ]
       }
@@ -83,9 +89,10 @@
   "workflows": [
     {
       "key": "workflow.review_only",
-      "use_for": "analisis, auditoria, preguntas y hallazgos sin cambios",
+      "use_for": "analisis, auditoria, preguntas, verificacion de postcondiciones y hallazgos sin cambios",
       "required_behavior": [
-        "analizar el scope pedido y producir hallazgos en lugar de cambios"
+        "analizar el scope pedido y producir hallazgos en lugar de cambios",
+        "cuando se declara una accion ejecutada, una referencia revisada y sus postcondiciones esperadas, verificar cada postcondicion contra la evidencia viva correspondiente (por ejemplo merge efectivo, SHA final de la rama principal, correspondencia con el head revisado, checks post-merge, cierre de la unidad, eliminacion de la rama remota y limpieza local) y reportar el estado de cada una sin ejecutar ninguna mutacion"
       ],
       "required_evidence": [
         "evidence.repo_state",
@@ -104,7 +111,8 @@
       "key": "workflow.issue_implementation",
       "use_for": "implementar una unidad de trabajo trazable y acotada en un target; un GitHub issue es un adapter posible",
       "required_behavior": [
-        "implementar el cambio completo dentro del scope vivo de la unidad de trabajo y de nada mas"
+        "implementar el cambio completo dentro del scope vivo de la unidad de trabajo y de nada mas",
+        "cuando la unidad corrige un PR ya revisado, publicar exactamente un correction report append-only en ese PR que referencie el review o comentario fuente, registre el head anterior y el head corregido, mapee cada blocking-correction con su resultado, identifique commits o rango y la validacion real, declare el trabajo restante y confirme que no hubo merge ni cierre, sin editar el body ni ningun comentario previo"
       ],
       "required_evidence": [
         "evidence.issue_scope",

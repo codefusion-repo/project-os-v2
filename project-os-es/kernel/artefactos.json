@@ -63,17 +63,7 @@
         "workflow.target_adoption"
       ],
       "output_key": "output.route_prompt",
-      "responsabilidad": "Rutear trabajo scoped a otra superficie sin pegar el issue completo ni conceder permisos.",
-      "required_template": "project-os-es/templates/route-prompt.md",
-      "active": true
-    },
-    {
-      "key": "artefacto.route_prompt_correccion",
-      "workflow_key": [
-        "workflow.pm_intake"
-      ],
-      "output_key": "output.route_prompt",
-      "responsabilidad": "Rutear correcciones acotadas a hallazgos concretos sin ampliar el scope.",
+      "responsabilidad": "Rutear trabajo scoped o correcciones acotadas a otra superficie sin pegar el issue completo ni conceder permisos; una correccion transporta ademas la referencia al review fuente.",
       "required_template": "project-os-es/templates/route-prompt.md",
       "active": true
     },
@@ -86,17 +76,7 @@
         "workflow.target_adoption"
       ],
       "output_key": "output.pm_command_bundle",
-      "responsabilidad": "Draftear comandos PM copy-safe con targets exactos, verificacion y rollback en prosa.",
-      "required_template": "project-os-es/templates/pm-command-bundle.md",
-      "active": true
-    },
-    {
-      "key": "artefacto.closeout_command_bundle",
-      "workflow_key": [
-        "workflow.review_before_close"
-      ],
-      "output_key": "output.pm_command_bundle",
-      "responsabilidad": "Draftear el bundle de cierre y limpieza solo despues de review-before-close.",
+      "responsabilidad": "Draftear comandos PM copy-safe con targets exactos, verificacion y rollback en prosa, incluido el bundle de cierre y limpieza tras review-before-close.",
       "required_template": "project-os-es/templates/pm-command-bundle.md",
       "active": true
     },

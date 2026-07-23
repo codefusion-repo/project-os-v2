@@ -48,6 +48,24 @@ class HydrationLevel(str, Enum):
 DEFAULT_HYDRATION_LEVEL = HydrationLevel.COMPACT
 HYDRATION_LEVEL_VALUES = tuple(level.value for level in HydrationLevel)
 
+# Ordering used to enforce that an explicit hydration level may keep or raise a
+# class's contractual density, but never reduce it.
+DENSITY_RANK = {
+    HydrationLevel.MINIMAL: 0,
+    HydrationLevel.COMPACT: 1,
+    HydrationLevel.FULL_DEBUG: 2,
+}
+
+# Gates the resolver only shapes; they must be enforced with actor capability,
+# live evidence, and exact PM approval, not by this deterministic resolution.
+REMAINING_GATE_SOURCES = {
+    "formal_unit_required": "live_work_unit_or_exact_pm_decision",
+    "pr_required": "delegated_mode_capability_and_target_policy",
+    "review_level": "review_before_close_at_the_class_level",
+    "validation_level": "agent_or_ci_validation_output",
+    "prior_docs": "durable_docs_or_adr_before_implementation",
+}
+
 
 def _fail_closed(
     errors: list[str],
@@ -163,6 +181,21 @@ def _resolve_change_class(
             f"{change_class!r} -> {workflow_key!r}"
         ]
     return entry, []
+
+
+def _remaining_gates(change_class: dict[str, Any]) -> list[dict[str, Any]]:
+    """Surface the class gates the resolver cannot verify as enforceable obligations.
+
+    The class selects unit, PR, review, validation, and prior-docs requirements,
+    but the resolver reads no live evidence, so these remain to be enforced by the
+    actor's real capability, live evidence, and exact PM approval. They are listed
+    as gates, never as descriptive metadata that could be silently skipped.
+    """
+
+    return [
+        {"gate": gate, "required": change_class.get(gate), "enforced_by": source}
+        for gate, source in REMAINING_GATE_SOURCES.items()
+    ]
 
 
 def _projected_must_include(item: dict[str, Any], level: HydrationLevel) -> Any:
@@ -615,18 +648,6 @@ def resolver(
     )
     if class_errors:
         return _fail_closed(class_errors, surface, selected_hydration_level)
-    if selected_class is not None and not explicit_hydration:
-        try:
-            selected_hydration_level = HydrationLevel(selected_class.get("output_density"))
-        except ValueError:
-            return _fail_closed(
-                [
-                    f"{surface.messages['unknown_change_class']}: "
-                    f"{change_class!r} output_density"
-                ],
-                surface,
-                selected_hydration_level,
-            )
 
     evidence_index = _index(data["evidence"])
     evidence = _hydrate(
@@ -655,6 +676,48 @@ def resolver(
     requested_skills = _resolve_skills(requested, _index(data["skills"]), directory, surface, errors)
     if errors:
         return _fail_closed(errors, surface, selected_hydration_level)
+
+    # A resolution mutates only when a write-capable mode meets a workflow that
+    # can emit a mutable output; the read-only mode never mutates, so the same
+    # workflow (e.g. target_adoption) may draft read-only without a class. Every
+    # actual mutation must declare a change class (no silent omission).
+    mutable_output = any(
+        item.get("action_class") == "action.mutable" for item in outputs.values()
+    )
+    mutating = mutable_output and mode_key != MODE_FALLBACK
+    if mutating and selected_class is None:
+        return _fail_closed(
+            [f"{surface.messages['change_class_required_for_mutation']}: {workflow_entry['key']} + {mode_key}"],
+            surface,
+            selected_hydration_level,
+        )
+
+    # The class owns the contractual density. An explicit level may keep or raise
+    # it (e.g. audit a small change at full/debug) but never reduce it.
+    remaining_gates: list[dict[str, Any]] | None = None
+    if selected_class is not None:
+        try:
+            class_density = HydrationLevel(selected_class.get("output_density"))
+        except ValueError:
+            return _fail_closed(
+                [f"{surface.messages['unknown_change_class']}: {change_class!r} output_density"],
+                surface,
+                selected_hydration_level,
+            )
+        if explicit_hydration:
+            if DENSITY_RANK[selected_hydration_level] < DENSITY_RANK[class_density]:
+                return _fail_closed(
+                    [
+                        f"{surface.messages['density_downgrade_blocked']}: "
+                        f"{selected_hydration_level.value} < {class_density.value} "
+                        f"({selected_class.get('key')})"
+                    ],
+                    surface,
+                    selected_hydration_level,
+                )
+        else:
+            selected_hydration_level = class_density
+        remaining_gates = _remaining_gates(selected_class)
 
     statuses = _index(data["statuses"])
     status_refs = [limit.get("on_violation") for limit in data["limits"] if limit.get("actor_key") in (None, actor_entry["key"])]
@@ -744,6 +807,7 @@ def resolver(
         resolved["change_class"] = {
             "contract_key": data["proportionality_contract"].get("key"),
             **selected_class,
+            "remaining_gates": remaining_gates,
         }
     if requested_skills:
         resolved["requested_skills"] = requested_skills
