@@ -54,10 +54,14 @@ class never authorizes anything.
 
 When the route prompt corrects an already-reviewed PR (MOS-3.5), the block adds
 `SOURCE_REVIEW` with the exact reference to the source review or comment and
-`PR_NUMBER`; the final instruction requires publishing exactly one append-only
-correction report on that PR with the previous head, the corrected head, the
-`blocking-correction` map, and confirmation that no merge or close happened,
-without editing the body or any prior comment.
+`PR_NUMBER`. In that case browser chat reconstructs `PR_NUMBER`, `SOURCE_REVIEW`,
+`CHANGE_CLASS`, and `HYDRATION_LEVEL` from the unit's live evidence —it does not
+ask the PM— and shows them already resolved here so the receiver verifies the
+contract; it returns the decision to the PM only on real material ambiguity. The
+final instruction requires publishing exactly one append-only correction report
+on that PR with the previous head, the corrected head, the `blocking-correction`
+map, and confirmation that no merge or close happened, without editing the body
+or any prior comment.
 
 When drafting, read the live unit and its records (the issue or PR and its
 comments when the target uses GitHub; the equivalent live evidence when it

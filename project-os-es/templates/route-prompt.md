@@ -53,10 +53,14 @@ implementación, review, closeout y verificación. La clase nunca autoriza nada.
 
 Cuando el route prompt corrige un PR ya revisado (MOS-3.5), el bloque agrega
 `SOURCE_REVIEW` con la referencia exacta al review o comentario fuente y
-`PR_NUMBER`; la instrucción final exige publicar exactamente un correction
-report append-only en ese PR con head anterior, head corregido, mapa de
-`blocking-correction` y confirmación de que no hubo merge ni cierre, sin editar
-el body ni ningún comentario previo.
+`PR_NUMBER`. En ese caso browser chat reconstruye `PR_NUMBER`, `SOURCE_REVIEW`,
+`CHANGE_CLASS` y `HYDRATION_LEVEL` desde la evidencia viva de la unidad —no los
+pide al PM— y los muestra ya resueltos aquí para que el receptor verifique el
+contrato; solo devuelve la decisión al PM ante ambigüedad material real. La
+instrucción final exige publicar exactamente un correction report append-only en
+ese PR con head anterior, head corregido, mapa de `blocking-correction` y
+confirmación de que no hubo merge ni cierre, sin editar el body ni ningún
+comentario previo.
 
 Al draftear, lee la unidad viva y sus registros (el issue o PR y sus
 comentarios cuando el target usa GitHub; la evidencia viva equivalente cuando

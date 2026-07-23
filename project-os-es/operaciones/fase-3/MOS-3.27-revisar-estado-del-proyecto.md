@@ -13,8 +13,11 @@ ejecutada con sus postcondiciones esperadas, las verifica una a una contra la
 evidencia viva.
 **Para:** Detectar drift entre docs, roadmap y realidad del repo, y confirmar
 que una acción declarada (merge, tag, cierre, deploy) dejó el estado esperado.
-**Cómo:** Sin `ACTION_EXECUTED`, usa decisiones PM y docs fijos como verdad
-principal y reporta drift. Con `ACTION_EXECUTED`, `REVIEWED_REFERENCE` y
+**Cómo:** Reconstruye y conserva la `CHANGE_CLASS` de la unidad viva al
+verificar, sin pedirla como input manual al PM: una unidad crítica se verifica
+como `change_class.critical` (`full/debug`, `review.independent`,
+`validation.broad`). Sin `ACTION_EXECUTED`, usa decisiones PM y docs fijos como
+verdad principal y reporta drift. Con `ACTION_EXECUTED`, `REVIEWED_REFERENCE` y
 `EXPECTED_POSTCONDITIONS`, verifica cada postcondición contra la evidencia viva
 correspondiente —merge efectivo, SHA final de la rama principal, correspondencia
 con el head revisado, checks post-merge, cierre de la unidad, eliminación de la

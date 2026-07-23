@@ -12,7 +12,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 review, a discipline audit, or a security review.
 **For:** To defer pending work and non-blocking findings with traceability.
 **How:** Isolate what is missing or deferred in a follow-up with its own
-scope; the live source stays referenced, not copied.
+scope; the live source stays referenced, not copied. Apply the materiality gate
+from `rule.economia_de_contexto` first: draft only when the source holds a
+current, durable, actionable gap with an observable outcome, independent scope,
+and a reason to defer it instead of discarding it. That an observation is
+technically true or could be written as an issue is not enough: a historical,
+informational, confirmatory observation, one already resolved by the normal
+course, or a duplicate of live evidence produces no follow-up. Without durable,
+actionable work, return no-action with `output.status_result`.
 
 **Variables**
 - Required: FOLLOW_UP_SOURCE (incomplete issue, review, audit or

@@ -38,7 +38,10 @@ a rutas raíz.
    output.
 4. **Economía de contexto.** Usa solo el contexto y subagentes que el scope
    necesita, sin perder evidencia viva, validación, secret safety ni aprobación
-   PM exacta.
+   PM exacta. Antes de crear un hallazgo, follow-up o unidad aplica el gate de
+   materialidad de `rule.economia_de_contexto`: exige estado actual verificable,
+   outcome, contrato o riesgo insatisfecho, acción concreta y valor durable e
+   independiente; lo histórico, informativo, ya resuelto o duplicado se omite.
 5. **Formas PM-facing.** Los outputs drafteables usan los artefactos resueltos
    desde `project-os-es/kernel/artefactos.json`: cada artefacto apunta a un
    `required_template` en `project-os-es/templates/`. No existe otra ruta de
@@ -152,13 +155,16 @@ directorio de fase o código MOS. Selecciona por índice mostrado, código MOS
 (por ejemplo `MOS-3.5`), filename, stem o path relativo exacto. Tras seleccionar,
 el wizard muestra el path relativo para confirmar o desambiguar.
 
-Al draftear `MOS-3.4` o `MOS-3.5`, el wizard también captura
-`HYDRATION_LEVEL` para el receptor terminal: acepta `minimal`, `compact` o
-`full/debug` y precarga `compact` como valor predeterminado. Esta ayuda es local a esos route prompts;
-no convierte el nivel en variable canónica del catálogo completo ni autoriza
-escritura. El nivel controla la vista devuelta por el resolver y la visibilidad
-PM-facing contractual del recibo: `minimal` y `compact` ocultan solo esa
-representación; `full/debug` la muestra completa. No altera el recibo interno
+Al draftear `MOS-3.4`, el wizard también captura `HYDRATION_LEVEL` para el
+receptor terminal: acepta `minimal`, `compact` o `full/debug` y precarga la
+densidad contractual de la `CHANGE_CLASS` declarada (`compact` cuando no hay
+clase). En `MOS-3.5` esa metadata no se pide: el wizard solo captura `WORK_UNIT` y
+`PM_AUTHORIZATION_STATUS`, y browser chat reconstruye el PR, el review fuente, la
+`CHANGE_CLASS` y la densidad desde la evidencia viva. Esta ayuda es local a esos
+route prompts; no convierte el nivel en variable canónica del catálogo completo ni
+autoriza escritura. El nivel controla la vista devuelta por el resolver y la
+visibilidad PM-facing contractual del recibo: `minimal` y `compact` ocultan solo
+esa representación; `full/debug` la muestra completa. No altera el recibo interno
 ni `context_plan`.
 
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y

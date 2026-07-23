@@ -7,7 +7,7 @@ This directory is the English PM-facing MOSDLC (Modern AI SDLC Operations) catal
 1. Resolve `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. The resolver provides guidance and never reads live state or grants permission.
 2. Reconstruct issues, PRs, branches, commits, and validation from target systems of record at task time. Durable files never store live state.
 3. Validate in proportion to risk: agent-run checks, drafted PM-run commands, manual PM validation, or a justified omission. Running validation is not creating tests or tooling, and the change class (reading, small, standard, critical) governs unit, PR, review, and output density.
-4. Use only the context and subagents the scope needs without dropping evidence, validation, secret safety, or exact approval.
+4. Use only the context and subagents the scope needs without dropping evidence, validation, secret safety, or exact approval. Before creating a finding, follow-up, or unit, apply the materiality gate from `rule.economia_de_contexto`: require a verifiable current state, an unsatisfied outcome, contract, or risk, a concrete action, and durable independent value; anything historical, informational, already resolved, or duplicated is omitted.
 5. Resolve artifacts and their `required_template` paths from `project-os-en/kernel/artifacts.json`.
 6. Treat `project-os-en/kernel/skills.json` capabilities as optional and outside workflow logic.
 7. Templates, outputs, variables, and route prompts never authorize. Browser chat stays draft-only.
@@ -86,14 +86,17 @@ copied contracts in stubs, ES/EN drift, and two canonicals for one identity. An
 additional undeclared contractual match returns `status.needs_pm_decision` and
 is never merged automatically.
 
-When drafting `MOS-3.4` or `MOS-3.5`, the wizard also captures
-`HYDRATION_LEVEL` for the terminal recipient: it accepts `minimal`, `compact`,
-or `full/debug` and preloads `compact`. This assistance is local to those route
-prompts; it does not make the level a canonical variable across the catalog or
-authorize writing. The level controls the resolver view returned and the
-contractual PM-facing receipt visibility: `minimal` and `compact` hide only
-that representation; `full/debug` shows it in full. It does not alter the
-internal receipt or `context_plan`.
+When drafting `MOS-3.4`, the wizard also captures `HYDRATION_LEVEL` for the
+terminal recipient: it accepts `minimal`, `compact`, or `full/debug` and preloads
+the declared `CHANGE_CLASS` contractual density (`compact` when there is no
+class). In `MOS-3.5` that metadata is not asked for: the wizard captures only
+`WORK_UNIT` and `PM_AUTHORIZATION_STATUS`, and browser chat reconstructs the PR,
+the source review, the `CHANGE_CLASS`, and the density from live evidence. This
+assistance is local to those route prompts; it does not make the level a canonical
+variable across the catalog or authorize writing. The level controls the resolver
+view returned and the contractual PM-facing receipt visibility: `minimal` and
+`compact` hide only that representation; `full/debug` shows it in full. It does not
+alter the internal receipt or `context_plan`.
 
 ## Index
 

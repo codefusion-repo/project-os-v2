@@ -12,7 +12,10 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 postconditions is declared, verify them one by one against live evidence.
 **For:** To detect drift between docs, roadmap and repo reality, and to confirm
 that a declared action (merge, tag, close, deploy) left the expected state.
-**How:** Without `ACTION_EXECUTED`, use PM decisions and fixed docs as the main
+**How:** Reconstruct and preserve the live unit's `CHANGE_CLASS` while verifying,
+without asking for it as a manual PM input: a critical unit is verified as
+`change_class.critical` (`full/debug`, `review.independent`, `validation.broad`).
+Without `ACTION_EXECUTED`, use PM decisions and fixed docs as the main
 truth and report drift. With `ACTION_EXECUTED`, `REVIEWED_REFERENCE`, and
 `EXPECTED_POSTCONDITIONS`, verify each postcondition against the corresponding
 live evidence —effective merge, the main branch's final SHA, correspondence with

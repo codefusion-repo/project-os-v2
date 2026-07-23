@@ -12,7 +12,14 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 incompleto, un review, una auditoría de disciplina o una revisión de seguridad.
 **Para:** Diferir con trazabilidad trabajo pendiente y hallazgos no bloqueantes.
 **Cómo:** Aísla lo faltante o diferido en un follow-up con scope propio; la
-fuente viva queda referenciada, no copiada.
+fuente viva queda referenciada, no copiada. Aplica primero el gate de
+materialidad de `rule.economia_de_contexto`: solo draftea cuando la fuente
+contiene un gap vigente, durable y accionable, con outcome observable, scope
+independiente y razón para diferirlo en vez de descartarlo. Que una observación
+sea técnicamente verdadera o pueda redactarse como issue no basta: una
+observación histórica, informativa, confirmatoria, ya resuelta por el curso
+normal o duplicada de evidencia viva no genera follow-up. Sin trabajo durable y
+accionable, devuelve no-action con `output.status_result`.
 
 **Variables**
 - Requeridas: FOLLOW_UP_SOURCE (issue incompleto, review, resultado de
