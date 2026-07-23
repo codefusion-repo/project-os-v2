@@ -6,7 +6,7 @@ This directory is the English PM-facing MOSDLC (Modern AI SDLC Operations) catal
 
 1. Resolve `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. The resolver provides guidance and never reads live state or grants permission.
 2. Reconstruct issues, PRs, branches, commits, and validation from target systems of record at task time. Durable files never store live state.
-3. Validate in proportion to risk: agent-run checks, drafted PM-run commands, manual PM validation, or a justified omission.
+3. Validate in proportion to risk: agent-run checks, drafted PM-run commands, manual PM validation, or a justified omission. Running validation is not creating tests or tooling, and the change class (reading, small, standard, critical) governs unit, PR, review, and output density.
 4. Use only the context and subagents the scope needs without dropping evidence, validation, secret safety, or exact approval.
 5. Resolve artifacts and their `required_template` paths from `project-os-en/kernel/artifacts.json`.
 6. Treat `project-os-en/kernel/skills.json` capabilities as optional and outside workflow logic.

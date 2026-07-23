@@ -8,8 +8,11 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Evidencia: evidence.source_basis, evidence.repo_state
 - Aprobación PM: Sí (exacta solo para la escritura del archivo)
 
-**Hace:** Actualiza documentación y roadmap con un requerimiento aceptado.
-**Para:** Mantener docs y roadmap como única verdad de alcance.
+**Hace:** Actualiza documentación y roadmap cuando un requerimiento aceptado
+los deja obsoletos; es una operación condicional, no la continuación universal
+de MOS-1.7.
+**Para:** Mantener docs y roadmap coherentes; la unidad de trabajo viva y la
+evidencia viva siguen siendo la verdad de alcance.
 **Cómo:** Draftea cambios de docs y bundle de roadmap; escritura con aprobación exacta.
 
 **Variables**
@@ -18,4 +21,6 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.route_prompt (+output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-1.7. Después: MOS-3.1. Recomendada: MOS-3.1.
+**Conexiones:** Antes: MOS-1.7 cuando la ruta elegida necesita actualización
+documental. Después: MOS-3.1 si se implementará; ninguna si solo se registra.
+Recomendada: MOS-3.1.

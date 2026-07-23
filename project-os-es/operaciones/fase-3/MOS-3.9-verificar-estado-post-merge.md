@@ -9,7 +9,9 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Aprobación PM: No (read-only)
 
 **Hace:** Verifica que la rama principal quedó saludable y el issue resuelto tras el merge.
-**Para:** Cerrar el loop de implementación con evidencia.
+**Para:** Verificación posterior independiente cuando el cierre falló, una
+auditoría la exige o el PM la solicita; no es un turno obligatorio después de
+cada merge, porque el GO de MOS-3.7 ya incluye la verificación final.
 **Cómo:** Chequeo read-only de default branch, issue y checks.
 
 **Variables**
@@ -18,4 +20,5 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.status_result. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-3.6. Después: MOS-3.1 o MOS-3.10. Recomendada: MOS-3.1.
+**Conexiones:** Antes: un cierre con fallo, una auditoría o una solicitud PM de
+verificación independiente. Después: MOS-3.1 o MOS-3.10. Recomendada: MOS-3.1.

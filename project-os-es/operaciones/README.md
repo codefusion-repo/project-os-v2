@@ -32,7 +32,10 @@ a rutas raíz.
 3. **Validación proporcional.** Clasifica la validación según
    `project-os-es/docs/reglas.md` y el kernel espanol resuelto: agent-run
    obligatoria, comandos PM-run drafteados, validación manual PM, o ausencia
-   justificada. Nunca asumas full suite ni tests nuevos por defecto.
+   justificada. Nunca asumas full suite ni tests nuevos por defecto: ejecutar
+   validación no crea tests ni tooling, y la clase del cambio (lectura,
+   pequeño, estándar, crítico) gobierna unidad, PR, review y densidad del
+   output.
 4. **Economía de contexto.** Usa solo el contexto y subagentes que el scope
    necesita, sin perder evidencia viva, validación, secret safety ni aprobación
    PM exacta.

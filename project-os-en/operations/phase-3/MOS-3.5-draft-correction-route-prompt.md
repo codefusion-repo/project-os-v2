@@ -8,9 +8,15 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (the route prompt does not authorize; writing requires exact PM approval)
 
-**Does:** Draft the correction route-prompt of a PR/issue from actionable feedback.
-**For:** To correct without expanding the original scope.
-**How:** Encapsulate findings in a delegated correction route. Browser chat may recommend an optional skill and infer `RECOMMENDED_TERMINAL_AGENT_FAMILY` from the work. The recommendation is advisory, authorizes nothing, and may be overridden by explicit PM feedback.
+**Does:** Draft the correction route-prompt of a PR/issue from findings with a
+`blocking-correction` disposition.
+**For:** To correct only material breaches without expanding the original scope.
+**How:** Encapsulate only `blocking-correction` findings in a delegated
+correction route; `non-blocking-follow-up` findings defer to MOS-3.3, and
+`preference`, `accepted-risk`, and `invalid-finding` force no changes. Browser
+chat may recommend an optional skill and infer
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` from the work. The recommendation is
+advisory, authorizes nothing, and may be overridden by explicit PM feedback.
 
 **Variables**
 - Required: ISSUE_NUMBER
@@ -18,4 +24,5 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.route_prompt. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.7, MOS-3.25 or MOS-4.4. Next: MOS-3.7. Recommended: MOS-3.7.
+**Connections:** Previous: MOS-3.7, MOS-3.25 or MOS-4.4, only with
+`blocking-correction` findings. Next: MOS-3.7. Recommended: MOS-3.7.

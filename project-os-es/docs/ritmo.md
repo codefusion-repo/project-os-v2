@@ -1,8 +1,32 @@
 # Ritmo: el ciclo de trabajo día a día
 
-**Este es el pulso de Project OS: elegir la operación de la fase, draftear en
-browser chat, delegar con aprobación exacta, revisar con evidencia y cerrar.
-Todo lo demás es variación de este ciclo.**
+**Este es el pulso de Project OS: clasificar el trabajo por riesgo, usar solo
+el proceso que ese riesgo justifica e implementar la solución completa más
+pequeña. El ciclo central de abajo es la ruta del cambio estándar, no un
+peaje universal.**
+
+## Proporcionalidad: cuatro niveles de trabajo
+
+Antes de elegir operación, clasifica el trabajo; la clase gobierna unidad,
+PR, review, validación y densidad del reporte:
+
+- **Nivel 0 — Lectura o análisis.** Respuesta directa con evidencia
+  suficiente. Sin issue, sin roadmap, sin branch, sin tests, sin artefacto
+  durable.
+- **Nivel 1 — Cambio pequeño y reversible.** Una instrucción PM exacta y
+  verificable puede ser la unidad viva cuando el target lo permite. Preflight,
+  rama scoped, solución completa más pequeña, validación mínima suficiente y
+  reporte `minimal`. No requiere por defecto issue, roadmap, ADR, tests
+  nuevos ni tooling nuevo.
+- **Nivel 2 — Cambio estándar.** El ciclo central de abajo: unidad viva,
+  route prompt, implementación con validación, draft PR, review y closeout.
+- **Nivel 3 — Cambio crítico o difícil de revertir.** Kernel, autorización,
+  seguridad, migraciones, deployment, releases, contratos públicos:
+  unidad formal, PR, review independiente, rollback y validación amplia.
+
+Issues, PRs, branches y GitHub son adapters disponibles, no requisitos
+universales del modelo: otro tracker o registro del target puede representar
+la unidad viva.
 
 ## El ciclo central
 
@@ -10,7 +34,9 @@ Todo lo demás es variación de este ciclo.**
    trazabilidad viva ([MOS-3.1](../operaciones/fase-3/MOS-3.1-draftear-siguiente-issue-desde-trazabilidad.md))
    o desde una descripción tuya
    ([MOS-3.8](../operaciones/fase-3/MOS-3.8-draftear-issue-desde-descripcion.md)).
-   Un issue por outcome, con scope y criterios propios.
+   Una unidad viva por outcome, con scope y criterios propios; para cambios
+   estándar y críticos suele ser un issue, para cambios pequeños basta la
+   instrucción PM exacta.
 2. **Rutea la implementación.** Browser chat draftea el route prompt
    ([MOS-3.4](../operaciones/fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md));
    tú lo revisas y lo entregas al terminal agent con
@@ -20,16 +46,20 @@ Todo lo demás es variación de este ciclo.**
    y execution report.
 4. **Revisa antes de cerrar.**
    [MOS-3.7](../operaciones/fase-3/MOS-3.7-revisar-pr-antes-de-cerrar.md)
-   compara el PR contra el issue con evidencia viva; el execution report es un
-   claim, no prueba. Correcciones vuelven por
+   compara el PR contra la unidad viva con evidencia; el execution report es un
+   claim, no prueba. Cada hallazgo recibe una disposición: solo
+   `blocking-correction` vuelve por
    [MOS-3.5](../operaciones/fase-3/MOS-3.5-draftear-route-prompt-de-correccion.md);
-   hallazgos no bloqueantes se difieren a un follow-up
-   ([MOS-3.3](../operaciones/fase-3/MOS-3.3-draftear-follow-up-issue.md)).
-5. **Cierra tú.** Ejecutas el bundle de closeout
-   ([MOS-3.6](../operaciones/fase-3/MOS-3.6-draftear-comandos-de-closeout.md))
-   y verificas post-merge
-   ([MOS-3.9](../operaciones/fase-3/MOS-3.9-verificar-estado-post-merge.md)).
-   El cierre deja evidencia de reconstrucción en el issue.
+   los `non-blocking-follow-up` se difieren
+   ([MOS-3.3](../operaciones/fase-3/MOS-3.3-draftear-follow-up-issue.md)) y
+   `preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios.
+5. **Cierra tú.** Con GO, MOS-3.7 entrega en la misma respuesta el bundle de
+   closeout y su verificación final; tú lo ejecutas.
+   [MOS-3.6](../operaciones/fase-3/MOS-3.6-draftear-comandos-de-closeout.md)
+   queda para regenerar el bundle si se perdió, y
+   [MOS-3.9](../operaciones/fase-3/MOS-3.9-verificar-estado-post-merge.md)
+   para fallos de cierre, auditorías o verificación independiente.
+   El cierre deja evidencia de reconstrucción en la unidad viva.
 
 ## Las fases, de un vistazo
 

@@ -8,8 +8,10 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: Yes (exact approval for the file write only)
 
-**Does:** Update documentation and roadmap with an accepted requirement.
-**For:** To maintain docs and roadmap as the only truth of scope.
+**Does:** Update documentation and roadmap when an accepted requirement makes
+them stale; a conditional operation, not the universal continuation of MOS-1.7.
+**For:** To keep docs and roadmap coherent; the live work unit and live
+evidence remain the truth of scope.
 **How:** Draft documentation and roadmap changes; write only with exact approval.
 
 **Variables**
@@ -18,4 +20,6 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.route_prompt (+output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-1.7. Next: MOS-3.1. Recommended: MOS-3.1.
+**Connections:** Previous: MOS-1.7 when the chosen route needs a documentation
+update. Next: MOS-3.1 when it will be implemented; none when only recorded.
+Recommended: MOS-3.1.

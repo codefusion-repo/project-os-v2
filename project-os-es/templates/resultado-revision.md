@@ -20,11 +20,15 @@ al bloque marcado; conserva siempre el recibo interno íntegro.
 
 ## Hallazgos
 
-- {{severity}} - {{archivo:linea o referencia}} - {{hallazgo}}
+- {{disposicion: blocking-correction | non-blocking-follow-up | preference | accepted-risk | invalid-finding}} - {{archivo:linea o referencia}} - {{hallazgo}}
+
+Solo `blocking-correction` exige correccion antes del cierre; los
+`non-blocking-follow-up` se difieren y las demas disposiciones no fuerzan cambios.
 
 ## Veredicto o recomendacion
 
-{{GO, NO-GO, needs_context, follow-up o recomendacion.}}
+{{GO, NO-GO, needs_context, follow-up o recomendacion. Con GO, el bundle de
+closeout y su verificacion final acompanan esta misma respuesta.}}
 
 ## Riesgos
 

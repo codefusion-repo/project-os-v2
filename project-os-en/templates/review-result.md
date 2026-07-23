@@ -20,11 +20,15 @@ to the marked block; always keep the internal receipt intact.
 
 ## Findings
 
-- {{severity}} - {{file:line or reference}} - {{finding}}
+- {{disposition: blocking-correction | non-blocking-follow-up | preference | accepted-risk | invalid-finding}} - {{file:line or reference}} - {{finding}}
+
+Only `blocking-correction` requires correction before closure;
+`non-blocking-follow-up` findings defer and the other dispositions force no changes.
 
 ## Verdict or recommendation
 
-{{GO, NO-GO, needs_context, follow-up or recommendation.}}
+{{GO, NO-GO, needs_context, follow-up or recommendation. On GO, the closeout
+bundle and its final verification accompany this same response.}}
 
 ## Risks
 

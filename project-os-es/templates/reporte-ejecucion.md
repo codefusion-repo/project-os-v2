@@ -4,7 +4,11 @@ Responsabilidad: reportar trabajo ejecutado, evidencia y validacion sin pedir
 merge/cierre.
 
 Presentación PM-facing: aplica `context_receipt_contract.pm_facing_visibility`
-al bloque marcado; conserva siempre el recibo interno íntegro.
+al bloque marcado; conserva siempre el recibo interno íntegro. La densidad
+PM-facing sigue `context_receipt_contract.pm_facing_density` según el nivel de
+hidratación: `minimal` reporta resultado, archivos o superficie, validación y
+referencia; `compact` reporta scope, cambios, validación y riesgos; `full/debug`
+usa el contrato completo de abajo con el recibo visible.
 
 ```markdown
 ## Issue o PR

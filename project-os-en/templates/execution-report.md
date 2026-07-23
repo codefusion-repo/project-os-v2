@@ -4,7 +4,11 @@ Responsibility: report executed work, evidence and validation without asking
 merge/close.
 
 PM-facing presentation: apply `context_receipt_contract.pm_facing_visibility`
-to the marked block; always keep the internal receipt intact.
+to the marked block; always keep the internal receipt intact. PM-facing
+density follows `context_receipt_contract.pm_facing_density` by hydration
+level: `minimal` reports result, files or surface, validation, and reference;
+`compact` reports scope, changes, validation, and risks; `full/debug` uses the
+full contract below with the receipt visible.
 
 ```markdown
 ## Issue or PR

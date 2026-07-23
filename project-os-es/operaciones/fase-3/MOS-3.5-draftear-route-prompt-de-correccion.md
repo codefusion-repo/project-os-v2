@@ -8,9 +8,12 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 - Evidencia: evidence.source_basis, evidence.repo_state
 - Aprobación PM: No (el route-prompt no autoriza; la escritura exige aprobación PM exacta)
 
-**Hace:** Draftea el route-prompt de corrección de un PR/issue desde feedback accionable.
-**Para:** Corregir sin expandir el scope original.
-**Cómo:** Encapsula findings en una ruta de corrección delegada; el browser chat
+**Hace:** Draftea el route-prompt de corrección de un PR/issue desde findings
+con disposición `blocking-correction`.
+**Para:** Corregir solo incumplimientos materiales sin expandir el scope original.
+**Cómo:** Encapsula únicamente los findings `blocking-correction` en una ruta de
+corrección delegada; los `non-blocking-follow-up` se difieren a MOS-3.3 y
+`preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios. El browser chat
 puede recomendar un skill opcional e infiere
 `RECOMMENDED_TERMINAL_AGENT_FAMILY` según el trabajo. La recomendación es
 advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
@@ -27,4 +30,5 @@ advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
 
 **Entrega:** output.route_prompt. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-3.7, MOS-3.25 o MOS-4.4. Después: MOS-3.7. Recomendada: MOS-3.7.
+**Conexiones:** Antes: MOS-3.7, MOS-3.25 o MOS-4.4, solo con findings
+`blocking-correction`. Después: MOS-3.7. Recomendada: MOS-3.7.

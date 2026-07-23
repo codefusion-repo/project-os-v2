@@ -289,7 +289,7 @@ CRITICAL_OPERATION_TERMS = {
         "pm_authorization_status",
         "explicit pm feedback",
     ),
-    "MOS-3.7": ("quality gate", "diff", "validation", "scope", "evidence leads", "if there are findings"),
+    "MOS-3.7": ("quality gate", "diff", "validation", "scope", "evidence leads", "blocking-correction"),
     "MOS-R.3": (
         "live evidence",
         "decision_source",

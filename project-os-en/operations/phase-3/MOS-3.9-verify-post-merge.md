@@ -9,7 +9,9 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - PM approval: No (read-only)
 
 **Does:** Verify that the main branch was healthy and the issue was resolved after the merge.
-**For:** To close the implementation loop with evidence.
+**For:** Independent later verification when closure failed, an audit demands
+it, or the PM requests it; not a mandatory turn after every merge, because the
+MOS-3.7 GO already includes the final verification.
 **How:** Read-only check of default branch, issue and checks.
 
 **Variables**
@@ -18,4 +20,5 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.6. Next: MOS-3.1 or MOS-3.10. Recommended: MOS-3.1.
+**Connections:** Previous: a failed closure, an audit, or a PM request for
+independent verification. Next: MOS-3.1 or MOS-3.10. Recommended: MOS-3.1.
