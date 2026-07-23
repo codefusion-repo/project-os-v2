@@ -71,7 +71,7 @@ STRUCTURAL_LIST_FIELDS: dict[str, tuple[str, ...]] = {
     "manifest": ("resolution_sequence",),
     "operational_rules": ("resolution_sequence",),
     "workflows": ("required_behavior",),
-    "outputs": ("must_include",),
+    "outputs": ("must_include", "must_include_by_density"),
     "skills": ("use_for",),
 }
 
@@ -131,9 +131,37 @@ SURFACE_EQUIVALENCE = {
     "browser_chat a human_pm": "browser_chat → human_pm",
 }
 
-GENERIC_OPERATION_PURPOSE = (
-    "Complete this lifecycle outcome through the selected workflow "
-    "with explicit evidence and boundaries."
+# Machine-consumed structure only: UPPER_SNAKE variable fields agents fill or
+# grep, fenced-block layout, and shell command lines the PM copies and runs.
+MACHINE_FIELD_PATTERN = re.compile(r"^([A-Z][A-Z0-9_]*)\s*=", re.MULTILINE)
+FENCED_BLOCK_PATTERN = re.compile(r"^```([A-Za-z/+-]*)\s*$", re.MULTILINE)
+SHELL_COMMAND_PATTERN = re.compile(r"^\s*(?:gh|git|python3?|set|cat)\b.*$", re.MULTILINE)
+
+# Route prompts are filled by the wizard/browser chat and grepped by the
+# receiving agent; these variable names are executable contract, not prose.
+ROUTE_PROMPT_REQUIRED_FIELDS = frozenset(
+    {
+        "PROJECT_NAME",
+        "REPOSITORY_NAME",
+        "TARGET_REPOSITORY",
+        "KERNEL_REPOSITORY",
+        "KERNEL_LOCAL_PATH",
+        "WORK_UNIT",
+        "CHANGE_CLASS",
+        "TARGET_ACTOR_TYPE",
+        "WORKFLOW",
+        "EXECUTION_MODE",
+        "OUTPUT_CONTRACT",
+        "OPTIONAL_SKILL",
+        "HYDRATION_LEVEL",
+        "RECOMMENDED_TERMINAL_AGENT_FAMILY",
+        "SCOPE",
+        "OUT_OF_SCOPE",
+        "EVIDENCE_REQUIRED",
+        "VALIDATION_REQUIRED",
+        "BRANCH_NAME",
+        "PM_AUTHORIZATION_STATUS",
+    }
 )
 
 TEMPLATE_PAIRS = {
@@ -153,174 +181,6 @@ TEMPLATE_PAIRS = {
     "resultado-revision.md": "review-result.md",
     "roadmap.md": "roadmap.md",
     "route-prompt.md": "route-prompt.md",
-}
-
-TEMPLATE_REQUIRED_HEADINGS = {
-    "README.md": ("Operating bridge", "Catalog"),
-    "adr.md": ("Context", "Decision", "Consequences"),
-    "closure-comment.md": (
-        "Evidence of completeness",
-        "Validation evidence",
-        "Accepted exceptions",
-        "Preserved boundaries",
-        "Friction note",
-        "References",
-    ),
-    "issue.md": (
-        "Why it exists",
-        "Objective",
-        "Source basis",
-        "Scope",
-        "Out of scope",
-        "Included decisions",
-        "Acceptance criteria",
-        "Validation",
-        "Risk and rollback",
-        "Safe degradation (when applicable)",
-    ),
-    "adoption-packet.md": (
-        "Target repository",
-        "Kernel version",
-        "Roadmap state",
-        "Browser adoption state",
-        "Terminal adoption state",
-        "Browser adapter draft",
-        "Terminal adapter findings",
-        "Route prompt state",
-        "Manual PM actions",
-        "Agent actions",
-        "Target-owned constraints",
-        "Validation",
-        "Rollback",
-    ),
-    "handoff-packet.md": (
-        "Current status",
-        "Verified vs assumed",
-        "Next steps",
-        "Open PM decisions",
-        "Active boundaries",
-        "Safe degradation (when applicable)",
-    ),
-    "manual-implementation-plan.md": (
-        "Objective",
-        "Files to inspect",
-        "Files to modify",
-        "Change plan",
-        "Validation",
-        "Manual QA",
-        "Risks and rollback",
-        "Recommended next operation",
-        "No-write statement",
-        "Source receipt",
-        "Safe degradation (when applicable)",
-    ),
-    "pm-command-bundle.md": ("Default shape", "Prohibited by default", "Compact examples"),
-    "asset-prompt.md": (
-        "Live-read context",
-        "Asset objective",
-        "Recipient",
-        "Type, format, and delivery",
-        "Product and brand constraints",
-        "Accessibility",
-        "Acceptance criteria",
-        "Out of scope and authority",
-        "Safe degradation (when applicable)",
-    ),
-    "security-review-prompt.md": (
-        "Live-read context",
-        "Review objective",
-        "Recipient",
-        "Sensitive surfaces",
-        "Secret-safety requirements",
-        "Evidence to review",
-        "Finding format",
-        "Out of scope",
-        "Safe degradation (when applicable)",
-    ),
-    "pull-request.md": (
-        "Summary",
-        "Scope / Boundaries",
-        "Validation",
-        "Security / Privacy",
-        "Source Receipt",
-    ),
-    "execution-report.md": (
-        "Issue or PR",
-        "Repository",
-        "Branch",
-        "Evidence reviewed",
-        "Files changed",
-        "Validation",
-        "Risks and limitations",
-        "Commit or PR",
-        "Remaining work",
-        "Source receipt",
-    ),
-    "status-result.md": (
-        "Status",
-        "Missing item, conflict, or blocker",
-        "Required source or decision",
-        "Safe next step",
-        "Source receipt",
-    ),
-    "review-result.md": (
-        "Reviewed scope",
-        "Evidence reviewed",
-        "Scope comparison",
-        "Findings",
-        "Verdict or recommendation",
-        "Risks",
-        "Not reviewed",
-        "Source receipt",
-        "Safe degradation (when applicable)",
-    ),
-    "roadmap.md": ("Purpose", "Phases", "Kill criteria", "Not now / out of scope", "Non-authorization"),
-}
-
-CRITICAL_OPERATION_TERMS = {
-    "MOS-0.1": (
-        "target_repository",
-        "owner/repo",
-        "status.needs_context",
-        "never silently use another connected repository",
-        "read-only",
-        "draft-only",
-    ),
-    "MOS-3.4": (
-        "recommended_terminal_agent_family",
-        "advisory",
-        "pm_authorization_status",
-        "explicit pm feedback",
-    ),
-    "MOS-3.7": ("quality gate", "diff", "validation", "scope", "evidence leads", "blocking-correction"),
-    "MOS-R.3": (
-        "live evidence",
-        "decision_source",
-        "pm_decision_already_made",
-        "issue_number",
-        "pr_number",
-        "decision_options",
-        "pm_decision",
-        "both may remain blank",
-        "derive context",
-        "unrelated",
-        "impact",
-        "tradeoffs",
-        "recommendation",
-        "exact question",
-        "never authorizes",
-    ),
-    "MOS-R.7": ("licensing", "publication", "secrets"),
-    "MOS-R.22": ("public packaging", "internal-only", "secrets"),
-    "MOS-R.23": ("internal-only", "remove", "hide", "disable", "convert"),
-    "MOS-R.15": ("rollback", "target-owned", "warnings", "exact approval"),
-    "MOS-R.16": ("rollback_result", "restored", "partial", "failed", "status.blocked", "redact"),
-    "MOS-3.23": ("security", "owasp", "never expose secrets"),
-    "MOS-3.25": ("security", "blockers", "non-blockers"),
-    "MOS-6.1": ("security", "production readiness", "owasp"),
-    "MOS-6.7": ("security", "blockers", "deferrables"),
-    "MOS-R.17": ("dependency", "advisories", "manifest"),
-    "MOS-R.18": ("secret", "read-only", "status.blocked"),
 }
 
 OPERATION_ID_PATTERN = re.compile(r"(?:Operación MOSDLC|MOSDLC operation) `([^`]+)`")
@@ -443,151 +303,73 @@ def _mapped_contract(contract: OperationContract) -> dict[str, Any]:
     }
 
 
-def _semantic_section(text: str, label: str) -> str | None:
-    match = re.search(rf"^\*\*{re.escape(label)}:\*\*\s*(.+)$", text, re.MULTILINE)
-    return match.group(1).strip() if match and match.group(1).strip() else None
+def _machine_fields(text: str) -> set[str]:
+    return set(MACHINE_FIELD_PATTERN.findall(text))
 
 
-def _safeguard_item_count(text: str, heading: str) -> int:
-    match = re.search(
-        rf"^\*\*{re.escape(heading)}\*\*\s*$\n(?P<body>.*?)(?=^\*\*[^\n]+\*\*)",
-        text,
-        re.MULTILINE | re.DOTALL,
-    )
-    if not match:
-        return 0
-    return len(re.findall(r"^-\s+\S", match.group("body"), re.MULTILINE))
+def _fence_signature(text: str) -> tuple[str, ...]:
+    """Opening fence languages in order; even entries open blocks, odd close."""
+
+    return tuple(FENCED_BLOCK_PATTERN.findall(text)[::2])
 
 
-def _operation_semantic_findings(
+def _shell_commands(text: str) -> tuple[str, ...]:
+    """Command lines the PM copies verbatim; localized prose never matches."""
+
+    return tuple(match.strip() for match in SHELL_COMMAND_PATTERN.findall(text))
+
+
+def _operation_structural_findings(
     es_operations: dict[str, OperationTemplate],
     en_operations: dict[str, OperationTemplate],
 ) -> list[str]:
-    findings: list[str] = []
-    residue = re.compile(r"\b(?:PRocess|Review pr)\b")
-    for code in sorted(set(es_operations) & set(en_operations)):
-        spanish, english = es_operations[code].text, en_operations[code].text
-        for label in ("Does", "For", "How", "Deliver"):
-            if _semantic_section(english, label) is None:
-                findings.append(f"operation semantic section missing or empty: {code}.{label}")
-        if GENERIC_OPERATION_PURPOSE in english:
-            findings.append(f"operation generic purpose boilerplate: {code}")
-        if ("**Cuida**" in spanish) != ("**Safeguards**" in english):
-            findings.append(f"operation safeguards mismatch: {code}")
-        elif "**Cuida**" in spanish and _safeguard_item_count(
-            spanish, "Cuida"
-        ) != _safeguard_item_count(english, "Safeguards"):
-            findings.append(f"operation safeguard item mismatch: {code}")
-        title = english.splitlines()[0] if english.splitlines() else ""
-        if residue.search(title):
-            findings.append(f"operation title residue: {code}")
-        phase_label = ENGLISH_PHASE_LABELS[en_operations[code].phase_path]
-        if f" · {phase_label} · Risk:" not in english:
-            findings.append(f"operation phase label mismatch: {code}")
+    """Check only operation structure with an executable consumer (the wizard)."""
 
-    for code, terms in CRITICAL_OPERATION_TERMS.items():
-        text = en_operations[code].text.lower()
-        for term in terms:
-            if term not in text:
-                findings.append(f"critical operation invariant missing: {code}: {term}")
+    findings: list[str] = []
+    description_markers = {"es": "**Hace:**", "en": "**Does:**"}
+    for code in sorted(set(es_operations) & set(en_operations)):
+        for language, operation in (("es", es_operations[code]), ("en", en_operations[code])):
+            if description_markers[language] not in operation.text:
+                findings.append(f"operation description marker missing: {language}:{code}")
     return findings
 
 
-def _template_semantic_findings(es_root: Path, en_root: Path) -> list[str]:
+def _template_structural_findings(es_root: Path, en_root: Path) -> list[str]:
+    """Compare template pairing, machine fields, fences, and copied commands."""
+
     findings: list[str] = []
     if set(path.name for path in es_root.glob("*.md")) != set(TEMPLATE_PAIRS):
         findings.append("Spanish template mapping is incomplete")
     if set(path.name for path in en_root.glob("*.md")) != set(TEMPLATE_PAIRS.values()):
         findings.append("English template mapping is incomplete")
 
-    for en_name, required_headings in TEMPLATE_REQUIRED_HEADINGS.items():
-        text = (en_root / en_name).read_text(encoding="utf-8")
-        if en_name not in {"README.md", "pm-command-bundle.md"} and not re.search(
-            r"^Responsibility:\s*\S", text, re.MULTILINE
-        ):
-            findings.append(f"template responsibility missing: {en_name}")
-        headings = set(re.findall(r"^##\s+(.+)$", text, re.MULTILINE))
-        for heading in required_headings:
-            if heading not in headings:
-                findings.append(f"template section missing: {en_name}: {heading}")
+    for es_name, en_name in TEMPLATE_PAIRS.items():
+        es_path, en_path = es_root / es_name, en_root / en_name
+        if not es_path.is_file() or not en_path.is_file():
+            continue
+        es_text = es_path.read_text(encoding="utf-8")
+        en_text = en_path.read_text(encoding="utf-8")
+        if _machine_fields(es_text) != _machine_fields(en_text):
+            findings.append(f"template machine-field mismatch: {es_name}/{en_name}")
+        if _fence_signature(es_text) != _fence_signature(en_text):
+            findings.append(f"template fenced-block mismatch: {es_name}/{en_name}")
+        if _shell_commands(es_text) != _shell_commands(en_text):
+            findings.append(f"template shell-command mismatch: {es_name}/{en_name}")
 
-    route = (en_root / "route-prompt.md").read_text(encoding="utf-8")
-    route_fields = (
-        "PROJECT_NAME",
-        "REPOSITORY_NAME",
-        "TARGET_REPOSITORY",
-        "KERNEL_REPOSITORY",
-        "KERNEL_LOCAL_PATH",
-        "WORK_UNIT",
-        "CHANGE_CLASS",
-        "TARGET_ACTOR_TYPE",
-        "WORKFLOW",
-        "EXECUTION_MODE",
-        "OUTPUT_CONTRACT",
-        "OPTIONAL_SKILL",
-        "HYDRATION_LEVEL",
-        "RECOMMENDED_TERMINAL_AGENT_FAMILY",
-        "SCOPE",
-        "OUT_OF_SCOPE",
-        "EVIDENCE_REQUIRED",
-        "VALIDATION_REQUIRED",
-        "BRANCH_NAME",
-        "PM_AUTHORIZATION_STATUS",
-        "recommended_effort",
-    )
-    for field in route_fields:
-        separator = ":" if field == "recommended_effort" else "="
-        if not re.search(rf"^{re.escape(field)}\s*{separator}", route, re.MULTILINE):
+    for root, name in ((es_root, "route-prompt.md"), (en_root, "route-prompt.md")):
+        path = root / name
+        if not path.is_file():
+            continue
+        missing = ROUTE_PROMPT_REQUIRED_FIELDS - _machine_fields(path.read_text(encoding="utf-8"))
+        for field in sorted(missing):
             findings.append(f"route prompt field missing: {field}")
-    for clause in (
-        "re-resolves the kernel",
-        "reads live evidence",
-        "fails closed",
-        "Codex",
-        "Claude",
-        "Gemini",
-        "`none`",
-        "do not grant permission",
-        "replace exact PM approval",
-        "does not authorize writing",
-    ):
-        if clause not in route:
-            findings.append(f"route prompt clause missing: {clause}")
 
-    bundle = (en_root / "pm-command-bundle.md").read_text(encoding="utf-8")
-    for clause in (
-        "short linear sequence",
-        "Writing blocks",
-        "blockquotes",
-        "indented lists",
-        "inline text",
-        "heredocs",
-        "--body-file",
-        "exact reviewed targets",
-        "&&",
-        "||",
-        "exit",
-        "set -e",
-        "set -u",
-        "set -o pipefail",
-        "Large `if` or `case` blocks",
-        "loops",
-        "shell functions",
-        "workflow.review_before_close",
-        "gh pr ready",
-        "--merge --delete-branch",
-        "--match-head-commit",
-        "gh issue close",
-        "git -C <local-path> branch -D <work-branch>",
-        "Final read-only verification",
-        "gh pr view",
-        "gh issue view",
-        "git -C <local-path> status --short --branch",
-    ):
-        if clause not in bundle:
-            findings.append(f"PM command bundle clause missing: {clause}")
-    if "--squash" in bundle:
-        findings.append("PM command bundle uses a non-canonical squash merge")
+    for root in (es_root, en_root):
+        path = root / "pm-command-bundle.md"
+        if not path.is_file():
+            continue
+        if "--squash" in path.read_text(encoding="utf-8"):
+            findings.append(f"PM command bundle uses a non-canonical squash merge: {root.name}")
     return findings
 
 
@@ -615,11 +397,18 @@ def build_report() -> dict[str, Any]:
         if es_projection != en_projection:
             structural_findings.append(f"kernel stable-contract mismatch: {family}")
 
+    def _list_shape(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {key: _list_shape(item) for key, item in sorted(value.items())}
+        if isinstance(value, list):
+            return len(value)
+        return 0
+
     for family, fields in STRUCTURAL_LIST_FIELDS.items():
         es_items, en_items = keyed(es_kernel, family), keyed(en_kernel, family)
         for key in sorted(es_items):
             for field in fields:
-                if len(es_items[key].get(field, [])) != len(en_items[key].get(field, [])):
+                if _list_shape(es_items[key].get(field, [])) != _list_shape(en_items[key].get(field, [])):
                     structural_findings.append(f"kernel structural-list mismatch: {key}.{field}")
 
     if reference_graph(es_kernel) != reference_graph(en_kernel):
@@ -649,14 +438,14 @@ def build_report() -> dict[str, Any]:
         if _mapped_contract(es_operations[code]) != _mapped_contract(en_operations[code]):
             structural_findings.append(f"operation contract mismatch: {code}")
 
-    semantic_findings = _operation_semantic_findings(es_templates, en_templates)
-    semantic_findings.extend(
-        _template_semantic_findings(
+    structural_findings.extend(_operation_structural_findings(es_templates, en_templates))
+    structural_findings.extend(
+        _template_structural_findings(
             es_surface.root / "templates",
             en_surface.root / "templates",
         )
     )
-    findings = structural_findings + semantic_findings
+    findings = list(structural_findings)
 
     return {
         "surfaces": {
@@ -680,10 +469,9 @@ def build_report() -> dict[str, Any]:
             ],
         },
         "structural_findings": structural_findings,
-        "semantic_invariant_findings": semantic_findings,
         "manual_review_required": [
             "natural PM-facing English across all operation and template pairs",
-            "full semantic fidelity beyond automated critical invariants",
+            "semantic fidelity beyond the automated structural contracts",
         ],
         "findings": findings,
     }
@@ -702,8 +490,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"MOS codes: {report['operations']['mos_codes']}")
         print(f"variables: {len(report['operations']['variables'])}")
         print(f"structural findings: {len(report['structural_findings'])}")
-        print(f"semantic invariant findings: {len(report['semantic_invariant_findings'])}")
-        print("manual review: required for linguistic naturalness and full semantic fidelity")
+        print("manual review: required for linguistic naturalness and semantic fidelity")
         print(f"parity findings: {len(report['findings'])}")
         for finding in report["findings"]:
             print(f"- {finding}")

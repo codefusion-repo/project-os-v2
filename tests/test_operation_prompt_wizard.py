@@ -1139,6 +1139,139 @@ def test_written_prompt_carries_verifiable_provenance_of_its_live_operation(tmp_
         assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", fields["generated_at"])
 
 
+def test_provenance_repository_identity_is_sanitized_and_never_leaks_credentials() -> None:
+    import re
+
+    from tools.operation_prompt_wizard import (
+        _sanitized_repository_identity,
+        source_repository_identity,
+    )
+
+    assert _sanitized_repository_identity("git@github.com:owner/repo.git") == "owner/repo"
+    assert (
+        _sanitized_repository_identity("https://user:secrettoken@github.com/owner/repo.git")
+        == "owner/repo"
+    )
+    assert _sanitized_repository_identity("ssh://git@github.com/owner/repo") == "owner/repo"
+    assert _sanitized_repository_identity("/home/someone/checkouts/repo") is None
+    assert _sanitized_repository_identity("not a remote") is None
+
+    identity = source_repository_identity()
+    assert re.fullmatch(r"[A-Za-z0-9._-]+/[A-Za-z0-9._-]+|local:[A-Za-z0-9._-]+", identity)
+    assert "@" not in identity
+    assert "://" not in identity
+
+
+def test_custom_catalog_provenance_never_persists_absolute_paths(tmp_path: Path) -> None:
+    write_spanish_operation(tmp_path / "catalog" / "MOS-9.9-custom.md", "MOS-9.9", "Custom")
+    operation = discover_operations(tmp_path / "catalog")[0]
+    rendered = render_prompt(operation, {})
+    written = write_prompt(tmp_path / "prompt.md", rendered, operation=operation)
+    content = written.read_text(encoding="utf-8")
+
+    assert "operation_path: custom:MOS-9.9-custom.md" in content
+    assert str(tmp_path) not in content
+
+    from tools.operation_prompt_wizard import verify_prompt_provenance
+
+    fresh, message = verify_prompt_provenance(written)
+    assert fresh is False
+    assert "custom-catalog" in message
+
+
+def test_verify_prompt_provenance_passes_fresh_and_fails_closed_on_staleness(tmp_path: Path) -> None:
+    from tools.operation_prompt_wizard import git_blob_sha, verify_prompt_provenance
+
+    repo_root = tmp_path / "repo"
+    operation_path = repo_root / "operaciones" / "MOS-9.8-viva.md"
+    operation_path.parent.mkdir(parents=True)
+    operation_path.write_text("# MOS-9.8 — Viva\n", encoding="utf-8")
+
+    def prompt_with(path_value: str, sha_value: str) -> Path:
+        artifact = tmp_path / "generated.md"
+        artifact.write_text(
+            "cuerpo\n\n<!-- prompt-provenance\n"
+            "source_repository: owner/repo\n"
+            f"operation_path: {path_value}\n"
+            f"operation_blob_sha: {sha_value}\n"
+            "generated_at: 2026-01-01T00:00:00Z\n"
+            "staleness: check\n"
+            "-->\n",
+            encoding="utf-8",
+        )
+        return artifact
+
+    live_sha = git_blob_sha(operation_path)
+    fresh, message = verify_prompt_provenance(
+        prompt_with("operaciones/MOS-9.8-viva.md", live_sha), repo_root=repo_root
+    )
+    assert fresh is True and "fresh" in message
+
+    operation_path.write_text("# MOS-9.8 — Viva cambiada\n", encoding="utf-8")
+    stale, message = verify_prompt_provenance(
+        prompt_with("operaciones/MOS-9.8-viva.md", live_sha), repo_root=repo_root
+    )
+    assert stale is False and "stale" in message and "regenerate" in message
+
+    missing, message = verify_prompt_provenance(
+        prompt_with("operaciones/no-existe.md", live_sha), repo_root=repo_root
+    )
+    assert missing is False and "not found" in message
+
+    for hostile in ("/etc/passwd", "../fuera.md"):
+        escaped, message = verify_prompt_provenance(
+            prompt_with(hostile, live_sha), repo_root=repo_root
+        )
+        assert escaped is False and "repository-relative" in message
+
+    no_block = tmp_path / "sin-provenance.md"
+    no_block.write_text("solo cuerpo\n", encoding="utf-8")
+    absent, message = verify_prompt_provenance(no_block, repo_root=repo_root)
+    assert absent is False and "missing prompt-provenance" in message
+
+
+def test_verify_prompt_cli_exits_zero_fresh_and_one_stale(tmp_path: Path) -> None:
+    import subprocess
+    import sys
+
+    operation = next(op for op in discover_operations() if op.mos_code == "MOS-3.5")
+    rendered = render_prompt(operation, {})
+    written = write_prompt(tmp_path / "route.md", rendered, operation=operation)
+
+    fresh = subprocess.run(
+        [sys.executable, "tools/operation_prompt_wizard.py", "--verify-prompt", str(written)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert fresh.returncode == 0
+    assert "fresh" in fresh.stdout
+
+    import re
+
+    corrupted = tmp_path / "stale.md"
+    corrupted.write_text(
+        re.sub(
+            r"^operation_blob_sha: [0-9a-f]{40}$",
+            "operation_blob_sha: " + "0" * 40,
+            written.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        ),
+        encoding="utf-8",
+    )
+    stale = subprocess.run(
+        [sys.executable, "tools/operation_prompt_wizard.py", "--verify-prompt", str(corrupted)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert stale.returncode == 1
+    assert stale.stdout == ""
+    assert "stale" in stale.stderr
+
+
 def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejected(tmp_path: Path) -> None:
     operation = next(operation for operation in discover_operations() if operation.mos_code == "MOS-3.5")
     rendered = render_prompt(operation, {})

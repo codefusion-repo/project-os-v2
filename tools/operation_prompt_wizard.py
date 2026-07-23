@@ -1850,8 +1850,37 @@ def confirm_write(
     )
 
 
+def _sanitized_repository_identity(remote_url: str) -> str | None:
+    """Reduce a git remote URL to ``owner/repo`` and drop everything else.
+
+    Remote URLs may embed credentials (``https://user:token@host/...``) or
+    machine-local structure; only the sanitized identity may ever be persisted
+    into a generated artifact.
+    """
+
+    candidate = remote_url.strip()
+    if candidate.endswith(".git"):
+        candidate = candidate[: -len(".git")]
+    match = re.match(r"^(?:[A-Za-z0-9._-]+@)?[A-Za-z0-9.-]+:(?P<identity>[^/:]+/[^/:]+)$", candidate)
+    if match is None:
+        match = re.match(
+            r"^[A-Za-z][A-Za-z0-9+.-]*://(?:[^/@]+@)?[^/]+/(?P<identity>[^/]+/[^/]+)$",
+            candidate,
+        )
+    if match is None:
+        return None
+    identity = match.group("identity")
+    if re.fullmatch(r"[A-Za-z0-9._-]+/[A-Za-z0-9._-]+", identity):
+        return identity
+    return None
+
+
 def source_repository_identity() -> str:
-    """Identify the repository the operation catalog was generated from."""
+    """Identify the repository the operation catalog was generated from.
+
+    The raw remote is never persisted: it is sanitized to ``owner/repo`` or
+    replaced by the local repository directory name.
+    """
 
     try:
         completed = subprocess.run(
@@ -1862,7 +1891,9 @@ def source_repository_identity() -> str:
         )
         origin = completed.stdout.strip()
         if completed.returncode == 0 and origin:
-            return origin
+            identity = _sanitized_repository_identity(origin)
+            if identity is not None:
+                return identity
     except OSError:
         pass
     return f"local:{REPO_ROOT.name}"
@@ -1876,13 +1907,18 @@ def git_blob_sha(path: Path) -> str:
 
 
 def prompt_provenance_block(operation: OperationTemplate, generated_at: datetime | None = None) -> str:
-    """Build the provenance trailer that lets a receiver detect a stale prompt."""
+    """Build the provenance trailer that lets a receiver detect a stale prompt.
+
+    ``operation_path`` is always repository-relative; a custom catalog outside
+    the repository is reduced to ``custom:<filename>`` so no machine-local
+    absolute path is ever persisted.
+    """
 
     source_path = operation.canonical_path or operation.path
     try:
         operation_path = source_path.resolve().relative_to(REPO_ROOT.resolve()).as_posix()
     except ValueError:
-        operation_path = source_path.as_posix()
+        operation_path = f"custom:{source_path.name}"
     moment = (generated_at or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
     return (
         "<!-- prompt-provenance\n"
@@ -1890,11 +1926,65 @@ def prompt_provenance_block(operation: OperationTemplate, generated_at: datetime
         f"operation_path: {operation_path}\n"
         f"operation_blob_sha: {git_blob_sha(source_path)}\n"
         f"generated_at: {moment}\n"
-        "staleness: if the live operation at operation_path no longer matches "
-        "operation_blob_sha, reload it and regenerate this prompt instead of "
-        "executing stale semantics.\n"
+        "staleness: verify with `python tools/operation_prompt_wizard.py "
+        "--verify-prompt <this file>`; if the live operation at operation_path "
+        "no longer matches operation_blob_sha, reload it and regenerate this "
+        "prompt instead of executing stale semantics.\n"
         "-->"
     )
+
+
+PROVENANCE_BLOCK_PATTERN = re.compile(r"<!-- prompt-provenance\n(?P<body>.*?)\n-->", re.DOTALL)
+
+
+def verify_prompt_provenance(prompt_path: Path, repo_root: Path | None = None) -> tuple[bool, str]:
+    """Fail closed unless the prompt's source operation is live and unchanged.
+
+    The receiver-side check: parse the provenance block, locate the live
+    operation inside this repository, and compare its blob SHA. Any missing,
+    unresolvable, escaping, or mismatched provenance is stale.
+    """
+
+    root = (repo_root or REPO_ROOT).resolve()
+    try:
+        text = prompt_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        return False, f"unreadable prompt artifact: {exc}"
+    match = PROVENANCE_BLOCK_PATTERN.search(text)
+    if match is None:
+        return False, "missing prompt-provenance block; regenerate the prompt from the live catalog"
+    fields: dict[str, str] = {}
+    for line in match.group("body").splitlines():
+        key, separator, value = line.partition(":")
+        if separator and re.fullmatch(r"[a-z_]+", key.strip()):
+            fields.setdefault(key.strip(), value.strip())
+    operation_path = fields.get("operation_path", "")
+    blob_sha = fields.get("operation_blob_sha", "")
+    if not operation_path or not re.fullmatch(r"[0-9a-f]{40}", blob_sha):
+        return False, "incomplete or invalid provenance fields; regenerate the prompt"
+    if operation_path.startswith("custom:"):
+        return False, (
+            "custom-catalog provenance cannot be verified against this repository; "
+            "regenerate the prompt from its live catalog"
+        )
+    candidate = Path(operation_path)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        return False, "provenance operation_path must be repository-relative"
+    live_path = (root / candidate).resolve()
+    if not live_path.is_relative_to(root):
+        return False, "provenance operation_path escapes the repository"
+    if not live_path.is_file():
+        return False, (
+            f"stale prompt: live operation not found at {operation_path}; "
+            "reload the catalog and regenerate"
+        )
+    if git_blob_sha(live_path) != blob_sha:
+        return False, (
+            f"stale prompt: live operation {operation_path} no longer matches "
+            "operation_blob_sha; reload it and regenerate instead of executing "
+            "stale semantics"
+        )
+    return True, f"fresh: {operation_path} matches operation_blob_sha"
 
 
 def write_prompt(
@@ -2856,12 +2946,28 @@ def build_parser() -> argparse.ArgumentParser:
             f"${OUTPUT_DIR_ENV} or {DEFAULT_OUTPUT_DIR}."
         ),
     )
+    parser.add_argument(
+        "--verify-prompt",
+        type=Path,
+        default=None,
+        metavar="PROMPT",
+        help=(
+            "Receiver-side provenance check for a generated prompt: compares "
+            "its operation_blob_sha against the live operation and fails "
+            "closed (exit 1) when the prompt is stale, unverifiable, or has "
+            "no provenance. Runs no wizard session."
+        ),
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.verify_prompt is not None:
+        fresh, message = verify_prompt_provenance(args.verify_prompt)
+        print(message, file=sys.stdout if fresh else sys.stderr)
+        return 0 if fresh else 1
     try:
         if HAVE_PROMPT_TOOLKIT:
             result = run_wizard_pt(

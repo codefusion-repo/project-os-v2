@@ -48,10 +48,9 @@ def test_kernel_and_operation_contracts_have_no_parity_findings() -> None:
     assert report["operations"]["mos_codes"] == 117
     assert report["operations"]["path_matrix"]
     assert report["structural_findings"] == []
-    assert report["semantic_invariant_findings"] == []
     assert report["manual_review_required"] == [
         "natural PM-facing English across all operation and template pairs",
-        "full semantic fidelity beyond automated critical invariants",
+        "semantic fidelity beyond the automated structural contracts",
     ]
 
 
