@@ -94,6 +94,18 @@ level.
 
 {{Follow-ups or none.}}
 
+## Correction report (only when correcting a reviewed PR)
+
+{{Publish as an append-only comment on the PR, without editing the body or any
+prior comment or review.}}
+
+- Source review or comment: {{exact reference to the review or comment}}
+- Previous head: {{reviewed sha}}
+- Corrected head: {{new sha}}
+- Findings addressed: {{each blocking-correction with the change and its outcome}}
+- Commits or range: {{reference}}
+- No merge or close: {{confirmation that no merge or close happened}}
+
 <!-- context-receipt:pm-facing-conditional -->
 ## Source receipt
 

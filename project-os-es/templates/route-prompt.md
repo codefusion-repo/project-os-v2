@@ -45,9 +45,18 @@ con un placeholder durable.
 
 `CHANGE_CLASS` declara la clase del contrato `proportionality.change_class`
 del kernel. El agente receptor la pasa al resolver (`--change-class`), que
-falla cerrado cuando la clase es desconocida o incompatible con el workflow, y
-usa la densidad contractual de la clase cuando `HYDRATION_LEVEL` no se declara.
-La clase nunca autoriza nada.
+falla cerrado cuando la clase es desconocida o incompatible con el workflow o el
+mode, y usa la densidad contractual de la clase cuando `HYDRATION_LEVEL` no se
+declara; un `HYDRATION_LEVEL` explícito puede mantener o elevar esa densidad,
+nunca reducirla. La clase pertenece a la unidad y se conserva en intake,
+implementación, review, closeout y verificación. La clase nunca autoriza nada.
+
+Cuando el route prompt corrige un PR ya revisado (MOS-3.5), el bloque agrega
+`SOURCE_REVIEW` con la referencia exacta al review o comentario fuente y
+`PR_NUMBER`; la instrucción final exige publicar exactamente un correction
+report append-only en ese PR con head anterior, head corregido, mapa de
+`blocking-correction` y confirmación de que no hubo merge ni cierre, sin editar
+el body ni ningún comentario previo.
 
 Al draftear, lee la unidad viva y sus registros (el issue o PR y sus
 comentarios cuando el target usa GitHub; la evidencia viva equivalente cuando

@@ -28,15 +28,17 @@ según el trabajo. La recomendación es advisory, no autoriza nada y el feedback
 explícito del PM puede reemplazarla.
 
 **Variables**
-- Requeridas: — (ninguna)
+- Requeridas: CHANGE_CLASS
 - Opcionales: WORK_UNIT, ROADMAP_ISSUE, OPTIONAL_SKILL, HYDRATION_LEVEL,
   PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (la unidad, el skill, el nivel, el
   feedback y la pregunta del PM son contexto; nunca autorizan nada).
-  `HYDRATION_LEVEL` acepta `minimal`, `compact` (valor predeterminado) o
-  `full/debug`; controla el contenido hidratado del resolver y aplica la
-  visibilidad PM-facing contractual del recibo sin alterar el recibo interno ni
-  `context_plan`. El wizard pide `PM_AUTHORIZATION_STATUS` de forma requerida y
-  precarga `HYDRATION_LEVEL=compact` antes de generar este route-prompt.
+  `CHANGE_CLASS` declara la clase del contrato `proportionality.change_class`.
+  `HYDRATION_LEVEL` acepta `minimal`, `compact` o `full/debug`; controla el
+  contenido hidratado del resolver y aplica la visibilidad PM-facing contractual
+  del recibo sin alterar el recibo interno ni `context_plan`. El wizard pide
+  `PM_AUTHORIZATION_STATUS` de forma requerida y precarga `HYDRATION_LEVEL` con la
+  densidad contractual de la `CHANGE_CLASS` declarada (`full/debug` para
+  `change_class.critical`), nunca por debajo.
 
 **Contrato de autorización:** El browser chat solo draftea y nunca puede
 autoasignar, completar, cambiar ni inferir `granted`. Un route prompt en draft,

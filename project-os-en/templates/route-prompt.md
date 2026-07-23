@@ -46,8 +46,18 @@ placeholder.
 `CHANGE_CLASS` declares one class from the kernel's
 `proportionality.change_class` contract. The receiving agent passes it to the
 resolver (`--change-class`), which fails closed when the class is unknown or
-incompatible with the workflow and uses the class's contractual density when
-`HYDRATION_LEVEL` is not declared. The class never authorizes anything.
+incompatible with the workflow or mode and uses the class's contractual density
+when `HYDRATION_LEVEL` is not declared; an explicit `HYDRATION_LEVEL` may keep or
+raise that density, never reduce it. The class belongs to the unit and is
+preserved across intake, implementation, review, closeout, and verification. The
+class never authorizes anything.
+
+When the route prompt corrects an already-reviewed PR (MOS-3.5), the block adds
+`SOURCE_REVIEW` with the exact reference to the source review or comment and
+`PR_NUMBER`; the final instruction requires publishing exactly one append-only
+correction report on that PR with the previous head, the corrected head, the
+`blocking-correction` map, and confirmation that no merge or close happened,
+without editing the body or any prior comment.
 
 When drafting, read the live unit and its records (the issue or PR and its
 comments when the target uses GitHub; the equivalent live evidence when it

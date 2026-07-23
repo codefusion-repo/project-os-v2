@@ -15,11 +15,14 @@ disposition, and on a GO verdict deliver the closeout in the same response.
 evidence leads. Read findings by intent: the material breach is binding, the
 proposed solution is advisory. Classify every finding as `blocking-correction`,
 `non-blocking-follow-up`, `preference`, `accepted-risk`, or `invalid-finding`;
-only `blocking-correction` returns to correction. On GO, draft the complete
-closeout bundle and its final read-only verification in the same response. If
-that bundle is lost, becomes stale, or the closure fails, run this operation
-again over the current evidence to regenerate it; a later independent
-verification uses MOS-3.27.
+only `blocking-correction` returns to correction via MOS-3.5. Every correction
+of this PR is recorded as an append-only correction report —source review,
+previous head, corrected head, findings addressed, and validation— without
+editing the body or prior comments, and feeds a new MOS-3.7 over the corrected
+head. On GO, draft the complete closeout bundle and its final read-only
+verification in the same response. If that bundle is lost, becomes stale, or the
+closure fails, run this operation again over the current evidence to regenerate
+it; a later independent postcondition verification uses MOS-3.27.
 
 **Variables**
 - Required: PR_NUMBER

@@ -22,5 +22,5 @@ scope; the live source stays referenced, not copied.
 
 **Deliver:** output.pm_command_bundle. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.7, MOS-3.13, MOS-3.25, MOS-3.26 or MOS-3.31.
+**Connections:** Previous: MOS-3.7, MOS-3.14, MOS-3.25 or MOS-3.31.
 Next: MOS-3.4 when prioritized. Recommended: MOS-3.4.

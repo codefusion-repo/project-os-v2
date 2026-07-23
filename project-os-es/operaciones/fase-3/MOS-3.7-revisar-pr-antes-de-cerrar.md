@@ -16,11 +16,14 @@ evidence leads. Los findings se leen por intención: el incumplimiento material
 es vinculante, la propuesta de solución es advisory. Clasifica cada hallazgo
 como `blocking-correction`, `non-blocking-follow-up`, `preference`,
 `accepted-risk` o `invalid-finding`; solo `blocking-correction` vuelve a
-corrección. Con GO, draftea en la misma respuesta el bundle completo de
-closeout y su verificación final read-only. Si ese bundle se pierde, queda
-obsoleto o el cierre falla, vuelve a ejecutar esta operación sobre la
-evidencia vigente para regenerarlo; una verificación posterior independiente
-usa MOS-3.27.
+corrección por MOS-3.5. Toda corrección de este PR se registra como un
+correction report append-only —review fuente, head anterior, head corregido,
+findings abordados y validación— sin editar el body ni comentarios previos, y
+alimenta un nuevo MOS-3.7 sobre el head corregido. Con GO, draftea en la misma
+respuesta el bundle completo de closeout y su verificación final read-only. Si
+ese bundle se pierde, queda obsoleto o el cierre falla, vuelve a ejecutar esta
+operación sobre la evidencia vigente para regenerarlo; una verificación
+posterior independiente de postcondiciones usa MOS-3.27.
 
 **Variables**
 - Requeridas: PR_NUMBER

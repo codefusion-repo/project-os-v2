@@ -94,6 +94,18 @@ en todos los niveles.
 
 {{Follow-ups o ninguno.}}
 
+## Correction report (solo al corregir un PR revisado)
+
+{{Publicar como comentario append-only en el PR, sin editar el body ni ningun
+comentario o review previo.}}
+
+- Review o comentario fuente: {{referencia exacta al review o comentario}}
+- Head anterior: {{sha revisado}}
+- Head corregido: {{sha nuevo}}
+- Findings abordados: {{cada blocking-correction con el cambio y su resultado}}
+- Commits o rango: {{referencia}}
+- Sin merge ni cierre: {{confirmacion de que no hubo merge ni cierre}}
+
 <!-- context-receipt:pm-facing-conditional -->
 ## Recibo de fuentes
 

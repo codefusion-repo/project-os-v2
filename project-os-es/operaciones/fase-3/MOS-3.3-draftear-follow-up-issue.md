@@ -22,5 +22,5 @@ fuente viva queda referenciada, no copiada.
 
 **Entrega:** output.pm_command_bundle. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-3.7, MOS-3.13, MOS-3.25, MOS-3.26 o MOS-3.31.
+**Conexiones:** Antes: MOS-3.7, MOS-3.14, MOS-3.25 o MOS-3.31.
 Después: MOS-3.4 cuando se priorice. Recomendada: MOS-3.4.
