@@ -52,7 +52,7 @@
         "workflow.pm_intake"
       ],
       "output_key": "output.draft_issue",
-      "responsabilidad": "Draftear un issue verificable con una sola outcome y validacion proporcional.",
+      "responsabilidad": "Draftear un issue verificable con un solo resultado y validacion proporcional.",
       "required_template": "project-os-es/templates/issue.md",
       "active": true
     },

@@ -1,6 +1,6 @@
 # Issue
 
-Responsabilidad: draftear una unidad de trabajo verificable, una outcome por
+Responsabilidad: draftear una unidad de trabajo verificable, un resultado por
 issue.
 
 Interpretación: el ejecutor lee la unidad por intención según
