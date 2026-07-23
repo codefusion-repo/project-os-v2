@@ -103,6 +103,10 @@ ACTION_EQUIVALENCE = {
     "mutar secret stores": "mutate secret stores",
     "mutar el target remoto": "mutate the remote target",
     "otra mutacion del target remoto": "perform another remote-target mutation",
+    "publicar exactamente un comentario append-only de correction report en el PR de la unidad cuando la unidad corrige un PR revisado": "publish exactly one append-only correction-report comment on the unit's PR when the unit corrects a reviewed PR",
+    "editar el body del PR": "edit the PR body",
+    "editar o reemplazar comentarios o reviews previos": "edit or replace prior comments or reviews",
+    "publicar cualquier otro comentario o mutar el target remoto de otro modo": "publish any other comment or otherwise mutate the remote target",
 }
 
 PHASE_EQUIVALENCE = {

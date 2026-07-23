@@ -18,6 +18,7 @@ def test_principal_resolver_defaults_to_the_active_spanish_kernel() -> None:
         "actor.terminal_agent",
         "workflow.issue_implementation",
         "mode.delegated_commit_pr",
+        change_class="change_class.standard",
     )
 
     assert DEFAULT_KERNEL_DIR == REPO_ROOT / "project-os-es" / "kernel"
@@ -53,6 +54,7 @@ def test_explicit_active_kernel_hydrates_artifact_and_template_references() -> N
         "mode.delegated_commit_pr",
         kernel_dir=REPO_ROOT / "project-os-es/kernel",
         skill="skill.desarrollo_frontend",
+        change_class="change_class.standard",
     )
 
     assert result["estado"] == "status.resolved"

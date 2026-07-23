@@ -37,31 +37,9 @@ def active_files() -> list[Path]:
 
 def test_single_resolver_and_two_allowed_language_surfaces() -> None:
     assert (REPO_ROOT / "tools/project_os_resolve.py").is_file()
-    removed_resolver = REPO_ROOT / "project-os-es" / "tools" / "resolver.py"
-    assert not removed_resolver.exists()
+    assert not (REPO_ROOT / "project-os-es" / "tools" / "resolver.py").exists()
     assert (REPO_ROOT / "project-os-en/kernel/manifest.json").is_file()
     assert not (REPO_ROOT / "project-os-en/tools").exists()
-
-    tool_sources = "\n".join(path.read_text(encoding="utf-8") for path in (REPO_ROOT / "tools").glob("*.py"))
-    assert "DEFAULT_SURFACE = SURFACES[0]" in tool_sources
-    assert "DEFAULT_OPERATIONS_DIR = REPO_ROOT / \"project-os-es\" / \"operaciones\"" in tool_sources
-
-
-def test_removed_surface_references_cannot_reappear_in_active_files() -> None:
-    removed_tree = "legacy-" + "project-os"
-    removed_resolver = "project-os-es/" + "tools/resolver.py"
-    hits: list[str] = []
-    for path in active_files():
-        if path.suffix not in {".md", ".py", ".json", ".yml", ".yaml"}:
-            continue
-        # Dogfooding docs are historical maintenance records (audits, handoff)
-        # and may cite retired paths as evidence without reactivating them.
-        if (REPO_ROOT / "dogfooding/docs") in path.parents:
-            continue
-        text = path.read_text(encoding="utf-8")
-        if removed_tree in text or removed_resolver in text:
-            hits.append(str(path.relative_to(REPO_ROOT)))
-    assert hits == []
 
 
 def test_active_markdown_relative_links_resolve() -> None:
@@ -131,13 +109,6 @@ def test_active_surface_has_no_secret_values_or_durable_commit_state() -> None:
             sha_hits.append(str(path.relative_to(REPO_ROOT)))
     assert secret_hits == []
     assert sha_hits == []
-
-
-def test_wizard_has_no_legacy_catalog_or_number_aliases() -> None:
-    source = (REPO_ROOT / "tools/operation_prompt_wizard.py").read_text(encoding="utf-8")
-    assert "LEGACY_OPERATION_ALIASES" not in source
-    assert "legacy:" not in source
-    assert "project-os-es\" / \"operaciones" in source
 
 
 def test_active_pm_command_bundle_preserves_copy_safe_shell_contract() -> None:

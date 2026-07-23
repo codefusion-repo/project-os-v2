@@ -42,6 +42,8 @@ except ModuleNotFoundError:  # Direct ``python dogfooding/tools/measure_resoluti
 DEFAULT_ACTOR = "actor.terminal_agent"
 DEFAULT_WORKFLOW = "workflow.issue_implementation"
 DEFAULT_MODE = "mode.delegated_commit_pr"
+# A mutating workflow must declare a class; critical is the heaviest resolution.
+DEFAULT_CHANGE_CLASS = "change_class.critical"
 
 # PM-reported prior baseline for manual manifest/kernel resolution (~26 KB).
 # Overridable so the comparison stays reproducible as the kernel evolves.
@@ -104,6 +106,7 @@ def measure(
     mode_id: str = DEFAULT_MODE,
     kernel_dir: Path | str | None = None,
     baseline_bytes: int = DEFAULT_BASELINE_BYTES,
+    change_class: str | None = DEFAULT_CHANGE_CLASS,
 ) -> dict[str, Any]:
     """Measure the resolution paths against the live kernel and conclude.
 
@@ -118,7 +121,7 @@ def measure(
         "core for offline manual resolution); not created here."
     )
 
-    result = resolve(actor_id, workflow_id, mode_id, kernel_dir=kernel_dir)
+    result = resolve(actor_id, workflow_id, mode_id, kernel_dir=kernel_dir, change_class=change_class)
     if result["estado"] != "status.resolved":
         fast_path: dict[str, Any] = {"status": "error", "errors": result["errores"]}
         comparison: dict[str, Any] = {}
@@ -234,6 +237,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--actor", default=DEFAULT_ACTOR)
     parser.add_argument("--workflow", default=DEFAULT_WORKFLOW)
     parser.add_argument("--mode", default=DEFAULT_MODE)
+    parser.add_argument("--change-class", default=DEFAULT_CHANGE_CLASS)
     parser.add_argument("--kernel-dir", default=None, help="Path to kernel/ (default: ./project-os-es/kernel)")
     parser.add_argument(
         "--baseline-bytes",
@@ -251,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
             mode_id=args.mode,
             kernel_dir=args.kernel_dir,
             baseline_bytes=args.baseline_bytes,
+            change_class=args.change_class,
         )
     except Exception as exc:  # fail closed on unexpected tooling errors
         print(f"tooling error: {exc}", file=sys.stderr)

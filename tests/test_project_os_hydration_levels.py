@@ -22,10 +22,13 @@ from tools.project_os_resolve import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ES_KERNEL = REPO_ROOT / "project-os-es/kernel"
 EN_KERNEL = REPO_ROOT / "project-os-en/kernel"
+# A non-mutating workflow keeps these generic hydration-projection guards free of
+# a declared change class; mutation + class coverage lives in
+# test_proportional_resolution.py.
 SELECTOR = {
     "actor_id": "actor.terminal_agent",
-    "workflow_id": "workflow.issue_implementation",
-    "mode_id": "mode.delegated_commit_pr",
+    "workflow_id": "workflow.review_before_close",
+    "mode_id": "mode.review_only",
 }
 LEVELS = ("minimal", "compact", "full/debug")
 SAFETY_LIMITS = {

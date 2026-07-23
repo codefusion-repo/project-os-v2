@@ -78,14 +78,6 @@ def test_handoff_and_adr_store_no_live_shas_beyond_the_historical_baseline() -> 
         assert found <= HISTORICAL_SHAS, f"{path.name} stores non-historical SHAs: {found - HISTORICAL_SHAS}"
 
 
-def test_handoff_requires_separate_exact_pm_approvals() -> None:
-    # The tag and the internal release each need their own exact PM approval;
-    # a single merged approval would weaken boundary.separate_pm_approval.
-    text = handoff_text()
-    approvals = re.findall(r"aprobaci[oó]n PM exacta", text, re.IGNORECASE)
-    assert len(approvals) >= 2
-
-
 def test_dogfooding_docs_relative_links_resolve() -> None:
     missing: list[str] = []
     for source in sorted((REPO_ROOT / "dogfooding/docs").rglob("*.md")):

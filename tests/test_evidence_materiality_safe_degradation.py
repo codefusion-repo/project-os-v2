@@ -133,6 +133,7 @@ def test_partial_draft_can_degrade_but_issue_implementation_cannot() -> None:
         "actor.terminal_agent",
         "workflow.issue_implementation",
         "mode.delegated_commit_pr",
+        change_class="change_class.standard",
     )["resuelto"]["workflow"]
 
     assert "evidence.auxiliary_context" in {item["key"] for item in draft["required_evidence"]}

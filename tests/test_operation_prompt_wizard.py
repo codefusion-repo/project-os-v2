@@ -207,6 +207,7 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
     operations = discover_operations()
     expected_variables = {
         "MOS-3.4": [
+            ("CHANGE_CLASS", True),
             ("WORK_UNIT", False),
             ("ROADMAP_ISSUE", False),
             ("OPTIONAL_SKILL", False),
@@ -216,7 +217,9 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
         ],
         "MOS-3.5": [
             ("WORK_UNIT", True),
-            ("PR_NUMBER", False),
+            ("SOURCE_REVIEW", True),
+            ("PR_NUMBER", True),
+            ("CHANGE_CLASS", True),
             ("OPTIONAL_SKILL", False),
             (HYDRATION_LEVEL_NAME, False),
             ("PM_FEEDBACK_HUMANO", False),
@@ -509,7 +512,7 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
             "",
             "/phases",
             "MOS-3.5",
-            "405", "", "none", "", "", "", "1",
+            "405", "#5054784601", "463", "change_class.standard", "none", "", "", "", "1",
             "write", "exit",
         ),
         output_stream=stream,
@@ -539,7 +542,7 @@ def test_line_wizard_active_mos34_generates_granted_route_prompt(tmp_path: Path)
         input_func=answers(
             "es",
             "MOS-3.4",
-            "405", "274", "skill.arquitectura_backend", "", "", "", "2",
+            "change_class.standard", "405", "274", "skill.arquitectura_backend", "", "", "", "2",
             "write", "exit",
         ),
         output_stream=stream,
@@ -1046,7 +1049,7 @@ def test_language_question_is_asked_once_per_session(tmp_path: Path) -> None:
         (
             "",
             "MOS-3.5",
-            "405", "", "none", "", "", "", "1",
+            "405", "#5054784601", "463", "change_class.standard", "none", "", "", "", "1",
             "write",
             "new",
             "cancel",
@@ -1072,7 +1075,7 @@ def test_english_language_loads_coherent_english_bundle(tmp_path: Path) -> None:
     output = run_wizard(
         language="en",
         output_dir=tmp_path,
-        input_func=answers("MOS-3.5", "405", "", "none", "", "", "", "1", "write", "exit"),
+        input_func=answers("MOS-3.5", "405", "#5054784601", "463", "change_class.standard", "none", "", "", "", "1", "write", "exit"),
         output_stream=stream,
     )
 
@@ -1162,21 +1165,34 @@ def test_provenance_repository_identity_is_sanitized_and_never_leaks_credentials
     assert "://" not in identity
 
 
-def test_custom_catalog_provenance_never_persists_absolute_paths(tmp_path: Path) -> None:
-    write_spanish_operation(tmp_path / "catalog" / "MOS-9.9-custom.md", "MOS-9.9", "Custom")
-    operation = discover_operations(tmp_path / "catalog")[0]
+def test_custom_catalog_provenance_verifies_against_an_explicit_root_without_absolute_paths(
+    tmp_path: Path,
+) -> None:
+    catalog = tmp_path / "catalog"
+    source = catalog / "MOS-9.9-custom.md"
+    write_spanish_operation(source, "MOS-9.9", "Custom")
+    operation = discover_operations(catalog)[0]
     rendered = render_prompt(operation, {})
     written = write_prompt(tmp_path / "prompt.md", rendered, operation=operation)
     content = written.read_text(encoding="utf-8")
 
+    # Only the basename is persisted; no machine-local absolute path leaks.
     assert "operation_path: custom:MOS-9.9-custom.md" in content
     assert str(tmp_path) not in content
 
     from tools.operation_prompt_wizard import verify_prompt_provenance
 
-    fresh, message = verify_prompt_provenance(written)
-    assert fresh is False
-    assert "custom-catalog" in message
+    # Without a catalog root the check fails closed rather than pretending fresh.
+    no_root, message = verify_prompt_provenance(written)
+    assert no_root is False and "custom-catalog" in message
+
+    # With the live catalog root supplied at verify time, custom is verifiable.
+    fresh, _ = verify_prompt_provenance(written, catalog_root=catalog)
+    assert fresh is True
+
+    source.write_text(source.read_text(encoding="utf-8") + "\nchanged\n", encoding="utf-8")
+    stale, stale_message = verify_prompt_provenance(written, catalog_root=catalog)
+    assert stale is False and "stale" in stale_message
 
 
 def test_verify_prompt_provenance_passes_fresh_and_fails_closed_on_staleness(tmp_path: Path) -> None:

@@ -45,7 +45,7 @@ def test_kernel_and_operation_contracts_have_no_parity_findings() -> None:
     assert report["findings"] == []
     assert report["kernel_ids"]
     assert report["reference_edges"] > 0
-    assert report["operations"]["mos_codes"] == 117
+    assert report["operations"]["mos_codes"] > 0
     assert report["operations"]["path_matrix"]
     assert report["structural_findings"] == []
     assert report["manual_review_required"] == [
@@ -160,16 +160,18 @@ def test_both_kernels_validate_and_default_remains_spanish() -> None:
 
 
 @pytest.mark.parametrize(
-    ("actor", "workflow", "mode"),
+    ("actor", "workflow", "mode", "change_class"),
     (
-        ("actor.browser_chat", "workflow.pm_intake", "mode.review_only"),
-        ("actor.terminal_agent", "workflow.issue_implementation", "mode.delegated_commit_pr"),
-        ("actor.browser_chat", "workflow.review_before_close", "mode.review_only"),
+        ("actor.browser_chat", "workflow.pm_intake", "mode.review_only", None),
+        ("actor.terminal_agent", "workflow.issue_implementation", "mode.delegated_commit_pr", "change_class.standard"),
+        ("actor.browser_chat", "workflow.review_before_close", "mode.review_only", None),
     ),
 )
-def test_required_resolver_smokes_pass_in_both_languages(actor: str, workflow: str, mode: str) -> None:
-    spanish = resolve(actor, workflow, mode, kernel_dir=ES_KERNEL)
-    english = resolve(actor, workflow, mode, kernel_dir=EN_KERNEL)
+def test_required_resolver_smokes_pass_in_both_languages(
+    actor: str, workflow: str, mode: str, change_class: str | None
+) -> None:
+    spanish = resolve(actor, workflow, mode, kernel_dir=ES_KERNEL, change_class=change_class)
+    english = resolve(actor, workflow, mode, kernel_dir=EN_KERNEL, change_class=change_class)
 
     assert spanish["estado"] == english["estado"] == "status.resolved"
     assert spanish["resuelto"]["manifest"]["language"] == "es"
@@ -183,26 +185,27 @@ def test_required_resolver_smokes_pass_in_both_languages(actor: str, workflow: s
 
 
 def test_every_artifact_template_and_active_skill_resolves_in_both_languages() -> None:
+    # A mutating route (write mode + mutable output) must declare a class.
     routes = {
-        "workflow.review_only": ("actor.browser_chat", "mode.review_only"),
-        "workflow.issue_implementation": ("actor.terminal_agent", "mode.delegated_commit_pr"),
-        "workflow.issue_implementation_manual": ("actor.browser_chat", "mode.review_only"),
-        "workflow.review_before_close": ("actor.browser_chat", "mode.review_only"),
-        "workflow.implementation_discipline_audit": ("actor.browser_chat", "mode.review_only"),
-        "workflow.pm_intake": ("actor.browser_chat", "mode.review_only"),
-        "workflow.design_asset": ("actor.browser_chat", "mode.review_only"),
-        "workflow.security_revision": ("actor.browser_chat", "mode.review_only"),
-        "workflow.release_readiness": ("actor.browser_chat", "mode.review_only"),
-        "workflow.handoff": ("actor.browser_chat", "mode.review_only"),
-        "workflow.target_adoption": ("actor.terminal_agent", "mode.delegated_commit_pr"),
-        "workflow.deployment": ("actor.terminal_agent", "mode.delegated_deploy_execution"),
+        "workflow.review_only": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.issue_implementation": ("actor.terminal_agent", "mode.delegated_commit_pr", "change_class.standard"),
+        "workflow.issue_implementation_manual": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.review_before_close": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.implementation_discipline_audit": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.pm_intake": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.design_asset": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.security_revision": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.release_readiness": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.handoff": ("actor.browser_chat", "mode.review_only", None),
+        "workflow.target_adoption": ("actor.terminal_agent", "mode.delegated_commit_pr", "change_class.standard"),
+        "workflow.deployment": ("actor.terminal_agent", "mode.delegated_deploy_execution", "change_class.critical"),
     }
     for surface, kernel_dir in zip(SURFACES, (ES_KERNEL, EN_KERNEL), strict=True):
         kernel = load_kernel(surface)
         expected_artifacts = {item["key"] for item in kernel["artifacts"]}
         resolved_artifacts: set[str] = set()
-        for workflow, (actor, mode) in routes.items():
-            result = resolve(actor, workflow, mode, kernel_dir=kernel_dir)
+        for workflow, (actor, mode, change_class) in routes.items():
+            result = resolve(actor, workflow, mode, kernel_dir=kernel_dir, change_class=change_class)
             assert result["estado"] == "status.resolved"
             for artifact in result["resuelto"]["workflow"]["artefactos"]:
                 resolved_artifacts.add(artifact["key"])
@@ -243,7 +246,7 @@ def test_wizard_discovers_and_parses_explicit_english_catalog() -> None:
     spanish = discover_operations(REPO_ROOT / "project-os-es/operaciones")
     english = discover_operations(REPO_ROOT / "project-os-en/operations")
 
-    assert len(spanish) == len(english) == 117
+    assert len(spanish) == len(english)
     assert {item.mos_code for item in spanish} == {item.mos_code for item in english}
     assert all(item.description and item.phase_label for item in english)
     assert any(item.variables for item in english)

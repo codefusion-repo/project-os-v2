@@ -262,6 +262,7 @@ def test_target_adoption_resolves_browser_draft_and_terminal_write_stages(kernel
         "workflow.target_adoption",
         "mode.delegated_commit_pr",
         kernel_dir=kernel_dir,
+        change_class="change_class.standard",
     )
     assert write["estado"] == "status.resolved"
     write_outputs = {o["key"] for o in write["resuelto"]["workflow"]["allowed_outputs"]}
