@@ -1,4 +1,85 @@
 {
+  "proportionality_contract": {
+    "key": "proportionality.change_class",
+    "classes": [
+      {
+        "key": "change_class.read",
+        "criteria": "reading, analysis, audits, or drafts without mutating files, the repository, or the target",
+        "formal_unit_required": false,
+        "unit_representations": [],
+        "pr_required": false,
+        "review_level": "review.none",
+        "validation_level": "validation.direct_evidence",
+        "output_density": "minimal",
+        "prior_docs": "none",
+        "allowed_workflows": [
+          "workflow.review_only",
+          "workflow.issue_implementation_manual",
+          "workflow.review_before_close",
+          "workflow.implementation_discipline_audit",
+          "workflow.pm_intake",
+          "workflow.design_asset",
+          "workflow.security_revision",
+          "workflow.release_readiness",
+          "workflow.handoff"
+        ]
+      },
+      {
+        "key": "change_class.small",
+        "criteria": "bounded, reversible, non-sensitive mutation with an immediately observable result and no critical surfaces",
+        "formal_unit_required": false,
+        "unit_representations": [
+          "source.live_pm_decision",
+          "source.live_work_unit",
+          "source.live_change_request"
+        ],
+        "pr_required": false,
+        "review_level": "review.proportional",
+        "validation_level": "validation.minimal_sufficient",
+        "output_density": "minimal",
+        "prior_docs": "none",
+        "allowed_workflows": [
+          "workflow.issue_implementation",
+          "workflow.target_adoption"
+        ]
+      },
+      {
+        "key": "change_class.standard",
+        "criteria": "multi-scope or internal-contract mutation, reversible with effort and without critical surfaces",
+        "formal_unit_required": true,
+        "unit_representations": [
+          "source.live_work_unit",
+          "source.live_change_request"
+        ],
+        "pr_required": true,
+        "review_level": "review.proportional",
+        "validation_level": "validation.proportional",
+        "output_density": "compact",
+        "prior_docs": "conditional",
+        "allowed_workflows": [
+          "workflow.issue_implementation",
+          "workflow.target_adoption"
+        ]
+      },
+      {
+        "key": "change_class.critical",
+        "criteria": "kernel, authorization, security, privacy, auth, payments, migrations, storage, deployment, releases, public contracts, or hard-to-revert architecture",
+        "formal_unit_required": true,
+        "unit_representations": [
+          "source.live_work_unit"
+        ],
+        "pr_required": true,
+        "review_level": "review.independent",
+        "validation_level": "validation.broad",
+        "output_density": "full/debug",
+        "prior_docs": "expected",
+        "allowed_workflows": [
+          "workflow.issue_implementation",
+          "workflow.deployment"
+        ]
+      }
+    ]
+  },
   "workflows": [
     {
       "key": "workflow.review_only",

@@ -3,12 +3,57 @@
 Responsabilidad: reportar trabajo ejecutado, evidencia y validacion sin pedir
 merge/cierre.
 
-Presentación PM-facing: aplica `context_receipt_contract.pm_facing_visibility`
-al bloque marcado; conserva siempre el recibo interno íntegro. La densidad
-PM-facing sigue `context_receipt_contract.pm_facing_density` según el nivel de
-hidratación: `minimal` reporta resultado, archivos o superficie, validación y
-referencia; `compact` reporta scope, cambios, validación y riesgos; `full/debug`
-usa el contrato completo de abajo con el recibo visible.
+Densidad PM-facing: el resolver proyecta como `must_include` exactamente la
+lista de `output.execution_report.must_include_by_density` para el nivel de
+hidratación resuelto. Usa solo el bloque del nivel resuelto; no combines
+niveles. La visibilidad del recibo sigue
+`context_receipt_contract.pm_facing_visibility` (`minimal` y `compact` lo
+ocultan; `full/debug` lo muestra); conserva siempre el recibo interno íntegro
+en todos los niveles.
+
+## Nivel minimal
+
+```markdown
+## Resultado
+
+{{Que quedo hecho, en 1-3 lineas.}}
+
+## Archivos o superficie
+
+- {{Rutas exactas o superficie tocada.}}
+
+## Validacion
+
+- `{{comando}}` - {{resultado real}}
+
+## Referencia
+
+{{Unidad viva, commit o PR.}}
+```
+
+## Nivel compact
+
+```markdown
+## Scope
+
+{{Scope implementado y out of scope respetado, en 2-4 lineas.}}
+
+## Cambios
+
+- {{Cambios materiales con rutas exactas.}}
+
+## Validacion
+
+- `{{comando}}` - {{resultado real}}
+- No ejecutada: {{razon si aplica}}
+- Manual PM requerida: {{si aplica}}
+
+## Riesgos
+
+{{Riesgos restantes y excepciones aceptadas, o ninguno.}}
+```
+
+## Nivel full/debug
 
 ```markdown
 ## Issue o PR

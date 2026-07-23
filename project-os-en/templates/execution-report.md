@@ -3,12 +3,57 @@
 Responsibility: report executed work, evidence and validation without asking
 merge/close.
 
-PM-facing presentation: apply `context_receipt_contract.pm_facing_visibility`
-to the marked block; always keep the internal receipt intact. PM-facing
-density follows `context_receipt_contract.pm_facing_density` by hydration
-level: `minimal` reports result, files or surface, validation, and reference;
-`compact` reports scope, changes, validation, and risks; `full/debug` uses the
-full contract below with the receipt visible.
+PM-facing density: the resolver projects as `must_include` exactly the
+`output.execution_report.must_include_by_density` list for the resolved
+hydration level. Use only the block for the resolved level; never combine
+levels. Receipt visibility follows
+`context_receipt_contract.pm_facing_visibility` (`minimal` and `compact` hide
+it; `full/debug` shows it); always keep the internal receipt intact at every
+level.
+
+## Minimal level
+
+```markdown
+## Result
+
+{{What got done, in 1-3 lines.}}
+
+## Files or surface
+
+- {{Exact routes or touched surface.}}
+
+## Validation
+
+- `{{command}}` - {{actual result}}
+
+## Reference
+
+{{Live work unit, commit, or PR.}}
+```
+
+## Compact level
+
+```markdown
+## Scope
+
+{{Implemented scope and respected out of scope, in 2-4 lines.}}
+
+## Changes
+
+- {{Material changes with exact routes.}}
+
+## Validation
+
+- `{{command}}` - {{actual result}}
+- Not executed: {{reason if applicable}}
+- Manual PM required: {{if applicable}}
+
+## Risks
+
+{{Remaining risks and accepted exceptions, or none.}}
+```
+
+## Full/debug level
 
 ```markdown
 ## Issue or PR

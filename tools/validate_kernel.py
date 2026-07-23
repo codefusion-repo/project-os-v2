@@ -139,17 +139,28 @@ CONTEXT_RECEIPT_CONTRACT = {
         "compact": "hidden",
         "full/debug": "full",
     },
-    "pm_facing_density": {
-        "minimal": ["result", "files_or_surface", "validation", "reference"],
-        "compact": ["scope", "changes", "validation", "risks"],
-        "full/debug": "full_output_contract_with_visible_receipt",
-    },
     "output_placement": "output_envelope",
     "stores_source_bodies": False,
     "stores_secret_values": False,
     "stores_durable_live_state": False,
     "resolver_external_access": False,
 }
+HYDRATION_LEVELS = ["minimal", "compact", "full/debug"]
+PROPORTIONALITY_KEY = "proportionality.change_class"
+CHANGE_CLASS_KEYS = [
+    "change_class.read",
+    "change_class.small",
+    "change_class.standard",
+    "change_class.critical",
+]
+CHANGE_CLASS_REVIEW_LEVELS = {"review.none", "review.proportional", "review.independent"}
+CHANGE_CLASS_VALIDATION_LEVELS = {
+    "validation.direct_evidence",
+    "validation.minimal_sufficient",
+    "validation.proportional",
+    "validation.broad",
+}
+CHANGE_CLASS_PRIOR_DOCS = {"none", "conditional", "expected"}
 SHA_PATTERN = re.compile(r"\b[0-9a-f]{40}\b")
 FORBIDDEN_KEYS = {"write_authorization_granted", "write_authorized", "permission_granted", "approval_granted"}
 
@@ -185,6 +196,7 @@ def _load(
         data[family] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
         contract_fields = {
             "evidence": ("materiality_contract",),
+            "workflows": ("proportionality_contract",),
             "outputs": ("safe_degradation_contract", "context_receipt_contract"),
         }.get(family, ())
         for contract_field in contract_fields:
@@ -362,6 +374,124 @@ def _check_materiality_schema(
             )
 
 
+def _check_proportionality_schema(
+    data: dict[str, Any],
+    surface: ProjectOSSurface,
+    indexes: dict[str, dict[str, dict[str, Any]]],
+    findings: list[Finding],
+) -> None:
+    """Validate the structured change-class contract the resolver enforces."""
+
+    workflow_file = surface.kernel_files["workflows"][0]
+    contract = data.get("proportionality_contract")
+    if not isinstance(contract, dict):
+        return  # _load already reported the missing object.
+    if contract.get("key") != PROPORTIONALITY_KEY:
+        findings.append(
+            Finding("KES-018", workflow_file, f"proportionality contract key must be {PROPORTIONALITY_KEY!r}")
+        )
+    classes = contract.get("classes")
+    if not isinstance(classes, list):
+        findings.append(Finding("KES-018", workflow_file, "proportionality classes must be a list"))
+        return
+    class_keys = [entry.get("key") for entry in classes if isinstance(entry, dict)]
+    if class_keys != CHANGE_CLASS_KEYS:
+        findings.append(
+            Finding("KES-018", workflow_file, f"change classes must be exactly {CHANGE_CLASS_KEYS}")
+        )
+    workflows = indexes["workflows"]
+    for entry in classes:
+        if not isinstance(entry, dict):
+            continue
+        key = entry.get("key")
+        if not isinstance(entry.get("criteria"), str) or not entry.get("criteria", "").strip():
+            findings.append(Finding("KES-018", workflow_file, f"{key!r} is missing criteria"))
+        for boolean_field in ("formal_unit_required", "pr_required"):
+            if not isinstance(entry.get(boolean_field), bool):
+                findings.append(Finding("KES-018", workflow_file, f"{key!r} is missing boolean {boolean_field!r}"))
+        representations = entry.get("unit_representations")
+        if not isinstance(representations, list) or not set(representations) <= set(SOURCE_CATALOG):
+            findings.append(Finding("KES-018", workflow_file, f"{key!r} has invalid unit_representations"))
+        if entry.get("review_level") not in CHANGE_CLASS_REVIEW_LEVELS:
+            findings.append(Finding("KES-018", workflow_file, f"{key!r} has unknown review_level"))
+        if entry.get("validation_level") not in CHANGE_CLASS_VALIDATION_LEVELS:
+            findings.append(Finding("KES-018", workflow_file, f"{key!r} has unknown validation_level"))
+        if entry.get("output_density") not in HYDRATION_LEVELS:
+            findings.append(Finding("KES-018", workflow_file, f"{key!r} has unknown output_density"))
+        if entry.get("prior_docs") not in CHANGE_CLASS_PRIOR_DOCS:
+            findings.append(Finding("KES-018", workflow_file, f"{key!r} has unknown prior_docs"))
+        allowed = entry.get("allowed_workflows")
+        if not isinstance(allowed, list) or not allowed or len(allowed) != len(set(allowed)):
+            findings.append(Finding("KES-018", workflow_file, f"{key!r} must declare unique allowed_workflows"))
+            continue
+        for workflow_key in allowed:
+            _check_reference(workflows, workflow_key, workflow_file, findings)
+    mutable_outputs = {
+        output.get("key")
+        for output in data["outputs"]
+        if output.get("action_class") == "action.mutable"
+    }
+    if mutable_outputs:
+        mutable_workflows = {
+            workflow_key
+            for output in data["outputs"]
+            if output.get("key") in mutable_outputs
+            for workflow_key in output.get("workflow_key", [])
+        }
+        classified = {
+            workflow_key
+            for entry in classes
+            if isinstance(entry, dict) and entry.get("key") != "change_class.read"
+            for workflow_key in entry.get("allowed_workflows", [])
+            if isinstance(workflow_key, str)
+        }
+        for workflow_key in sorted(mutable_workflows - classified):
+            findings.append(
+                Finding(
+                    "KES-018",
+                    workflow_file,
+                    f"mutable workflow {workflow_key!r} is not covered by any mutating change class",
+                )
+            )
+
+
+def _check_output_density_schema(
+    data: dict[str, Any],
+    surface: ProjectOSSurface,
+    findings: list[Finding],
+) -> None:
+    """Every output declares exactly one must-include source; density maps are complete."""
+
+    output_file = surface.kernel_files["outputs"][0]
+    for item in data["outputs"]:
+        key = item.get("key")
+        plain = item.get("must_include")
+        by_density = item.get("must_include_by_density")
+        if (plain is None) == (by_density is None):
+            findings.append(
+                Finding(
+                    "KES-019",
+                    output_file,
+                    f"{key!r} must declare exactly one of must_include or must_include_by_density",
+                )
+            )
+            continue
+        if plain is not None:
+            if not isinstance(plain, list) or not plain or not all(isinstance(field, str) and field for field in plain):
+                findings.append(Finding("KES-019", output_file, f"{key!r} must_include must be a non-empty string list"))
+            continue
+        if not isinstance(by_density, dict) or sorted(by_density) != sorted(HYDRATION_LEVELS):
+            findings.append(
+                Finding("KES-019", output_file, f"{key!r} must_include_by_density keys must be exactly {HYDRATION_LEVELS}")
+            )
+            continue
+        for level, fields in by_density.items():
+            if not isinstance(fields, list) or not fields or not all(isinstance(field, str) and field for field in fields):
+                findings.append(
+                    Finding("KES-019", output_file, f"{key!r} must_include_by_density[{level!r}] must be a non-empty string list")
+                )
+
+
 def _check_context_receipt_schema(
     data: dict[str, Any],
     surface: ProjectOSSurface,
@@ -420,8 +550,38 @@ def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[s
             "revalidation_required_before_write": item.get("revalidation_required_before_write"),
         }
 
+    def proportionality_projection(document: dict[str, Any]) -> Any:
+        contract = document.get("proportionality_contract")
+        if not isinstance(contract, dict):
+            return None
+        classes = contract.get("classes")
+        structural_fields = (
+            "key",
+            "formal_unit_required",
+            "unit_representations",
+            "pr_required",
+            "review_level",
+            "validation_level",
+            "output_density",
+            "prior_docs",
+            "allowed_workflows",
+        )
+        return {
+            "key": contract.get("key"),
+            "classes": [
+                {field: entry.get(field) for field in structural_fields}
+                for entry in (classes if isinstance(classes, list) else [])
+                if isinstance(entry, dict)
+            ],
+        }
+
+    def density_keys(item: dict[str, Any]) -> Any:
+        by_density = item.get("must_include_by_density")
+        return sorted(by_density) if isinstance(by_density, dict) else None
+
     return {
         "materiality_contract": evidence_doc.get("materiality_contract"),
+        "proportionality_contract": proportionality_projection(workflows_doc),
         "safe_degradation_contract": outputs_doc.get("safe_degradation_contract"),
         "context_receipt_contract": outputs_doc.get("context_receipt_contract"),
         "evidence": {
@@ -442,6 +602,7 @@ def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[s
                 "allows_non_material_gaps": item.get("allows_non_material_gaps"),
                 "safe_degradation_key": item.get("safe_degradation_key"),
                 "context_receipt_key": item.get("context_receipt_key"),
+                "must_include_by_density_keys": density_keys(item),
             }
             for item in active_items(outputs_doc, "outputs")
         },
@@ -676,6 +837,8 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     if set(statuses) != CANONICAL_STATUSES:
         findings.append(Finding("KES-010", "estados.json", f"statuses must be exactly {sorted(CANONICAL_STATUSES)}"))
     _check_materiality_schema(data, surface, indexes, findings)
+    _check_proportionality_schema(data, surface, indexes, findings)
+    _check_output_density_schema(data, surface, findings)
     _check_context_receipt_schema(data, surface, findings)
     _check_bilingual_new_schema_parity(directory, surface, findings)
     _check_operation_catalogs(directory, surface, findings)

@@ -51,21 +51,6 @@
       "compact": "hidden",
       "full/debug": "full"
     },
-    "pm_facing_density": {
-      "minimal": [
-        "result",
-        "files_or_surface",
-        "validation",
-        "reference"
-      ],
-      "compact": [
-        "scope",
-        "changes",
-        "validation",
-        "risks"
-      ],
-      "full/debug": "full_output_contract_with_visible_receipt"
-    },
     "output_placement": "output_envelope",
     "stores_source_bodies": false,
     "stores_secret_values": false,
@@ -100,23 +85,37 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "use_for": "report implementation work at the hydration level's PM-facing density (pm_facing_density); never claim completion without complete scope, respected out of scope, and reported validation",
+      "use_for": "report implementation work; the resolver projects as must_include exactly the must_include_by_density list for the resolved hydration level, and completion is never claimed without complete scope, respected out of scope, and reported validation",
       "status_key": "status.resolved",
       "action_class": "action.mutable",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
       "context_receipt_key": "context_receipt.minimum_read_surface",
-      "must_include": [
-        "work unit or PR",
-        "project or repository",
-        "branch",
-        "evidence reviewed",
-        "files changed",
-        "validation performed with results, validation not run with reason, and required manual PM validation",
-        "risks and limitations",
-        "commit or PR reference when applicable",
-        "remaining work"
-      ],
+      "must_include_by_density": {
+        "minimal": [
+          "result",
+          "files or surface",
+          "validation",
+          "live work unit, commit, or PR reference"
+        ],
+        "compact": [
+          "scope",
+          "changes",
+          "validation",
+          "risks"
+        ],
+        "full/debug": [
+          "work unit or PR",
+          "project or repository",
+          "branch",
+          "evidence reviewed",
+          "files changed",
+          "validation performed with results, validation not run with reason, and required manual PM validation",
+          "risks and limitations",
+          "commit or PR reference when applicable",
+          "remaining work"
+        ]
+      },
       "active": true
     },
     {

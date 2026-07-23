@@ -59,7 +59,7 @@
         "workflow.review_before_close"
       ],
       "mode_key": [],
-      "satisfied_by": "a live work unit with objective, scope, out of scope, and acceptance criteria; a GitHub issue or PR is one possible adapter and, for a small reversible change, an exact verifiable PM instruction may be the live unit",
+      "satisfied_by": "a live work unit with objective, scope, out of scope, and acceptance criteria; a GitHub issue or PR is one possible adapter and, for a small reversible change (change_class.small), an exact verifiable PM instruction carrying that same complete scope in compact form may be the live unit",
       "missing_status": "status.needs_context",
       "required": true,
       "materiality": "material",
@@ -73,7 +73,7 @@
           },
           {
             "key": "source.live_pm_decision",
-            "verification": "an exact, verifiable PM instruction for a small reversible change, with an objective, scope, and observable result, allowed by target policy"
+            "verification": "an exact, verifiable PM instruction for a small reversible change (change_class.small) with objective, scope, out of scope, acceptance criteria, and observable result in compact form, and the target policy admitting this route verified in its adapter or live record"
           }
         ]
       },
