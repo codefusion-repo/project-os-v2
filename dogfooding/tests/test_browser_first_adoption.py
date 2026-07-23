@@ -15,12 +15,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from tests.test_audit_target_adapters import (
+from dogfooding.tests.test_audit_target_adapters import (
     filled_browser_adapter,
     filled_spanish_adapter,
     write_terminal_adapters,
 )
-from tools.audit_target_adapters import (
+from dogfooding.tools.audit_target_adapters import (
     Source,
     evaluate_adoption_readiness,
     main as audit_main,
@@ -40,7 +40,7 @@ from tools.project_os_resolve import resolve
 from tools.validate_kernel import Finding, _check_operation_kernel_coherence
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 ES_KERNEL = REPO_ROOT / "project-os-es/kernel"
 EN_KERNEL = REPO_ROOT / "project-os-en/kernel"
 

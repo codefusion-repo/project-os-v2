@@ -8,13 +8,13 @@ from pathlib import Path
 import pytest
 
 from tools.operation_prompt_wizard import discover_operations
-from tools.project_os_parity import build_report, load_kernel
+from dogfooding.tools.project_os_parity import build_report, load_kernel
 from tools.project_os_resolve import DEFAULT_KERNEL_DIR, resolve
 from tools.project_os_surfaces import SURFACES
 from tools.validate_kernel import validate_kernel
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 ES_KERNEL = REPO_ROOT / "project-os-es/kernel"
 EN_KERNEL = REPO_ROOT / "project-os-en/kernel"
 SECRET_PATTERN = re.compile(

@@ -10,7 +10,7 @@ import pytest
 from tools.project_os_resolve import resolve
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 ES_KERNEL = REPO_ROOT / "project-os-es/kernel"
 EN_KERNEL = REPO_ROOT / "project-os-en/kernel"
 EXPECTED_KEYS = (

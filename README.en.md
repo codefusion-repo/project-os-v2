@@ -146,19 +146,35 @@ and live GitHub traceability.
 python3 -m tools.validate_kernel --kernel-dir project-os-es/kernel
 python3 -m tools.validate_kernel --kernel-dir project-os-en/kernel
 python3 -m pytest tests/ -q
+python3 -m pytest dogfooding/tests/ -q
 ```
+
+The tree physically separates three layers:
+
+- **Portable core** (`project-os-es/`, `project-os-en/`, `tools/`, `tests/`):
+  kernel, operations, templates, skills, resolver, wizard, validator and their
+  behavioral tests. This is what a target adopts; it never depends on
+  `dogfooding/`.
+- **Adapters** (`project-os-*/adapters/` and `tools/audit_traceability.py`):
+  GitHub/git/filesystem surfaces a target may use or omit.
+- **`project-os-v2` dogfooding** (`dogfooding/`): tooling, tests and
+  documentation exclusive to maintaining this repository — ES/EN parity
+  (`dogfooding/tools/project_os_parity.py`), target adapter audits
+  (`dogfooding/tools/audit_target_adapters.py`), the resolution-size
+  diagnostic, repository-shape guards, and the internal-handoff and
+  publication-readiness docs. A target inherits nothing from this layer.
 
 `tests/test_active_project_os_resolver.py` guards the active Spanish kernel
 resolution and prevents active references to the removed resolver.
-`tests/test_project_os_bilingual_parity.py` guards ES/EN structural parity,
-MOS contracts, adapters, paths and fail-closed selection.
+`dogfooding/tests/test_project_os_bilingual_parity.py` guards ES/EN structural
+parity, MOS contracts, adapters, paths and fail-closed selection.
 `tools.validate_kernel` validates the selected allowed surface; Spanish stays
 its default when `--kernel-dir` is omitted.
 
-`tools.audit_target_adapters` and `tools.audit_traceability` remain manual
-read-only diagnostics. CI (`.github/workflows/validate.yml`) runs only the
-validation and the test suite: it performs no writes and automates no PM
-authority.
+`dogfooding.tools.audit_target_adapters` and `tools.audit_traceability` remain
+manual read-only diagnostics. CI (`.github/workflows/validate.yml`) runs only
+the validation and the two test suites: it performs no writes and automates no
+PM authority.
 
 ## Background
 
@@ -195,4 +211,4 @@ templates, the operations and the documentation in the tree.
 
 The license authorizes nothing else by itself: publication, visibility,
 support, contributions and releases stay subject to their own gates and PM
-decisions (see `docs/security/PUBLIC_READINESS_REVIEW.md`).
+decisions (see `dogfooding/docs/security/PUBLIC_READINESS_REVIEW.md`).

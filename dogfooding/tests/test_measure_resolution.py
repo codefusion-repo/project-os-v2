@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from tools.measure_resolution import main, measure
+from dogfooding.tools.measure_resolution import main, measure
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_measure_uses_active_spanish_kernel_and_marks_candidate_non_active() -> None:

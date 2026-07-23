@@ -31,7 +31,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from tools.project_os_resolve import resolve
+try:
+    from tools.project_os_resolve import resolve
+except ModuleNotFoundError:  # Direct ``python dogfooding/tools/measure_resolution.py`` execution.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from tools.project_os_resolve import resolve
 
 # Default selector: the heaviest representative resolution (a delegated
 # implementation), so the comparison reflects a real write-capable task.

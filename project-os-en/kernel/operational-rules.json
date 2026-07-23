@@ -6,7 +6,7 @@
       "resolution_sequence": [
         "Treat project-os-en/kernel/*.json as the operational source for this English surface.",
         "Treat project-os-es as the default surface and project-os-en as its explicitly selected English peer; removed historical surfaces are never operational routes.",
-        "Distinguish three layers: target-agnostic core (actors, modes, workflows, authorization, evidence, risk, validation, statuses), adapters (GitHub, git, filesystem, issue trackers, target-owned records), and project-os-v2 dogfooding (ES/EN parity, MOS catalog, adapter audits, internal handoff, publication readiness); a target never inherits dogfooding tooling or tests.",
+        "Distinguish three physically separated layers: target-agnostic core (actors, modes, workflows, authorization, evidence, risk, validation, statuses), adapters (GitHub, git, filesystem, issue trackers, target-owned records), and project-os-v2 dogfooding (ES/EN parity, target adapter audits, repository-shape guards, internal handoff, publication readiness); dogfooding lives on its own maintenance surface, the portable core never depends on or references it, and a target never inherits dogfooding tooling, tests, or docs.",
         "Treat compact operations as task-specific context that never replaces these rules.",
         "Stop without resolving when sources conflict."
       ],

@@ -6,7 +6,7 @@
       "resolution_sequence": [
         "Tratar project-os-es/kernel/*.json como fuente operativa de esta superficie en espanol.",
         "Tratar project-os-es como la superficie default y project-os-en como su par ingles de seleccion explicita; cualquier superficie anterior solo es recuperable desde el historial git y nunca es una ruta operativa.",
-        "Distinguir tres capas: core target-agnostic (actores, modos, workflows, autorizacion, evidencia, riesgo, validacion, estados), adapters (GitHub, git, filesystem, issue trackers, registros propios del target) y dogfooding de project-os-v2 (paridad ES/EN, catalogo MOS, auditoria de adapters, handoff interno, preparacion de publicacion); un target nunca hereda tooling ni tests de dogfooding.",
+        "Distinguir tres capas fisicamente separadas: core target-agnostic (actores, modos, workflows, autorizacion, evidencia, riesgo, validacion, estados), adapters (GitHub, git, filesystem, issue trackers, registros propios del target) y dogfooding de project-os-v2 (paridad ES/EN, auditoria de adapters de targets, guards de forma del repositorio, handoff interno, preparacion de publicacion); el dogfooding vive en su propia superficie de mantenimiento, el core portable nunca depende de ella ni la referencia, y un target nunca hereda tooling, tests ni docs de dogfooding.",
         "Tratar las operaciones compactas como contexto task-specific que nunca reemplaza estas reglas.",
         "Ante conflicto entre fuentes, detenerse sin resolver."
       ],

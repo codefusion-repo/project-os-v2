@@ -16,9 +16,12 @@ from typing import Any
 try:
     from tools.operation_prompt_wizard import OperationTemplate, discover_operations
     from tools.project_os_surfaces import REPO_ROOT, SURFACES, ProjectOSSurface
-except ModuleNotFoundError:  # Direct ``python tools/project_os_parity.py`` execution.
-    from operation_prompt_wizard import OperationTemplate, discover_operations  # type: ignore[no-redef]
-    from project_os_surfaces import REPO_ROOT, SURFACES, ProjectOSSurface  # type: ignore[no-redef]
+except ModuleNotFoundError:  # Direct ``python dogfooding/tools/project_os_parity.py`` execution.
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from tools.operation_prompt_wizard import OperationTemplate, discover_operations  # type: ignore[no-redef]
+    from tools.project_os_surfaces import REPO_ROOT, SURFACES, ProjectOSSurface  # type: ignore[no-redef]
 
 
 REFERENCE_FIELDS: dict[str, tuple[str, ...]] = {

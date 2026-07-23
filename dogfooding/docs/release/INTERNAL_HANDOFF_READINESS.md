@@ -1,11 +1,11 @@
 # Handoff interno — contrato final v3 y verificación
 
 Este documento registra el contrato final del handoff interno definido por
-[ADR 0005, Amendment 3](../decisions/0005-public-repository-strategy.md#amendment-3--final-internal-handoff-marker-v3-issue-438)
+[ADR 0005, Amendment 3](../../../docs/decisions/0005-public-repository-strategy.md#amendment-3--final-internal-handoff-marker-v3-issue-438)
 sobre la historia registrada por
-[Amendment 1](../decisions/0005-public-repository-strategy.md#amendment-1--bounded-internal-handoff-tag-exception-issue-424)
+[Amendment 1](../../../docs/decisions/0005-public-repository-strategy.md#amendment-1--bounded-internal-handoff-tag-exception-issue-424)
 y
-[Amendment 2](../decisions/0005-public-repository-strategy.md#amendment-2--exact-internal-github-release-for-the-fixed-handoff-baseline-issue-424).
+[Amendment 2](../../../docs/decisions/0005-public-repository-strategy.md#amendment-2--exact-internal-github-release-for-the-fixed-handoff-baseline-issue-424).
 
 - Este documento no autoriza ninguna acción. Mergear el PR documental de
   issue #438, crear y pushear el tag final, crear su GitHub Release interno,
@@ -260,7 +260,7 @@ no mueve ni invalida por sí sola ningún tag.
 - Contenido no transferible: issues, pull requests, comentarios, reviews y
   cualquier conversación histórica de GitHub de este repositorio.
 - Riesgos aceptados: los registrados por decisión PM en
-  [ADR 0005](../decisions/0005-public-repository-strategy.md) y en la
+  [ADR 0005](../../../docs/decisions/0005-public-repository-strategy.md) y en la
   [revisión Stage 0](../security/PUBLIC_READINESS_REVIEW.md)
   (F-04, F-05, F-06).
 - El baseline y este paquete registran procedencia y límites; no autorizan
@@ -276,4 +276,4 @@ no mueve ni invalida por sí sola ningún tag.
 - La creación de `agent-os-cli`, la transición de contenido y cualquier
   publicación ocurren después de ese cierre, cada una con su propia
   aprobación PM exacta, según ADR 0005 y los gates preservados de
-  [ADR 0004](../decisions/0004-public-presentation-and-packaging.md).
+  [ADR 0004](../../../docs/decisions/0004-public-presentation-and-packaging.md).
