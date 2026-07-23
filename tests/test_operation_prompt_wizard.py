@@ -1108,6 +1108,37 @@ def test_english_skills_catalog_loads_names_from_name_field() -> None:
     ]
 
 
+def test_written_prompt_carries_verifiable_provenance_of_its_live_operation(tmp_path: Path) -> None:
+    import hashlib
+    import re
+
+    operations = discover_operations()
+    operation = next(op for op in operations if op.mos_code == "MOS-3.5")
+    alias = next(op for op in operations if op.mos_code == "MOS-R.10")
+    for candidate in (operation, alias):
+        rendered = render_prompt(candidate, {})
+        written = write_prompt(
+            tmp_path / generated_filename(candidate, rendered), rendered, operation=candidate
+        )
+        content = written.read_text(encoding="utf-8")
+
+        assert "<!-- prompt-provenance" in content
+        assert WIZARD_PROMPT_MARKER in content
+        fields = dict(
+            re.findall(r"^(source_repository|operation_path|operation_blob_sha|generated_at): (.+)$", content, re.MULTILINE)
+        )
+        source_path = REPO_ROOT / fields["operation_path"]
+        assert source_path.is_file()
+        # An alias prompt must point at its canonical live operation source.
+        assert source_path == (candidate.canonical_path or candidate.path).resolve()
+        data = source_path.read_bytes()
+        assert fields["operation_blob_sha"] == hashlib.sha1(
+            b"blob %d\x00" % len(data) + data
+        ).hexdigest()
+        assert fields["source_repository"]
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", fields["generated_at"])
+
+
 def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejected(tmp_path: Path) -> None:
     operation = next(operation for operation in discover_operations() if operation.mos_code == "MOS-3.5")
     rendered = render_prompt(operation, {})

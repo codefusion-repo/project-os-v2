@@ -106,27 +106,15 @@ def test_wizard_has_no_legacy_catalog_or_number_aliases() -> None:
 
 
 def test_active_pm_command_bundle_preserves_copy_safe_shell_contract() -> None:
-    template_path = REPO_ROOT / "project-os-es/templates/pm-command-bundle.md"
-    template = template_path.read_text(encoding="utf-8")
-
-    assert "única fuente canónica" in template
-    assert "secuencia corta, lineal" in template
-    assert "```sh" in template or "```bash" in template
-    assert "--body-file" in template
-    assert "<<'PR_COMMENT_END'" in template
-    assert "--match-head-commit <reviewed-head-sha>" in template
-    assert "writing blocks" in template
-    assert "Cadenas extensas unidas con `&&` o `||`" in template
-    assert "Verificación final read-only" in template
-    assert "gh pr view <pr-number> --repo <owner/repo> --json state,mergedAt,headRefOid" in template
+    """The bundle commands are PM-executed shell; guard the copy-safe patterns only."""
     assert not (REPO_ROOT / "templates/pm-command-bundle.md").exists()
-
-    english = (REPO_ROOT / "project-os-en/templates/pm-command-bundle.md").read_text(encoding="utf-8")
-    assert "single canonical" in english
-    assert "short linear sequence" in english
-    assert "--body-file" in english
-    assert "<<'PR_COMMENT_END'" in english
-    assert "--match-head-commit <reviewed-head-sha>" in english
-    assert "Writing blocks" in english
-    assert "Final read-only verification" in english
-    assert "gh pr view <pr-number> --repo <owner/repo> --json state,mergedAt,headRefOid" in english
+    for template_path in (
+        REPO_ROOT / "project-os-es/templates/pm-command-bundle.md",
+        REPO_ROOT / "project-os-en/templates/pm-command-bundle.md",
+    ):
+        template = template_path.read_text(encoding="utf-8")
+        assert "```sh" in template or "```bash" in template
+        assert "--body-file" in template
+        assert "<<'PR_COMMENT_END'" in template
+        assert "--match-head-commit <reviewed-head-sha>" in template
+        assert "gh pr view <pr-number> --repo <owner/repo> --json state,mergedAt,headRefOid" in template

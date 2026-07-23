@@ -22,8 +22,10 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, TextIO
 
@@ -1848,11 +1850,64 @@ def confirm_write(
     )
 
 
-def write_prompt(output_path: Path, rendered_prompt: str) -> Path:
+def source_repository_identity() -> str:
+    """Identify the repository the operation catalog was generated from."""
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "config", "--get", "remote.origin.url"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        origin = completed.stdout.strip()
+        if completed.returncode == 0 and origin:
+            return origin
+    except OSError:
+        pass
+    return f"local:{REPO_ROOT.name}"
+
+
+def git_blob_sha(path: Path) -> str:
+    """Compute the git blob SHA-1 of a file so receivers can detect staleness."""
+
+    data = path.read_bytes()
+    return hashlib.sha1(b"blob %d\x00" % len(data) + data).hexdigest()
+
+
+def prompt_provenance_block(operation: OperationTemplate, generated_at: datetime | None = None) -> str:
+    """Build the provenance trailer that lets a receiver detect a stale prompt."""
+
+    source_path = operation.canonical_path or operation.path
+    try:
+        operation_path = source_path.resolve().relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        operation_path = source_path.as_posix()
+    moment = (generated_at or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return (
+        "<!-- prompt-provenance\n"
+        f"source_repository: {source_repository_identity()}\n"
+        f"operation_path: {operation_path}\n"
+        f"operation_blob_sha: {git_blob_sha(source_path)}\n"
+        f"generated_at: {moment}\n"
+        "staleness: if the live operation at operation_path no longer matches "
+        "operation_blob_sha, reload it and regenerate this prompt instead of "
+        "executing stale semantics.\n"
+        "-->"
+    )
+
+
+def write_prompt(
+    output_path: Path,
+    rendered_prompt: str,
+    operation: OperationTemplate | None = None,
+) -> Path:
     """Write the prompt artifact, tagged with the wizard-generated marker, after confirmation."""
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     content = rendered_prompt if rendered_prompt.endswith("\n") else rendered_prompt + "\n"
+    if operation is not None:
+        content += prompt_provenance_block(operation) + "\n"
     content += WIZARD_PROMPT_MARKER + "\n"
     output_path.write_text(content, encoding="utf-8")
     return output_path
@@ -2035,7 +2090,7 @@ def run_wizard(
                 include_route_prompt_authorization=include_route_prompt_authorization,
             )
             if action == "write":
-                path = write_prompt(output_path, rendered)
+                path = write_prompt(output_path, rendered, operation=operation)
                 removed = cleanup_previous_generated_prompts(output_directory, keep_path=path)
                 current_prompt_path = path
                 written_operation = operation
@@ -2712,7 +2767,7 @@ if HAVE_PROMPT_TOOLKIT:
                     include_route_prompt_authorization=include_route_prompt_authorization,
                 )
                 if action == "write":
-                    path = write_prompt(output_path, rendered)
+                    path = write_prompt(output_path, rendered, operation=operation)
                     removed = cleanup_previous_generated_prompts(output_directory, keep_path=path)
                     current_prompt_path = path
                     written_operation = operation
