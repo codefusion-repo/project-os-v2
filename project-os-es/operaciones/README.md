@@ -162,10 +162,10 @@ clase). En `MOS-3.5` esa metadata no se pide: el wizard solo captura `WORK_UNIT`
 `PM_AUTHORIZATION_STATUS`, y browser chat reconstruye el PR, el review fuente, la
 `CHANGE_CLASS` y la densidad desde la evidencia viva. Esta ayuda es local a esos
 route prompts; no convierte el nivel en variable canónica del catálogo completo ni
-autoriza escritura. El nivel controla la vista devuelta por el resolver y la
-visibilidad PM-facing contractual del recibo: `minimal` y `compact` ocultan solo
-esa representación; `full/debug` la muestra completa. No altera el recibo interno
-ni `context_plan`.
+autoriza escritura. El nivel controla solo la vista devuelta por el resolver;
+ningún nivel devuelve `context_plan` ni agrega un bloque de recibo, y la
+procedencia detallada requiere una solicitud explícita
+(`--context-provenance <razón>`).
 
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
 también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de

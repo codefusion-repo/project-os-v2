@@ -78,12 +78,12 @@ multimodal work or the Google ecosystem when it has a clear advantage; and
 `none` when there is no meaningful advantage or evidence is insufficient.
 Explicit PM feedback may override that recommendation. `OPTIONAL_SKILL`,
 `HYDRATION_LEVEL`, and the recommended family do not grant permission or replace exact PM approval; they do not force a tool. `HYDRATION_LEVEL` controls how much
-already-resolved contract content the resolver returns and selects the
-contractual PM-facing receipt visibility: `compact` is the practical default,
-`minimal` retains required boundaries, both hide only that representation, and
-`full/debug` shows it in full for review, debugging, or audit. No level changes
-the internal receipt or `context_plan`, reads live state, invents state, or changes
-authority. The template and wizard do not grant permission by
+already-resolved contract content the resolver returns: `compact` is the
+practical default, `minimal` retains required boundaries, and `full/debug` serves
+review or debugging. No level returns `context_plan` or adds a receipt block;
+detailed provenance requires an explicit request
+(`--context-provenance <reason>`). No level reads live state, invents state, or
+changes authority. The template and wizard do not grant permission by
 themselves. A route prompt that is a draft, was not delivered by the PM, or has
 `PM_AUTHORIZATION_STATUS=pending` does not authorize writing. When the PM
 delivers the route prompt with

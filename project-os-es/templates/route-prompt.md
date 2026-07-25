@@ -78,11 +78,12 @@ largo; Gemini para trabajo multimodal o de ecosistema Google con ventaja clara;
 del PM puede reemplazar esa recomendación. `OPTIONAL_SKILL`, `HYDRATION_LEVEL`
 y la familia recomendada no eligen permisos, no reemplazan aprobacion PM exacta
 y no fuerzan herramienta. `HYDRATION_LEVEL` controla cuánto contrato ya
-resuelto devuelve el resolver y selecciona la visibilidad PM-facing contractual
-del recibo: `compact` es el valor predeterminado práctico, `minimal` conserva
-los límites obligatorios, ambos ocultan solo esa representación, y `full/debug`
-la muestra completa para revisión, debugging o auditoría. Ningún nivel cambia
-el recibo interno ni `context_plan`, lee estado vivo, inventa estado o cambia autorización.
+resuelto devuelve el resolver: `compact` es el valor predeterminado práctico,
+`minimal` conserva los límites obligatorios y `full/debug` sirve para revisión o
+debugging. Ningún nivel devuelve `context_plan` ni agrega un bloque de recibo;
+la procedencia detallada requiere una solicitud explícita
+(`--context-provenance <razón>`). Ningún nivel lee estado vivo, inventa estado
+o cambia autorización.
 La plantilla y el wizard no conceden permisos por sí mismos. Un route prompt en
 draft, no entregado por el PM o con `PM_AUTHORIZATION_STATUS=pending` no
 autoriza escrituras. Cuando el PM entrega el route prompt con

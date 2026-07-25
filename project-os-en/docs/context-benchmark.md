@@ -29,11 +29,19 @@ Spanish version: [benchmark-contexto.md](../../project-os-es/docs/benchmark-cont
 
 ## Declared method
 
-- **Measurement date:** 2026-07-18.
-- **Inputs:** commit `7a7aab501983` of `codefusion-repo/project-os-v2`; the
+- **Measurement date:** 2026-07-25.
+- **Inputs:** commit `5afb2c7` of `codefusion-repo/project-os-v2`; the
   measured inputs (both kernel directories and
   `tools/project_os_resolve.py`) do not change after that commit on the
-  branch correcting this document.
+  branch updating this document.
+- **Constant change class:** `change_class.small` at all three levels, with the
+  level selected explicitly through `--hydration-level`. Since #462 a mutating
+  workflow requires a declared class, and the class is material: it contributes
+  its own `change_class` block, its `remaining_gates`, and its default density.
+  Varying the class alongside the level would mix two effects, so here the
+  class stays fixed and only hydration changes. The resolver allows this
+  because an explicit level may keep or raise a class's contractual density; it
+  only blocks lowering it.
 - **Metrics:** UTF-8 bytes, characters, and tokens.
 - **Declared tokenizer:** `tiktoken` 0.13.0 (Python 3.12.13), with two public
   encodings to show cross-tokenizer variation: `o200k_base` and `cl100k_base`.
@@ -61,16 +69,16 @@ Two references, built from the real kernel content:
 
 | Alternative | Bytes | Characters | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 15516 | 15516 | 3739 | 3856 |
-| Resolver `compact` | 27801 | 27760 | 6418 | 6868 |
-| Per-tuple baseline (= `full/debug`) | 29251 | 29210 | 6839 | 7290 |
-| Full kernel (11 files) | 67020 | 66979 | 15334 | 16055 |
+| Resolver `minimal` | 16760 | 16760 | 3956 | 4139 |
+| Resolver `compact` | 33760 | 33713 | 7612 | 8251 |
+| Per-tuple baseline (= `full/debug`) | 38250 | 38203 | 8716 | 9389 |
+| Full kernel (11 files) | 78981 | 78934 | 17756 | 18728 |
 
-Reduction against the per-tuple baseline: `minimal` −47.0% bytes (−45.3%
-`o200k_base` tokens, −47.1% `cl100k_base`); `compact` −5.0% bytes (−6.2%,
-−5.8%). Against the full kernel (internal profile only): `minimal` −76.8%
-bytes (−75.6%, −76.0%); `compact` −58.5% (−58.1%, −57.2%); `full/debug`
-−56.4% (−55.4%, −54.6%).
+Reduction against the per-tuple baseline: `minimal` −56.2% bytes (−54.6%
+`o200k_base` tokens, −55.9% `cl100k_base`); `compact` −11.7% bytes (−12.7%,
+−12.1%). Against the full kernel (internal profile only): `minimal` −78.8%
+bytes (−77.7%, −77.9%); `compact` −57.3% (−57.1%, −55.9%); `full/debug`
+−51.6% (−50.9%, −49.9%).
 
 ## English kernel (explicit selection)
 
@@ -78,14 +86,82 @@ Same tuple, same commands, with `--kernel-dir project-os-en/kernel`:
 
 | Alternative | Bytes | Characters | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 15288 | 15288 | 3576 | 3565 |
-| Resolver `compact` | 26836 | 26836 | 5949 | 5946 |
-| Per-tuple baseline (= `full/debug`) | 28286 | 28286 | 6370 | 6368 |
-| Full kernel (11 files) | 65285 | 65285 | 14390 | 14368 |
+| Resolver `minimal` | 16446 | 16446 | 3752 | 3741 |
+| Resolver `compact` | 32592 | 32592 | 6988 | 6983 |
+| Per-tuple baseline (= `full/debug`) | 37051 | 37051 | 8061 | 8057 |
+| Full kernel (11 files) | 76958 | 76958 | 16583 | 16560 |
 
-Reduction against the per-tuple baseline: `minimal` −46.0% bytes; `compact`
-−5.1%. Against the full kernel (internal profile only): `minimal` −76.6%
-bytes; `compact` −58.9%; `full/debug` −56.7%.
+Reduction against the per-tuple baseline: `minimal` −55.6% bytes; `compact`
+−12.0%. Against the full kernel (internal profile only): `minimal` −78.6%
+bytes; `compact` −57.7%; `full/debug` −51.9%.
+
+## Source-receipt cost (#464)
+
+Before #464 every resolution carried the complete receipt contract plus a
+`context_plan` that repeated part of it, at all three levels. This section
+compares the **immediate baseline** `3de282f` against the corrected #464 state,
+running exactly the same command on both: same tuple, same `change_class.small`,
+and the same explicit `--hydration-level`.
+
+Complete resolution, Spanish kernel, UTF-8 bytes:
+
+| Level | `3de282f` | With #464 | Δ bytes | Δ % |
+| --- | ---: | ---: | ---: | ---: |
+| `minimal` | 19332 | 16760 | −2572 | −13.3% |
+| `compact` | 36211 | 33760 | −2451 | −6.8% |
+| `full/debug` | 40712 | 38250 | −2462 | −6.0% |
+
+Complete resolution, English kernel, UTF-8 bytes:
+
+| Level | `3de282f` | With #464 | Δ bytes | Δ % |
+| --- | ---: | ---: | ---: | ---: |
+| `minimal` | 19008 | 16446 | −2562 | −13.5% |
+| `compact` | 35063 | 32592 | −2471 | −7.0% |
+| `full/debug` | 39533 | 37051 | −2482 | −6.3% |
+
+Nearly all of that difference comes from the receipt. Measuring the two
+surfaces separately inside the same resolution — each subobject reserialized
+with `json.dumps(obj, ensure_ascii=False)`, the same format the resolver emits
+its output with, and counted in UTF-8 bytes — the receipt cost per resolution
+is:
+
+| Surface | Before (ES) | Before (EN) | After |
+| --- | ---: | ---: | ---: |
+| `context_receipt_contract` | 1300 | 1300 | 921 |
+| `context_plan` on the normal route | 2175–2265 | 2165–2255 | 0 |
+| Total receipt cost per resolution | 3475–3565 | 3465–3555 | 921 |
+
+The ranges cover the three levels: the receipt contract does not vary with
+hydration, and the former `context_plan` grew from `minimal` to `full/debug`.
+
+Because the format matches the output's, these figures are additive against the
+totals. At `minimal` the receipt accounts for the whole difference: −2554 bytes
+of content plus the 18 of the dropped `context_plan` key give exactly the −2572
+of the previous table (−2544 + 18 = −2562 on the English kernel). At `compact`
+and `full/debug` the receipt reduction exceeds the net one because #464 also
+added prose to the operating rules — 200 bytes in Spanish and 170 in English —
+which are carried only from `compact` up. The balance stays negative in all six
+measured cases.
+
+Detailed provenance remains available outside the normal route with
+`--context-provenance <reason>`, and that cost is no longer paid on every
+resolution.
+
+## Comparability with earlier measurements
+
+The measurement published on 2026-07-18 over `7a7aab5` is **not directly
+comparable** with the tables above: it precedes the change-class contract
+introduced by #462 and PR #463, so its resolution carried neither the
+`change_class` block, nor its `remaining_gates`, nor the workflow's
+`proportionality_contract`, and it did not require declaring a class either.
+
+Between `7a7aab5` and `3de282f` the full kernel grew from 67020 to 79302 bytes
+in Spanish (+18.3%) and from 65285 to 77309 in English (+18.4%). That
+**accumulated kernel growth** — not #464 — is why the resolver rows are larger
+than on July 18. #464's own contribution, measured against its immediate
+baseline with the class held constant, is a **reduction** at all three levels
+and on both kernels. These are two distinct effects and this document does not
+add them together.
 
 ## What each alternative keeps
 
@@ -123,7 +199,8 @@ for kernel in project-os-es project-os-en; do
   for level in minimal compact full/debug; do
     python tools/project_os_resolve.py --actor actor.terminal_agent \
       --workflow workflow.issue_implementation --mode mode.delegated_commit_pr \
-      --kernel-dir "$kernel/kernel" --hydration-level "$level" --compact \
+      --change-class change_class.small --hydration-level "$level" \
+      --kernel-dir "$kernel/kernel" --compact \
       > "/tmp/pos-bench/$kernel-${level//\//-}.json"
   done
   (cd "$kernel/kernel" && cat manifest.json $(ls *.json | grep -v '^manifest')) \
@@ -145,6 +222,39 @@ PY
 resolver rows; `*-full-kernel.txt` reproduces the full-kernel row. The
 per-tuple baseline is the same `*-full-debug.json` (see "Internal
 references").
+
+To reproduce the #464 comparison, run that same loop in a baseline worktree and
+compare again:
+
+```sh
+git worktree add /tmp/pos-base 3de282f07c65 --detach
+```
+
+And for the per-surface breakdown, on either state:
+
+```sh
+python - <<'PY'
+import json, subprocess, sys
+for level in ("minimal", "compact", "full/debug"):
+    out = subprocess.run([sys.executable, "tools/project_os_resolve.py",
+        "--actor", "actor.terminal_agent",
+        "--workflow", "workflow.issue_implementation",
+        "--mode", "mode.delegated_commit_pr",
+        "--change-class", "change_class.small",
+        "--hydration-level", level,
+        "--kernel-dir", "project-os-es/kernel", "--compact"],
+        capture_output=True, text=True, check=True).stdout
+    payload = json.loads(out)
+    def size(obj):
+        if obj is None:
+            return 0
+        return len(json.dumps(obj, ensure_ascii=False).encode("utf-8"))
+    print(level,
+          "receipt", size(payload["resuelto"]["workflow"].get("context_receipt_contract")),
+          "plan", size(payload.get("context_plan")),
+          "total", len(out.encode("utf-8")))
+PY
+```
 
 ## Limits of this profile
 

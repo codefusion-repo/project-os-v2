@@ -2,8 +2,10 @@
 
 Responsibility: draft human-executable instructions without claiming edits.
 
-PM-facing presentation: apply `context_receipt_contract.pm_facing_visibility`
-to the marked block; always keep the internal receipt intact.
+PM-facing traceability: `Files to inspect` and the anchored plan are the
+canonical representation. Do not add a receipt block; detailed provenance is
+delivered only when the PM asks for it for audit, debugging, security or
+authorization review, or investigating an incorrect resolution.
 
 ```markdown
 ## Objective
@@ -41,20 +43,6 @@ to the marked block; always keep the internal receipt intact.
 ## No-write statement
 
 This plan did not edit code, did not run validation and did not grant permissions.
-
-<!-- context-receipt:pm-facing-conditional -->
-## Source receipt
-
-- project_os_sources_read: {{List of source + reason, or [].}}
-- target_sources_read: {{List of source + reason, or [].}}
-- live_evidence_sources: {{List of source + reason, or [].}}
-- resolved_template: {{Exact path or none.}}
-- requested_skills: {{List of key + source, or [].}}
-- tool_internal_sources: {{List of source + reason, or [].}}
-- resolver_projected_metadata: {{List of source + reason, or [].}}
-- model_context_sources: {{List of source + incorporation, or [].}}
-- additional_context_reason: {{Allowed value or none.}}
-<!-- /context-receipt -->
 
 ## Safe degradation (when applicable)
 
