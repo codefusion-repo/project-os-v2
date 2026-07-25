@@ -29,11 +29,17 @@ Versión inglesa: [context-benchmark.md](../../project-os-en/docs/context-benchm
 
 ## Metodología declarada
 
-- **Fecha de medición:** 2026-07-18.
-- **Insumos:** commit `7a7aab501983` de `codefusion-repo/project-os-v2`; los
+- **Fecha de medición:** 2026-07-25.
+- **Insumos:** commit `5afb2c7` de `codefusion-repo/project-os-v2`; los
   insumos medidos (ambos directorios de kernel y
   `tools/project_os_resolve.py`) no cambian después de ese commit en la rama
-  que corrige este documento.
+  que actualiza este documento.
+- **Tupla medida:** `actor.terminal_agent` + `workflow.issue_implementation` +
+  `mode.delegated_commit_pr`. Cada nivel se obtiene con la `CHANGE_CLASS` cuya
+  densidad contractual le corresponde (`small` → `minimal`, `standard` →
+  `compact`, `critical` → `full/debug`), que es la ruta normal desde #462: un
+  workflow con mutación exige clase declarada y un nivel explícito no puede
+  reducir su densidad.
 - **Métricas:** bytes UTF-8, caracteres y tokens.
 - **Tokenizer declarado:** `tiktoken` 0.13.0 (Python 3.12.13), con dos
   encodings públicos para mostrar la variación entre tokenizers: `o200k_base`
@@ -61,16 +67,16 @@ Dos referencias, construidas desde el kernel real:
 
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 15516 | 15516 | 3739 | 3856 |
-| Resolver `compact` | 27801 | 27760 | 6418 | 6868 |
-| Baseline por tupla (= `full/debug`) | 29251 | 29210 | 6839 | 7290 |
-| Kernel completo (11 archivos) | 67020 | 66979 | 15334 | 16055 |
+| Resolver `minimal` | 16760 | 16760 | 3956 | 4139 |
+| Resolver `compact` | 33811 | 33764 | 7618 | 8262 |
+| Baseline por tupla (= `full/debug`) | 38298 | 38251 | 8726 | 9404 |
+| Kernel completo (11 archivos) | 78981 | 78934 | 17756 | 18728 |
 
-Reducción frente al baseline por tupla: `minimal` −47,0 % bytes (−45,3 %
-tokens `o200k_base`, −47,1 % `cl100k_base`); `compact` −5,0 % bytes (−6,2 %,
-−5,8 %). Frente al kernel completo (solo perfil interno): `minimal` −76,8 %
-bytes (−75,6 %, −76,0 %); `compact` −58,5 % (−58,1 %, −57,2 %); `full/debug`
-−56,4 % (−55,4 %, −54,6 %).
+Reducción frente al baseline por tupla: `minimal` −56,2 % bytes (−54,7 %
+tokens `o200k_base`, −56,0 % `cl100k_base`); `compact` −11,7 % bytes (−12,7 %,
+−12,1 %). Frente al kernel completo (solo perfil interno): `minimal` −78,8 %
+bytes (−77,7 %, −77,9 %); `compact` −57,2 % (−57,1 %, −55,9 %); `full/debug`
+−51,5 % (−50,9 %, −49,8 %).
 
 ## Kernel inglés (selección explícita)
 
@@ -78,14 +84,31 @@ Misma tupla, mismos comandos, con `--kernel-dir project-os-en/kernel`:
 
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 15288 | 15288 | 3576 | 3565 |
-| Resolver `compact` | 26836 | 26836 | 5949 | 5946 |
-| Baseline por tupla (= `full/debug`) | 28286 | 28286 | 6370 | 6368 |
-| Kernel completo (11 archivos) | 65285 | 65285 | 14390 | 14368 |
+| Resolver `minimal` | 16446 | 16446 | 3752 | 3741 |
+| Resolver `compact` | 32633 | 32633 | 6995 | 6992 |
+| Baseline por tupla (= `full/debug`) | 37092 | 37092 | 8073 | 8070 |
+| Kernel completo (11 archivos) | 76958 | 76958 | 16583 | 16560 |
 
-Reducción frente al baseline por tupla: `minimal` −46,0 % bytes; `compact`
-−5,1 %. Frente al kernel completo (solo perfil interno): `minimal` −76,6 %
-bytes; `compact` −58,9 %; `full/debug` −56,7 %.
+Reducción frente al baseline por tupla: `minimal` −55,7 % bytes; `compact`
+−12,0 %. Frente al kernel completo (solo perfil interno): `minimal` −78,6 %
+bytes; `compact` −57,6 %; `full/debug` −51,8 %.
+
+## Costo del recibo de fuentes (#464)
+
+Antes de #464 cada resolución transportaba el contrato completo del recibo más
+un `context_plan` que repetía parte de él, en los tres niveles. Medido sobre la
+misma tupla y el mismo baseline `3de282f`:
+
+| Superficie | Antes | Después |
+| --- | ---: | ---: |
+| `context_receipt_contract` | 1300 | 921 |
+| `context_plan` en la ruta normal | 2175–2265 | 0 |
+| Total del recibo por resolución | 3475–3565 | 921 |
+
+Eso reduce la resolución completa en −13,3 % bytes (`minimal`), −6,8 %
+(`compact`) y −6,0 % (`full/debug`) en el kernel español, y −13,5 %, −7,0 % y
+−6,3 % en el inglés. La procedencia detallada sigue disponible fuera de la ruta
+normal con `--context-provenance <razón>`.
 
 ## Qué información conserva cada alternativa
 
@@ -119,11 +142,13 @@ pip install tiktoken==0.13.0
 
 mkdir -p /tmp/pos-bench
 for kernel in project-os-es project-os-en; do
-  for level in minimal compact full/debug; do
+  for pair in minimal:small compact:standard full-debug:critical; do
+    level=${pair%%:*}; class=${pair##*:}
     python tools/project_os_resolve.py --actor actor.terminal_agent \
       --workflow workflow.issue_implementation --mode mode.delegated_commit_pr \
-      --kernel-dir "$kernel/kernel" --hydration-level "$level" --compact \
-      > "/tmp/pos-bench/$kernel-${level//\//-}.json"
+      --change-class "change_class.$class" \
+      --kernel-dir "$kernel/kernel" --compact \
+      > "/tmp/pos-bench/$kernel-$level.json"
   done
   (cd "$kernel/kernel" && cat manifest.json $(ls *.json | grep -v '^manifest')) \
     > "/tmp/pos-bench/$kernel-full-kernel.txt"
