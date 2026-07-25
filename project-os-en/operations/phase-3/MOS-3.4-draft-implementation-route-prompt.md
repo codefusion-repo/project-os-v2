@@ -29,7 +29,7 @@ overridden by explicit PM feedback.
 
 **Variables**
 - Required: CHANGE_CLASS
-- Optional: WORK_UNIT, ROADMAP_ISSUE, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the unit, skill, level, PM feedback, and PM questions are context only and never authorize an action). `CHANGE_CLASS` declares one class from the `proportionality.change_class` contract. `HYDRATION_LEVEL` accepts `minimal`, `compact`, or `full/debug`; it controls the resolver's hydrated content and applies the contractual PM-facing receipt visibility without altering the internal receipt or `context_plan`. The wizard requires `PM_AUTHORIZATION_STATUS` and preloads `HYDRATION_LEVEL` with the declared `CHANGE_CLASS` contractual density (`full/debug` for `change_class.critical`), never below it.
+- Optional: WORK_UNIT, ROADMAP_ISSUE, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the unit, skill, level, PM feedback, and PM questions are context only and never authorize an action). `CHANGE_CLASS` declares one class from the `proportionality.change_class` contract. `HYDRATION_LEVEL` accepts `minimal`, `compact`, or `full/debug`; it controls only the resolver's hydrated content and no level returns `context_plan` or adds a receipt block. The wizard requires `PM_AUTHORIZATION_STATUS` and preloads `HYDRATION_LEVEL` with the declared `CHANGE_CLASS` contractual density (`full/debug` for `change_class.critical`), never below it.
 
 **Authorization contract:** Browser chat only drafts and can never self-assign,
 complete, change, or infer `granted`. A route prompt that is a draft, was not

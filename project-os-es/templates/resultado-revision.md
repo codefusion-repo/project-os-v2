@@ -2,8 +2,10 @@
 
 Responsabilidad: reportar hallazgos o veredicto respaldado por evidencia.
 
-Presentación PM-facing: aplica `context_receipt_contract.pm_facing_visibility`
-al bloque marcado; conserva siempre el recibo interno íntegro.
+Trazabilidad PM-facing: `Evidencia revisada` es la representación canónica. No
+agregues un bloque de recibo; la procedencia detallada se entrega solo cuando el
+PM la solicita para auditoría, debugging, revisión de seguridad o autorización, o
+investigación de una resolución incorrecta.
 
 ```markdown
 ## Scope revisado
@@ -46,20 +48,6 @@ closeout y su verificacion final acompanan esta misma respuesta.}}
 ## No revisado
 
 {{Gaps explicitos.}}
-
-<!-- context-receipt:pm-facing-conditional -->
-## Recibo de fuentes
-
-- project_os_sources_read: {{Lista de source + reason, o [].}}
-- target_sources_read: {{Lista de source + reason, o [].}}
-- live_evidence_sources: {{Lista de source + reason, o [].}}
-- resolved_template: {{Path exacto o none.}}
-- requested_skills: {{Lista de key + source, o [].}}
-- tool_internal_sources: {{Lista de source + reason, o [].}}
-- resolver_projected_metadata: {{Lista de source + reason, o [].}}
-- model_context_sources: {{Lista de source + incorporation, o [].}}
-- additional_context_reason: {{Valor permitido o none.}}
-<!-- /context-receipt -->
 
 ## Degradacion segura (solo si aplica)
 

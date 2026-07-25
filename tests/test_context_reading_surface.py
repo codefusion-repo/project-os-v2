@@ -1,10 +1,11 @@
-"""Focused guards for the resolver's context plan and receipt safety contract.
+"""Focused guards for the resolver's provenance route and receipt safety contract.
 
-Reduced to executable behavior only: the resolver emits relative-path context
-metadata with no source bodies, no secrets, no durable live state, and no
-external access, and the validator fails closed on receipt-contract drift.
-Editorial template wording and PM-facing rendering are not tested here; there is
-no production renderer to protect.
+Reduced to executable behavior only: a normal resolution carries no provenance at
+any level, an explicit allowed reason returns relative-path metadata with no
+source bodies, no secrets, no durable live state and no external access, an
+unknown reason fails closed, and the validator fails closed on receipt-contract
+drift. Editorial template wording and PM-facing rendering are not tested here;
+there is no production renderer to protect.
 """
 
 from __future__ import annotations
@@ -18,7 +19,12 @@ import pytest
 
 from tools.project_os_resolve import resolve
 from tools.project_os_surfaces import SURFACES
-from tools.validate_kernel import CONTEXT_RECEIPT_FIELDS, CONTEXT_RECEIPT_KEY, validate_kernel
+from tools.validate_kernel import (
+    CONTEXT_PROVENANCE_REASONS,
+    CONTEXT_RECEIPT_EXECUTOR_FIELDS,
+    CONTEXT_RECEIPT_KEY,
+    validate_kernel,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -47,18 +53,24 @@ def test_context_receipt_contract_is_bilingual_and_stores_nothing_sensitive() ->
 
     assert spanish == english
     assert spanish["key"] == CONTEXT_RECEIPT_KEY
-    assert spanish["fields"] == CONTEXT_RECEIPT_FIELDS
-    assert spanish["internal_receipt_required"] is True
+    assert spanish["executor_reported_fields"] == CONTEXT_RECEIPT_EXECUTOR_FIELDS
+    assert spanish["detailed_provenance_default"] == "omitted"
+    assert spanish["detailed_provenance_reasons"] == CONTEXT_PROVENANCE_REASONS
+    assert spanish["pm_facing_traceability"] == "reviewed_evidence"
     assert spanish["stores_source_bodies"] is False
     assert spanish["stores_secret_values"] is False
     assert spanish["stores_durable_live_state"] is False
     assert spanish["resolver_external_access"] is False
     assert spanish["source_reference_format"] == "repository_relative_path_or_live_identifier"
+    # The resolver-known provenance lives in context_plan and must not be
+    # duplicated into the fields the executor reports.
+    assert "resolved_template" not in spanish["executor_reported_fields"]
+    assert "tool_internal_sources" not in spanish["executor_reported_fields"]
 
 
 @pytest.mark.parametrize("level", LEVELS)
 @pytest.mark.parametrize("kernel_dir", (ES_KERNEL, EN_KERNEL))
-def test_resolver_reports_relative_context_metadata_without_bodies_or_external_access(
+def test_normal_resolution_carries_no_provenance_at_any_level(
     level: str, kernel_dir: Path
 ) -> None:
     result = resolve(
@@ -71,13 +83,32 @@ def test_resolver_reports_relative_context_metadata_without_bodies_or_external_a
     )
 
     assert result["estado"] == "status.resolved"
+    assert "context_plan" not in result
+    contract = result["resuelto"]["workflow"]["context_receipt_contract"]
+    assert contract["detailed_provenance_default"] == "omitted"
+
+
+@pytest.mark.parametrize("reason", CONTEXT_PROVENANCE_REASONS)
+@pytest.mark.parametrize("kernel_dir", (ES_KERNEL, EN_KERNEL))
+def test_requested_provenance_reports_relative_metadata_without_bodies_or_external_access(
+    reason: str, kernel_dir: Path
+) -> None:
+    result = resolve(
+        "actor.terminal_agent",
+        "workflow.issue_implementation",
+        "mode.delegated_commit_pr",
+        kernel_dir=kernel_dir,
+        change_class="change_class.small",
+        context_provenance=reason,
+    )
+
+    assert result["estado"] == "status.resolved"
     plan = result["context_plan"]
-    assert plan["contract_key"] == CONTEXT_RECEIPT_KEY
-    assert plan["hydration_level"] == level
-    assert plan["receipt_fields"] == CONTEXT_RECEIPT_FIELDS
-    assert plan["model_context_sources"] == []
+    assert plan["provenance_reason"] == reason
     assert plan["model_context_observation"] == "executor_report_required"
-    assert plan["resolver_external_access"] is False
+    assert result["resuelto"]["workflow"]["context_receipt_contract"][
+        "resolver_external_access"
+    ] is False
 
     expected_kernel_sources = {
         f"{kernel_dir.parent.name}/kernel/{filename}"
@@ -113,6 +144,7 @@ def test_requested_skill_and_templates_are_paths_and_metadata_without_bodies(
         kernel_dir=kernel_dir,
         skill="skill.arquitectura_backend",
         hydration_level="compact",
+        context_provenance="audit",
     )
 
     plan = result["context_plan"]
@@ -129,15 +161,34 @@ def test_requested_skill_and_templates_are_paths_and_metadata_without_bodies(
         assert (REPO_ROOT / template["source"]).read_text(encoding="utf-8") not in serialized
 
 
+@pytest.mark.parametrize("kernel_dir", (ES_KERNEL, EN_KERNEL))
+def test_unknown_provenance_reason_fails_closed_without_leaking_a_plan(
+    kernel_dir: Path,
+) -> None:
+    result = resolve(
+        "actor.terminal_agent",
+        "workflow.issue_implementation",
+        "mode.delegated_commit_pr",
+        kernel_dir=kernel_dir,
+        change_class="change_class.small",
+        context_provenance="curiosity",
+    )
+
+    assert result["estado"] == "status.blocked"
+    assert result["resuelto"] is None
+    assert "context_plan" not in result
+    assert result["errores"]
+
+
 @pytest.mark.parametrize(
     "mutate",
     (
         lambda payload: payload["context_receipt_contract"].__setitem__(
-            "default_hydration_level", "minimal"
+            "detailed_provenance_default", "included"
         ),
-        lambda payload: payload["context_receipt_contract"].pop("internal_receipt_required"),
-        lambda payload: payload["context_receipt_contract"]["pm_facing_visibility"].__setitem__(
-            "compact", "full"
+        lambda payload: payload["context_receipt_contract"].pop("stores_secret_values"),
+        lambda payload: payload["context_receipt_contract"]["detailed_provenance_reasons"].append(
+            "any_reason"
         ),
         lambda payload: payload["outputs"][0].pop("context_receipt_key"),
     ),

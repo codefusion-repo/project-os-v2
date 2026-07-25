@@ -489,10 +489,17 @@ def _project_resolution(
 def _context_plan(
     resolved: dict[str, Any],
     projected: dict[str, Any],
-    hydration_level: HydrationLevel,
+    provenance_reason: str,
     surface: ProjectOSSurface,
 ) -> dict[str, Any]:
-    """Report resolver-observable context metadata without claiming model delivery."""
+    """Report resolver-observable provenance for one explicit audit or debugging request.
+
+    This is never part of a normal resolution: the caller must ask for it with an
+    allowed reason. It carries only what the resolver alone observes; anything the
+    resolution already states (contract key, hydration level, normal read surface,
+    executor-reported fields, external-access flag) is read from the resolved
+    contract instead of being duplicated here.
+    """
 
     kernel_sources = {
         "manifest": ("manifest",),
@@ -518,11 +525,8 @@ def _context_plan(
                 kernel_path(family) for family in families
             ]
 
-    contract = resolved["workflow"]["context_receipt_contract"]
     return {
-        "contract_key": contract["key"],
-        "hydration_level": hydration_level.value,
-        "normal_read_surface": contract["normal_read_surface"],
+        "provenance_reason": provenance_reason,
         "tool_internal_sources": [
             kernel_path(family) for family in surface.kernel_files
         ],
@@ -542,15 +546,7 @@ def _context_plan(
             }
             for skill in resolved.get("requested_skills", [])
         ],
-        "model_context_sources": [],
         "model_context_observation": "executor_report_required",
-        "receipt_fields": contract["fields"],
-        "additional_context_reason": (
-            HydrationLevel.FULL_DEBUG.value
-            if hydration_level is HydrationLevel.FULL_DEBUG
-            else None
-        ),
-        "resolver_external_access": contract["resolver_external_access"],
     }
 
 
@@ -563,13 +559,16 @@ def resolver(
     hydration_level: str | HydrationLevel | None = None,
     compact: str | HydrationLevel | None = None,
     change_class: str | None = None,
+    context_provenance: str | None = None,
 ) -> dict[str, Any]:
     """Resolve an allowed kernel, defaulting to compact Spanish guidance.
 
     The complete selected contract is built first and then projected into one
     hydration level. A declared ``change_class`` must be coherent with the
     selected workflow and, when the hydration level is not explicit, selects
-    the class's contractual output density. Neither the level, the class, nor
+    the class's contractual output density. ``context_provenance`` is the only
+    way to obtain ``context_plan``: a normal resolution never carries it, at any
+    hydration level. Neither the level, the class, the provenance request, nor
     this result grants authority.
     """
     surface, directory = select_surface(kernel_dir)
@@ -596,6 +595,19 @@ def resolver(
     data, errors = _load(directory, surface)
     if errors:
         return _fail_closed(errors, surface, selected_hydration_level)
+
+    # The receipt contract owns the allowed reasons, so an unknown one fails
+    # closed instead of silently downgrading to a normal resolution.
+    allowed_reasons = data["context_receipt_contract"].get("detailed_provenance_reasons", [])
+    if context_provenance is not None and context_provenance not in allowed_reasons:
+        return _fail_closed(
+            [
+                f"{surface.messages['unknown_provenance_reason']}: {context_provenance!r} "
+                f"({surface.messages['known']}: {sorted(allowed_reasons)})"
+            ],
+            surface,
+            selected_hydration_level,
+        )
 
     manifests = data["manifest"]
     if len(manifests) != 1:
@@ -812,19 +824,18 @@ def resolver(
     if requested_skills:
         resolved["requested_skills"] = requested_skills
     projected = _project_resolution(resolved, selected_hydration_level)
-    return {
+    result: dict[str, Any] = {
         "estado": "status.resolved",
         "hydration_level": selected_hydration_level.value,
         "resuelto": projected,
-        "context_plan": _context_plan(
-            resolved,
-            projected,
-            selected_hydration_level,
-            surface,
-        ),
         "autorizacion": surface.authorization_notice,
         "errores": [],
     }
+    if context_provenance is not None:
+        result["context_plan"] = _context_plan(
+            resolved, projected, context_provenance, surface
+        )
+    return result
 
 
 def resolve(
@@ -836,6 +847,7 @@ def resolve(
     hydration_level: str | HydrationLevel | None = None,
     compact: str | HydrationLevel | None = None,
     change_class: str | None = None,
+    context_provenance: str | None = None,
 ) -> dict[str, Any]:
     """Compatibility import; Spanish remains the default surface."""
     return resolver(
@@ -847,6 +859,7 @@ def resolve(
         hydration_level=hydration_level,
         compact=compact,
         change_class=change_class,
+        context_provenance=context_provenance,
     )
 
 
@@ -875,6 +888,16 @@ def main(argv: list[str] | None = None) -> int:
         help="minimal, compact (default), or full/debug; changes returned guidance only",
     )
     parser.add_argument(
+        "--context-provenance",
+        default=None,
+        metavar="REASON",
+        help=(
+            "explicitly request detailed resolver provenance (context_plan) for one "
+            "allowed reason: audit, debugging, security_or_authorization_review, or "
+            "incorrect_resolution_investigation; omitted, no provenance is returned"
+        ),
+    )
+    parser.add_argument(
         "--compact",
         action="store_true",
         help="omit JSON indentation; legacy formatting flag, not a hydration selector",
@@ -889,6 +912,7 @@ def main(argv: list[str] | None = None) -> int:
             args.skill,
             hydration_level=args.hydration_level,
             change_class=args.change_class,
+            context_provenance=args.context_provenance,
         )
     except Exception as exc:
         surface, _ = select_surface(args.kernel_dir)

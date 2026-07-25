@@ -52,9 +52,9 @@ advisory, authorizes nothing, and may be overridden by explicit PM feedback.
 GitHub: browser chat reconstructs them from live evidence and shows them resolved
 in the route prompt for the receiver's verification. `HYDRATION_LEVEL` accepts
 `minimal`, `compact`, or `full/debug`, is derived from the reconstructed
-`CHANGE_CLASS`, and never drops below its contractual density; it controls the
-resolver's hydrated content and applies the contractual PM-facing receipt
-visibility without altering the internal receipt or `context_plan`. The wizard
+`CHANGE_CLASS`, and never drops below its contractual density; it controls only
+the resolver's hydrated content and no level returns `context_plan` or adds a
+receipt block. The wizard
 asks only for `WORK_UNIT` and `PM_AUTHORIZATION_STATUS`; it does not request
 `SOURCE_REVIEW`, `PR_NUMBER`, `CHANGE_CLASS`, or the density when they can be
 derived.

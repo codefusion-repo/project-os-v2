@@ -6,10 +6,10 @@ merge/close.
 PM-facing density: the resolver projects as `must_include` exactly the
 `output.execution_report.must_include_by_density` list for the resolved
 hydration level. Use only the block for the resolved level; never combine
-levels. Receipt visibility follows
-`context_receipt_contract.pm_facing_visibility` (`minimal` and `compact` hide
-it; `full/debug` shows it); always keep the internal receipt intact at every
-level.
+levels. PM-facing traceability lives in the level's own block — in `full/debug`,
+`Reviewed evidence`; no level adds a receipt block. Detailed provenance is
+delivered only when the PM asks for it for audit, debugging, security or
+authorization review, or investigating an incorrect resolution.
 
 ## Minimal level
 
@@ -105,18 +105,4 @@ prior comment or review.}}
 - Findings addressed: {{each blocking-correction with the change and its outcome}}
 - Commits or range: {{reference}}
 - No merge or close: {{confirmation that no merge or close happened}}
-
-<!-- context-receipt:pm-facing-conditional -->
-## Source receipt
-
-- project_os_sources_read: {{List of source + reason, or [].}}
-- target_sources_read: {{List of source + reason, or [].}}
-- live_evidence_sources: {{List of source + reason, or [].}}
-- resolved_template: {{Exact path or none.}}
-- requested_skills: {{List of key + source, or [].}}
-- tool_internal_sources: {{List of source + reason, or [].}}
-- resolver_projected_metadata: {{List of source + reason, or [].}}
-- model_context_sources: {{List of source + incorporation, or [].}}
-- additional_context_reason: {{Allowed value or none.}}
-<!-- /context-receipt -->
 ```

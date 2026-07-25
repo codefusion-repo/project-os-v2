@@ -53,9 +53,9 @@ PM puede reemplazarla.
 GitHub: browser chat los reconstruye desde la evidencia viva y los muestra
 resueltos en el route-prompt para verificación del receptor. `HYDRATION_LEVEL`
 acepta `minimal`, `compact` o `full/debug`, se deriva de la `CHANGE_CLASS`
-reconstruida y nunca queda por debajo de su densidad contractual; controla el
-contenido hidratado del resolver y aplica la visibilidad PM-facing contractual del
-recibo sin alterar el recibo interno ni `context_plan`. El wizard pide solo
+reconstruida y nunca queda por debajo de su densidad contractual; controla solo el
+contenido hidratado del resolver y ningún nivel devuelve `context_plan` ni agrega
+un bloque de recibo. El wizard pide solo
 `WORK_UNIT` y `PM_AUTHORIZATION_STATUS`; no solicita `SOURCE_REVIEW`, `PR_NUMBER`,
 `CHANGE_CLASS` ni la densidad cuando pueden derivarse.
 

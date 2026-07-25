@@ -42,14 +42,15 @@ artefacto y template resueltos por el kernel.
 Distingue metadata de resolución, contenido incorporado al contexto del modelo
 y fuentes abiertas después de resolver. Abre solo el template aplicable, las
 skills solicitadas y la evidencia o fuentes requeridas por scope, validación o
-source basis; no recorras Project OS recursivamente. Conserva íntegro el
-`context_plan` cuando esté disponible y siempre el recibo canónico interno.
-Aplica `pm_facing_visibility` del
-contrato resuelto: omite únicamente la representación del recibo en `minimal` y
-`compact`, y muéstralo completo en el envelope PM-facing de `full/debug`, con
-paths relativos al repositorio o identificadores vivos y razones, sin cuerpos
-completos, secretos ni estado vivo durable. Toda lectura adicional requiere una
-razón admitida por el contrato.
+source basis; no recorras Project OS recursivamente. Una resolución normal no
+trae `context_plan` y ningún output agrega un bloque de recibo: la trazabilidad
+PM-facing es `Evidencia revisada` y su equivalente por output. Cuando el PM pida
+procedencia detallada por auditoría, debugging, revisión de seguridad o
+autorización, o investigación de una resolución incorrecta, reporta los
+`executor_reported_fields` del contrato junto al `context_plan` solicitado, con
+paths relativos al repositorio o identificadores vivos y razones cortas, sin
+cuerpos completos, secretos ni estado vivo durable. Toda lectura adicional
+requiere una razón admitida por el contrato.
 
 ## Notas propias del target
 

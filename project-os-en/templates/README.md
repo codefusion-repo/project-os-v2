@@ -10,16 +10,16 @@ The `project-os-en/kernel/artifacts.json` catalog links each artifact to
 exactly one `required_template`. The resolver exposes those references
 without copying template contents.
 
-Every output references `context_receipt.minimum_read_surface`. The agent keeps
-the internal receipt intact with the canonical kernel fields and applies
-`pm_facing_visibility`: it omits the marked block from PM-facing Markdown in
-`minimal` and `compact`, and shows it in full in the `full/debug` envelope. The
-`context-receipt:*` comments are control syntax: always remove them and never
-include them in PM-facing Markdown. The
-receipt records repository-relative paths or live identifiers and reasons,
-never absolute machine paths, bodies, secrets, or durable live state. When an
-artifact requires an exact body—such as a route prompt—the receipt remains
-outside that body and does not alter it.
+Every output references `context_receipt.minimum_read_surface`, which bounds the
+normal reading surface. No template adds a receipt block: PM-facing traceability
+is `Reviewed evidence` and its per-output equivalent. Detailed provenance is not
+the default; the PM requests it for audit, debugging, security or authorization
+review, or investigating an incorrect resolution, and the agent then reports its
+`executor_reported_fields` alongside the resolver's `context_plan`
+(`--context-provenance <reason>`). That provenance uses repository-relative paths
+or live identifiers and short reasons, never absolute machine paths, bodies,
+secrets, or durable live state. When an artifact requires an exact body—such as a
+route prompt—the provenance remains outside that body and does not alter it.
 
 ## Operating bridge
 

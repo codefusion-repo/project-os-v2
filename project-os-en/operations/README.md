@@ -93,10 +93,10 @@ class). In `MOS-3.5` that metadata is not asked for: the wizard captures only
 `WORK_UNIT` and `PM_AUTHORIZATION_STATUS`, and browser chat reconstructs the PR,
 the source review, the `CHANGE_CLASS`, and the density from live evidence. This
 assistance is local to those route prompts; it does not make the level a canonical
-variable across the catalog or authorize writing. The level controls the resolver
-view returned and the contractual PM-facing receipt visibility: `minimal` and
-`compact` hide only that representation; `full/debug` shows it in full. It does not
-alter the internal receipt or `context_plan`.
+variable across the catalog or authorize writing. The level controls only the
+resolver view returned; no level returns `context_plan` or adds a receipt block,
+and detailed provenance requires an explicit request
+(`--context-provenance <reason>`).
 
 ## Index
 

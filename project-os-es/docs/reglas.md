@@ -95,12 +95,13 @@ resolución seleccionada, límites y evidencia, output y artefacto aplicables,
 template exacto, skills solicitadas, evidencia viva mínima y fuentes del target
 requeridas por scope, validación o source basis. Tooling interno, metadata
 proyectada, contexto real del modelo y aperturas posteriores son categorías
-distintas. Cada ejecución las conserva internamente mediante
-`context_receipt.minimum_read_surface`, usando paths relativos al repositorio o
-identificadores vivos y razones, nunca paths absolutos de máquina ni cuerpos
-completos. `context_plan` y el recibo interno permanecen íntegros en todos los
-niveles; `pm_facing_visibility` omite solo la representación Markdown del recibo
-en `minimal` y `compact`, y la muestra completa en el envelope de `full/debug`.
+distintas. `context_receipt.minimum_read_surface` acota esa superficie normal.
+La trazabilidad PM-facing predeterminada es la evidencia revisada del output:
+ninguna resolución normal devuelve `context_plan` ni agrega un bloque de recibo,
+en ningún nivel. La procedencia detallada se solicita explícitamente
+(`--context-provenance <razón>`) y usa paths relativos al repositorio o
+identificadores vivos y razones cortas, nunca paths absolutos de máquina ni
+cuerpos completos.
 Lecturas fuera de la superficie normal requieren `full/debug`, auditoría,
 debugging, revisión de seguridad/autorización, arquitectura compleja o una
 decisión PM concreta; ninguna razón sustituye evidencia ni gates.

@@ -1,7 +1,6 @@
 {
   "context_receipt_contract": {
     "key": "context_receipt.minimum_read_surface",
-    "default_hydration_level": "compact",
     "normal_read_surface": [
       "selected_resolution",
       "required_limits_and_evidence",
@@ -11,47 +10,23 @@
       "minimum_live_evidence",
       "target_scope_validation_or_source_basis"
     ],
-    "fields": [
-      "project_os_sources_read",
-      "target_sources_read",
-      "live_evidence_sources",
-      "resolved_template",
-      "requested_skills",
-      "tool_internal_sources",
-      "resolver_projected_metadata",
-      "model_context_sources",
-      "additional_context_reason"
-    ],
-    "source_reference_fields": [
-      "source",
-      "reason"
-    ],
-    "source_reference_format": "repository_relative_path_or_live_identifier",
-    "reason_format": "short_non_sensitive_identifier",
-    "model_context_reference_fields": [
-      "source",
-      "incorporation"
-    ],
-    "model_context_incorporation_values": [
-      "metadata",
-      "excerpt",
-      "full"
-    ],
-    "additional_context_reason_values": [
-      "full/debug",
+    "pm_facing_traceability": "reviewed_evidence",
+    "detailed_provenance_default": "omitted",
+    "detailed_provenance_reasons": [
       "audit",
       "debugging",
       "security_or_authorization_review",
-      "complex_architecture",
-      "pm_decision"
+      "incorrect_resolution_investigation"
     ],
-    "internal_receipt_required": true,
-    "pm_facing_visibility": {
-      "minimal": "hidden",
-      "compact": "hidden",
-      "full/debug": "full"
-    },
-    "output_placement": "output_envelope",
+    "resolver_provenance_field": "context_plan",
+    "executor_reported_fields": [
+      "project_os_sources_read",
+      "target_sources_read",
+      "live_evidence_sources",
+      "model_context_sources"
+    ],
+    "source_reference_format": "repository_relative_path_or_live_identifier",
+    "reason_format": "short_non_sensitive_identifier",
     "stores_source_bodies": false,
     "stores_secret_values": false,
     "stores_durable_live_state": false,

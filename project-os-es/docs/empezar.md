@@ -198,11 +198,10 @@ La respuesta declara `hydration_level` y usa estos shapes deterministas:
 - `full/debug`: todo `compact` más los metadatos completos de la resolución
   seleccionada, incluidos flags de actividad y enlaces internos de auditoría.
 
-El resolver conserva `context_plan` íntegro en los tres niveles. En la
-ejecución, el ejecutor conserva siempre el recibo interno y aplica la política
-canónica `pm_facing_visibility`: oculta únicamente su sección Markdown en
-`minimal` y `compact`, y la muestra completa en `full/debug`. `debug` aislado
-no es un alias válido.
+Ningún nivel devuelve `context_plan`: la procedencia detallada del resolver es
+una ruta explícita y aparte (`--context-provenance <razón>`). En la ejecución,
+la trazabilidad PM-facing es la evidencia revisada del output y ningún nivel
+agrega un bloque de recibo. `debug` aislado no es un alias válido.
 
 ```sh
 python tools/project_os_resolve.py --actor actor.terminal_agent \
@@ -211,8 +210,7 @@ python tools/project_os_resolve.py --actor actor.terminal_agent \
 ```
 
 Dentro del resolver, el nivel cambia solo el contenido devuelto: no lee
-GitHub/git, no inventa estado y nunca concede permisos. El ejecutor usa el mismo
-selector únicamente para la presentación PM-facing del recibo. Los tamaños
+GitHub/git, no inventa estado y nunca concede permisos. Los tamaños
 medidos por nivel, con metodología y
 fecha declaradas, están en [benchmark-contexto.md](benchmark-contexto.md). Los otros niveles se solicitan con el mismo flag; un
 valor desconocido falla cerrado. En Python el parámetro canónico es

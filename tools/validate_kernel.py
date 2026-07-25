@@ -96,20 +96,22 @@ SAFE_DEGRADATION_CONTRACT = {
     "revalidation_required_before_write": True,
 }
 CONTEXT_RECEIPT_KEY = "context_receipt.minimum_read_surface"
-CONTEXT_RECEIPT_FIELDS = [
+# Provenance the executor alone observes; resolver-known provenance lives in the
+# on-request ``context_plan`` and is never duplicated into this list.
+CONTEXT_RECEIPT_EXECUTOR_FIELDS = [
     "project_os_sources_read",
     "target_sources_read",
     "live_evidence_sources",
-    "resolved_template",
-    "requested_skills",
-    "tool_internal_sources",
-    "resolver_projected_metadata",
     "model_context_sources",
-    "additional_context_reason",
+]
+CONTEXT_PROVENANCE_REASONS = [
+    "audit",
+    "debugging",
+    "security_or_authorization_review",
+    "incorrect_resolution_investigation",
 ]
 CONTEXT_RECEIPT_CONTRACT = {
     "key": CONTEXT_RECEIPT_KEY,
-    "default_hydration_level": "compact",
     "normal_read_surface": [
         "selected_resolution",
         "required_limits_and_evidence",
@@ -119,27 +121,13 @@ CONTEXT_RECEIPT_CONTRACT = {
         "minimum_live_evidence",
         "target_scope_validation_or_source_basis",
     ],
-    "fields": CONTEXT_RECEIPT_FIELDS,
-    "source_reference_fields": ["source", "reason"],
+    "pm_facing_traceability": "reviewed_evidence",
+    "detailed_provenance_default": "omitted",
+    "detailed_provenance_reasons": CONTEXT_PROVENANCE_REASONS,
+    "resolver_provenance_field": "context_plan",
+    "executor_reported_fields": CONTEXT_RECEIPT_EXECUTOR_FIELDS,
     "source_reference_format": "repository_relative_path_or_live_identifier",
     "reason_format": "short_non_sensitive_identifier",
-    "model_context_reference_fields": ["source", "incorporation"],
-    "model_context_incorporation_values": ["metadata", "excerpt", "full"],
-    "additional_context_reason_values": [
-        "full/debug",
-        "audit",
-        "debugging",
-        "security_or_authorization_review",
-        "complex_architecture",
-        "pm_decision",
-    ],
-    "internal_receipt_required": True,
-    "pm_facing_visibility": {
-        "minimal": "hidden",
-        "compact": "hidden",
-        "full/debug": "full",
-    },
-    "output_placement": "output_envelope",
     "stores_source_bodies": False,
     "stores_secret_values": False,
     "stores_durable_live_state": False,

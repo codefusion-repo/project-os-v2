@@ -3,8 +3,10 @@
 Responsibility: document claims, scope and validation of a PR draft. It is not
 completeness test until review against diff/final files.
 
-PM-facing presentation: apply `context_receipt_contract.pm_facing_visibility`
-to the marked block; always keep the internal receipt intact.
+PM-facing traceability: `Validation` and the declared scope are the canonical
+representation. Do not add a receipt block; detailed provenance is delivered only
+when the PM asks for it for audit, debugging, security or authorization review,
+or investigating an incorrect resolution.
 
 ```markdown
 ## Summary
@@ -25,20 +27,6 @@ to the marked block; always keep the internal receipt intact.
 ## Security / Privacy
 
 - {{Handling sensitive data or "no sensitive surfaces touched."}}
-
-<!-- context-receipt:pm-facing-conditional -->
-## Source Receipt
-
-- project_os_sources_read: {{List of source + reason, or [].}}
-- target_sources_read: {{List of source + reason, or [].}}
-- live_evidence_sources: {{List of source + reason, or [].}}
-- resolved_template: project-os-en/templates/pull-request.md
-- requested_skills: {{List of key + source, or [].}}
-- tool_internal_sources: {{List of source + reason, or [].}}
-- resolver_projected_metadata: {{List of source + reason, or [].}}
-- model_context_sources: {{List of source + incorporation, or [].}}
-- additional_context_reason: {{Allowed value or none.}}
-<!-- /context-receipt -->
 
 Related to #{{issue}}.
 ```
