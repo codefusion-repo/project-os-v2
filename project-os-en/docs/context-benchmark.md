@@ -227,7 +227,7 @@ To reproduce the #464 comparison, run that same loop in a baseline worktree and
 compare again:
 
 ```sh
-git worktree add /tmp/pos-base 3de282f07c65f8751d6827dd941dba7cbf90ef86 --detach
+git worktree add /tmp/pos-base 3de282f07c65 --detach
 ```
 
 And for the per-surface breakdown, on either state:

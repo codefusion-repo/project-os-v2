@@ -224,7 +224,7 @@ Para reproducir la comparación de #464 basta ejecutar ese mismo bucle en un
 worktree del baseline y volver a comparar:
 
 ```sh
-git worktree add /tmp/pos-base 3de282f07c65f8751d6827dd941dba7cbf90ef86 --detach
+git worktree add /tmp/pos-base 3de282f07c65 --detach
 ```
 
 Y para el desglose por superficie, sobre cualquiera de los dos estados:
