@@ -64,7 +64,7 @@ compacto por operación, organizado por fase.
 | Routear una implementación al terminal agent | [MOS-3.4](../operaciones/fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md) |
 | Trabajar sin terminal agent (plan manual) | [MOS-3.30](../operaciones/fase-3/MOS-3.30-draftear-plan-de-implementacion-manual.md), procesando el resultado con [MOS-3.31](../operaciones/fase-3/MOS-3.31-procesar-resultado-de-implementacion-manual.md) |
 | Revisar un PR antes de cerrarlo | [MOS-3.7](../operaciones/fase-3/MOS-3.7-revisar-pr-antes-de-cerrar.md) |
-| Cerrar un PR/issue con evidencia | [MOS-3.6](../operaciones/fase-3/MOS-3.6-draftear-comandos-de-closeout.md) y [MOS-3.9](../operaciones/fase-3/MOS-3.9-verificar-estado-post-merge.md) |
+| Cerrar un PR/issue con evidencia | El GO de [MOS-3.7](../operaciones/fase-3/MOS-3.7-revisar-pr-antes-de-cerrar.md) entrega closeout y verificación en la misma respuesta |
 | Procesar QA humano | [MOS-4.4](../operaciones/fase-4/MOS-4.4-procesar-checklist-qa-de-issue-pr.md) o [MOS-4.5](../operaciones/fase-4/MOS-4.5-procesar-checklist-qa-de-feature.md) |
 | Revisar seguridad o auditar | [MOS-3.23](../operaciones/fase-3/MOS-3.23-solicitar-revision-de-seguridad.md) o [MOS-3.13](../operaciones/fase-3/MOS-3.13-auditar-trazabilidad.md) |
 | Preparar release o deploy | [MOS-3.10](../operaciones/fase-3/MOS-3.10-analizar-readiness-de-release.md) o [MOS-R.11](../operaciones/fase-5/MOS-R.11-revisar-readiness-de-despliegue-por-entorno.md) |

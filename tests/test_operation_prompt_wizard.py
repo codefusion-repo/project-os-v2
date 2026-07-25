@@ -207,7 +207,8 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
     operations = discover_operations()
     expected_variables = {
         "MOS-3.4": [
-            ("ISSUE_NUMBER", False),
+            ("CHANGE_CLASS", True),
+            ("WORK_UNIT", False),
             ("ROADMAP_ISSUE", False),
             ("OPTIONAL_SKILL", False),
             (HYDRATION_LEVEL_NAME, False),
@@ -215,10 +216,8 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
             ("PM_QUESTION_HUMANO", False),
         ],
         "MOS-3.5": [
-            ("ISSUE_NUMBER", True),
-            ("PR_NUMBER", False),
+            ("WORK_UNIT", True),
             ("OPTIONAL_SKILL", False),
-            (HYDRATION_LEVEL_NAME, False),
             ("PM_FEEDBACK_HUMANO", False),
             ("PM_QUESTION_HUMANO", False),
         ],
@@ -238,14 +237,40 @@ def test_active_route_operations_expose_hydration_and_required_authorization() -
         rendered = render_prompt(
             operation,
             {
-                "ISSUE_NUMBER": "405",
+                "WORK_UNIT": "issue #405",
                 HYDRATION_LEVEL_NAME: "full/debug",
                 PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED,
             },
         )
         assert rendered.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
         assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in rendered
-        assert f"{HYDRATION_LEVEL_NAME}=full/debug" in rendered
+
+    # MOS-3.4 still preloads the class density into the route prompt. MOS-3.5 no
+    # longer asks for the source review, PR, class, or density: browser chat
+    # reconstructs them from live evidence, so they never become manual wizard
+    # inputs and never render as INPUT variables.
+    mos34 = next(candidate for candidate in operations if candidate.mos_code == "MOS-3.4")
+    rendered34 = render_prompt(
+        mos34,
+        {
+            "WORK_UNIT": "issue #405",
+            HYDRATION_LEVEL_NAME: "full/debug",
+            PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED,
+        },
+    )
+    assert f"{HYDRATION_LEVEL_NAME}=full/debug" in rendered34
+
+    mos35 = next(candidate for candidate in operations if candidate.mos_code == "MOS-3.5")
+    mos35_names = [variable.name for variable in mos35.variables]
+    for derived in ("SOURCE_REVIEW", "PR_NUMBER", "CHANGE_CLASS", HYDRATION_LEVEL_NAME):
+        assert derived not in mos35_names
+    rendered35 = render_prompt(
+        mos35,
+        {"WORK_UNIT": "issue #405", PM_AUTHORIZATION_STATUS_NAME: PM_AUTHORIZATION_GRANTED},
+    )
+    assert "WORK_UNIT=issue #405" in rendered35
+    for derived in ("SOURCE_REVIEW=", "PR_NUMBER=", "CHANGE_CLASS=", f"{HYDRATION_LEVEL_NAME}="):
+        assert derived not in rendered35
 
 
 def test_target_repository_uses_generic_repository_validation() -> None:
@@ -509,7 +534,7 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
             "",
             "/phases",
             "MOS-3.5",
-            "405", "", "none", "", "", "", "1",
+            "405", "none", "", "", "1",
             "write", "exit",
         ),
         output_stream=stream,
@@ -523,10 +548,13 @@ def test_line_wizard_active_mos35_generates_pending_route_prompt(tmp_path: Path)
     assert "Kernel (reference only, not applied): project-os-es/kernel" in transcript
     assert "Operations grouped by SDLC phase:" in transcript
     assert "Fase 3:" in transcript
-    assert "ISSUE_NUMBER=405" in content
+    assert "WORK_UNIT=405" in content
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_PENDING}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
-    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content
+    # Derived metadata is reconstructed by browser chat, never a manual wizard
+    # input, so none of it renders as an INPUT variable.
+    for derived in ("SOURCE_REVIEW=", "PR_NUMBER=", "CHANGE_CLASS=", f"{HYDRATION_LEVEL_NAME}="):
+        assert derived not in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted for this exact scope and mode." in transcript
     assert WIZARD_PROMPT_MARKER in content
@@ -539,7 +567,7 @@ def test_line_wizard_active_mos34_generates_granted_route_prompt(tmp_path: Path)
         input_func=answers(
             "es",
             "MOS-3.4",
-            "405", "274", "skill.arquitectura_backend", "", "", "", "2",
+            "change_class.standard", "405", "274", "skill.arquitectura_backend", "", "", "", "2",
             "write", "exit",
         ),
         output_stream=stream,
@@ -870,8 +898,15 @@ def test_route_prompt_template_keeps_ai_advisory_field_without_pm_input() -> Non
     for mos_code in ("MOS-3.4", "MOS-3.5"):
         operation = next(candidate for candidate in discover_operations() if candidate.mos_code == mos_code)
         assert "RECOMMENDED_TERMINAL_AGENT_FAMILY" not in [variable.name for variable in operation.variables]
-        assert HYDRATION_LEVEL_NAME in [variable.name for variable in operation.variables]
         assert "browser chat" in operation.text
+
+    # MOS-3.4 exposes HYDRATION_LEVEL as an optional route-prompt input; MOS-3.5
+    # derives it (with the source review, PR, and class) from live evidence, so it
+    # is not a manual variable there.
+    mos34 = next(candidate for candidate in discover_operations() if candidate.mos_code == "MOS-3.4")
+    assert HYDRATION_LEVEL_NAME in [variable.name for variable in mos34.variables]
+    mos35 = next(candidate for candidate in discover_operations() if candidate.mos_code == "MOS-3.5")
+    assert HYDRATION_LEVEL_NAME not in [variable.name for variable in mos35.variables]
 
 
 def test_hydration_level_rejects_unknown_values_and_is_absent_from_unrelated_operations() -> None:
@@ -1046,7 +1081,7 @@ def test_language_question_is_asked_once_per_session(tmp_path: Path) -> None:
         (
             "",
             "MOS-3.5",
-            "405", "", "none", "", "", "", "1",
+            "405", "#5054784601", "463", "change_class.standard", "none", "", "", "", "1",
             "write",
             "new",
             "cancel",
@@ -1072,7 +1107,7 @@ def test_english_language_loads_coherent_english_bundle(tmp_path: Path) -> None:
     output = run_wizard(
         language="en",
         output_dir=tmp_path,
-        input_func=answers("MOS-3.5", "405", "", "none", "", "", "", "1", "write", "exit"),
+        input_func=answers("MOS-3.5", "405", "#5054784601", "463", "change_class.standard", "none", "", "", "", "1", "write", "exit"),
         output_stream=stream,
     )
 
@@ -1106,6 +1141,183 @@ def test_english_skills_catalog_loads_names_from_name_field() -> None:
         "Mobile development",
         "Game development",
     ]
+
+
+def test_written_prompt_carries_verifiable_provenance_of_its_live_operation(tmp_path: Path) -> None:
+    import hashlib
+    import re
+
+    operations = discover_operations()
+    operation = next(op for op in operations if op.mos_code == "MOS-3.5")
+    alias = next(op for op in operations if op.mos_code == "MOS-R.10")
+    for candidate in (operation, alias):
+        rendered = render_prompt(candidate, {})
+        written = write_prompt(
+            tmp_path / generated_filename(candidate, rendered), rendered, operation=candidate
+        )
+        content = written.read_text(encoding="utf-8")
+
+        assert "<!-- prompt-provenance" in content
+        assert WIZARD_PROMPT_MARKER in content
+        fields = dict(
+            re.findall(r"^(source_repository|operation_path|operation_blob_sha|generated_at): (.+)$", content, re.MULTILINE)
+        )
+        source_path = REPO_ROOT / fields["operation_path"]
+        assert source_path.is_file()
+        # An alias prompt must point at its canonical live operation source.
+        assert source_path == (candidate.canonical_path or candidate.path).resolve()
+        data = source_path.read_bytes()
+        assert fields["operation_blob_sha"] == hashlib.sha1(
+            b"blob %d\x00" % len(data) + data
+        ).hexdigest()
+        assert fields["source_repository"]
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", fields["generated_at"])
+
+
+def test_provenance_repository_identity_is_sanitized_and_never_leaks_credentials() -> None:
+    import re
+
+    from tools.operation_prompt_wizard import (
+        _sanitized_repository_identity,
+        source_repository_identity,
+    )
+
+    assert _sanitized_repository_identity("git@github.com:owner/repo.git") == "owner/repo"
+    assert (
+        _sanitized_repository_identity("https://user:secrettoken@github.com/owner/repo.git")
+        == "owner/repo"
+    )
+    assert _sanitized_repository_identity("ssh://git@github.com/owner/repo") == "owner/repo"
+    assert _sanitized_repository_identity("/home/someone/checkouts/repo") is None
+    assert _sanitized_repository_identity("not a remote") is None
+
+    identity = source_repository_identity()
+    assert re.fullmatch(r"[A-Za-z0-9._-]+/[A-Za-z0-9._-]+|local:[A-Za-z0-9._-]+", identity)
+    assert "@" not in identity
+    assert "://" not in identity
+
+
+def test_custom_catalog_provenance_verifies_against_an_explicit_root_without_absolute_paths(
+    tmp_path: Path,
+) -> None:
+    catalog = tmp_path / "catalog"
+    source = catalog / "MOS-9.9-custom.md"
+    write_spanish_operation(source, "MOS-9.9", "Custom")
+    operation = discover_operations(catalog)[0]
+    rendered = render_prompt(operation, {})
+    written = write_prompt(tmp_path / "prompt.md", rendered, operation=operation)
+    content = written.read_text(encoding="utf-8")
+
+    # Only the basename is persisted; no machine-local absolute path leaks.
+    assert "operation_path: custom:MOS-9.9-custom.md" in content
+    assert str(tmp_path) not in content
+
+    from tools.operation_prompt_wizard import verify_prompt_provenance
+
+    # Without a catalog root the check fails closed rather than pretending fresh.
+    no_root, message = verify_prompt_provenance(written)
+    assert no_root is False and "custom-catalog" in message
+
+    # With the live catalog root supplied at verify time, custom is verifiable.
+    fresh, _ = verify_prompt_provenance(written, catalog_root=catalog)
+    assert fresh is True
+
+    source.write_text(source.read_text(encoding="utf-8") + "\nchanged\n", encoding="utf-8")
+    stale, stale_message = verify_prompt_provenance(written, catalog_root=catalog)
+    assert stale is False and "stale" in stale_message
+
+
+def test_verify_prompt_provenance_passes_fresh_and_fails_closed_on_staleness(tmp_path: Path) -> None:
+    from tools.operation_prompt_wizard import git_blob_sha, verify_prompt_provenance
+
+    repo_root = tmp_path / "repo"
+    operation_path = repo_root / "operaciones" / "MOS-9.8-viva.md"
+    operation_path.parent.mkdir(parents=True)
+    operation_path.write_text("# MOS-9.8 — Viva\n", encoding="utf-8")
+
+    def prompt_with(path_value: str, sha_value: str) -> Path:
+        artifact = tmp_path / "generated.md"
+        artifact.write_text(
+            "cuerpo\n\n<!-- prompt-provenance\n"
+            "source_repository: owner/repo\n"
+            f"operation_path: {path_value}\n"
+            f"operation_blob_sha: {sha_value}\n"
+            "generated_at: 2026-01-01T00:00:00Z\n"
+            "staleness: check\n"
+            "-->\n",
+            encoding="utf-8",
+        )
+        return artifact
+
+    live_sha = git_blob_sha(operation_path)
+    fresh, message = verify_prompt_provenance(
+        prompt_with("operaciones/MOS-9.8-viva.md", live_sha), repo_root=repo_root
+    )
+    assert fresh is True and "fresh" in message
+
+    operation_path.write_text("# MOS-9.8 — Viva cambiada\n", encoding="utf-8")
+    stale, message = verify_prompt_provenance(
+        prompt_with("operaciones/MOS-9.8-viva.md", live_sha), repo_root=repo_root
+    )
+    assert stale is False and "stale" in message and "regenerate" in message
+
+    missing, message = verify_prompt_provenance(
+        prompt_with("operaciones/no-existe.md", live_sha), repo_root=repo_root
+    )
+    assert missing is False and "not found" in message
+
+    for hostile in ("/etc/passwd", "../fuera.md"):
+        escaped, message = verify_prompt_provenance(
+            prompt_with(hostile, live_sha), repo_root=repo_root
+        )
+        assert escaped is False and "repository-relative" in message
+
+    no_block = tmp_path / "sin-provenance.md"
+    no_block.write_text("solo cuerpo\n", encoding="utf-8")
+    absent, message = verify_prompt_provenance(no_block, repo_root=repo_root)
+    assert absent is False and "missing prompt-provenance" in message
+
+
+def test_verify_prompt_cli_exits_zero_fresh_and_one_stale(tmp_path: Path) -> None:
+    import subprocess
+    import sys
+
+    operation = next(op for op in discover_operations() if op.mos_code == "MOS-3.5")
+    rendered = render_prompt(operation, {})
+    written = write_prompt(tmp_path / "route.md", rendered, operation=operation)
+
+    fresh = subprocess.run(
+        [sys.executable, "tools/operation_prompt_wizard.py", "--verify-prompt", str(written)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert fresh.returncode == 0
+    assert "fresh" in fresh.stdout
+
+    import re
+
+    corrupted = tmp_path / "stale.md"
+    corrupted.write_text(
+        re.sub(
+            r"^operation_blob_sha: [0-9a-f]{40}$",
+            "operation_blob_sha: " + "0" * 40,
+            written.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        ),
+        encoding="utf-8",
+    )
+    stale = subprocess.run(
+        [sys.executable, "tools/operation_prompt_wizard.py", "--verify-prompt", str(corrupted)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert stale.returncode == 1
+    assert stale.stdout == ""
+    assert "stale" in stale.stderr
 
 
 def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejected(tmp_path: Path) -> None:

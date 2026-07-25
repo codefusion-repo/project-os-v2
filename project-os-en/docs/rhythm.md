@@ -1,15 +1,35 @@
 # Lifecycle rhythm
 
-## Core issue-to-draft-PR loop
+## Proportionality: four levels of work
 
-1. Reconstruct the live roadmap, issue, repository, and prior decisions.
-2. Use a PM-intake operation to draft one bounded issue or route prompt.
+Classify work before picking operations; the class governs unit, PR, review,
+validation, and report density:
+
+- **Level 0 — Reading or analysis.** Direct answer with sufficient evidence;
+  no unit, roadmap, branch, tests, or durable artifact.
+- **Level 1 — Small reversible change.** An exact, verifiable PM instruction
+  may be the live unit when the target allows it: preflight, scoped branch,
+  the complete solution that best satisfies the outcome, sufficient minimal
+  validation, `minimal` report.
+  No issue, roadmap, ADR, new tests, or new tooling by default.
+- **Level 2 — Standard change.** The core loop below.
+- **Level 3 — Critical or hard-to-revert change.** Kernel, authorization,
+  security, migrations, deployment, releases, public contracts: formal unit,
+  PR, independent review, rollback, and broad validation.
+
+Issues, PRs, branches, and GitHub are available adapters, never universal
+requirements of the model.
+
+## Core loop for standard changes
+
+1. Reconstruct the live roadmap, work unit, repository, and prior decisions.
+2. Use a PM-intake operation to draft one bounded unit or route prompt.
 3. Resolve `workflow.issue_implementation` with the exact allowed mode.
 4. Run branch preflight before the first edit; work only on `work/<unit>-<slug>`.
-5. Implement the complete scoped behavior and run proportional validation.
+5. Implement the complete solution that best satisfies the scope's outcome and run proportional validation.
 6. Commit, push, and open a draft PR only when the mode and exact PM approval allow it.
-7. Run `workflow.review_before_close` against the real changed files, diff, relevant final files, validation, and linked issue.
-8. Leave merge and closure with the PM; verify post-merge state through a separate read-only operation.
+7. Run `workflow.review_before_close` against the real changed files, diff, relevant final files, validation, and linked unit; give every finding a disposition — only `blocking-correction` returns to correction, and each correction is recorded as an append-only correction report (source review, previous and corrected heads, findings, validation) without editing the body or prior comments before the next review.
+8. Leave merge and closure with the PM; on GO the review delivers the closeout bundle and its final verification in the same response, and a separate postcondition verification (merge, final SHA, closure, cleanup) via MOS-3.27 remains for failures, audits, or an explicit PM request.
 
 ## Alternate branches
 

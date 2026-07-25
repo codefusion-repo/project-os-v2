@@ -27,7 +27,7 @@
     {
       "key": "boundary.separate_pm_approval",
       "actor_key": null,
-      "rule": "Merge, closure, labels, tags, releases, settings, automation, and target artifacts require separate exact PM approval naming the project, work unit, and action.",
+      "rule": "Merge, closure, labels, tags, releases, settings, automation, and target artifacts require exact PM approval naming the project, work unit, and action; one PM decision may enumerate several exact actions on the same unit, without inferring unnamed actions or becoming general permission.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true
@@ -91,7 +91,7 @@
     {
       "key": "boundary.implementation_discipline",
       "actor_key": null,
-      "rule": "Complete the live work-unit scope without unrelated rewrites, speculative abstraction, over-implementation, or under-implementation disguised as minimalism.",
+      "rule": "Implement the complete solution that best satisfies the outcome, scope, acceptance criteria, and target conventions; among materially equivalent alternatives, prefer the one with the least complexity, the smallest change surface, and the best reversibility, and targeted changes over broad rewrites; do not modify nearby code, tests, docs, tooling, or architecture without demonstrable need for the observable result; under-implementation, over-implementation, over-correction, speculative abstraction, unrelated rewrites, and covert scope expansion are prohibited. Interpret PM and review instructions by intent: only authorization and allowed actions, repository, workflow, mode, and branch identity, hard constraints, scope and out of scope, security, secrets, preflight, main protection, fail-closed behavior, and expressly binding PM decisions are literal; examples, hypotheses, preferences, tentative names, illustrative schemas, folder proposals, and implementation suggestions are advisory, are never copied automatically into rules, fields, files, tests, or abstractions, and may be replaced by a more correct, simple, portable, or maintainable solution with the reason recorded in the report; escalate to the PM only when the choice materially changes product, risk, security, authority, public compatibility, irreversibility, or durable architecture.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true
@@ -107,7 +107,7 @@
     {
       "key": "boundary.validation_discipline",
       "actor_key": null,
-      "rule": "Validate in proportion to risk; add tests only for behavior, regression, security, or contracts that justify them.",
+      "rule": "Validate in proportion to risk; running validation is not creating tests or tooling: tests only for executable behavior, regression, security, or contracts that justify them, never by default for docs, prompts, or templates.",
       "on_violation": "status.blocked",
       "blocking": true,
       "active": true

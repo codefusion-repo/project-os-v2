@@ -14,7 +14,9 @@ Return exactly one configured status. Stop on an unknown surface, missing kernel
 
 ## Proportional validation
 
-Use agent-run validation for kernel, resolver, tooling, security/privacy, authorization, traceability, deployment, migration, billing/storage, and deterministic contracts. Draft PM-run commands when execution should stay with the PM. Report manual PM validation for language, content, product judgment, UX, onboarding, and semantic parity. Add tests only for stable behavior and regression risk.
+Use agent-run validation for kernel, resolver, tooling, security/privacy, authorization, traceability, deployment, migration, billing/storage, and deterministic contracts. Draft PM-run commands when execution should stay with the PM. Report manual PM validation for language, content, product judgment, UX, onboarding, and semantic parity.
+
+Running validation is not creating tests or tooling. Tests protect executable code, parsing, schemas, routing, authorization, fail-closed behavior, protocols, observed regressions, or security; never wording, headings, editorial order, keywords, timestamps, or literal ES/EN equivalence. New tooling requires evidence of the observable failure it prevents, its real occurrence, the absence of an equivalent check, its layer (core, adapter, or dogfooding), its maintenance cost, and why a smaller solution is not enough. The change class (reading, small, standard, critical) additionally governs unit, PR, review, and report density through the kernel's structured `proportionality.change_class` contract; the resolver verifies class/workflow coherence via `--change-class`.
 
 ## Context economy and traceability
 

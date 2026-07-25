@@ -59,7 +59,7 @@
         "workflow.review_before_close"
       ],
       "mode_key": [],
-      "satisfied_by": "unidad de trabajo viva con objetivo, scope, out of scope y acceptance criteria; un issue o PR de GitHub es un adapter posible",
+      "satisfied_by": "unidad de trabajo viva con objetivo, scope, out of scope y acceptance criteria; un issue o PR de GitHub es un adapter posible y, para un cambio pequeno y reversible (change_class.small), una instruccion PM exacta y verificable con ese mismo scope completo en forma compacta puede ser la unidad viva",
       "missing_status": "status.needs_context",
       "required": true,
       "materiality": "material",
@@ -70,6 +70,10 @@
           {
             "key": "source.live_change_request",
             "verification": "mismo objetivo, scope, out of scope y acceptance criteria verificables"
+          },
+          {
+            "key": "source.live_pm_decision",
+            "verification": "instruccion PM exacta y verificable de un cambio pequeno y reversible (change_class.small) con objetivo, scope, out of scope, acceptance criteria y resultado observable en forma compacta, y politica del target que admite esta ruta verificada en su adapter o registro vivo"
           }
         ]
       },

@@ -48,6 +48,24 @@ class HydrationLevel(str, Enum):
 DEFAULT_HYDRATION_LEVEL = HydrationLevel.COMPACT
 HYDRATION_LEVEL_VALUES = tuple(level.value for level in HydrationLevel)
 
+# Ordering used to enforce that an explicit hydration level may keep or raise a
+# class's contractual density, but never reduce it.
+DENSITY_RANK = {
+    HydrationLevel.MINIMAL: 0,
+    HydrationLevel.COMPACT: 1,
+    HydrationLevel.FULL_DEBUG: 2,
+}
+
+# Gates the resolver only shapes; they must be enforced with actor capability,
+# live evidence, and exact PM approval, not by this deterministic resolution.
+REMAINING_GATE_SOURCES = {
+    "formal_unit_required": "live_work_unit_or_exact_pm_decision",
+    "pr_required": "delegated_mode_capability_and_target_policy",
+    "review_level": "review_before_close_at_the_class_level",
+    "validation_level": "agent_or_ci_validation_output",
+    "prior_docs": "durable_docs_or_adr_before_implementation",
+}
+
 
 def _fail_closed(
     errors: list[str],
@@ -114,6 +132,7 @@ def _load(
         data[family] = [entry for entry in entries if isinstance(entry, dict) and entry.get("active")]
         contract_fields = {
             "evidence": ("materiality_contract",),
+            "workflows": ("proportionality_contract",),
             "outputs": ("safe_degradation_contract", "context_receipt_contract"),
         }.get(family, ())
         for contract_field in contract_fields:
@@ -127,6 +146,65 @@ def _load(
 
 def _index(entries: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return {entry["key"]: entry for entry in entries if isinstance(entry.get("key"), str)}
+
+
+def _resolve_change_class(
+    change_class: str | None,
+    contract: Any,
+    workflow_key: str,
+    surface: ProjectOSSurface,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    """Resolve one declared change class against the structured contract.
+
+    The class never grants authority: it selects the proportionality contract
+    (unit, PR, review, validation, density) and must be coherent with the
+    selected workflow, or the resolution fails closed.
+    """
+
+    if change_class is None:
+        return None, []
+    classes = contract.get("classes") if isinstance(contract, dict) else None
+    entries = {
+        entry["key"]: entry
+        for entry in (classes if isinstance(classes, list) else [])
+        if isinstance(entry, dict) and isinstance(entry.get("key"), str)
+    }
+    entry = entries.get(change_class)
+    if entry is None:
+        return None, [
+            f"{surface.messages['unknown_change_class']}: {change_class!r} "
+            f"({surface.messages['known']}: {sorted(entries)})"
+        ]
+    if workflow_key not in entry.get("allowed_workflows", []):
+        return None, [
+            f"{surface.messages['incompatible_change_class']}: "
+            f"{change_class!r} -> {workflow_key!r}"
+        ]
+    return entry, []
+
+
+def _remaining_gates(change_class: dict[str, Any]) -> list[dict[str, Any]]:
+    """Surface the class gates the resolver cannot verify as enforceable obligations.
+
+    The class selects unit, PR, review, validation, and prior-docs requirements,
+    but the resolver reads no live evidence, so these remain to be enforced by the
+    actor's real capability, live evidence, and exact PM approval. They are listed
+    as gates, never as descriptive metadata that could be silently skipped.
+    """
+
+    return [
+        {"gate": gate, "required": change_class.get(gate), "enforced_by": source}
+        for gate, source in REMAINING_GATE_SOURCES.items()
+    ]
+
+
+def _projected_must_include(item: dict[str, Any], level: HydrationLevel) -> Any:
+    """Project the single applicable must_include list for one hydration level."""
+
+    by_density = item.get("must_include_by_density")
+    if isinstance(by_density, dict):
+        return by_density.get(level.value)
+    return item.get("must_include")
 
 
 def _fields(entry: dict[str, Any], *names: str) -> dict[str, Any]:
@@ -259,7 +337,11 @@ def _required_evidence(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _allowed_outputs(outputs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Keep allowed-output constraints rather than only their identifiers."""
+    """Keep allowed-output constraints rather than only their identifiers.
+
+    ``must_include`` is already the single density projection applied while
+    building the complete resolution, so every level carries one obligation.
+    """
 
     return [
         _fields(
@@ -329,6 +411,8 @@ def _minimal_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
         },
         "estados_permitidos": _referenced_statuses(resolved["estados_permitidos"]),
     }
+    if "change_class" in resolved:
+        projected["change_class"] = resolved["change_class"]
     if "requested_skills" in resolved:
         projected["requested_skills"] = _minimal_requested_skills(resolved["requested_skills"])
     return projected
@@ -383,6 +467,8 @@ def _compact_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
         },
         "estados_permitidos": _referenced_statuses(resolved["estados_permitidos"]),
     }
+    if "change_class" in resolved:
+        projected["change_class"] = resolved["change_class"]
     if "requested_skills" in resolved:
         projected["requested_skills"] = _compact_requested_skills(resolved["requested_skills"])
     return projected
@@ -415,6 +501,7 @@ def _context_plan(
         "limites": ("limits",),
         "mode": ("modes",),
         "workflow": ("workflows", "evidence", "outputs", "artifacts"),
+        "change_class": ("workflows",),
         "estados_permitidos": ("statuses",),
         "requested_skills": ("skills",),
     }
@@ -475,13 +562,18 @@ def resolver(
     skill: str | list[str] | tuple[str, ...] | None = None,
     hydration_level: str | HydrationLevel | None = None,
     compact: str | HydrationLevel | None = None,
+    change_class: str | None = None,
 ) -> dict[str, Any]:
     """Resolve an allowed kernel, defaulting to compact Spanish guidance.
 
     The complete selected contract is built first and then projected into one
-    hydration level. Neither the level nor this result grants authority.
+    hydration level. A declared ``change_class`` must be coherent with the
+    selected workflow and, when the hydration level is not explicit, selects
+    the class's contractual output density. Neither the level, the class, nor
+    this result grants authority.
     """
     surface, directory = select_surface(kernel_dir)
+    explicit_hydration = hydration_level is not None or compact is not None
     selected_hydration_level, hydration_errors = _parse_hydration_level(
         hydration_level, compact
     )
@@ -551,6 +643,12 @@ def resolver(
         )
         return _fail_closed([message], surface, selected_hydration_level)
 
+    selected_class, class_errors = _resolve_change_class(
+        change_class, data["proportionality_contract"], workflow_entry["key"], surface
+    )
+    if class_errors:
+        return _fail_closed(class_errors, surface, selected_hydration_level)
+
     evidence_index = _index(data["evidence"])
     evidence = _hydrate(
         workflow_entry.get("required_evidence", []),
@@ -578,6 +676,48 @@ def resolver(
     requested_skills = _resolve_skills(requested, _index(data["skills"]), directory, surface, errors)
     if errors:
         return _fail_closed(errors, surface, selected_hydration_level)
+
+    # A resolution mutates only when a write-capable mode meets a workflow that
+    # can emit a mutable output; the read-only mode never mutates, so the same
+    # workflow (e.g. target_adoption) may draft read-only without a class. Every
+    # actual mutation must declare a change class (no silent omission).
+    mutable_output = any(
+        item.get("action_class") == "action.mutable" for item in outputs.values()
+    )
+    mutating = mutable_output and mode_key != MODE_FALLBACK
+    if mutating and selected_class is None:
+        return _fail_closed(
+            [f"{surface.messages['change_class_required_for_mutation']}: {workflow_entry['key']} + {mode_key}"],
+            surface,
+            selected_hydration_level,
+        )
+
+    # The class owns the contractual density. An explicit level may keep or raise
+    # it (e.g. audit a small change at full/debug) but never reduce it.
+    remaining_gates: list[dict[str, Any]] | None = None
+    if selected_class is not None:
+        try:
+            class_density = HydrationLevel(selected_class.get("output_density"))
+        except ValueError:
+            return _fail_closed(
+                [f"{surface.messages['unknown_change_class']}: {change_class!r} output_density"],
+                surface,
+                selected_hydration_level,
+            )
+        if explicit_hydration:
+            if DENSITY_RANK[selected_hydration_level] < DENSITY_RANK[class_density]:
+                return _fail_closed(
+                    [
+                        f"{surface.messages['density_downgrade_blocked']}: "
+                        f"{selected_hydration_level.value} < {class_density.value} "
+                        f"({selected_class.get('key')})"
+                    ],
+                    surface,
+                    selected_hydration_level,
+                )
+        else:
+            selected_hydration_level = class_density
+        remaining_gates = _remaining_gates(selected_class)
 
     statuses = _index(data["statuses"])
     status_refs = [limit.get("on_violation") for limit in data["limits"] if limit.get("actor_key") in (None, actor_entry["key"])]
@@ -609,6 +749,7 @@ def resolver(
         "workflow": {
             **_fields(workflow_entry, "key", "use_for", "required_behavior", "active"),
             "materiality_contract": data["materiality_contract"],
+            "proportionality_contract": data["proportionality_contract"],
             "safe_degradation_contract": data["safe_degradation_contract"],
             "context_receipt_contract": data["context_receipt_contract"],
             "required_evidence": [
@@ -642,24 +783,32 @@ def resolver(
                 for item in minimum_evidence.values()
             ],
             "allowed_outputs": [
-                _fields(
-                    item,
-                    "key",
-                    "use_for",
-                    "status_key",
-                    "action_class",
-                    "allows_non_material_gaps",
-                    "safe_degradation_key",
-                    "context_receipt_key",
-                    "must_include",
-                    "active",
-                )
+                {
+                    **_fields(
+                        item,
+                        "key",
+                        "use_for",
+                        "status_key",
+                        "action_class",
+                        "allows_non_material_gaps",
+                        "safe_degradation_key",
+                        "context_receipt_key",
+                    ),
+                    "must_include": _projected_must_include(item, selected_hydration_level),
+                    "active": item.get("active"),
+                }
                 for item in outputs.values()
             ],
             "artefactos": artifacts,
         },
         "estados_permitidos": selected_statuses,
     }
+    if selected_class is not None:
+        resolved["change_class"] = {
+            "contract_key": data["proportionality_contract"].get("key"),
+            **selected_class,
+            "remaining_gates": remaining_gates,
+        }
     if requested_skills:
         resolved["requested_skills"] = requested_skills
     projected = _project_resolution(resolved, selected_hydration_level)
@@ -686,6 +835,7 @@ def resolve(
     skill: str | list[str] | tuple[str, ...] | None = None,
     hydration_level: str | HydrationLevel | None = None,
     compact: str | HydrationLevel | None = None,
+    change_class: str | None = None,
 ) -> dict[str, Any]:
     """Compatibility import; Spanish remains the default surface."""
     return resolver(
@@ -696,6 +846,7 @@ def resolve(
         skill=skill,
         hydration_level=hydration_level,
         compact=compact,
+        change_class=change_class,
     )
 
 
@@ -708,6 +859,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", default=None, help="e.g. mode.delegated_commit_pr; omitted falls back to mode.review_only")
     parser.add_argument("--kernel-dir", default=None, help="kernel directory (default: ./project-os-es/kernel)")
     parser.add_argument("--skill", action="append", default=None, help="optional skill selector; repeatable")
+    parser.add_argument(
+        "--change-class",
+        default=None,
+        metavar="CLASS",
+        help=(
+            "declared change class, e.g. change_class.small; must be coherent "
+            "with the workflow and selects the default output density"
+        ),
+    )
     parser.add_argument(
         "--hydration-level",
         default=None,
@@ -728,6 +888,7 @@ def main(argv: list[str] | None = None) -> int:
             args.kernel_dir,
             args.skill,
             hydration_level=args.hydration_level,
+            change_class=args.change_class,
         )
     except Exception as exc:
         surface, _ = select_surface(args.kernel_dir)

@@ -20,11 +20,25 @@ to the marked block; always keep the internal receipt intact.
 
 ## Findings
 
-- {{severity}} - {{file:line or reference}} - {{finding}}
+Before listing an observation as a finding, apply the materiality gate from
+`rule.economia_de_contexto`: it is a finding only if it describes a verifiable
+current state, an unsatisfied outcome, contract, risk, or capability, a concrete
+materially improving action, and durable value. Something merely historical,
+informational, confirmatory, already resolved by the normal course, or duplicated
+from live evidence is omitted, or marked `invalid-finding` without routing if
+already raised; a review may conclude with no findings even when it holds context
+or observations.
+
+- {{disposition: blocking-correction | non-blocking-follow-up | preference | accepted-risk | invalid-finding}} - {{file:line or reference}} - {{finding}}
+
+Only `blocking-correction` requires correction before closure; a
+`non-blocking-follow-up` requires a current, durable, actionable gap with
+independent scope and a reason to defer it, and the other dispositions force no changes.
 
 ## Verdict or recommendation
 
-{{GO, NO-GO, needs_context, follow-up or recommendation.}}
+{{GO, NO-GO, needs_context, follow-up or recommendation. On GO, the closeout
+bundle and its final verification accompany this same response.}}
 
 ## Risks
 

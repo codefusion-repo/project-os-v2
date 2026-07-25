@@ -32,10 +32,16 @@ a rutas raíz.
 3. **Validación proporcional.** Clasifica la validación según
    `project-os-es/docs/reglas.md` y el kernel espanol resuelto: agent-run
    obligatoria, comandos PM-run drafteados, validación manual PM, o ausencia
-   justificada. Nunca asumas full suite ni tests nuevos por defecto.
+   justificada. Nunca asumas full suite ni tests nuevos por defecto: ejecutar
+   validación no crea tests ni tooling, y la clase del cambio (lectura,
+   pequeño, estándar, crítico) gobierna unidad, PR, review y densidad del
+   output.
 4. **Economía de contexto.** Usa solo el contexto y subagentes que el scope
    necesita, sin perder evidencia viva, validación, secret safety ni aprobación
-   PM exacta.
+   PM exacta. Antes de crear un hallazgo, follow-up o unidad aplica el gate de
+   materialidad de `rule.economia_de_contexto`: exige estado actual verificable,
+   outcome, contrato o riesgo insatisfecho, acción concreta y valor durable e
+   independiente; lo histórico, informativo, ya resuelto o duplicado se omite.
 5. **Formas PM-facing.** Los outputs drafteables usan los artefactos resueltos
    desde `project-os-es/kernel/artefactos.json`: cada artefacto apunta a un
    `required_template` en `project-os-es/templates/`. No existe otra ruta de
@@ -68,6 +74,13 @@ a rutas raíz.
    `Aprobación PM: Sí` consumen `rule.precedencia_decision_pm` desde el kernel
    común: una decisión posterior solo supersede otra para la misma
    `decision_key`; los límites y gates separados siguen vigentes.
+12. **Interpretación por intención.** Las instrucciones PM, unidades y findings
+   se leen por intención según `boundary.implementation_discipline`: solo
+   autorización y acciones permitidas, identidad del target, hard constraints,
+   scope y out of scope, seguridad y decisiones expresamente vinculantes son
+   literales; ejemplos, hipótesis, preferencias, nombres tentativos y
+   propuestas de implementación son advisory y nunca se copian automáticamente
+   a reglas, campos, archivos o tests.
 
 ## Cómo usar una operación
 
@@ -142,13 +155,16 @@ directorio de fase o código MOS. Selecciona por índice mostrado, código MOS
 (por ejemplo `MOS-3.5`), filename, stem o path relativo exacto. Tras seleccionar,
 el wizard muestra el path relativo para confirmar o desambiguar.
 
-Al draftear `MOS-3.4` o `MOS-3.5`, el wizard también captura
-`HYDRATION_LEVEL` para el receptor terminal: acepta `minimal`, `compact` o
-`full/debug` y precarga `compact` como valor predeterminado. Esta ayuda es local a esos route prompts;
-no convierte el nivel en variable canónica del catálogo completo ni autoriza
-escritura. El nivel controla la vista devuelta por el resolver y la visibilidad
-PM-facing contractual del recibo: `minimal` y `compact` ocultan solo esa
-representación; `full/debug` la muestra completa. No altera el recibo interno
+Al draftear `MOS-3.4`, el wizard también captura `HYDRATION_LEVEL` para el
+receptor terminal: acepta `minimal`, `compact` o `full/debug` y precarga la
+densidad contractual de la `CHANGE_CLASS` declarada (`compact` cuando no hay
+clase). En `MOS-3.5` esa metadata no se pide: el wizard solo captura `WORK_UNIT` y
+`PM_AUTHORIZATION_STATUS`, y browser chat reconstruye el PR, el review fuente, la
+`CHANGE_CLASS` y la densidad desde la evidencia viva. Esta ayuda es local a esos
+route prompts; no convierte el nivel en variable canónica del catálogo completo ni
+autoriza escritura. El nivel controla la vista devuelta por el resolver y la
+visibilidad PM-facing contractual del recibo: `minimal` y `compact` ocultan solo
+esa representación; `full/debug` la muestra completa. No altera el recibo interno
 ni `context_plan`.
 
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
@@ -215,18 +231,16 @@ vida: `project-os-es/operaciones/cross-fase/`,
 
 - [MOS-3.1 — Draftear el siguiente issue desde trazabilidad](fase-3/MOS-3.1-draftear-siguiente-issue-desde-trazabilidad.md)
 - [MOS-3.2 — Draftear un set acotado de issues](fase-3/MOS-3.2-draftear-set-acotado-de-issues.md)
-- [MOS-3.3 — Draftear un follow-up issue](fase-3/MOS-3.3-draftear-follow-up-issue.md)
+- [MOS-3.3 — Draftear un follow-up](fase-3/MOS-3.3-draftear-follow-up-issue.md)
 - [MOS-3.4 — Draftear el route prompt de implementación](fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md)
 - [MOS-3.5 — Draftear el route prompt de corrección](fase-3/MOS-3.5-draftear-route-prompt-de-correccion.md)
-- [MOS-3.6 — Draftear comandos de closeout](fase-3/MOS-3.6-draftear-comandos-de-closeout.md)
 - [MOS-3.7 — Revisar el PR antes de cerrar](fase-3/MOS-3.7-revisar-pr-antes-de-cerrar.md)
 - [MOS-3.8 — Draftear un issue desde una descripción](fase-3/MOS-3.8-draftear-issue-desde-descripcion.md)
-- [MOS-3.9 — Verificar el estado post-merge](fase-3/MOS-3.9-verificar-estado-post-merge.md)
 - [MOS-3.10 — Analizar readiness de release](fase-3/MOS-3.10-analizar-readiness-de-release.md)
 - [MOS-3.11 — Draftear comandos de tag](fase-3/MOS-3.11-draftear-comandos-de-tag.md)
 - [MOS-3.12 — Draftear comandos de release](fase-3/MOS-3.12-draftear-comandos-de-release.md)
 - [MOS-3.13 — Auditar trazabilidad](fase-3/MOS-3.13-auditar-trazabilidad.md)
-- [MOS-3.14 — Procesar la auditoría de trazabilidad](fase-3/MOS-3.14-procesar-auditoria-de-trazabilidad.md)
+- [MOS-3.14 — Procesar el resultado de una auditoría](fase-3/MOS-3.14-procesar-resultado-de-auditoria.md)
 - [MOS-3.15 — Solicitar un asset 2D](fase-3/MOS-3.15-solicitar-asset-2d.md)
 - [MOS-3.16 — Solicitar un asset 3D](fase-3/MOS-3.16-solicitar-asset-3d.md)
 - [MOS-3.17 — Solicitar un asset de audio](fase-3/MOS-3.17-solicitar-asset-de-audio.md)
@@ -238,10 +252,7 @@ vida: `project-os-es/operaciones/cross-fase/`,
 - [MOS-3.23 — Solicitar revisión de seguridad](fase-3/MOS-3.23-solicitar-revision-de-seguridad.md)
 - [MOS-3.24 — Auditar disciplina de implementación](fase-3/MOS-3.24-auditar-disciplina-de-implementacion.md)
 - [MOS-3.25 — Procesar la revisión de seguridad](fase-3/MOS-3.25-procesar-revision-de-seguridad.md)
-- [MOS-3.26 — Procesar la auditoría de disciplina](fase-3/MOS-3.26-procesar-auditoria-de-disciplina.md)
-- [MOS-3.27 — Revisar el estado del proyecto](fase-3/MOS-3.27-revisar-estado-del-proyecto.md)
-- [MOS-3.28 — Draftear un follow-up desde auditoría](fase-3/MOS-3.28-draftear-follow-up-desde-auditoria.md)
-- [MOS-3.29 — Draftear un follow-up desde seguridad](fase-3/MOS-3.29-draftear-follow-up-desde-seguridad.md)
+- [MOS-3.27 — Revisar estado y verificar postcondiciones](fase-3/MOS-3.27-revisar-estado-del-proyecto.md)
 - [MOS-3.30 — Draftear un plan de implementación manual](fase-3/MOS-3.30-draftear-plan-de-implementacion-manual.md)
 - [MOS-3.31 — Procesar el resultado de implementación manual](fase-3/MOS-3.31-procesar-resultado-de-implementacion-manual.md)
 - [MOS-R.7 — Revisar readiness de licenciamiento y publicación](fase-3/MOS-R.7-revisar-readiness-de-licenciamiento-y-publicacion.md)

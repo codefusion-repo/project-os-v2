@@ -60,6 +60,7 @@ def resolver_fast_path(surface: str, source_kind: str) -> str:
         block.replace("<actor>", "actor.browser_chat")
         .replace("<workflow>", "workflow.pm_intake")
         .replace("<mode>", "mode.review_only")
+        .replace(" [--change-class change_class.<id>]", "")
         .replace(" [--skill skill.<id>]", "")
     )
 

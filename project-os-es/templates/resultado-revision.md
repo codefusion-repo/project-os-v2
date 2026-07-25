@@ -20,11 +20,24 @@ al bloque marcado; conserva siempre el recibo interno íntegro.
 
 ## Hallazgos
 
-- {{severity}} - {{archivo:linea o referencia}} - {{hallazgo}}
+Antes de listar una observacion como hallazgo, aplica el gate de materialidad de
+`rule.economia_de_contexto`: solo es hallazgo si describe un estado actual
+verificable, un outcome, contrato, riesgo o capacidad insatisfecho, una accion
+concreta de mejora material y valor durable. Lo meramente historico, informativo,
+confirmatorio, ya resuelto por el curso normal o duplicado de evidencia viva se
+omite, o se marca `invalid-finding` sin routing si ya fue elevado; un review puede
+concluir sin hallazgos aunque contenga contexto u observaciones.
+
+- {{disposicion: blocking-correction | non-blocking-follow-up | preference | accepted-risk | invalid-finding}} - {{archivo:linea o referencia}} - {{hallazgo}}
+
+Solo `blocking-correction` exige correccion antes del cierre; un
+`non-blocking-follow-up` requiere un gap vigente, durable y accionable con scope
+independiente y razon para diferirlo, y las demas disposiciones no fuerzan cambios.
 
 ## Veredicto o recomendacion
 
-{{GO, NO-GO, needs_context, follow-up o recomendacion.}}
+{{GO, NO-GO, needs_context, follow-up o recomendacion. Con GO, el bundle de
+closeout y su verificacion final acompanan esta misma respuesta.}}
 
 ## Riesgos
 

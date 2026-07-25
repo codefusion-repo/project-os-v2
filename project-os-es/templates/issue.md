@@ -1,7 +1,13 @@
 # Issue
 
-Responsabilidad: draftear una unidad de trabajo verificable, una outcome por
+Responsabilidad: draftear una unidad de trabajo verificable, un resultado por
 issue.
+
+Interpretación: el ejecutor lee la unidad por intención según
+`boundary.implementation_discipline`. Objetivo, scope, out of scope,
+acceptance criteria y las decisiones de `Decisiones incluidas` son
+vinculantes; los ejemplos, esquemas ilustrativos y propuestas de
+implementación del cuerpo son advisory.
 
 ```markdown
 ## Por que existe

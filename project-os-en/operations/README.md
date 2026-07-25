@@ -6,8 +6,8 @@ This directory is the English PM-facing MOSDLC (Modern AI SDLC Operations) catal
 
 1. Resolve `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. The resolver provides guidance and never reads live state or grants permission.
 2. Reconstruct issues, PRs, branches, commits, and validation from target systems of record at task time. Durable files never store live state.
-3. Validate in proportion to risk: agent-run checks, drafted PM-run commands, manual PM validation, or a justified omission.
-4. Use only the context and subagents the scope needs without dropping evidence, validation, secret safety, or exact approval.
+3. Validate in proportion to risk: agent-run checks, drafted PM-run commands, manual PM validation, or a justified omission. Running validation is not creating tests or tooling, and the change class (reading, small, standard, critical) governs unit, PR, review, and output density.
+4. Use only the context and subagents the scope needs without dropping evidence, validation, secret safety, or exact approval. Before creating a finding, follow-up, or unit, apply the materiality gate from `rule.economia_de_contexto`: require a verifiable current state, an unsatisfied outcome, contract, or risk, a concrete action, and durable independent value; anything historical, informational, already resolved, or duplicated is omitted.
 5. Resolve artifacts and their `required_template` paths from `project-os-en/kernel/artifacts.json`.
 6. Treat `project-os-en/kernel/skills.json` capabilities as optional and outside workflow logic.
 7. Templates, outputs, variables, and route prompts never authorize. Browser chat stays draft-only.
@@ -18,6 +18,13 @@ This directory is the English PM-facing MOSDLC (Modern AI SDLC Operations) catal
     `rule.precedencia_decision_pm` from the shared kernel: a later decision
     supersedes another only for the same `decision_key`; separate limits and
     gates remain in force.
+12. Read PM instructions, units, and findings by intent per
+    `boundary.implementation_discipline`: only authorization and allowed
+    actions, target identity, hard constraints, scope and out of scope,
+    security, and expressly binding decisions are literal; examples,
+    hypotheses, preferences, tentative names, and implementation proposals are
+    advisory and are never copied automatically into rules, fields, files, or
+    tests.
 
 Explicit resolver example:
 
@@ -79,14 +86,17 @@ copied contracts in stubs, ES/EN drift, and two canonicals for one identity. An
 additional undeclared contractual match returns `status.needs_pm_decision` and
 is never merged automatically.
 
-When drafting `MOS-3.4` or `MOS-3.5`, the wizard also captures
-`HYDRATION_LEVEL` for the terminal recipient: it accepts `minimal`, `compact`,
-or `full/debug` and preloads `compact`. This assistance is local to those route
-prompts; it does not make the level a canonical variable across the catalog or
-authorize writing. The level controls the resolver view returned and the
-contractual PM-facing receipt visibility: `minimal` and `compact` hide only
-that representation; `full/debug` shows it in full. It does not alter the
-internal receipt or `context_plan`.
+When drafting `MOS-3.4`, the wizard also captures `HYDRATION_LEVEL` for the
+terminal recipient: it accepts `minimal`, `compact`, or `full/debug` and preloads
+the declared `CHANGE_CLASS` contractual density (`compact` when there is no
+class). In `MOS-3.5` that metadata is not asked for: the wizard captures only
+`WORK_UNIT` and `PM_AUTHORIZATION_STATUS`, and browser chat reconstructs the PR,
+the source review, the `CHANGE_CLASS`, and the density from live evidence. This
+assistance is local to those route prompts; it does not make the level a canonical
+variable across the catalog or authorize writing. The level controls the resolver
+view returned and the contractual PM-facing receipt visibility: `minimal` and
+`compact` hide only that representation; `full/debug` shows it in full. It does not
+alter the internal receipt or `context_plan`.
 
 ## Index
 
@@ -148,7 +158,7 @@ internal receipt or `context_plan`.
 - [MOS-3.11 — Draft tag commands](phase-3/MOS-3.11-draft-tag-commands.md)
 - [MOS-3.12 — Draft release commands](phase-3/MOS-3.12-draft-release-commands.md)
 - [MOS-3.13 — Audit traceability](phase-3/MOS-3.13-audit-traceability.md)
-- [MOS-3.14 — Process traceability audit](phase-3/MOS-3.14-process-traceability-audit.md)
+- [MOS-3.14 — Process audit result](phase-3/MOS-3.14-process-audit-result.md)
 - [MOS-3.15 — Request a 2D asset](phase-3/MOS-3.15-request-2d-asset.md)
 - [MOS-3.16 — Request a 3D asset](phase-3/MOS-3.16-request-3d-asset.md)
 - [MOS-3.17 — Request audio asset](phase-3/MOS-3.17-request-audio-asset.md)
@@ -161,19 +171,14 @@ internal receipt or `context_plan`.
 - [MOS-3.23 — Request security review](phase-3/MOS-3.23-request-security-review.md)
 - [MOS-3.24 — Audit implementation discipline](phase-3/MOS-3.24-audit-implementation-discipline.md)
 - [MOS-3.25 — Process security review](phase-3/MOS-3.25-process-security-review.md)
-- [MOS-3.26 — Process discipline audit](phase-3/MOS-3.26-process-discipline-audit.md)
-- [MOS-3.27 — Review PRoject state](phase-3/MOS-3.27-review-project-state.md)
-- [MOS-3.28 — Draft follow up from audit](phase-3/MOS-3.28-draft-follow-up-from-audit.md)
-- [MOS-3.29 — Draft follow up from security](phase-3/MOS-3.29-draft-follow-up-from-security.md)
-- [MOS-3.3 — Draft follow up issue](phase-3/MOS-3.3-draft-follow-up-issue.md)
+- [MOS-3.27 — Review project state and verify postconditions](phase-3/MOS-3.27-review-project-state.md)
+- [MOS-3.3 — Draft a follow-up](phase-3/MOS-3.3-draft-follow-up-issue.md)
 - [MOS-3.30 — Draft manual implementation plan](phase-3/MOS-3.30-draft-manual-implementation-plan.md)
 - [MOS-3.31 — Process manual implementation result](phase-3/MOS-3.31-process-manual-implementation-result.md)
 - [MOS-3.4 — Draft implementation route prompt](phase-3/MOS-3.4-draft-implementation-route-prompt.md)
 - [MOS-3.5 — Draft correction route prompt](phase-3/MOS-3.5-draft-correction-route-prompt.md)
-- [MOS-3.6 — Draft closeout commands](phase-3/MOS-3.6-draft-closeout-commands.md)
 - [MOS-3.7 — Review PR before close](phase-3/MOS-3.7-review-pr-before-close.md)
 - [MOS-3.8 — Draft issue from description](phase-3/MOS-3.8-draft-issue-from-description.md)
-- [MOS-3.9 — Verify post merge](phase-3/MOS-3.9-verify-post-merge.md)
 - [MOS-R.22 — Public packaging safety review](phase-3/MOS-R.22-public-packaging-safety-review.md)
 - [MOS-R.23 — Convert internal operations before release](phase-3/MOS-R.23-convert-internal-operations-before-release.md)
 - [MOS-R.7 — Review licensing publication readiness](phase-3/MOS-R.7-review-licensing-publication-readiness.md)

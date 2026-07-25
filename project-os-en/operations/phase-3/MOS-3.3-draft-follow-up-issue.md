@@ -8,14 +8,26 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 - Evidence: evidence.source_basis, evidence.repo_state
 - PM approval: No (draft-only; the Human PM decides and runs the bundle)
 
-**Does:** Draft a follow-up issue from an incomplete issue.
-**For:** To retain pending work when an issue closes incomplete.
-**How:** Isolate what is missing in a follow-up with its own scope.
+**Does:** Draft a follow-up from any live source: an incomplete issue, a
+review, a discipline audit, or a security review.
+**For:** To defer pending work and non-blocking findings with traceability.
+**How:** Isolate what is missing or deferred in a follow-up with its own
+scope; the live source stays referenced, not copied. Apply the materiality gate
+from `rule.economia_de_contexto` first: draft only when the source holds a
+current, durable, actionable gap with an observable outcome, independent scope,
+and a reason to defer it instead of discarding it. That an observation is
+technically true or could be written as an issue is not enough: a historical,
+informational, confirmatory observation, one already resolved by the normal
+course, or a duplicate of live evidence produces no follow-up. Without durable,
+actionable work, return no-action with `output.status_result`.
 
 **Variables**
-- Required: ISSUE_NUMBER
-- Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Required: FOLLOW_UP_SOURCE (incomplete issue, review, audit or
+  security-review result, or another live record)
+- Optional: ISSUE_NUMBER, PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO
+  (PM feedback and questions are context only and never authorize an action)
 
 **Deliver:** output.pm_command_bundle. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.13 or MOS-3.31. Next: MOS-3.4. Recommended: MOS-3.4.
+**Connections:** Previous: MOS-3.7, MOS-3.14, MOS-3.25 or MOS-3.31.
+Next: MOS-3.4 when prioritized. Recommended: MOS-3.4.

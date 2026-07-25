@@ -23,7 +23,7 @@
   #423 and #424. No repository is created, transferred, copied or published
   by this ADR; no visibility, settings, tags or releases change.
 - Source basis: issue #422 and its PM decision comment; ADR 0004; Stage 0
-  public-readiness review (`docs/security/PUBLIC_READINESS_REVIEW.md`,
+  public-readiness review (`dogfooding/docs/security/PUBLIC_READINESS_REVIEW.md`,
   including its B4 section and findings F-04, F-05, F-06); roadmap #274;
   B1 resolution (#419 / PR #420); B2/B3 resolution (#421 / PR #425);
   follow-up issues #423 and #424.
@@ -240,7 +240,7 @@ review). No remote state changes as a result of this decision.
 - Source basis: issue #424 (re-scoped body recording the PM's Option B
   decision); issue #423 / PR #427 (Stage 1 documentation completed);
   roadmap #274; readiness and handoff package
-  (`docs/release/INTERNAL_HANDOFF_READINESS.md`).
+  (`dogfooding/docs/release/INTERNAL_HANDOFF_READINESS.md`).
 - Non-authorization: this amendment permits the tag **conceptually**; it
   authorizes nothing. Creating and pushing the tag requires exact, separate
   PM approval of the final name, message and SHA.

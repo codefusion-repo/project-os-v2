@@ -15,12 +15,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from tests.test_audit_target_adapters import (
+from dogfooding.tests.test_audit_target_adapters import (
     filled_browser_adapter,
     filled_spanish_adapter,
     write_terminal_adapters,
 )
-from tools.audit_target_adapters import (
+from dogfooding.tools.audit_target_adapters import (
     Source,
     evaluate_adoption_readiness,
     main as audit_main,
@@ -40,7 +40,7 @@ from tools.project_os_resolve import resolve
 from tools.validate_kernel import Finding, _check_operation_kernel_coherence
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 ES_KERNEL = REPO_ROOT / "project-os-es/kernel"
 EN_KERNEL = REPO_ROOT / "project-os-en/kernel"
 
@@ -112,40 +112,36 @@ def test_route_prompt_and_pm_bundle_outputs_and_artifacts_include_target_adoptio
 
 
 @pytest.mark.parametrize(
-    ("outputs_family", "template_path", "issue_clause", "scope_clause"),
+    ("outputs_family", "template_path"),
     (
         (
             KERNEL_FILES["es"]["outputs"],
             REPO_ROOT / "project-os-es/templates/route-prompt.md",
-            "issue o PR vivo como fuente del detalle de implementacion",
-            "referencia viva de scope equivalente",
         ),
         (
             KERNEL_FILES["en"]["outputs"],
             REPO_ROOT / "project-os-en/templates/route-prompt.md",
-            "live issue or PR as the source of implementation detail",
-            "equivalent live scope reference",
         ),
     ),
 )
-def test_route_prompt_accepts_a_non_issue_live_scope_without_losing_issue_shape(
+def test_route_prompt_carries_a_generic_live_unit_and_declared_change_class(
     outputs_family: tuple[Path, str],
     template_path: Path,
-    issue_clause: str,
-    scope_clause: str,
 ) -> None:
-    """`workflow.target_adoption` routes a target-scoped unit; issue workflows keep theirs."""
+    """WORK_UNIT accepts any live unit adapter and CHANGE_CLASS travels with the route."""
 
     outputs = {o["key"]: o for o in _load(outputs_family)}
     contract = " ".join(outputs["output.route_prompt"]["must_include"])
     template = template_path.read_text(encoding="utf-8")
 
     for text in (contract, template):
-        assert issue_clause in text or "issue-referential" in text
-        assert scope_clause in text
-    assert "evidence.issue_scope" in contract
-    assert "evidence.issue_scope" in template
-    assert "workflow.target_adoption" in template
+        assert "WORK_UNIT" in text
+        assert "CHANGE_CLASS" in text
+    assert "proportionality.change_class" in contract
+    assert "WORK_UNIT = " in template
+    assert "CHANGE_CLASS = " in template
+    assert "--change-class" in template
+    assert "inventada" in contract or "invented" in contract
 
 
 # --- Operation prompt guards ------------------------------------------------
@@ -266,6 +262,7 @@ def test_target_adoption_resolves_browser_draft_and_terminal_write_stages(kernel
         "workflow.target_adoption",
         "mode.delegated_commit_pr",
         kernel_dir=kernel_dir,
+        change_class="change_class.standard",
     )
     assert write["estado"] == "status.resolved"
     write_outputs = {o["key"] for o in write["resuelto"]["workflow"]["allowed_outputs"]}

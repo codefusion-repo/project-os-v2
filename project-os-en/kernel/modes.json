@@ -65,6 +65,7 @@
         "commit",
         "push to the work branch",
         "open a draft PR",
+        "publish exactly one append-only correction-report comment on the unit's PR when the unit corrects a reviewed PR",
         "report"
       ],
       "prohibited_actions": [
@@ -72,7 +73,10 @@
         "close the work unit",
         "apply labels",
         "create tags or releases",
-        "change settings"
+        "change settings",
+        "edit the PR body",
+        "edit or replace prior comments or reviews",
+        "publish any other comment or otherwise mutate the remote target"
       ],
       "fallback": "mode.review_only",
       "active": true

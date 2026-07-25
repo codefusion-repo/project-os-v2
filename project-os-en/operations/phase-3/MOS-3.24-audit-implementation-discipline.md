@@ -18,4 +18,4 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.review_result (+output.draft_issue). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: any phase. Next: MOS-3.26. Recommended: MOS-3.26.
+**Connections:** Previous: any phase. Next: MOS-3.14. Recommended: MOS-3.14.

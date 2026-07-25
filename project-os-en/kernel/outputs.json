@@ -85,23 +85,38 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "use_for": "report implementation work; never claim completion without complete scope, respected out of scope, and reported validation",
+      "use_for": "report implementation work; the resolver projects as must_include exactly the must_include_by_density list for the resolved hydration level, and completion is never claimed without complete scope, respected out of scope, and reported validation",
       "status_key": "status.resolved",
       "action_class": "action.mutable",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
       "context_receipt_key": "context_receipt.minimum_read_surface",
-      "must_include": [
-        "work unit or PR",
-        "project or repository",
-        "branch",
-        "evidence reviewed",
-        "files changed",
-        "validation performed with results, validation not run with reason, and required manual PM validation",
-        "risks and limitations",
-        "commit or PR reference when applicable",
-        "remaining work"
-      ],
+      "must_include_by_density": {
+        "minimal": [
+          "result",
+          "files or surface",
+          "validation",
+          "live work unit, commit, or PR reference"
+        ],
+        "compact": [
+          "scope",
+          "changes",
+          "validation",
+          "risks"
+        ],
+        "full/debug": [
+          "work unit or PR",
+          "project or repository",
+          "branch",
+          "evidence reviewed",
+          "files changed",
+          "validation performed with results, validation not run with reason, and required manual PM validation",
+          "risks and limitations",
+          "commit or PR reference when applicable",
+          "remaining work",
+          "when correcting a reviewed PR: published as an append-only correction-report comment that references the source review or comment, records the previous and corrected heads, maps each blocking-correction to its outcome, identifies commits or range, and confirms no merge or close happened and neither the body nor prior comments were edited"
+        ]
+      },
       "active": true
     },
     {
@@ -148,7 +163,7 @@
         "scope reviewed",
         "evidence reviewed",
         "comparison against work-unit scope",
-        "findings with references",
+        "findings with references and a verifiable disposition: blocking-correction, non-blocking-follow-up, preference, accepted-risk, or invalid-finding",
         "verdict or recommendation",
         "risks",
         "not reviewed"
@@ -209,7 +224,7 @@
         "workflow.target_adoption"
       ],
       "mode_key": [],
-      "use_for": "route scoped work to another surface as a compact, issue-referential bootloader; the live issue or PR and its comments retain implementation detail, with authorization carried as exact PM approval",
+      "use_for": "route scoped work to another surface as a compact bootloader referenced to the live unit; the live unit and its records retain implementation detail, with authorization carried as exact PM approval",
       "status_key": "status.resolved",
       "action_class": "action.draft_only",
       "allows_non_material_gaps": false,
@@ -219,10 +234,12 @@
         "standard variable block",
         "recommended optional skill when useful, without making it mandatory or authorizing",
         "recommended terminal-agent family when useful, such as Codex, Claude, or Gemini, without making it binding",
-        "reference to the live issue or PR as the source of implementation detail when the resolved workflow requires evidence.issue_scope, and the equivalent live scope reference when it does not",
-        "1-3 line scope that does not restate the issue, PR, bodies, comments, acceptance criteria, source basis, or checklists",
+        "WORK_UNIT reference to the live unit satisfying the resolved workflow's scope evidence: an issue or PR when the target uses GitHub, or the equivalent change request, target record, or exact PM instruction; never an invented reference",
+        "declared change class (CHANGE_CLASS) from the proportionality.change_class contract, coherent with the resolved workflow",
+        "1-3 line scope that does not restate the live unit, its bodies, comments, acceptance criteria, source basis, or checklists",
         "one standard variable block followed by one concrete instruction, with no additional section, checklist, or implementation plan",
         "recommended effort with rationale",
+        "when the unit corrects an already-reviewed PR: PR_NUMBER and the exact reference to the source review or comment are mandatory, with the requirement to publish exactly one append-only correction report on that PR without editing the body or prior comments",
         "note that the executing agent re-resolves the kernel and the prompt grants no permission"
       ],
       "active": true

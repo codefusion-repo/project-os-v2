@@ -69,6 +69,18 @@ drafteados**, **validación manual PM** (claridad de docs, wording, UX) o
 ni tests nuevos por defecto; esta superficie usa este resumen y
 `project-os-es/kernel/reglas-operativas.json` como ruta operativa.
 
+Ejecutar validación no equivale a crear tests ni tooling. Los tests protegen
+código ejecutable, parsing, schemas, routing, autorización, fail-closed,
+protocolos, regresiones observadas o seguridad; nunca wording, títulos, orden
+editorial, keywords, timestamps ni equivalencia literal ES/EN. Un tool nuevo
+exige evidencia del fallo observable que evita, su ocurrencia real, la
+ausencia de una comprobación equivalente, su capa (core, adapter o
+dogfooding), su costo de mantenimiento y por qué no basta una solución más
+pequeña. La clase del cambio (lectura, pequeño, estándar, crítico) gobierna
+además unidad, PR, review y densidad del reporte según el contrato
+estructurado `proportionality.change_class` del kernel; el resolver verifica
+la coherencia clase/workflow con `--change-class`.
+
 ## Economía de contexto
 
 El costo en tokens y subagentes se mantiene proporcional a la tarea, pero la

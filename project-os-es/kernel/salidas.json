@@ -85,23 +85,38 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "use_for": "reportar trabajo de implementacion; nunca declarar done sin scope completo, out of scope respetado y validacion reportada",
+      "use_for": "reportar trabajo de implementacion; el resolver proyecta como must_include exactamente la lista de must_include_by_density del nivel de hidratacion resuelto, y nunca se declara done sin scope completo, out of scope respetado y validacion reportada",
       "status_key": "status.resolved",
       "action_class": "action.mutable",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
       "context_receipt_key": "context_receipt.minimum_read_surface",
-      "must_include": [
-        "unidad de trabajo o PR",
-        "proyecto o repositorio",
-        "rama",
-        "evidencia revisada",
-        "archivos cambiados",
-        "validacion realizada con resultados, validacion no ejecutada con razon y validacion manual PM requerida",
-        "riesgos y limitaciones",
-        "referencia a commit o PR cuando aplique",
-        "trabajo restante"
-      ],
+      "must_include_by_density": {
+        "minimal": [
+          "resultado",
+          "archivos o superficie",
+          "validacion",
+          "referencia a la unidad viva, commit o PR"
+        ],
+        "compact": [
+          "scope",
+          "cambios",
+          "validacion",
+          "riesgos"
+        ],
+        "full/debug": [
+          "unidad de trabajo o PR",
+          "proyecto o repositorio",
+          "rama",
+          "evidencia revisada",
+          "archivos cambiados",
+          "validacion realizada con resultados, validacion no ejecutada con razon y validacion manual PM requerida",
+          "riesgos y limitaciones",
+          "referencia a commit o PR cuando aplique",
+          "trabajo restante",
+          "cuando corrige un PR revisado: publicado como comentario append-only de correction report que referencia el review o comentario fuente, registra el head anterior y el corregido, mapea cada blocking-correction con su resultado, identifica commits o rango, y confirma que no hubo merge ni cierre y que no se editaron el body ni comentarios previos"
+        ]
+      },
       "active": true
     },
     {
@@ -148,7 +163,7 @@
         "scope revisado",
         "evidencia revisada",
         "comparacion contra el scope de la unidad de trabajo",
-        "hallazgos con referencias",
+        "hallazgos con referencias y disposicion verificable: blocking-correction, non-blocking-follow-up, preference, accepted-risk o invalid-finding",
         "veredicto o recomendacion",
         "riesgos",
         "no revisado"
@@ -209,7 +224,7 @@
         "workflow.target_adoption"
       ],
       "mode_key": [],
-      "use_for": "rutear trabajo scoped a otra superficie como bootloader compacto e issue-referential; el issue o PR vivo y sus comentarios retienen el detalle de implementacion, y la autorizacion viaja como aprobacion PM exacta",
+      "use_for": "rutear trabajo scoped a otra superficie como bootloader compacto referenciado a la unidad viva; la unidad viva y sus registros retienen el detalle de implementacion, y la autorizacion viaja como aprobacion PM exacta",
       "status_key": "status.resolved",
       "action_class": "action.draft_only",
       "allows_non_material_gaps": false,
@@ -219,10 +234,12 @@
         "bloque de variables estandar",
         "skill opcional recomendado cuando ayude, sin hacerlo obligatorio ni autorizante",
         "familia de terminal agent recomendada cuando ayude, como Codex, Claude o Gemini, sin hacerla vinculante",
-        "referencia al issue o PR vivo como fuente del detalle de implementacion cuando el workflow resuelto exige evidence.issue_scope, y la referencia viva de scope equivalente cuando no lo exige",
-        "scope de 1-3 lineas que no restata issue, PR, cuerpos, comentarios, acceptance criteria, source basis ni checklists",
+        "referencia WORK_UNIT a la unidad viva que satisface la evidencia de scope del workflow resuelto: issue o PR cuando el target usa GitHub, o el change request, registro del target o instruccion PM exacta equivalente; nunca una referencia inventada",
+        "clase de cambio declarada (CHANGE_CLASS) del contrato proportionality.change_class, coherente con el workflow resuelto",
+        "scope de 1-3 lineas que no restata la unidad viva, sus cuerpos, comentarios, acceptance criteria, source basis ni checklists",
         "un unico bloque estandar de variables seguido por una unica instruccion concreta, sin secciones, checklist ni plan de implementacion adicional",
         "esfuerzo recomendado con rationale",
+        "cuando la unidad corrige un PR ya revisado: PR_NUMBER y la referencia exacta al review o comentario fuente son obligatorios, con la exigencia de publicar exactamente un correction report append-only en ese PR sin editar el body ni comentarios previos",
         "nota de que el agente ejecutor re-resuelve el kernel y el prompt no concede permisos"
       ],
       "active": true

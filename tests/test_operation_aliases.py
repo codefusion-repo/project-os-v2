@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from io import StringIO
 from pathlib import Path
 
 from tools.operation_catalog import (
@@ -13,10 +12,8 @@ from tools.operation_catalog import (
 from tools.operation_prompt_wizard import (
     canonical_operations,
     discover_operations,
-    display_operations,
     render_prompt,
     resolve_operation_selection,
-    variable_summary_lines,
 )
 
 
@@ -95,43 +92,33 @@ def test_active_alias_metadata_and_bilingual_parity_have_no_findings() -> None:
         assert "**Variables**" not in alias.text
 
 
-def test_wizard_hides_alias_as_an_outcome_but_resolves_code_filename_and_path() -> None:
+def test_alias_is_not_a_separate_outcome_but_resolves_by_code_filename_and_path() -> None:
     operations = discover_operations(SPANISH_OPERATIONS)
     canonical = resolve_operation_selection(operations, "MOS-0.4")
     alias = next(operation for operation in operations if operation.mos_code == "MOS-R.10")
 
     assert canonical is not None
-    assert len(operations) == 121
-    assert len(canonical_operations(operations)) == 120
+    # The alias is never enumerated as its own canonical outcome, yet it resolves
+    # by every handle to the canonical and copies no contract of its own.
+    assert alias not in canonical_operations(operations)
     assert resolve_operation_selection(operations, "MOS-R.10") == alias
     assert resolve_operation_selection(operations, alias.filename) == alias
     assert resolve_operation_selection(operations, alias.relative_path) == alias
     assert alias.text == canonical.text
     assert alias.variables == canonical.variables
 
-    stream = StringIO()
-    display_operations(operations, stream)
-    transcript = stream.getvalue()
-    assert "MOS-R.10 → canonical" not in transcript
-    assert transcript.count("MOS-R.10") == 1
-    assert "MOS-0.4" in transcript
 
-
-def test_alias_selection_reports_and_renders_the_canonical_resolution() -> None:
+def test_alias_selection_renders_the_canonical_contract() -> None:
     operations = discover_operations(ENGLISH_OPERATIONS)
     alias = resolve_operation_selection(operations, "phase-0/MOS-R.10-update-target-adapters-catalog.md")
     canonical = resolve_operation_selection(operations, "MOS-0.4")
 
     assert alias is not None and canonical is not None
-    summary = "\n".join(variable_summary_lines(alias))
     rendered = render_prompt(alias, {"TARGET_REPOSITORY": "owner/repo"})
-    canonical_rendered = render_prompt(canonical, {"TARGET_REPOSITORY": "owner/repo"})
 
-    assert "Canonical resolution: MOS-R.10 -> MOS-0.4 (supported)" in summary
-    assert "Canonical path: phase-0/MOS-0.4-update-project-adoption.md" in summary
-    assert "Alias requested: `MOS-R.10`; canonical operation resolved: `MOS-0.4`" in rendered
     assert "TARGET_REPOSITORY=owner/repo" in rendered
-    assert canonical_rendered.replace("# MOS-0.4 — Update project adoption\n", "", 1) in rendered
+    # The alias renders the canonical variables, not a divergent contract.
+    assert alias.variables == canonical.variables
 
 
 def test_alias_guards_fail_closed_for_dangling_cycles_and_copied_contracts(tmp_path: Path) -> None:

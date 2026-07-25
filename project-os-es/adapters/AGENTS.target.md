@@ -108,7 +108,7 @@ test -n "$AGENTS_FILE" || {
 }
 python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>] || exit $?
+  --kernel-dir "$KERNEL_DIR" [--change-class change_class.<id>] [--skill skill.<id>] || exit $?
 cd "$TARGET_ROOT" || exit 1
 ```
 

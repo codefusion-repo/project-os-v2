@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from tools.audit_target_adapters import (
+from dogfooding.tools.audit_target_adapters import (
     Source,
     _canonical_roadmap_lines,
     _check_overlay_removals,
@@ -18,7 +18,7 @@ from tools.audit_target_adapters import (
 )
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 LEGACY_GENERIC_POLICY = """Security / project constraints:
 - Follow target-specific security practices; for web/API/user-facing changes,

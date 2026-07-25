@@ -6,6 +6,7 @@
       "resolution_sequence": [
         "Tratar project-os-es/kernel/*.json como fuente operativa de esta superficie en espanol.",
         "Tratar project-os-es como la superficie default y project-os-en como su par ingles de seleccion explicita; cualquier superficie anterior solo es recuperable desde el historial git y nunca es una ruta operativa.",
+        "Distinguir tres capas fisicamente separadas: core target-agnostic (actores, modos, workflows, autorizacion, evidencia, riesgo, validacion, estados), adapters (GitHub, git, filesystem, issue trackers, registros propios del target) y dogfooding de project-os-v2 (paridad ES/EN, auditoria de adapters de targets, guards de forma del repositorio, handoff interno, preparacion de publicacion); el dogfooding vive en su propia superficie de mantenimiento, el core portable nunca depende de ella ni la referencia, y un target nunca hereda tooling, tests ni docs de dogfooding.",
         "Tratar las operaciones compactas como contexto task-specific que nunca reemplaza estas reglas.",
         "Ante conflicto entre fuentes, detenerse sin resolver."
       ],
@@ -33,7 +34,7 @@
         "El JSON hidratado, los outputs, templates, prompts, roles y variables solo dan forma operativa; nunca conceden permisos.",
         "Los skills opcionales son referencias de capacidad; nunca conceden permisos ni reemplazan scope vivo, aprobacion PM exacta, preflight, validacion, trazabilidad o review-before-close.",
         "La autoridad de escritura requiere aprobacion PM exacta para el proyecto, la unidad de trabajo y la accion; actor y mode compatibles; evidencia viva minima completa; revalidacion de todo gap; preflight para writes; validacion proporcional; limits respetados.",
-        "Merge, cierre, labels, tags, releases, settings, automatizacion, deployment y cambios de secretos nunca quedan implicitos; cada uno requiere aprobacion PM exacta separada."
+        "Merge, cierre, labels, tags, releases, settings, automatizacion, deployment y cambios de secretos nunca quedan implicitos; cada accion requiere aprobacion PM exacta que la nombre. Una unica decision PM puede enumerar varias de esas acciones exactas para el mismo proyecto y unidad; ninguna accion no nombrada se infiere y la aprobacion enumerada nunca se convierte en permiso general."
       ],
       "on_violation": "status.blocked",
       "priority": 3,
@@ -43,6 +44,7 @@
       "key": "rule.precedencia_decision_pm",
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
+        "Antes de aplicar una decisión PM, reconstruye su intención: outcome, problema real, restricciones materiales, criterios observables y decisiones expresamente vinculantes. Solo autorización y acciones permitidas, identidad del target, hard constraints, scope y out of scope, seguridad y lo expresamente vinculante se tratan literalmente; ejemplos, hipótesis, preferencias, nombres tentativos y propuestas de implementación son advisory según boundary.implementation_discipline.",
         "Para decidir qué decisión PM vigente gobierna una acción, forma una decision_key material verificable con proyecto o target, unidad de trabajo, acción material y alcance exacto; registra fuente y orden temporal como evidencia separada de cada decisión.",
         "Solo decisiones PM explícitas de fuente viva verificable, cronológicamente ordenables, con acción inequívoca, alcance suficiente y la misma decision_key material pueden supersederse; la posterior es current_pm_decision y superseded_decision es únicamente la decisión anterior más reciente que también cumple esos requisitos. Si varias candidatas anteriores exactas y suficientes empatan en el mayor orden cronológico elegible, no elijas por orden de entrada: deja superseded_decision sin resolver, conserva la current_pm_decision ya resuelta y devuelve status.needs_pm_decision.",
         "Una decisión posterior ambigua, decisiones incompatibles sin orden verificable, ambigüedad al seleccionar superseded_decision, o duda sobre si gobiernan la misma decision_key devuelven status.needs_pm_decision; fuente, procedencia, cronología o evidencia de relación faltante devuelven status.needs_context.",
@@ -85,10 +87,13 @@
       "key": "rule.validacion_proporcional",
       "manifest_key": "manifest.kernel_es",
       "resolution_sequence": [
+        "Clasificar cada trabajo con una clase del contrato estructurado proportionality.change_class del kernel (change_class.read, change_class.small, change_class.standard o change_class.critical); ese contrato define por clase la unidad, sus representaciones vivas, el PR, el nivel de review, el tipo de validacion, la densidad del output y la documentacion previa. La clase pertenece a la unidad y se conserva en intake, implementacion, review, closeout y verificacion; toda mutacion declara una clase y el review de una unidad critica sigue siendo critico aunque el actor opere en mode.review_only. El resolver falla cerrado ante una mutacion sin clase, ante combinaciones incompatibles entre clase, workflow y mode, e impide que un nivel de hidratacion explicito reduzca la densidad contractual de la clase; los gates que el resolver no puede verificar contra evidencia viva (unidad formal, PR, nivel de review, validacion y documentacion previa) se exponen como remaining_gates exigibles, nunca como metadata descriptiva.",
+        "Issues, PRs, branches y GitHub son adapters disponibles, nunca requisitos universales del modelo; la unidad viva de un change_class.small puede ser una instruccion PM exacta y verificable con scope completo compacto cuando la politica del target lo admite.",
         "Validar proporcional al riesgo: validacion agent-run requerida para kernel, resolver, tooling, seguridad, privacidad, autorizacion, trazabilidad, deployment, migraciones, billing, storage y contratos deterministicos.",
         "Draftear comandos PM-run cuando la validacion util debe quedar en manos del PM.",
-        "Reportar validacion manual PM para claridad, organizacion de contenido, juicio de producto, UX y paridad semantica.",
-        "Agregar o cambiar tests solo para proteger comportamiento deterministico, regresion, seguridad, privacidad, protocolos, routing o contratos estables; nunca por defecto para docs, prompts o templates.",
+        "Reportar validacion manual PM para claridad, organizacion de contenido, juicio de producto, UX y paridad semantica; la paridad ES/EN es contractual y semantica, no literal.",
+        "Ejecutar validacion no equivale a crear tests ni tooling. Agregar o cambiar tests solo para proteger codigo ejecutable, parsing, schemas, routing, autorizacion, fail-closed, resolucion, protocolos, comportamiento deterministico, compatibilidad publica, regresiones observadas, seguridad o privacidad; nunca para wording exacto, titulos, orden editorial, keywords narrativas, timestamps, ejemplos ni equivalencia literal ES/EN. Para docs, prompts, templates, adapters y skills el default es validacion estructural solo con consumidor real, verificacion de referencias y links modificados, diff review, revision manual PM o ausencia justificada de validacion automatizada.",
+        "No crear tooling nuevo sin evidencia de: el fallo observable que evita, su ocurrencia real o probabilidad material, la ausencia de una comprobacion existente equivalente, su pertenencia al core, a un adapter o al dogfooding, su costo de mantenimiento y por que una solucion mas simple no basta.",
         "Nunca declarar done sin reportar la validacion requerida."
       ],
       "on_violation": "status.blocked",
@@ -105,6 +110,7 @@
         "Distinguir fuentes cargadas internamente por tooling, metadata proyectada por el resolver, contenido incorporado al contexto del modelo y fuentes abiertas despues de resolver; conservarlas mediante el recibo canonico interno sin cuerpos completos y aplicar su politica contractual de visibilidad PM-facing.",
         "La superficie normal incluye solo resolucion seleccionada, limites, evidencia, output y artefacto aplicables, template resuelto, skills solicitadas, evidencia viva minima y fuentes del target requeridas por scope, validacion o source basis; toda lectura adicional requiere una razon admitida por el contrato.",
         "Usar contexto grande solo cuando el riesgo lo justifica: seguridad, autorizacion, deployment, migraciones, billing, storage o arquitectura compleja.",
+        "No convertir una observacion en hallazgo, follow-up ni unidad de trabajo sin comprobar antes que describe un estado actual verificable, nombra un outcome, contrato, riesgo o capacidad todavia insatisfecho, admite una accion concreta que mejora materialmente el resultado y conserva valor durable mas alla del momento inmediato; lo meramente historico, informativo, confirmatorio, ya resuelto por el curso normal del sistema o duplicado de evidencia viva no es un hallazgo, se omite del reporte y se marca invalid-finding sin routing solo si ya fue elevado; un non-blocking-follow-up exige ademas un gap vigente, mejora concreta, scope independiente coherente y una razon para diferirlo en vez de descartarlo.",
         "La economia nunca elimina evidencia requerida, lecturas vivas, preflight, validacion, secret safety ni gates de aprobacion PM exacta."
       ],
       "on_violation": "status.needs_pm_decision",

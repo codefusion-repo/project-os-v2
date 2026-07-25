@@ -1,10 +1,98 @@
 {
+  "proportionality_contract": {
+    "key": "proportionality.change_class",
+    "classes": [
+      {
+        "key": "change_class.read",
+        "criteria": "lectura, analisis, auditoria o draft sin mutacion de archivos, repositorio ni target",
+        "formal_unit_required": false,
+        "unit_representations": [],
+        "pr_required": false,
+        "review_level": "review.none",
+        "validation_level": "validation.direct_evidence",
+        "output_density": "minimal",
+        "prior_docs": "none",
+        "allowed_workflows": [
+          "workflow.review_only",
+          "workflow.issue_implementation_manual",
+          "workflow.review_before_close",
+          "workflow.implementation_discipline_audit",
+          "workflow.pm_intake",
+          "workflow.design_asset",
+          "workflow.security_revision",
+          "workflow.release_readiness",
+          "workflow.handoff"
+        ]
+      },
+      {
+        "key": "change_class.small",
+        "criteria": "mutacion acotada, reversible y no sensible, con resultado observable inmediato y sin superficies criticas",
+        "formal_unit_required": false,
+        "unit_representations": [
+          "source.live_pm_decision",
+          "source.live_work_unit",
+          "source.live_change_request"
+        ],
+        "pr_required": false,
+        "review_level": "review.proportional",
+        "validation_level": "validation.minimal_sufficient",
+        "output_density": "minimal",
+        "prior_docs": "none",
+        "allowed_workflows": [
+          "workflow.issue_implementation",
+          "workflow.target_adoption"
+        ]
+      },
+      {
+        "key": "change_class.standard",
+        "criteria": "mutacion de alcance multiple o de contratos internos, reversible con esfuerzo y sin superficies criticas",
+        "formal_unit_required": true,
+        "unit_representations": [
+          "source.live_work_unit",
+          "source.live_change_request"
+        ],
+        "pr_required": true,
+        "review_level": "review.proportional",
+        "validation_level": "validation.proportional",
+        "output_density": "compact",
+        "prior_docs": "conditional",
+        "allowed_workflows": [
+          "workflow.pm_intake",
+          "workflow.issue_implementation",
+          "workflow.target_adoption",
+          "workflow.review_before_close",
+          "workflow.review_only"
+        ]
+      },
+      {
+        "key": "change_class.critical",
+        "criteria": "kernel, autorizacion, seguridad, privacidad, auth, pagos, migraciones, storage, deployment, releases, contratos publicos o arquitectura dificil de revertir",
+        "formal_unit_required": true,
+        "unit_representations": [
+          "source.live_work_unit"
+        ],
+        "pr_required": true,
+        "review_level": "review.independent",
+        "validation_level": "validation.broad",
+        "output_density": "full/debug",
+        "prior_docs": "expected",
+        "allowed_workflows": [
+          "workflow.pm_intake",
+          "workflow.issue_implementation",
+          "workflow.review_before_close",
+          "workflow.review_only",
+          "workflow.deployment"
+        ]
+      }
+    ]
+  },
   "workflows": [
     {
       "key": "workflow.review_only",
-      "use_for": "analisis, auditoria, preguntas y hallazgos sin cambios",
+      "use_for": "analisis, auditoria, preguntas, verificacion de postcondiciones y hallazgos sin cambios",
       "required_behavior": [
-        "analizar el scope pedido y producir hallazgos en lugar de cambios"
+        "analizar el scope pedido y producir hallazgos en lugar de cambios",
+        "cuando se declara una accion ejecutada, una referencia revisada y sus postcondiciones esperadas, verificar cada postcondicion contra la evidencia viva correspondiente (por ejemplo merge efectivo, SHA final de la rama principal, correspondencia con el head revisado, checks post-merge, cierre de la unidad, eliminacion de la rama remota y limpieza local) y reportar el estado de cada una sin ejecutar ninguna mutacion"
       ],
       "required_evidence": [
         "evidence.repo_state",
@@ -23,7 +111,8 @@
       "key": "workflow.issue_implementation",
       "use_for": "implementar una unidad de trabajo trazable y acotada en un target; un GitHub issue es un adapter posible",
       "required_behavior": [
-        "implementar el cambio completo dentro del scope vivo de la unidad de trabajo y de nada mas"
+        "implementar el cambio completo dentro del scope vivo de la unidad de trabajo y de nada mas",
+        "cuando la unidad corrige un PR ya revisado, publicar exactamente un correction report append-only en ese PR que referencie el review o comentario fuente, registre el head anterior y el head corregido, mapee cada blocking-correction con su resultado, identifique commits o rango y la validacion real, declare el trabajo restante y confirme que no hubo merge ni cierre, sin editar el body ni ningun comentario previo"
       ],
       "required_evidence": [
         "evidence.issue_scope",
@@ -70,7 +159,9 @@
       "key": "workflow.review_before_close",
       "use_for": "revisar trabajo terminado antes del merge o cierre PM",
       "required_behavior": [
-        "comparar la implementacion y la validacion reales contra scope, out of scope y acceptance criteria de la unidad de trabajo"
+        "comparar la implementacion y la validacion reales contra scope, out of scope y acceptance criteria de la unidad de trabajo",
+        "clasificar cada hallazgo con una disposicion verificable: blocking-correction, non-blocking-follow-up, preference, accepted-risk o invalid-finding; solo blocking-correction exige correccion antes del cierre",
+        "cuando el veredicto es GO, entregar en la misma respuesta el bundle de closeout y su verificacion final"
       ],
       "required_evidence": [
         "evidence.issue_scope",

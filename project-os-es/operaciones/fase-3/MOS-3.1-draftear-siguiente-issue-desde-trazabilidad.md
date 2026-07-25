@@ -18,4 +18,4 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.pm_command_bundle. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-1.6 o MOS-3.9. Después: MOS-3.4. Recomendada: MOS-3.4.
+**Conexiones:** Antes: MOS-1.6 o el cierre GO de MOS-3.7. Después: MOS-3.4. Recomendada: MOS-3.4.

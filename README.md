@@ -153,19 +153,35 @@ variables PM y trazabilidad viva en GitHub.
 python3 -m tools.validate_kernel --kernel-dir project-os-es/kernel
 python3 -m tools.validate_kernel --kernel-dir project-os-en/kernel
 python3 -m pytest tests/ -q
+python3 -m pytest dogfooding/tests/ -q
 ```
+
+El árbol separa físicamente tres capas:
+
+- **Core portable** (`project-os-es/`, `project-os-en/`, `tools/`, `tests/`):
+  kernel, operaciones, templates, skills, resolver, wizard, validador y sus
+  tests conductuales. Es lo que un target adopta; nunca depende de
+  `dogfooding/`.
+- **Adapters** (`project-os-*/adapters/` y `tools/audit_traceability.py`):
+  superficies GitHub/git/filesystem que un target puede usar u omitir.
+- **Dogfooding de `project-os-v2`** (`dogfooding/`): tooling, tests y
+  documentación exclusivos del mantenimiento de este repositorio — paridad
+  ES/EN (`dogfooding/tools/project_os_parity.py`), auditoría de adapters de
+  targets (`dogfooding/tools/audit_target_adapters.py`), diagnóstico de tamaño
+  de resolución, guards de forma del repositorio y docs de handoff interno y
+  preparación de publicación. Un target no hereda nada de esta capa.
 
 `tests/test_active_project_os_resolver.py` guarda la resolución del kernel
 español activo y evita referencias activas al resolver eliminado.
-`tests/test_project_os_bilingual_parity.py` guarda la paridad estructural ES/EN,
-los contratos MOS, adapters, paths y selección fail-closed.
+`dogfooding/tests/test_project_os_bilingual_parity.py` guarda la paridad
+estructural ES/EN, los contratos MOS, adapters, paths y selección fail-closed.
 `tools.validate_kernel` valida la superficie permitida seleccionada; español
 sigue siendo su default cuando se omite `--kernel-dir`.
 
-`tools.audit_target_adapters` y `tools.audit_traceability` siguen siendo
-diagnósticos read-only manuales. CI (`.github/workflows/validate.yml`) ejecuta
-solo la validación y la suite de tests: no hace writes y no automatiza ninguna
-autoridad PM.
+`dogfooding.tools.audit_target_adapters` y `tools.audit_traceability` siguen
+siendo diagnósticos read-only manuales. CI (`.github/workflows/validate.yml`)
+ejecuta solo la validación y las dos suites de tests: no hace writes y no
+automatiza ninguna autoridad PM.
 
 ## Background
 
@@ -202,4 +218,4 @@ templates, las operaciones y la documentación del árbol.
 
 La licencia no autoriza por sí misma nada más: publicación, visibilidad,
 soporte, contribuciones y releases siguen sujetos a sus propios gates y
-decisiones PM (ver `docs/security/PUBLIC_READINESS_REVIEW.md`).
+decisiones PM (ver `dogfooding/docs/security/PUBLIC_READINESS_REVIEW.md`).

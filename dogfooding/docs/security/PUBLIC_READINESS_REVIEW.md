@@ -3,7 +3,7 @@
 - Fecha de revisión: 2026-07-11
 - Commit base revisado: `f21654971fb050ef923af18eed68802763909375` (`main`)
 - Alcance: gate Stage 0 de
-  [ADR 0004](../decisions/0004-public-presentation-and-packaging.md) — árbol
+  [ADR 0004](../../../docs/decisions/0004-public-presentation-and-packaging.md) — árbol
   actual, exposición del historial, licenciamiento/procedencia, readiness de
   seguridad/soporte/contribuciones y postura de publicación.
 - Veredicto: **`GO_WITH_BLOCKERS`** (ver [Veredicto](#veredicto)).
@@ -21,8 +21,8 @@ Revisado:
   heads de PRs cerrados, abandonados o rebasados, que seguirían accesibles al
   publicar el repositorio).
 - Los 9 tags existentes (serie `project-os-lab-v*`, baselines de dogfood).
-- Configuración de CI ([validate.yml](../../.github/workflows/validate.yml)),
-  [.gitignore](../../.gitignore), metadata del repositorio en GitHub
+- Configuración de CI ([validate.yml](../../../.github/workflows/validate.yml)),
+  [.gitignore](../../../.gitignore), metadata del repositorio en GitHub
   (lectura), adapters, templates, operaciones, docs, tests y tooling.
 - Dependencias declaradas por import en `tools/` y `tests/`.
 
@@ -91,9 +91,9 @@ cuando aplica, el valor queda como `[REDACTED]`.
 | F-04 | Informativa | Secreto sintético en historial | Histórico: `tests/test_validators.py`; añadido en `79655b2` (2026-06-07), eliminado en `4d63724` (2026-06-09) | Valor `[REDACTED]` con forma de token GitHub (`ghp_…`) en el fixture negativo `secret_value_violation`, junto a SHA y string de entropía deliberadamente falsos. Verificado sintético por contexto y forma, sin imprimir el valor. No es credencial real: no requiere rotación ni rewrite. Riesgo: ruido de secret scanning al publicar; conservar este registro para el triage de alertas. |
 | F-05 | Baja | Nombre de proyecto interno en historial | Histórico: ~40 líneas; commits `21a5943`, `078f098`, `be6d6a4` y merges asociados | El nombre del repo interno `codefusion-repo/project-os-console` queda expuesto al publicar el historial. Solo divulgación de nombre; sin URLs privadas ni credenciales. Remediación: aceptación PM explícita (una reescritura sería desproporcionada). |
 | F-06 | Baja | Datos personales en metadata de commits | Todo el historial (455 commits) | La autoría publica nombre real y dos emails personales (clase: direcciones personales; valores en `git log`, no repetidos aquí). Solo metadata: cero apariciones en contenido de diffs. Inevitable al publicar historial sin reescribir. Remediación: aceptación PM explícita; la alternativa es un repo público nuevo con historial reducido. |
-| F-07 | Informativa | Divulgación de entorno local | [`AGENTS.md`](../../AGENTS.md) (identidad del repositorio) | Publica la ruta local `$HOME/projects/personal/project-os-v2/` (layout de máquina, sin username). Opcional Stage 1: generalizar como placeholder. |
+| F-07 | Informativa | Divulgación de entorno local | [`AGENTS.md`](../../../AGENTS.md) (identidad del repositorio) | Publica la ruta local `$HOME/projects/personal/project-os-v2/` (layout de máquina, sin username). Opcional Stage 1: generalizar como placeholder. |
 | F-08 | Informativa | Metadata del repositorio | Settings de GitHub (description) | La descripción actual menciona "roles" y no refleja el modelo vigente ni el positioning de ADR 0004. Cambio de settings: requiere aprobación PM exacta (Stage 1). |
-| F-09 | Baja | Hardening de CI | [`validate.yml`](../../.github/workflows/validate.yml) | Actions pineadas por tag mayor (`checkout@v4`, `setup-python@v5`), no por SHA. Para un repo público con PRs externos se recomienda pin por SHA. El workflow ya es mínimo: `contents: read`, sin secretos, sin writes. |
+| F-09 | Baja | Hardening de CI | [`validate.yml`](../../../.github/workflows/validate.yml) | Actions pineadas por tag mayor (`checkout@v4`, `setup-python@v5`), no por SHA. Para un repo público con PRs externos se recomienda pin por SHA. El workflow ya es mínimo: `contents: read`, sin secretos, sin writes. |
 | F-10 | Informativa | Tags internos | 9 tags (`project-os-lab-v*`, dogfood baselines) | Se publican junto con el repositorio. ADR 0004 ya lo contempla; el primer tag público de release es un issue separado. |
 
 ## Evaluación del árbol actual
@@ -415,7 +415,7 @@ resolución de B2 y B3.
 
 Ejecutada por issue #422 con decisión PM exacta registrada como comentario en
 ese issue y como decisión de arquitectura durable en
-[ADR 0005](../decisions/0005-public-repository-strategy.md), que enmienda el
+[ADR 0005](../../../docs/decisions/0005-public-repository-strategy.md), que enmienda el
 mecanismo de Stage 1 de ADR 0004. No altera la revisión original ni el resto
 de findings; solo registra la resolución de B4 y sus consecuencias sobre este
 gate.

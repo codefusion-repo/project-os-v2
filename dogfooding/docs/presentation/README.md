@@ -88,4 +88,4 @@ exact PM approval. Nothing here is applied to `codefusion-repo/project-os-v2`.
 
 - Issue #423 (Stage 1 docs-first content), following ADR 0004 and ADR 0005.
 - Related policy documents: `SECURITY.md`, `CONTRIBUTING.md`, `SUPPORT.md`,
-  `CODE_OF_CONDUCT.md`, `docs/security/PUBLIC_READINESS_REVIEW.md`.
+  `CODE_OF_CONDUCT.md`, `dogfooding/docs/security/PUBLIC_READINESS_REVIEW.md`.

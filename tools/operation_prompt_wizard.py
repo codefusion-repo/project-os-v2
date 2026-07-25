@@ -22,8 +22,10 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, TextIO
 
@@ -118,6 +120,47 @@ MOS_R3_NUMERIC_REFERENCE_NAMES = ("ISSUE_NUMBER", "PR_NUMBER")
 HYDRATION_LEVEL_NAME = "HYDRATION_LEVEL"
 HYDRATION_LEVEL_DEFAULT = "compact"
 HYDRATION_LEVEL_CHOICES = ("minimal", HYDRATION_LEVEL_DEFAULT, "full/debug")
+HYDRATION_LEVEL_RANK = {"minimal": 0, "compact": 1, "full/debug": 2}
+CHANGE_CLASS_NAME = "CHANGE_CLASS"
+# The class density the resolver derives when HYDRATION_LEVEL is not declared.
+CHANGE_CLASS_HYDRATION_DENSITY = {
+    "change_class.read": "minimal",
+    "change_class.small": "minimal",
+    "change_class.standard": "compact",
+    "change_class.critical": "full/debug",
+}
+
+
+def hydration_level_default(values: dict[str, str]) -> str:
+    """Default the route-prompt hydration level to the declared class density.
+
+    The resolver derives density from CHANGE_CLASS when HYDRATION_LEVEL is absent
+    and fails closed for an explicit level below it. The wizard mirrors that so it
+    never preloads compact for a critical class, which would emit a self-blocking
+    prompt.
+    """
+
+    declared = (values.get(CHANGE_CLASS_NAME) or "").strip()
+    return CHANGE_CLASS_HYDRATION_DENSITY.get(declared, HYDRATION_LEVEL_DEFAULT)
+
+
+def _reject_hydration_downgrade(values: dict[str, str]) -> None:
+    """Fail closed if an explicit HYDRATION_LEVEL is below the class density.
+
+    A route prompt whose level is below the class density would be rejected by
+    the receiver's resolver, so the wizard never writes one.
+    """
+
+    declared = (values.get(CHANGE_CLASS_NAME) or "").strip()
+    density = CHANGE_CLASS_HYDRATION_DENSITY.get(declared)
+    level = (values.get(HYDRATION_LEVEL_NAME) or "").strip()
+    if density is None or level not in HYDRATION_LEVEL_RANK:
+        return
+    if HYDRATION_LEVEL_RANK[level] < HYDRATION_LEVEL_RANK[density]:
+        raise WizardError(
+            f"{HYDRATION_LEVEL_NAME} {level!r} cannot reduce the {declared} class "
+            f"density {density!r}; declare {density} or higher."
+        )
 
 
 class WizardError(RuntimeError):
@@ -665,6 +708,14 @@ def validate_variable_value(
             )
         return None
 
+    if is_change_class_variable(variable.name):
+        if stripped not in CHANGE_CLASS_HYDRATION_DENSITY:
+            return (
+                f"{variable.name} must be one of: "
+                f"{', '.join(CHANGE_CLASS_HYDRATION_DENSITY)}."
+            )
+        return None
+
     if is_hydration_level_variable(variable.name):
         if stripped not in HYDRATION_LEVEL_CHOICES:
             return (
@@ -751,6 +802,12 @@ def is_issue_or_pr_number(name: str) -> bool:
     """Identify variables that carry issue or PR numbers."""
 
     return name in {"ISSUE_NUMBER", "PR_NUMBER", "ROADMAP_ISSUE"} or name.endswith("_ISSUE_NUMBER")
+
+
+def is_change_class_variable(name: str) -> bool:
+    """Identify the route-prompt change-class variable."""
+
+    return name == CHANGE_CLASS_NAME
 
 
 def is_repository_variable(name: str) -> bool:
@@ -991,7 +1048,10 @@ def render_prompt(
                 variable, rendered_values[variable.name]
             )
     if any(is_hydration_level_variable(variable.name) for variable in variables):
-        rendered_values.setdefault(HYDRATION_LEVEL_NAME, HYDRATION_LEVEL_DEFAULT)
+        rendered_values.setdefault(
+            HYDRATION_LEVEL_NAME, hydration_level_default(rendered_values)
+        )
+        _reject_hydration_downgrade(rendered_values)
     for i, line in enumerate(lines):
         for variable in variables:
             if variable.raw_line and line.rstrip() == variable.raw_line:
@@ -1564,9 +1624,6 @@ def collect_values_with_controls(
     print_stage("Step 2/3", "Fill INPUT variables", output_stream)
     display_operation_summary(operation, output_stream)
     variables = wizard_variables(operation)
-    for variable in variables:
-        if is_hydration_level_variable(variable.name):
-            values.setdefault(variable.name, HYDRATION_LEVEL_DEFAULT)
     if not variables:
         print("This operation declares no INPUT variables.", file=output_stream)
         return ValueCollectionResult("values", values)
@@ -1577,6 +1634,10 @@ def collect_values_with_controls(
         file=output_stream,
     )
     for variable in variables:
+        # Default the hydration level to the declared class density once CHANGE_CLASS
+        # is collected, so a critical class never preloads compact.
+        if is_hydration_level_variable(variable.name):
+            values.setdefault(variable.name, hydration_level_default(values))
         if is_pm_authorization_status_variable(variable.name):
             print_pm_authorization_assistance(output_stream)
         if is_hydration_level_variable(variable.name):
@@ -1848,11 +1909,187 @@ def confirm_write(
     )
 
 
-def write_prompt(output_path: Path, rendered_prompt: str) -> Path:
+def _sanitized_repository_identity(remote_url: str) -> str | None:
+    """Reduce a git remote URL to ``owner/repo`` and drop everything else.
+
+    Remote URLs may embed credentials (``https://user:token@host/...``) or
+    machine-local structure; only the sanitized identity may ever be persisted
+    into a generated artifact.
+    """
+
+    candidate = remote_url.strip()
+    if candidate.endswith(".git"):
+        candidate = candidate[: -len(".git")]
+    match = re.match(r"^(?:[A-Za-z0-9._-]+@)?[A-Za-z0-9.-]+:(?P<identity>[^/:]+/[^/:]+)$", candidate)
+    if match is None:
+        match = re.match(
+            r"^[A-Za-z][A-Za-z0-9+.-]*://(?:[^/@]+@)?[^/]+/(?P<identity>[^/]+/[^/]+)$",
+            candidate,
+        )
+    if match is None:
+        return None
+    identity = match.group("identity")
+    if re.fullmatch(r"[A-Za-z0-9._-]+/[A-Za-z0-9._-]+", identity):
+        return identity
+    return None
+
+
+def source_repository_identity() -> str:
+    """Identify the repository the operation catalog was generated from.
+
+    The raw remote is never persisted: it is sanitized to ``owner/repo`` or
+    replaced by the local repository directory name.
+    """
+
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "config", "--get", "remote.origin.url"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        origin = completed.stdout.strip()
+        if completed.returncode == 0 and origin:
+            identity = _sanitized_repository_identity(origin)
+            if identity is not None:
+                return identity
+    except OSError:
+        pass
+    return f"local:{REPO_ROOT.name}"
+
+
+def git_blob_sha(path: Path) -> str:
+    """Compute the git blob SHA-1 of a file so receivers can detect staleness."""
+
+    data = path.read_bytes()
+    return hashlib.sha1(b"blob %d\x00" % len(data) + data).hexdigest()
+
+
+def prompt_provenance_block(operation: OperationTemplate, generated_at: datetime | None = None) -> str:
+    """Build the provenance trailer that lets a receiver detect a stale prompt.
+
+    ``operation_path`` is always repository-relative; a custom catalog outside
+    the repository is reduced to ``custom:<filename>`` so no machine-local
+    absolute path is ever persisted.
+    """
+
+    source_path = operation.canonical_path or operation.path
+    try:
+        operation_path = source_path.resolve().relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        operation_path = f"custom:{source_path.name}"
+    moment = (generated_at or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    custom_hint = (
+        " Custom catalogs pass `--catalog-root <live catalog dir>` to verify."
+        if operation_path.startswith("custom:")
+        else ""
+    )
+    return (
+        "<!-- prompt-provenance\n"
+        f"source_repository: {source_repository_identity()}\n"
+        f"operation_path: {operation_path}\n"
+        f"operation_blob_sha: {git_blob_sha(source_path)}\n"
+        f"generated_at: {moment}\n"
+        "staleness: verify with `python tools/operation_prompt_wizard.py "
+        "--verify-prompt <this file>`; if the live operation at operation_path "
+        "no longer matches operation_blob_sha, reload it and regenerate this "
+        f"prompt instead of executing stale semantics.{custom_hint}\n"
+        "-->"
+    )
+
+
+PROVENANCE_BLOCK_PATTERN = re.compile(r"<!-- prompt-provenance\n(?P<body>.*?)\n-->", re.DOTALL)
+
+
+def verify_prompt_provenance(
+    prompt_path: Path,
+    repo_root: Path | None = None,
+    catalog_root: Path | None = None,
+) -> tuple[bool, str]:
+    """Fail closed unless the prompt's source operation is live and unchanged.
+
+    The receiver-side check: parse the provenance block, locate the live
+    operation, and compare its blob SHA. A repository-relative ``operation_path``
+    resolves inside this repository; a ``custom:<filename>`` path resolves inside
+    an explicitly supplied ``catalog_root`` (its live catalog), which lets custom
+    catalogs be verified without ever persisting a machine-local absolute path.
+    Any missing, unresolvable, escaping, or mismatched provenance is stale.
+    """
+
+    root = (repo_root or REPO_ROOT).resolve()
+    try:
+        text = prompt_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        return False, f"unreadable prompt artifact: {exc}"
+    match = PROVENANCE_BLOCK_PATTERN.search(text)
+    if match is None:
+        return False, "missing prompt-provenance block; regenerate the prompt from the live catalog"
+    fields: dict[str, str] = {}
+    for line in match.group("body").splitlines():
+        key, separator, value = line.partition(":")
+        if separator and re.fullmatch(r"[a-z_]+", key.strip()):
+            fields.setdefault(key.strip(), value.strip())
+    operation_path = fields.get("operation_path", "")
+    blob_sha = fields.get("operation_blob_sha", "")
+    if not operation_path or not re.fullmatch(r"[0-9a-f]{40}", blob_sha):
+        return False, "incomplete or invalid provenance fields; regenerate the prompt"
+    if operation_path.startswith("custom:"):
+        if catalog_root is None:
+            return False, (
+                "custom-catalog provenance requires an explicit --catalog-root pointing "
+                "at the live catalog to verify against; supply it or regenerate the prompt"
+            )
+        filename = operation_path[len("custom:") :]
+        if not filename or filename in {".", ".."} or "/" in filename or "\\" in filename:
+            return False, "invalid custom provenance operation_path; regenerate the prompt"
+        catalog = Path(catalog_root).expanduser().resolve()
+        if not catalog.is_dir():
+            return False, f"catalog root not found: {catalog}"
+        live_path = (catalog / filename).resolve()
+        if not live_path.is_relative_to(catalog):
+            return False, "custom provenance filename escapes the catalog root"
+        if not live_path.is_file():
+            return False, (
+                f"stale prompt: live custom operation {filename!r} not found under the "
+                "catalog root; reload the catalog and regenerate"
+            )
+        if git_blob_sha(live_path) != blob_sha:
+            return False, (
+                f"stale prompt: custom operation {filename!r} no longer matches "
+                "operation_blob_sha; reload it and regenerate instead of executing stale semantics"
+            )
+        return True, f"fresh: {operation_path} matches operation_blob_sha under the catalog root"
+    candidate = Path(operation_path)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        return False, "provenance operation_path must be repository-relative"
+    live_path = (root / candidate).resolve()
+    if not live_path.is_relative_to(root):
+        return False, "provenance operation_path escapes the repository"
+    if not live_path.is_file():
+        return False, (
+            f"stale prompt: live operation not found at {operation_path}; "
+            "reload the catalog and regenerate"
+        )
+    if git_blob_sha(live_path) != blob_sha:
+        return False, (
+            f"stale prompt: live operation {operation_path} no longer matches "
+            "operation_blob_sha; reload it and regenerate instead of executing "
+            "stale semantics"
+        )
+    return True, f"fresh: {operation_path} matches operation_blob_sha"
+
+
+def write_prompt(
+    output_path: Path,
+    rendered_prompt: str,
+    operation: OperationTemplate | None = None,
+) -> Path:
     """Write the prompt artifact, tagged with the wizard-generated marker, after confirmation."""
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     content = rendered_prompt if rendered_prompt.endswith("\n") else rendered_prompt + "\n"
+    if operation is not None:
+        content += prompt_provenance_block(operation) + "\n"
     content += WIZARD_PROMPT_MARKER + "\n"
     output_path.write_text(content, encoding="utf-8")
     return output_path
@@ -2035,7 +2272,7 @@ def run_wizard(
                 include_route_prompt_authorization=include_route_prompt_authorization,
             )
             if action == "write":
-                path = write_prompt(output_path, rendered)
+                path = write_prompt(output_path, rendered, operation=operation)
                 removed = cleanup_previous_generated_prompts(output_directory, keep_path=path)
                 current_prompt_path = path
                 written_operation = operation
@@ -2202,9 +2439,6 @@ if HAVE_PROMPT_TOOLKIT:
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
         display_operation_summary(operation, output_stream)
         variables = wizard_variables(operation)
-        for variable in variables:
-            if is_hydration_level_variable(variable.name):
-                values.setdefault(variable.name, HYDRATION_LEVEL_DEFAULT)
         if not variables:
             print("This operation declares no INPUT variables.", file=output_stream)
             return ValueCollectionResult("values", values)
@@ -2216,6 +2450,10 @@ if HAVE_PROMPT_TOOLKIT:
         })
 
         for variable in variables:
+            # Default the hydration level to the declared class density once
+            # CHANGE_CLASS is collected, so a critical class never preloads compact.
+            if is_hydration_level_variable(variable.name):
+                values.setdefault(variable.name, hydration_level_default(values))
             if is_pm_authorization_status_variable(variable.name):
                 print_pm_authorization_assistance(output_stream)
             if is_hydration_level_variable(variable.name):
@@ -2712,7 +2950,7 @@ if HAVE_PROMPT_TOOLKIT:
                     include_route_prompt_authorization=include_route_prompt_authorization,
                 )
                 if action == "write":
-                    path = write_prompt(output_path, rendered)
+                    path = write_prompt(output_path, rendered, operation=operation)
                     removed = cleanup_previous_generated_prompts(output_directory, keep_path=path)
                     current_prompt_path = path
                     written_operation = operation
@@ -2801,12 +3039,41 @@ def build_parser() -> argparse.ArgumentParser:
             f"${OUTPUT_DIR_ENV} or {DEFAULT_OUTPUT_DIR}."
         ),
     )
+    parser.add_argument(
+        "--verify-prompt",
+        type=Path,
+        default=None,
+        metavar="PROMPT",
+        help=(
+            "Receiver-side provenance check for a generated prompt: compares "
+            "its operation_blob_sha against the live operation and fails "
+            "closed (exit 1) when the prompt is stale, unverifiable, or has "
+            "no provenance. Runs no wizard session."
+        ),
+    )
+    parser.add_argument(
+        "--catalog-root",
+        type=Path,
+        default=None,
+        metavar="DIR",
+        help=(
+            "Live catalog directory used to verify a custom-catalog prompt "
+            "(operation_path custom:<filename>) with --verify-prompt. No absolute "
+            "path is ever persisted in the prompt; the root is supplied only here."
+        ),
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.verify_prompt is not None:
+        fresh, message = verify_prompt_provenance(
+            args.verify_prompt, catalog_root=args.catalog_root
+        )
+        print(message, file=sys.stdout if fresh else sys.stderr)
+        return 0 if fresh else 1
     try:
         if HAVE_PROMPT_TOOLKIT:
             result = run_wizard_pt(
