@@ -41,6 +41,12 @@ CLASSIFIED_DISTINCT_CONTRACT_GROUPS = frozenset(
         frozenset({"MOS-3.19", "MOS-3.20", "MOS-3.21", "MOS-3.22"}),
         frozenset({"MOS-5.11", "MOS-5.13"}),
         frozenset({"MOS-6.8", "MOS-6.12"}),
+        # Distinct lifecycle entry points that share one downstream contract:
+        # MOS-3.14 processes a phase-3 audit result, MOS-6.11 a phase-6 code
+        # improvement result. Their signatures converged once the derived issue
+        # and PR stopped being manual inputs on MOS-3.14; the overlap predates
+        # that change and only the redundant metadata was masking it.
+        frozenset({"MOS-3.14", "MOS-6.11"}),
     }
 )
 

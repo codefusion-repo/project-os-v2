@@ -116,51 +116,17 @@ PM_DECISION_ALREADY_MADE_NAME = "PM_DECISION_ALREADY_MADE"
 PM_DECISION_NAME = "PM_DECISION"
 PM_DECISION_TRUE_CHOICES = ("true", "1", "yes", "y", "si", "sí")
 PM_DECISION_FALSE_CHOICES = ("false", "0", "no", "n")
-MOS_R3_NUMERIC_REFERENCE_NAMES = ("ISSUE_NUMBER", "PR_NUMBER")
+# CHANGE_CLASS and HYDRATION_LEVEL are derived metadata: browser chat
+# reconstructs them from the unit's live evidence and renders them already
+# resolved in the route prompt, so neither is ever captured as an input.
+# HYDRATION_LEVEL keeps one PM-facing escape hatch: the opt-in /hydration
+# command below records an explicit override the PM typed on purpose. The
+# override may only keep or raise the derived class density; the wizard cannot
+# see the derived class, so the equal-or-higher rule stays enforced where the
+# class is known (project_os_resolve.py and the receiving browser chat).
 HYDRATION_LEVEL_NAME = "HYDRATION_LEVEL"
-HYDRATION_LEVEL_DEFAULT = "compact"
-HYDRATION_LEVEL_CHOICES = ("minimal", HYDRATION_LEVEL_DEFAULT, "full/debug")
-HYDRATION_LEVEL_RANK = {"minimal": 0, "compact": 1, "full/debug": 2}
-CHANGE_CLASS_NAME = "CHANGE_CLASS"
-# The class density the resolver derives when HYDRATION_LEVEL is not declared.
-CHANGE_CLASS_HYDRATION_DENSITY = {
-    "change_class.read": "minimal",
-    "change_class.small": "minimal",
-    "change_class.standard": "compact",
-    "change_class.critical": "full/debug",
-}
-
-
-def hydration_level_default(values: dict[str, str]) -> str:
-    """Default the route-prompt hydration level to the declared class density.
-
-    The resolver derives density from CHANGE_CLASS when HYDRATION_LEVEL is absent
-    and fails closed for an explicit level below it. The wizard mirrors that so it
-    never preloads compact for a critical class, which would emit a self-blocking
-    prompt.
-    """
-
-    declared = (values.get(CHANGE_CLASS_NAME) or "").strip()
-    return CHANGE_CLASS_HYDRATION_DENSITY.get(declared, HYDRATION_LEVEL_DEFAULT)
-
-
-def _reject_hydration_downgrade(values: dict[str, str]) -> None:
-    """Fail closed if an explicit HYDRATION_LEVEL is below the class density.
-
-    A route prompt whose level is below the class density would be rejected by
-    the receiver's resolver, so the wizard never writes one.
-    """
-
-    declared = (values.get(CHANGE_CLASS_NAME) or "").strip()
-    density = CHANGE_CLASS_HYDRATION_DENSITY.get(declared)
-    level = (values.get(HYDRATION_LEVEL_NAME) or "").strip()
-    if density is None or level not in HYDRATION_LEVEL_RANK:
-        return
-    if HYDRATION_LEVEL_RANK[level] < HYDRATION_LEVEL_RANK[density]:
-        raise WizardError(
-            f"{HYDRATION_LEVEL_NAME} {level!r} cannot reduce the {declared} class "
-            f"density {density!r}; declare {density} or higher."
-        )
+HYDRATION_LEVEL_CHOICES = ("minimal", "compact", "full/debug")
+HYDRATION_OVERRIDE_COMMANDS = {"/hydration", "/hydration-level"}
 
 
 class WizardError(RuntimeError):
@@ -708,22 +674,6 @@ def validate_variable_value(
             )
         return None
 
-    if is_change_class_variable(variable.name):
-        if stripped not in CHANGE_CLASS_HYDRATION_DENSITY:
-            return (
-                f"{variable.name} must be one of: "
-                f"{', '.join(CHANGE_CLASS_HYDRATION_DENSITY)}."
-            )
-        return None
-
-    if is_hydration_level_variable(variable.name):
-        if stripped not in HYDRATION_LEVEL_CHOICES:
-            return (
-                f"{variable.name} must be exactly one of: "
-                f"{', '.join(HYDRATION_LEVEL_CHOICES)}."
-            )
-        return None
-
     if is_optional_skill_variable(variable.name):
         choices = skill_choices or load_active_skill_choices()
         if stripped not in choices:
@@ -764,8 +714,6 @@ def validation_example(
         return "Use true or false; local yes/no, si/sí/no, and 1/0 are normalized."
     if variable.name == PM_DECISION_NAME:
         return f"Required only when {PM_DECISION_ALREADY_MADE_NAME}=true; otherwise leave it blank."
-    if is_hydration_level_variable(variable.name):
-        return "Use minimal, compact, or full/debug; compact is the default."
     if is_optional_skill_variable(variable.name):
         choices = skill_choices or load_active_skill_choices()
         return f"Use an active skill, none, or leave it blank: {', '.join(choices)}."
@@ -804,12 +752,6 @@ def is_issue_or_pr_number(name: str) -> bool:
     return name in {"ISSUE_NUMBER", "PR_NUMBER", "ROADMAP_ISSUE"} or name.endswith("_ISSUE_NUMBER")
 
 
-def is_change_class_variable(name: str) -> bool:
-    """Identify the route-prompt change-class variable."""
-
-    return name == CHANGE_CLASS_NAME
-
-
 def is_repository_variable(name: str) -> bool:
     """Identify repository-like variables such as TARGET_REPOSITORY."""
 
@@ -826,12 +768,6 @@ def is_pm_authorization_status_variable(name: str) -> bool:
     """Identify the route-prompt authorization-status assistance variable."""
 
     return name == PM_AUTHORIZATION_STATUS_NAME
-
-
-def is_hydration_level_variable(name: str) -> bool:
-    """Identify the narrow route-prompt resolver-hydration variable."""
-
-    return name == HYDRATION_LEVEL_NAME
 
 
 def is_optional_skill_variable(name: str) -> bool:
@@ -1047,11 +983,6 @@ def render_prompt(
             rendered_values[variable.name] = normalize_variable_value(
                 variable, rendered_values[variable.name]
             )
-    if any(is_hydration_level_variable(variable.name) for variable in variables):
-        rendered_values.setdefault(
-            HYDRATION_LEVEL_NAME, hydration_level_default(rendered_values)
-        )
-        _reject_hydration_downgrade(rendered_values)
     for i, line in enumerate(lines):
         for variable in variables:
             if variable.raw_line and line.rstrip() == variable.raw_line:
@@ -1077,6 +1008,11 @@ def render_prompt(
             PM_AUTHORIZATION_STATUS_NAME,
             values.get(PM_AUTHORIZATION_STATUS_NAME, "").strip(),
         )
+    hydration_override = values.get(HYDRATION_LEVEL_NAME, "").strip()
+    if hydration_override and not any(
+        variable.name == HYDRATION_LEVEL_NAME for variable in variables
+    ):
+        lines = insert_input_variable_line(lines, HYDRATION_LEVEL_NAME, hydration_override)
     return "\n".join(lines) + "\n"
 
 
@@ -1372,6 +1308,55 @@ def is_clear_command(value: str) -> bool:
     return value.strip().lower() in CLEAR_COMMANDS
 
 
+def is_hydration_override_command(value: str) -> bool:
+    return value.strip().split(maxsplit=1)[0].lower() in HYDRATION_OVERRIDE_COMMANDS if value.strip() else False
+
+
+def parse_hydration_override(value: str) -> tuple[str | None, str | None]:
+    """Parse `/hydration <level>` into a level to record, or an error to show.
+
+    Returning an empty level drops a previously recorded override so the density
+    goes back to the one derived from the class.
+    """
+
+    parts = value.strip().split(maxsplit=1)
+    argument = parts[1].strip().lower() if len(parts) > 1 else ""
+    if not argument:
+        return "", None
+    if argument not in HYDRATION_LEVEL_CHOICES:
+        return None, (
+            f"{HYDRATION_LEVEL_NAME} override must be one of: "
+            f"{', '.join(HYDRATION_LEVEL_CHOICES)}; it may only keep or raise the "
+            "density derived from the class, never reduce it."
+        )
+    return argument, None
+
+
+def apply_hydration_override(
+    raw_value: str, values: dict[str, str], output_stream: TextIO
+) -> None:
+    """Record or drop the opt-in HYDRATION_LEVEL override without asking for it."""
+
+    level, error = parse_hydration_override(raw_value)
+    if error is not None:
+        print(f"Invalid value: {error}", file=output_stream)
+        return
+    if level:
+        values[HYDRATION_LEVEL_NAME] = level
+        print(
+            f"{HYDRATION_LEVEL_NAME} override recorded: {level}. It may only keep or "
+            "raise the density derived from the class, and it authorizes nothing.",
+            file=output_stream,
+        )
+        return
+    values.pop(HYDRATION_LEVEL_NAME, None)
+    print(
+        f"{HYDRATION_LEVEL_NAME} override dropped; the density stays the one derived "
+        "from the class.",
+        file=output_stream,
+    )
+
+
 def is_enumerated_view_command(value: str) -> bool:
     return value.strip().lower() in ENUMERATED_LIST_COMMANDS
 
@@ -1479,20 +1464,6 @@ def print_pm_authorization_assistance(output_stream: TextIO) -> None:
     )
 
 
-def print_hydration_level_assistance(output_stream: TextIO) -> None:
-    """Explain the route-prompt-only resolver hydration choice before asking."""
-
-    print("", file=output_stream)
-    print(
-        "HYDRATION_LEVEL: minimal, compact (default), or full/debug.",
-        file=output_stream,
-    )
-    print(
-        "It changes only how much selected resolver guidance is returned; it never grants permission.",
-        file=output_stream,
-    )
-
-
 def print_output_path_help(output_stream: TextIO) -> None:
     """Print multi-output route-prompt path help."""
 
@@ -1511,6 +1482,17 @@ def print_value_help(output_stream: TextIO) -> None:
     print("  Required values must be filled; optional values may be left blank.", file=output_stream)
     print("  During edits, pressing Enter keeps the current value.", file=output_stream)
     print("  Use /clear to blank the current optional value.", file=output_stream)
+    print(
+        f"  Use /hydration <{' | '.join(HYDRATION_LEVEL_CHOICES)}> only to record an "
+        f"explicit PM override of the derived {HYDRATION_LEVEL_NAME}; /hydration with "
+        "no level drops it.",
+        file=output_stream,
+    )
+    print(
+        "  The override may only keep or raise the density derived from the class, "
+        "never reduce it, and it never authorizes anything.",
+        file=output_stream,
+    )
     print("  Use back to choose another operation, cancel to exit, or ? for this help.", file=output_stream)
 
 
@@ -1630,18 +1612,13 @@ def collect_values_with_controls(
 
     print("", file=output_stream)
     print(
-        "Optional values may be left blank. Commands: back, cancel, /clear optional, ? help.",
+        "Optional values may be left blank. Commands: back, cancel, /clear optional, "
+        "/hydration override, ? help.",
         file=output_stream,
     )
     for variable in variables:
-        # Default the hydration level to the declared class density once CHANGE_CLASS
-        # is collected, so a critical class never preloads compact.
-        if is_hydration_level_variable(variable.name):
-            values.setdefault(variable.name, hydration_level_default(values))
         if is_pm_authorization_status_variable(variable.name):
             print_pm_authorization_assistance(output_stream)
-        if is_hydration_level_variable(variable.name):
-            print_hydration_level_assistance(output_stream)
         if is_optional_skill_variable(variable.name):
             print_optional_skill_options(output_stream, skill_options=skill_options)
         label = "required" if variable.required else "optional"
@@ -1656,6 +1633,9 @@ def collect_values_with_controls(
             raw_value = input_func(prompt_label)
             if is_help_command(raw_value):
                 print_value_help(output_stream)
+                continue
+            if is_hydration_override_command(raw_value):
+                apply_hydration_override(raw_value, values, output_stream)
                 continue
             if is_cancel_command(raw_value):
                 return ValueCollectionResult("cancel", values)
@@ -1811,6 +1791,14 @@ def print_pre_write_summary(
             print(f"    {variable.name}={shown}", file=output_stream)
     else:
         print("  Variables: none", file=output_stream)
+    hydration_override = values.get(HYDRATION_LEVEL_NAME, "").strip()
+    if hydration_override and not any(
+        variable.name == HYDRATION_LEVEL_NAME for variable in variables
+    ):
+        print(
+            f"  Explicit PM override: {HYDRATION_LEVEL_NAME}={hydration_override}",
+            file=output_stream,
+        )
     print(f"  Output path: {output_path}", file=output_stream)
     if replacing:
         print(
@@ -2450,25 +2438,28 @@ if HAVE_PROMPT_TOOLKIT:
         })
 
         for variable in variables:
-            # Default the hydration level to the declared class density once
-            # CHANGE_CLASS is collected, so a critical class never preloads compact.
-            if is_hydration_level_variable(variable.name):
-                values.setdefault(variable.name, hydration_level_default(values))
             if is_pm_authorization_status_variable(variable.name):
                 print_pm_authorization_assistance(output_stream)
-            if is_hydration_level_variable(variable.name):
-                print_hydration_level_assistance(output_stream)
             if is_optional_skill_variable(variable.name):
                 print_optional_skill_options(output_stream, skill_options=skill_options)
             label = "required" if variable.required else "optional"
 
             def bottom_toolbar():
-                return HTML(f' <b>{variable.name}</b> ({label}) | Commands: back, cancel, /clear, ? help')
+                return HTML(
+                    f' <b>{variable.name}</b> ({label}) | Commands: back, cancel, /clear, '
+                    '/hydration, ? help'
+                )
 
             class VariableValidator(Validator):
                 def validate(self, document):
                     text = document.text.strip()
-                    if is_cancel_command(text) or is_back_command(text) or is_clear_command(text) or is_help_command(text):
+                    if (
+                        is_cancel_command(text)
+                        or is_back_command(text)
+                        or is_clear_command(text)
+                        or is_help_command(text)
+                        or is_hydration_override_command(text)
+                    ):
                         return
                     error = validate_variable_value(
                         variable,
@@ -2487,8 +2478,6 @@ if HAVE_PROMPT_TOOLKIT:
                     [*PM_DECISION_TRUE_CHOICES, *PM_DECISION_FALSE_CHOICES],
                     ignore_case=True,
                 )
-            elif is_hydration_level_variable(variable.name):
-                completer = WordCompleter(list(HYDRATION_LEVEL_CHOICES), ignore_case=True)
             elif is_optional_skill_variable(variable.name):
                 completer = WordCompleter(list(skill_choices or load_active_skill_choices()), ignore_case=True)
             else:
@@ -2507,19 +2496,9 @@ if HAVE_PROMPT_TOOLKIT:
                     raw_value = prompt(
                         prompt_label,
                         default=current,
-                        # MOS-R.3 reference numbers are validated after prompt() returns
-                        # so a rejected value starts a fresh buffer for the correction.
-                        validator=(
-                            None
-                            if operation.mos_code == "MOS-R.3"
-                            and variable.name in MOS_R3_NUMERIC_REFERENCE_NAMES
-                            else VariableValidator()
-                        ),
+                        validator=VariableValidator(),
                         completer=completer,
-                        complete_while_typing=(
-                            is_optional_skill_variable(variable.name)
-                            or is_hydration_level_variable(variable.name)
-                        ),
+                        complete_while_typing=is_optional_skill_variable(variable.name),
                         style=style,
                         bottom_toolbar=bottom_toolbar
                     )
@@ -2528,6 +2507,9 @@ if HAVE_PROMPT_TOOLKIT:
 
                 if is_help_command(raw_value):
                     print_value_help(output_stream)
+                    continue
+                if is_hydration_override_command(raw_value):
+                    apply_hydration_override(raw_value, values, output_stream)
                     continue
                 if is_cancel_command(raw_value):
                     return ValueCollectionResult("cancel", values)
