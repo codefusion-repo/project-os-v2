@@ -209,15 +209,28 @@ serializa el objeto de workflow retirado y sus asociaciones íntegras:
 | ES | 77199 | 75974 | −1225 | −1,6 % |
 | EN | 75154 | 73950 | −1204 | −1,6 % |
 
-El identificador `workflow.implementation_discipline_audit` y el código
-MOSDLC `audit-implementation-discipline` aparecen solo como nombres
-históricos de la especialización retirada en esta sección y en el historial
-git; ningún contrato activo los serializa después de `c669210`. MOS-3.24
-conserva su código estable y su entrypoint PM-facing, ahora resuelto
-íntegramente por `workflow.review_only`/`mode.review_only`, con foco explícito
-en `boundary.implementation_discipline`, `boundary.primary_path_discipline` y
+El identificador de workflow `workflow.implementation_discipline_audit` fue
+retirado de todos los contratos activos del kernel: ningún workflow,
+evidence, output ni artifact lo serializa después de `c669210`, y en esta
+sección y en el historial git solo persiste como nombre histórico de la
+especialización retirada.
+
+El código MOSDLC `audit-implementation-discipline` es distinto: permanece
+intencionalmente activo como operation ID PM-facing de MOS-3.24 en ambos
+idiomas, por decisión explícita de issue #481 de conservar MOS-3.24 como
+entrypoint estable. Esa permanencia no reintroduce ni serializa un workflow
+sustituto en el kernel: MOS-3.24 resuelve íntegramente por
+`workflow.review_only`/`mode.review_only`, con foco explícito en
+`boundary.implementation_discipline`, `boundary.primary_path_discipline` y
 `boundary.validation_discipline`, sin workflow propio ni entrega directa de
 `output.draft_issue`.
+
+Inventario de OSIM.2 sobre `workflow.implementation_discipline_audit` y
+`audit-implementation-discipline`: cero asociaciones activas del workflow
+retirado en los contratos del kernel; dos referencias activas e
+intencionales al operation ID en los archivos MOS-3.24 ES/EN; el resto de
+coincidencias del repositorio son menciones históricas o explicativas en
+esta sección de benchmark y en el historial git.
 
 La comparación verifica que los límites, los estados permitidos, la evidencia
 requerida, los outputs permitidos y el `change_class` resuelto de la tupla

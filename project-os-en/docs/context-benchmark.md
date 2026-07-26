@@ -207,15 +207,27 @@ serialize the retired workflow object and its full associations:
 | ES | 77199 | 75974 | −1225 | −1.6% |
 | EN | 75154 | 73950 | −1204 | −1.6% |
 
-The `workflow.implementation_discipline_audit` identifier and the
-`audit-implementation-discipline` MOSDLC code appear only as historical
-names of the retired specialization in this section and in git history; no
-active contract serializes them after `c669210`. MOS-3.24 keeps its stable
-code and its PM-facing entrypoint, now resolved entirely through
+The `workflow.implementation_discipline_audit` workflow key was retired from
+every active kernel contract: no workflow, evidence, output, or artifact
+serializes it after `c669210`, and in this section and in git history it
+survives only as the historical name of the retired specialization.
+
+The `audit-implementation-discipline` MOSDLC code is different: it remains
+intentionally active as MOS-3.24's PM-facing operation ID in both
+languages, per issue #481's explicit decision to keep MOS-3.24 as a stable
+entrypoint. That persistence does not reintroduce or serialize a substitute
+kernel workflow: MOS-3.24 resolves entirely through
 `workflow.review_only`/`mode.review_only`, with an explicit focus on
-`boundary.implementation_discipline`, `boundary.primary_path_discipline`, and
-`boundary.validation_discipline`, with no workflow of its own and no direct
-`output.draft_issue` delivery.
+`boundary.implementation_discipline`, `boundary.primary_path_discipline`,
+and `boundary.validation_discipline`, with no workflow of its own and no
+direct `output.draft_issue` delivery.
+
+OSIM.2 inventory over `workflow.implementation_discipline_audit` and
+`audit-implementation-discipline`: zero active associations of the retired
+workflow in kernel contracts; two active, intentional references to the
+operation ID in the MOS-3.24 ES/EN files; the remaining repository matches
+are historical or explanatory mentions in this benchmark section and in git
+history.
 
 The comparison verifies that limits, allowed statuses, required evidence,
 allowed outputs, and the resolved `change_class` of the measured tuple
