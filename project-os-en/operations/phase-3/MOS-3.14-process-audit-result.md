@@ -1,5 +1,13 @@
 # MOS-3.14 — Process audit result
 
+<!-- project-os-operation
+canonical_code: MOS-3.14
+operation_id: process-audit-result
+aliases: MOS-6.11
+deprecation: none
+compatibility_reason: MOS-6.11 keeps its historical code-improvement entry point and resolves this canonical contract for every audit.
+-->
+
 MOSDLC operation `process-audit-result` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
 
@@ -20,7 +28,16 @@ originating audit type.
 
 **Variables**
 - Required: AUDIT_RESULT
-- Optional: ISSUE_NUMBER, PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+
+**Derived metadata:** the related issue or unit, the PR, the branch, and the
+remaining verifiable relations are reconstructed from `AUDIT_RESULT` and shown
+resolved in the output for the receiver to verify; they are not manual inputs
+nor fields the PM copies from GitHub, and they are never invented. Only real
+material ambiguity —several incompatible sources equally active, or an
+unverifiable relation— returns `status.needs_context` or
+`status.needs_pm_decision`; a reconstructible identifier the PM did not retype
+never fails closed.
 
 **Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

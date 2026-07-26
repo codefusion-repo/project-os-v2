@@ -14,7 +14,11 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Variables**
 - Requeridas: ISSUE_NUMBER
-- Opcionales: TARGET_REPOSITORY, PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Opcionales: PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+
+**Metadata derivada:** el repositorio, el PR existente y la rama se
+reconstruyen desde el issue y no se piden al PM. `PATH_SCOPE` permanece como
+input porque acota deliberadamente el plan y no se deriva de la unidad.
 
 **Entrega:** output.manual_implementation_plan. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

@@ -14,7 +14,16 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Variables**
 - Required: QA_RESULT
-- Optional: ISSUE_NUMBER, PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+
+**Derived metadata:** the related issue or unit, the PR, the branch, and the
+remaining verifiable relations are reconstructed from `QA_RESULT` and shown
+resolved in the output for the receiver to verify; they are not manual inputs
+nor fields the PM copies from GitHub, and they are never invented. Only real
+material ambiguity —several incompatible sources equally active, or an
+unverifiable relation— returns `status.needs_context` or
+`status.needs_pm_decision`; a reconstructible identifier the PM did not retype
+never fails closed.
 
 **Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

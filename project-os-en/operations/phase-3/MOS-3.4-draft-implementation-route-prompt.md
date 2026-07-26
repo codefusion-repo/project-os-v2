@@ -16,10 +16,22 @@ unit to a terminal agent.
 **How:** Use a compact bootloader referenced to the live unit: detail stays in
 the unit and its records (issue or PR and comments when the target uses GitHub;
 a change request, target record, or exact PM instruction when it does not), not
-in the route prompt. Fill `WORK_UNIT` with that live reference and declare
-`CHANGE_CLASS` from the `proportionality.change_class` contract: for a
-`change_class.small` admitted by target policy, the exact PM instruction may be
-the live unit without an issue. When deriving `SCOPE` and `OUT_OF_SCOPE`,
+in the route prompt. Human inputs are `WORK_UNIT` when context does not already
+identify the unit, `OPTIONAL_SKILL`, PM feedback or questions, the explicit
+`/hydration` override, and the applicable exact authorization; they are not
+derived metadata and authorize nothing. The rest of the metadata is reconstructed
+from live evidence and shown resolved for inspection, not asked again. When the current invocation
+already identifies that unit unambiguously —for example the issue MOS-3.1,
+MOS-3.2, or MOS-3.8 just drafted in this session— do not ask for its locator
+again. Browser chat reads the unit and its relations, reconstructs
+`CHANGE_CLASS` from the scope, risk, and affected surfaces per the
+`proportionality.change_class` contract, derives `HYDRATION_LEVEL` from that
+class (`full/debug` for `change_class.critical`), and resolves the related
+roadmap, the existing PR when applicable, and the scoped branch
+`work/<unit>-<slug>`. For a `change_class.small` admitted by target policy, the
+exact PM instruction may be the live unit without an issue; for a class that
+requires a formal unit, resolve the verifiable live unit or fail closed, never
+substituting invented metadata. When deriving `SCOPE` and `OUT_OF_SCOPE`,
 interpret the unit by intent: only authorization, identity, hard constraints,
 scope, out of scope, and safety are literal; examples, tentative names, and
 implementation proposals are advisory. Browser chat may
@@ -28,8 +40,35 @@ the work. The recommendation is advisory, authorizes nothing, and may be
 overridden by explicit PM feedback.
 
 **Variables**
-- Required: CHANGE_CLASS
-- Optional: WORK_UNIT, ROADMAP_ISSUE, OPTIONAL_SKILL, HYDRATION_LEVEL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the unit, skill, level, PM feedback, and PM questions are context only and never authorize an action). `CHANGE_CLASS` declares one class from the `proportionality.change_class` contract. `HYDRATION_LEVEL` accepts `minimal`, `compact`, or `full/debug`; it controls only the resolver's hydrated content and no level returns `context_plan` or adds a receipt block. The wizard requires `PM_AUTHORIZATION_STATUS` and preloads `HYDRATION_LEVEL` with the declared `CHANGE_CLASS` contractual density (`full/debug` for `change_class.critical`), never below it.
+- Required: none
+- Optional: WORK_UNIT, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (`WORK_UNIT` is the single primary locator and is asked for only when the execution context does not already identify the live unit; `OPTIONAL_SKILL`, PM feedback, and PM questions are optional human inputs; none authorize an action)
+
+**Derived metadata:** `CHANGE_CLASS`, `HYDRATION_LEVEL`, `ROADMAP_ISSUE`,
+`BRANCH_NAME`, the existing PR, and the remaining verifiable relations are not
+manual wizard inputs nor fields the PM copies from GitHub: browser chat
+reconstructs them from live evidence and shows them resolved in the route prompt
+for the receiver's verification; it never invents them. `CHANGE_CLASS` belongs to
+the unit and is preserved across intake, implementation, review, closeout, and
+verification. `HYDRATION_LEVEL` accepts `minimal`, `compact`, or `full/debug`, is
+derived from the reconstructed class, and never drops below its contractual
+density. It controls only the resolver's hydrated content: no level returns
+`context_plan` or adds a receipt block. The wizard captures the declared human
+inputs and assists with `PM_AUTHORIZATION_STATUS`; it does not request the
+class, the default density, the roadmap, or the branch when they can be derived.
+The density keeps a single override route: an explicit PM decision
+—`/hydration <level>` in the wizard,
+which writes it as `HYDRATION_LEVEL` in the INPUT block— may keep or raise it,
+never reduce it. It is not a routine question: without that explicit override the
+variable is neither asked for nor carried, and an override below the class
+density fails closed in the receiver's resolver. Only real material ambiguity —a
+missing formal unit for a class that requires one, a scope that does not allow
+determining the class with confidence, unverifiable relations, or a conflict
+between live evidence and a later PM decision— returns `status.needs_context` or
+`status.needs_pm_decision`.
+
+**Inferred recommendation:** `RECOMMENDED_TERMINAL_AGENT_FAMILY` is browser-chat
+advice based on the work; it is shown for inspection, never requested from the
+PM, and never authorizes a tool or action.
 
 **Authorization contract:** Browser chat only drafts and can never self-assign,
 complete, change, or infer `granted`. A route prompt that is a draft, was not
@@ -52,10 +91,11 @@ instruction. If that shape cannot be produced, fail closed with
 `output.status_result`.
 
 **Reproducible manual QA:** Use a live unit with extensive records. Verify that
-the route prompt keeps only metadata, the live reference, the declared class, a
-brief scope, brief out-of-scope, and one
+the route prompt keeps only metadata, the live reference, the reconstructed class
+and density, a brief scope, brief out-of-scope, and one
 concrete instruction; that `SCOPE` has 1-3 lines; that it has no copied sections;
-and that it instructs the receiving agent to read live evidence.
+that no derivable value was asked of the PM; and that it instructs the receiving
+agent to read live evidence.
 
 **Deliver:** output.route_prompt. If evidence, scope, approval, or a conforming shape is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

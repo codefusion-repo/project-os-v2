@@ -14,7 +14,15 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Variables**
 - Required: — (none)
-- Optional: CURRENT_PHASE, TARGET_PHASE, ISSUE_NUMBER, PR_NUMBER, TARGET_REPOSITORY, ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Optional: TARGET_PHASE, READINESS_SOURCE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+
+**Derived metadata:** the current phase, the repository, the issue, the PR, and
+the roadmap are derived metadata. `TARGET_PHASE` stays an input because it is a
+human decision: it declares which phase the PM wants the work moved to, and
+live evidence cannot substitute for it. `READINESS_SOURCE` is the single
+primary locator and is asked for only when the current invocation does not
+already identify the source; from it the current phase and the verifiable
+relations are reconstructed.
 
 **Deliver:** output.status_result. If there is evidence of a missing phase or ambiguous transition, fail closed: report with `output.status_result` and return the decision to the PM.
 

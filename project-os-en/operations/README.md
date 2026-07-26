@@ -71,32 +71,90 @@ file is only a stub pointing through `alias_of`; it never repeats workflows,
 modes, outputs, evidence, approval, variables, or connections. The canonical
 Markdown is therefore the single source of operational semantics.
 
-The confirmed pair is `MOS-0.4` (canonical) / `MOS-R.10` (supported,
-non-deprecated historical alias). Normal wizard views show only `MOS-0.4`, but
-an explicit `MOS-R.10` selection by code, filename, or path reports the
-canonical code and renders exactly the `MOS-0.4` contract and variables.
+The confirmed pairs are `MOS-0.4` (canonical) / `MOS-R.10` (supported,
+non-deprecated historical alias) and `MOS-3.14` (canonical for every audit) /
+`MOS-6.11` (compatible historical code-improvement entry point). Normal wizard
+views show only canonicals, but an explicit alias selection by code, filename, or
+path reports the canonical code and renders exactly its contract and variables.
 
 The initial audit classified the asset request/delivery families
 (`MOS-3.15`–`MOS-3.22`), environment-specific deploy flows (`MOS-5.*`), and the
 draft/update or analysis/processing pairs in requirements, design, and
 maintenance as related but materially distinct. Their purposes, inputs,
-artifacts, or environments differ, so they are not aliases. No other alias was
-confirmed. Catalog guards reject dangling, ambiguous, or cyclic aliases,
+artifacts, or environments differ, so they are not aliases. Catalog guards
+reject dangling, ambiguous, or cyclic aliases,
 copied contracts in stubs, ES/EN drift, and two canonicals for one identity. An
 additional undeclared contractual match returns `status.needs_pm_decision` and
 is never merged automatically.
 
-When drafting `MOS-3.4`, the wizard also captures `HYDRATION_LEVEL` for the
-terminal recipient: it accepts `minimal`, `compact`, or `full/debug` and preloads
-the declared `CHANGE_CLASS` contractual density (`compact` when there is no
-class). In `MOS-3.5` that metadata is not asked for: the wizard captures only
-`WORK_UNIT` and `PM_AUTHORIZATION_STATUS`, and browser chat reconstructs the PR,
-the source review, the `CHANGE_CLASS`, and the density from live evidence. This
-assistance is local to those route prompts; it does not make the level a canonical
-variable across the catalog or authorize writing. The level controls only the
-resolver view returned; no level returns `context_plan` or adds a receipt block,
-and detailed provenance requires an explicit request
-(`--context-provenance <reason>`).
+## PM-facing inputs and derived metadata
+
+An operation asks only for what the AI cannot reconstruct unambiguously. Every
+active variable is classified into one of these categories before it is kept,
+made optional, derived, or removed:
+
+1. **Human decision or constraint.** Exact PM authorization, product decisions,
+   scope or constraints absent from live evidence, and explicit overrides
+   admitted by the contract. These always need the human: live evidence cannot
+   substitute for them.
+2. **Primary locator.** At most one live reference per evidence chain, and only
+   when the current invocation does not already identify the source. The live
+   unit, the live result —audit, QA, security review, design delivery,
+   checklist, manual implementation, deployment— or the equivalent target record
+   all serve equally: when an operation accepts an issue or a PR, either one is a
+   sufficient primary locator if it carries enough evidence.
+3. **Derived metadata.** The repository, the related issue or unit, the PR, the
+   source review or comment, the roadmap, the existing or derivable scoped
+   branch, `CHANGE_CLASS`, `HYDRATION_LEVEL`, and any other identifier or
+   relation verifiable from the locator. It is never a manual input: browser chat
+   reconstructs it from live evidence and shows it already resolved in the route
+   prompt, bundle, or report whenever the receiver must verify it.
+4. **Optional human context.** `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO`,
+   `OPTIONAL_SKILL`, and other non-authorizing preferences. They are human
+   choices, not derivable metadata, which is why they stay inputs.
+5. **Over-required input.** Data an operation demands without needing it to
+   start or safely complete its basic behavior. It is removed or made optional;
+   its absence must never block a safe scenario.
+
+Precedence when resolving any of those variables:
+
+1. Reuse an unambiguous source already present in the execution context.
+2. If none exists, ask for at most one primary locator per evidence chain.
+3. Reconstruct from it the repository, issue, PR, roadmap, branch, class,
+   density, and verifiable relations.
+4. Show the derived values in the output whenever the receiver must inspect them.
+5. Ask for extra data only on real material ambiguity.
+6. Never derive or self-assign PM authorization.
+
+`CHANGE_CLASS` is a reconstructible property of the unit —derived from its scope,
+risk, and affected surfaces, and preserved across intake, implementation, review,
+closeout, and verification—; `HYDRATION_LEVEL` is derived from that class. No
+level returns `context_plan` or adds a receipt block, and detailed provenance
+requires an explicit request (`--context-provenance <reason>`). That is why the
+wizard for `MOS-3.4` and `MOS-3.5` captures only human inputs: the locator when
+needed, `OPTIONAL_SKILL`, PM feedback or questions,
+`PM_AUTHORIZATION_STATUS`, and, only on an `output.route_prompt` path, the
+explicit override. The density keeps a single category-1 override route:
+`/hydration <level>` in the wizard records an exact PM decision and writes it as
+`HYDRATION_LEVEL` in the INPUT block only when an `output.route_prompt` is
+confirmed. That override may keep or raise the derived density, never reduce it
+—the resolver fails closed on a downgrade— and it is not a routine question:
+without it the variable is neither asked for nor carried.
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` is inferred as separate advice, never asked
+of the PM, and never authorizes a tool or action.
+
+No derived value grants permission and authorization is never inferred. The
+decision returns to the PM with `status.needs_context` or
+`status.needs_pm_decision` only on real material ambiguity —incompatible sources
+equally active, unverifiable relations, a scope that does not allow determining
+the class, a missing formal unit for a class that requires one, a conflict between
+live evidence and a later PM decision, or authorization that is absent, pending,
+or out of scope—, never because the PM did not retype a reconstructible
+identifier, class, branch, or density.
+
+A repo-wide locator is kept whenever it is the only source of scope: audits,
+adoptions, readiness checks, and cycles that are deliberately repo-wide keep
+declaring `TARGET_REPOSITORY` because no other evidence identifies their reach.
 
 ## Index
 
@@ -227,7 +285,7 @@ and detailed provenance requires an explicit request
 
 - [MOS-6.1 — Review security production readiness](phase-6/MOS-6.1-review-security-production-readiness.md)
 - [MOS-6.10 — Process product improvements](phase-6/MOS-6.10-process-product-improvements.md)
-- [MOS-6.11 — Process code improvements](phase-6/MOS-6.11-process-code-improvements.md)
+- [MOS-6.11 — Compatible alias of MOS-3.14](phase-6/MOS-6.11-process-code-improvements.md)
 - [MOS-6.12 — Process dead code cleanup](phase-6/MOS-6.12-process-dead-code-cleanup.md)
 - [MOS-6.2 — Review feature gaps production](phase-6/MOS-6.2-review-feature-gaps-production.md)
 - [MOS-6.3 — Analyze performance improvements](phase-6/MOS-6.3-analyze-performance-improvements.md)

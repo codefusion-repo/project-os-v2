@@ -51,12 +51,29 @@ declara; un `HYDRATION_LEVEL` explícito puede mantener o elevar esa densidad,
 nunca reducirla. La clase pertenece a la unidad y se conserva en intake,
 implementación, review, closeout y verificación. La clase nunca autoriza nada.
 
+El PM aporta decisiones, constraints y autoridad; browser chat aporta la
+metadata. Los **inputs humanos** son el locator primario cuando hace falta,
+`OPTIONAL_SKILL`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO`, el override
+explícito `/hydration <nivel>` y `PM_AUTHORIZATION_STATUS`; no son metadata
+derivada y nunca autorizan por sí mismos. La **metadata derivada** comprende
+`CHANGE_CLASS`, la densidad predeterminada `HYDRATION_LEVEL`,
+`BRANCH_NAME`, el PR existente, el roadmap y las demás relaciones verificables
+desde la unidad y sus registros. Esos valores se muestran ya resueltos para que
+el receptor los verifique, nunca se inventan. La **recomendación inferida**
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` es consejo de browser chat, no un input ni
+una autorización. Browser chat usa como máximo un locator primario por cadena de
+evidencia y no lo vuelve a pedir cuando la invocación actual ya identifica la
+fuente; solo devuelve `status.needs_context` o
+`status.needs_pm_decision` ante ambigüedad material real —fuentes incompatibles
+igualmente vigentes, relaciones no verificables, scope que no permite determinar
+la clase, unidad formal ausente para una clase que la exige, o conflicto entre
+evidencia viva y una decisión PM posterior—, nunca porque el PM no haya
+reescrito un identificador, una clase, una rama o un nivel reconstruibles.
+Ningún valor derivado concede permisos.
+
 Cuando el route prompt corrige un PR ya revisado (MOS-3.5), el bloque agrega
 `SOURCE_REVIEW` con la referencia exacta al review o comentario fuente y
-`PR_NUMBER`. En ese caso browser chat reconstruye `PR_NUMBER`, `SOURCE_REVIEW`,
-`CHANGE_CLASS` y `HYDRATION_LEVEL` desde la evidencia viva de la unidad —no los
-pide al PM— y los muestra ya resueltos aquí para que el receptor verifique el
-contrato; solo devuelve la decisión al PM ante ambigüedad material real. La
+`PR_NUMBER`, reconstruidos igual que el resto de la metadata. La
 instrucción final exige publicar exactamente un correction report append-only en
 ese PR con head anterior, head corregido, mapa de `blocking-correction` y
 confirmación de que no hubo merge ni cierre, sin editar el body ni ningún

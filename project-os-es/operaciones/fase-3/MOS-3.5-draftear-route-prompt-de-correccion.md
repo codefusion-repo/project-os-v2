@@ -13,11 +13,12 @@ findings con disposición `blocking-correction`.
 **Para:** Corregir solo incumplimientos materiales sin expandir el scope original.
 **Cómo:** Encapsula únicamente los findings `blocking-correction` en una ruta de
 corrección delegada; los `non-blocking-follow-up` se difieren a MOS-3.3 y
-`preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios. El único
-input humano normalmente necesario es `WORK_UNIT` —la unidad viva que el PM quiere
-corregir— más la autorización exacta aplicable; el resto de la metadata se
-reconstruye desde la evidencia viva y se muestra resuelta para inspección, no se
-vuelve a pedir. Browser chat lee la unidad viva y sus relaciones, localiza el PR
+`preference`, `accepted-risk` e `invalid-finding` no fuerzan cambios. Los inputs
+humanos son `WORK_UNIT`, `OPTIONAL_SKILL`, feedback o preguntas del PM, el
+override explícito `/hydration` y la autorización exacta aplicable; no son
+metadata derivada ni autorizan nada. El resto de la metadata se reconstruye desde
+la evidencia viva y se muestra resuelta para inspección, no se vuelve a pedir.
+Browser chat lee la unidad viva y sus relaciones, localiza el PR
 existente cuando aplique, lee su conversación completa, selecciona el último review
 vigente con `blocking-correction` sin resolver e incorpora sus addenda PM
 posteriores como parte del mismo source basis, reconstruye o conserva la
@@ -46,7 +47,8 @@ PM puede reemplazarla.
 **Variables**
 - Requeridas: WORK_UNIT
 - Opcionales: OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el skill, el
-  feedback y la pregunta del PM son contexto; nunca autorizan nada)
+  feedback y la pregunta del PM son inputs humanos opcionales; nunca autorizan
+  nada)
 
 **Metadata derivada:** `SOURCE_REVIEW`, `PR_NUMBER`, `CHANGE_CLASS` y
 `HYDRATION_LEVEL` no son inputs manuales del wizard ni campos que el PM copie desde
@@ -55,9 +57,17 @@ resueltos en el route-prompt para verificación del receptor. `HYDRATION_LEVEL`
 acepta `minimal`, `compact` o `full/debug`, se deriva de la `CHANGE_CLASS`
 reconstruida y nunca queda por debajo de su densidad contractual; controla solo el
 contenido hidratado del resolver y ningún nivel devuelve `context_plan` ni agrega
-un bloque de recibo. El wizard pide solo
-`WORK_UNIT` y `PM_AUTHORIZATION_STATUS`; no solicita `SOURCE_REVIEW`, `PR_NUMBER`,
-`CHANGE_CLASS` ni la densidad cuando pueden derivarse.
+un bloque de recibo. El wizard captura los inputs humanos declarados y asiste
+`PM_AUTHORIZATION_STATUS`; no solicita `SOURCE_REVIEW`, `PR_NUMBER`,
+`CHANGE_CLASS` ni la densidad predeterminada cuando pueden derivarse. Igual que en
+MOS-3.4, la densidad conserva una única ruta de override explícito
+—`/hydration <nivel>` en
+el wizard, escrito como `HYDRATION_LEVEL` en el bloque INPUT— que puede
+mantenerla o elevarla, nunca reducirla, y que no se pregunta de forma rutinaria.
+
+**Recomendación inferida:** `RECOMMENDED_TERMINAL_AGENT_FAMILY` es consejo de
+browser chat basado en el trabajo; se muestra para inspección, no se solicita al
+PM y nunca autoriza una herramienta o acción.
 
 **Entrega:** output.route_prompt. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

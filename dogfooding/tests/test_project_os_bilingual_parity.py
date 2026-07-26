@@ -54,33 +54,27 @@ def test_kernel_and_operation_contracts_have_no_parity_findings() -> None:
     ]
 
 
-def test_mos_r3_keeps_exact_bilingual_variable_contract() -> None:
-    """The wizard parses these variables; the contract must match across surfaces."""
-    expected = (
-        ("DECISION_SOURCE", True),
-        ("PM_DECISION_ALREADY_MADE", True),
-        ("ISSUE_NUMBER", False),
-        ("PR_NUMBER", False),
-        ("DECISION_OPTIONS", False),
-        ("PM_DECISION", False),
-    )
-    for operations_dir in (
-        REPO_ROOT / "project-os-es" / "operaciones",
-        REPO_ROOT / "project-os-en" / "operations",
-    ):
-        operation = next(
-            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-R.3"
+def _variable_contracts(operations_dir: Path) -> dict[str, tuple[tuple[str, bool], ...]]:
+    return {
+        operation.mos_code: tuple(
+            (variable.name, variable.required) for variable in operation.variables
         )
-        assert tuple((variable.name, variable.required) for variable in operation.variables) == expected
+        for operation in discover_operations(operations_dir)
+    }
 
 
-def test_mos_0_1_keeps_exact_bilingual_variable_contract() -> None:
-    """The wizard parses these variables; the contract must match across surfaces."""
-    expected = (
-        ("TARGET_REPOSITORY", True),
-        ("PM_FEEDBACK_HUMANO", False),
-        ("PM_QUESTION_HUMANO", False),
-    )
+def test_every_operation_keeps_the_same_variable_contract_across_surfaces() -> None:
+    """The wizard parses these variables, so both surfaces must declare them identically."""
+    spanish = _variable_contracts(REPO_ROOT / "project-os-es" / "operaciones")
+    english = _variable_contracts(REPO_ROOT / "project-os-en" / "operations")
+
+    assert set(spanish) == set(english)
+    drift = {code: (spanish[code], english[code]) for code in spanish if spanish[code] != english[code]}
+    assert drift == {}
+
+
+def test_mos_0_1_activates_a_session_with_or_without_a_target() -> None:
+    """TARGET_REPOSITORY locates a target when the PM has one; it never gates startup."""
     for operations_dir in (
         REPO_ROOT / "project-os-es" / "operaciones",
         REPO_ROOT / "project-os-en" / "operations",
@@ -88,7 +82,36 @@ def test_mos_0_1_keeps_exact_bilingual_variable_contract() -> None:
         operation = next(
             item for item in discover_operations(operations_dir) if item.mos_code == "MOS-0.1"
         )
-        assert tuple((variable.name, variable.required) for variable in operation.variables) == expected
+        variables = {variable.name: variable for variable in operation.variables}
+
+        assert variables["TARGET_REPOSITORY"].required is False
+        assert not [variable for variable in operation.variables if variable.required]
+
+
+def test_mos_0_1_unbound_session_keeps_review_only_minimum_evidence_contractual() -> None:
+    """The unbound session does not weaken review_only evidence or select a target."""
+    for operations_dir, kernel_dir in (
+        (REPO_ROOT / "project-os-es" / "operaciones", ES_KERNEL),
+        (REPO_ROOT / "project-os-en" / "operations", EN_KERNEL),
+    ):
+        operation = next(
+            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-0.1"
+        )
+        resolved = resolve(
+            "actor.browser_chat",
+            "workflow.review_only",
+            "mode.review_only",
+            kernel_dir=kernel_dir,
+        )
+        evidence = {
+            item["key"]: item for item in resolved["resuelto"]["workflow"]["minimum_evidence"]
+        }
+
+        variables = {variable.name: variable for variable in operation.variables}
+        assert variables["TARGET_REPOSITORY"].required is False
+        assert "evidence.repo_state" in evidence
+        assert evidence["evidence.repo_state"]["source"]["primary"] == "source.live_repository_state"
+        assert "KERNEL_REPOSITORY" in operation.text
 
 
 def test_route_prompt_template_declares_wizard_consumed_fields_and_bundle_stays_copy_safe() -> None:

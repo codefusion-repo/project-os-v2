@@ -52,12 +52,29 @@ raise that density, never reduce it. The class belongs to the unit and is
 preserved across intake, implementation, review, closeout, and verification. The
 class never authorizes anything.
 
+The PM supplies decisions, constraints, and authority; browser chat supplies the
+metadata. **Human inputs** are the primary locator when needed,
+`OPTIONAL_SKILL`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO`, the explicit
+`/hydration <level>` override, and `PM_AUTHORIZATION_STATUS`; they are not
+derived metadata and never authorize on their own. **Derived metadata** includes
+`CHANGE_CLASS`, the default `HYDRATION_LEVEL` density, `BRANCH_NAME`, the
+existing PR, the roadmap, and the remaining relations verifiable from the unit
+and its records. Those values are shown already resolved so the receiver can
+verify them; they are never invented. The **inferred recommendation**
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` is browser-chat advice, not an input or
+authorization. Browser chat uses at most one primary locator per evidence chain
+and does not ask for it again when the current invocation already identifies the
+source; it returns `status.needs_context` or
+`status.needs_pm_decision` only on real material ambiguity —incompatible sources
+equally active, unverifiable relations, a scope that does not allow determining
+the class, a missing formal unit for a class that requires one, or a conflict
+between live evidence and a later PM decision—, never because the PM did not
+retype a reconstructible identifier, class, branch, or level. No derived value
+grants permission.
+
 When the route prompt corrects an already-reviewed PR (MOS-3.5), the block adds
 `SOURCE_REVIEW` with the exact reference to the source review or comment and
-`PR_NUMBER`. In that case browser chat reconstructs `PR_NUMBER`, `SOURCE_REVIEW`,
-`CHANGE_CLASS`, and `HYDRATION_LEVEL` from the unit's live evidence —it does not
-ask the PM— and shows them already resolved here so the receiver verifies the
-contract; it returns the decision to the PM only on real material ambiguity. The
+`PR_NUMBER`, reconstructed like the rest of the metadata. The
 final instruction requires publishing exactly one append-only correction report
 on that PR with the previous head, the corrected head, the `blocking-correction`
 map, and confirmation that no merge or close happened, without editing the body

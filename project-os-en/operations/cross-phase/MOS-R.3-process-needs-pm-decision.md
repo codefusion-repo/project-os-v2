@@ -10,15 +10,15 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Process a pending PM decision from live evidence into a safe output.
 **For:** To resolve pending PM decisions with clear and target-agnostic variables.
-**How:** Read the issue and/or PR identified by their numbers, reconstruct the pending point from `DECISION_SOURCE`, and apply `rule.precedencia_decision_pm`: validate the current decision or present options with impact, tradeoffs, a recommendation, and the exact question.
+**How:** Reconstruct the pending point from `DECISION_SOURCE`, derive the issue, the PR, and their relations from it, and apply `rule.precedencia_decision_pm`: validate the current decision or present options with impact, tradeoffs, a recommendation, and the exact question.
 
 **Variables**
 - Required: DECISION_SOURCE, PM_DECISION_ALREADY_MADE
-- Optional: ISSUE_NUMBER, PR_NUMBER, DECISION_OPTIONS, PM_DECISION
+- Optional: DECISION_OPTIONS, PM_DECISION
 
 **Safeguards**
-- `ISSUE_NUMBER` and `PR_NUMBER` are optional numeric references and, when supplied, accept positive numbers only. Both may remain blank: derive context from `DECISION_SOURCE` and live evidence, and return `status.needs_context` only when it cannot be derived unambiguously during execution.
-- Both references may be supplied when they belong to a verifiably related flow; if they are unrelated, fail closed.
+- `DECISION_SOURCE` is the single primary locator. The issue, the PR, and their relations are derived metadata: reconstruct them from that source and live evidence, show them resolved in the output, and return `status.needs_context` only when they cannot be derived unambiguously during execution.
+- When the source identifies both an issue and a PR, verify they belong to a related flow; if they are unrelated, fail closed instead of inventing the relation.
 - `PM_DECISION_ALREADY_MADE` is `true` or `false`: when `true`, `PM_DECISION` is required; when `false`, it must be empty.
 - If `PM_DECISION_ALREADY_MADE=false`, use `DECISION_OPTIONS` when supplied or derive a bounded set from live evidence; deliver impact, tradeoffs, risks, reversibility, a recommendation, and the exact question.
 - Form a material `decision_key` with the project or target, work unit, material action, and exact scope. Verify source and chronological order as separate evidence for each decision; compare only decisions with the same material key. A Release approval does not authorize closure, settings, publication, transition, or another separate action.

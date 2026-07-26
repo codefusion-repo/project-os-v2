@@ -14,7 +14,13 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Variables**
 - Requeridas: ISSUE_NUMBER, MANUAL_IMPLEMENTATION_RESULT
-- Opcionales: MANUAL_IMPLEMENTATION_PLAN, PR_NUMBER, TARGET_REPOSITORY, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Opcionales: MANUAL_IMPLEMENTATION_PLAN, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+
+**Metadata derivada:** el repositorio, el PR y la rama se reconstruyen desde el
+issue y el resultado vivo; no se piden al PM. El issue se conserva como unidad
+formal porque la clase del cambio la exige, y `MANUAL_IMPLEMENTATION_RESULT` es
+contenido humano que ninguna evidencia viva puede sustituir. Cuando la relación
+issue↔PR no sea verificable, falla cerrado en vez de inventarla.
 
 **Entrega:** output.status_result (+output.route_prompt, output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

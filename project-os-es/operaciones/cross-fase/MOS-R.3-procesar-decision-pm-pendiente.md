@@ -10,15 +10,15 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Procesa una decisión PM pendiente desde evidencia viva hacia una salida segura.
 **Para:** Resolver decisiones PM pendientes con variables claras y target-agnostic.
-**Cómo:** Lee el issue y/o PR identificado por sus números, reconstruye el punto pendiente desde `DECISION_SOURCE` y aplica `rule.precedencia_decision_pm`: valida la decisión vigente o presenta opciones con impacto, tradeoffs, recomendación y la pregunta exacta.
+**Cómo:** Reconstruye el punto pendiente desde `DECISION_SOURCE`, deriva de ahí el issue, el PR y sus relaciones, y aplica `rule.precedencia_decision_pm`: valida la decisión vigente o presenta opciones con impacto, tradeoffs, recomendación y la pregunta exacta.
 
 **Variables**
 - Requeridas: DECISION_SOURCE, PM_DECISION_ALREADY_MADE
-- Opcionales: ISSUE_NUMBER, PR_NUMBER, DECISION_OPTIONS, PM_DECISION
+- Opcionales: DECISION_OPTIONS, PM_DECISION
 
 **Cuida**
-- `ISSUE_NUMBER` y `PR_NUMBER` son referencias numéricas opcionales y, cuando existen, reciben solo números positivos. Ambas pueden quedar vacías: deriva el contexto desde `DECISION_SOURCE` y evidencia viva, y devuelve `status.needs_context` solo si no puede derivarlo inequívocamente durante la ejecución.
-- Pueden estar presentes ambas referencias cuando pertenecen a un flujo relacionado verificable; si no están relacionadas, falla cerrado.
+- `DECISION_SOURCE` es el único locator primario. El issue, el PR y sus relaciones son metadata derivada: reconstrúyelos desde esa fuente y la evidencia viva, muéstralos resueltos en la salida y devuelve `status.needs_context` solo si no puedes derivarlos inequívocamente durante la ejecución.
+- Cuando la fuente identifique un issue y un PR, verifica que pertenezcan a un flujo relacionado; si no están relacionados, falla cerrado en vez de inventar la relación.
 - `PM_DECISION_ALREADY_MADE` es `true` o `false`: con `true`, `PM_DECISION` es obligatoria; con `false`, debe quedar vacía.
 - Si `PM_DECISION_ALREADY_MADE=false`, usa `DECISION_OPTIONS` cuando existan o deriva un conjunto acotado desde evidencia viva; entrega impacto, tradeoffs, riesgos, reversibilidad, recomendación y la pregunta exacta.
 - Forma una `decision_key` material con proyecto o target, unidad de trabajo, acción material y alcance exacto. Verifica fuente y orden temporal como evidencia separada de cada decisión; solo compara decisiones de la misma clave material. Una aprobación de Release no autoriza cierre, settings, publicación, transición ni otra acción separada.

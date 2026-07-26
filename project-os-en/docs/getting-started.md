@@ -234,12 +234,15 @@ referenced by `required_skill` under
    terminal agent runs delegated implementation; the Human PM keeps merge,
    close, settings, secrets, and deployments.
 2. **Activate browser chat with
-   [MOS-0.1](../operations/phase-0/MOS-0.1-activate-browser-session.md),
-   declaring `TARGET_REPOSITORY` in `owner/repo` format.** MOS-0.1 asks for
-   the target before resolving the initial state and rebuilds
-   `evidence.repo_state` only against that repository; when the target is
-   missing, invalid, or unreadable, it returns `status.needs_context` without
-   using another connected repository.
+   [MOS-0.1](../operations/phase-0/MOS-0.1-activate-browser-session.md).**
+   `TARGET_REPOSITORY` is optional: declaring it in `owner/repo` format activates
+   the session bound to that exact target and rebuilds `evidence.repo_state` only
+   against it; omitting it activates an unbound, read-only, draft-only session
+   that resolves the kernel and declares that no target is selected yet, without
+   silently picking any connected repository. Starting without a repository is
+   not an error; `status.needs_context` comes back only when a declared target is
+   invalid or unreadable, or when a later operation genuinely depends on
+   repository state and cannot identify an unambiguous target.
 3. **Verify adoption when a target exists with
    [MOS-0.5](../operations/phase-0/MOS-0.5-verify-target-adoption.md),** which
    audits browser and terminal readiness separately and only returns a global GO
@@ -270,7 +273,8 @@ The full cycle of one unit of work, once the session is active:
 
 1. **Delegate the implementation.** Draft the route prompt with
    [MOS-3.4](../operations/phase-3/MOS-3.4-draft-implementation-route-prompt.md)
-   (the wizard captures `HYDRATION_LEVEL`; `compact` is the default) and hand
+   (the wizard asks only for the live unit and the authorization; browser chat
+   derives the class, density, branch, and relations from live evidence) and hand
    it to the terminal agent. The agent re-resolves the kernel, verifies
    preflight, live scope, and exact PM approval, implements only the scope,
    validates, and opens a draft PR. The route prompt shapes and never

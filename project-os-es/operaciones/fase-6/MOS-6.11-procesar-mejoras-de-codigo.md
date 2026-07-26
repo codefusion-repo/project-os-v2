@@ -1,21 +1,13 @@
-# MOS-6.11 — Procesar mejoras de código
+# MOS-6.11 — Alias compatible de MOS-3.14
 
-Operación MOSDLC `process-code-improvements` · Fase 6 — Mantenimiento y mejoras · Riesgo: low.
-Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+<!-- project-os-operation
+canonical_code: MOS-3.14
+alias_of: MOS-3.14
+deprecation: supported
+compatibility_reason: Este entrypoint histórico de mejoras de código conserva selección por código, filename y path; toda semántica se resuelve desde MOS-3.14.
+-->
 
-- Superficie: browser_chat → human_pm
-- Kernel: workflow.pm_intake · mode.review_only · output.status_result (+output.route_prompt, output.pm_command_bundle)
-- Evidencia: evidence.source_basis, evidence.repo_state
-- Aprobación PM: No (draft-only)
-
-**Hace:** Procesa las mejoras de código recomendadas.
-**Para:** Cerrar el loop de normalización de código.
-**Cómo:** Clasifica mejoras hacia corrección o follow-up.
-
-**Variables**
-- Requeridas: AUDIT_RESULT
-- Opcionales: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
-
-**Entrega:** output.status_result (+output.route_prompt, output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
-
-**Conexiones:** Antes: MOS-6.5. Después: MOS-3.5 o MOS-3.3. Recomendada: MOS-3.3.
+Alias histórico soportado. Usa el contrato canónico único de
+[MOS-3.14](../fase-3/MOS-3.14-procesar-resultado-de-auditoria.md); este archivo
+no define workflow, mode, outputs, evidencia, aprobación, variables ni
+transiciones.

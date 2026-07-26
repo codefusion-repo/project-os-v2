@@ -13,11 +13,12 @@ with a `blocking-correction` disposition.
 **For:** To correct only material breaches without expanding the original scope.
 **How:** Encapsulate only `blocking-correction` findings in a delegated
 correction route; `non-blocking-follow-up` findings defer to MOS-3.3, and
-`preference`, `accepted-risk`, and `invalid-finding` force no changes. The only
-human input normally needed is `WORK_UNIT` —the live unit the PM wants to
-correct— plus the applicable exact authorization; the rest of the metadata is
-reconstructed from live evidence and shown resolved for inspection, not asked
-again. Browser chat reads the live unit and its relations, locates the existing
+`preference`, `accepted-risk`, and `invalid-finding` force no changes. Human
+inputs are `WORK_UNIT`, `OPTIONAL_SKILL`, PM feedback or questions, the explicit
+`/hydration` override, and the applicable exact authorization; they are not
+derived metadata and authorize nothing. The rest of the metadata is reconstructed
+from live evidence and shown resolved for inspection, not asked again. Browser
+chat reads the live unit and its relations, locates the existing
 PR when applicable, reads its full conversation, selects the latest active review
 with unresolved `blocking-correction` findings and incorporates its later PM
 addenda as part of the same source basis, reconstructs or preserves the unit's
@@ -45,7 +46,8 @@ advisory, authorizes nothing, and may be overridden by explicit PM feedback.
 **Variables**
 - Required: WORK_UNIT
 - Optional: OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (the skill, PM
-  feedback, and PM questions are context only and never authorize an action)
+  feedback, and PM questions are optional human inputs and never authorize an
+  action)
 
 **Derived metadata:** `SOURCE_REVIEW`, `PR_NUMBER`, `CHANGE_CLASS`, and
 `HYDRATION_LEVEL` are not manual wizard inputs nor fields the PM copies from
@@ -54,10 +56,17 @@ in the route prompt for the receiver's verification. `HYDRATION_LEVEL` accepts
 `minimal`, `compact`, or `full/debug`, is derived from the reconstructed
 `CHANGE_CLASS`, and never drops below its contractual density; it controls only
 the resolver's hydrated content and no level returns `context_plan` or adds a
-receipt block. The wizard
-asks only for `WORK_UNIT` and `PM_AUTHORIZATION_STATUS`; it does not request
-`SOURCE_REVIEW`, `PR_NUMBER`, `CHANGE_CLASS`, or the density when they can be
-derived.
+receipt block. The wizard captures the declared human inputs and assists with
+`PM_AUTHORIZATION_STATUS`; it does not request `SOURCE_REVIEW`, `PR_NUMBER`,
+`CHANGE_CLASS`, or the default density when they can be derived. As in MOS-3.4,
+the density keeps a single explicit override route —`/hydration <level>` in the
+wizard, written as `HYDRATION_LEVEL` in the INPUT
+block— that may keep or raise it, never reduce it, and that is never asked
+routinely.
+
+**Inferred recommendation:** `RECOMMENDED_TERMINAL_AGENT_FAMILY` is browser-chat
+advice based on the work; it is shown for inspection, never requested from the
+PM, and never authorizes a tool or action.
 
 **Deliver:** output.route_prompt. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

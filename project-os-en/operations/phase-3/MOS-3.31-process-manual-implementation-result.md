@@ -14,7 +14,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Variables**
 - Required: ISSUE_NUMBER, MANUAL_IMPLEMENTATION_RESULT
-- Optional: MANUAL_IMPLEMENTATION_PLAN, PR_NUMBER, TARGET_REPOSITORY, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Optional: MANUAL_IMPLEMENTATION_PLAN, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+
+**Derived metadata:** the repository, the PR, and the branch are reconstructed
+from the issue and the live result; they are never asked of the PM. The issue
+is kept as the formal unit because the change class requires one, and
+`MANUAL_IMPLEMENTATION_RESULT` is human content no live evidence can substitute
+for. When the issue↔PR relation cannot be verified, fail closed instead of
+inventing it.
 
 **Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

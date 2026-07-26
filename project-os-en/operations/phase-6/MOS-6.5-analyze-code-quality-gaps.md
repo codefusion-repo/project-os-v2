@@ -18,4 +18,4 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: periodic maintenance. Next: MOS-6.11. Recommended: MOS-6.11.
+**Connections:** Previous: periodic maintenance. Next: MOS-6.11 (compatible alias of MOS-3.14). Recommended: MOS-3.14.

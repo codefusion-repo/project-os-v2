@@ -19,13 +19,30 @@ independiente y razón para diferirlo en vez de descartarlo. Que una observació
 sea técnicamente verdadera o pueda redactarse como issue no basta: una
 observación histórica, informativa, confirmatoria, ya resuelta por el curso
 normal o duplicada de evidencia viva no genera follow-up. Sin trabajo durable y
-accionable, devuelve no-action con `output.status_result`.
+accionable, devuelve no-action con `output.status_result`. Usa como máximo un
+locator primario: cuando la invocación actual ya identifica una fuente viva
+inequívoca —el review, la auditoría, la revisión de seguridad o el issue que se
+acaba de trabajar en esta sesión— no vuelvas a pedirla; cuando no exista, pide
+solo `FOLLOW_UP_SOURCE` y reconstruye desde ahí sus relaciones.
 
 **Variables**
-- Requeridas: FOLLOW_UP_SOURCE (issue incompleto, review, resultado de
-  auditoría o de revisión de seguridad, u otro registro vivo)
-- Opcionales: ISSUE_NUMBER, PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO
-  (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Requeridas: ninguna
+- Opcionales: FOLLOW_UP_SOURCE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO
+  (`FOLLOW_UP_SOURCE` es el único locator primario —issue incompleto, review,
+  resultado de auditoría o de revisión de seguridad, u otro registro vivo— y se
+  pide solo cuando el contexto de ejecución no identifica ya una fuente
+  inequívoca; el feedback y la pregunta del PM son contexto humano; nunca
+  autorizan nada)
+
+**Metadata derivada:** el issue o unidad relacionada, el PR, el review o
+comentario fuente, la rama existente y las relaciones entre roadmap, unidad y
+hallazgos se reconstruyen desde la fuente viva y se muestran resueltos en el
+bundle para que el Humano PM los verifique; no son inputs manuales ni campos que
+el PM copie desde GitHub, y nunca se inventan. Solo una ambigüedad material real
+—varias fuentes incompatibles igualmente vigentes o una relación
+unidad↔PR↔review no verificable— devuelve `status.needs_context` o
+`status.needs_pm_decision`; que el PM no haya reescrito un identificador
+reconstruible nunca falla cerrado.
 
 **Entrega:** output.pm_command_bundle. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
