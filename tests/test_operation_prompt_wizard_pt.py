@@ -18,6 +18,7 @@ from tools.operation_prompt_wizard import (
     PM_AUTHORIZATION_GRANTED,
     PM_AUTHORIZATION_PENDING,
     PM_AUTHORIZATION_STATUS_NAME,
+    WizardError,
 )
 
 if not HAVE_PROMPT_TOOLKIT:
@@ -108,6 +109,41 @@ def test_prompt_toolkit_view_commands_render_and_allow_direct_selection(
 
     assert result is not None
     assert confirmation in stream.getvalue()
+
+
+def test_enhanced_flow_fails_closed_when_the_source_changes_before_the_write(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Both flows share one write path, so the enhanced one inherits the same gate."""
+
+    operations = setup_catalog(tmp_path)
+    source = operations / "fase-3" / "MOS-3.5-correccion.md"
+    output_dir = tmp_path / "out"
+
+    def prompt_editing_before_write(inputs: list[str]):
+        def replacement(*_args, **_kwargs):
+            if not inputs:
+                raise EOFError
+            answer = inputs.pop(0)
+            if answer == "write":
+                source.write_text(
+                    source.read_text(encoding="utf-8").replace("Corrección", "Editada"),
+                    encoding="utf-8",
+                )
+            return answer
+
+        return replacement
+
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        prompt_editing_before_write(
+            ["MOS-3.5", "codefusion-repo/project-os-v2", "write", "exit"]
+        ),
+    )
+    with pytest.raises(WizardError, match="changed during this session"):
+        run_wizard_pt(operations_dir=operations, output_dir=output_dir, output_stream=StringIO())
+
+    assert not output_dir.exists()
 
 
 def test_cancel_at_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

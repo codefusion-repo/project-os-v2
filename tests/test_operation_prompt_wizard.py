@@ -1489,21 +1489,28 @@ def test_custom_catalog_provenance_verifies_against_an_explicit_root_without_abs
 
 
 def test_verify_prompt_provenance_passes_fresh_and_fails_closed_on_staleness(tmp_path: Path) -> None:
-    from tools.operation_prompt_wizard import git_blob_sha, verify_prompt_provenance
+    from tools.operation_prompt_wizard import (
+        git_blob_sha,
+        snapshot_binding,
+        verify_prompt_provenance,
+    )
 
     repo_root = tmp_path / "repo"
     operation_path = repo_root / "operaciones" / "MOS-9.8-viva.md"
     operation_path.parent.mkdir(parents=True)
     operation_path.write_text("# MOS-9.8 — Viva\n", encoding="utf-8")
 
-    def prompt_with(path_value: str, sha_value: str) -> Path:
+    def prompt_with(path_value: str, sha_value: str, binding: str | None = None) -> Path:
         artifact = tmp_path / "generated.md"
+        body = "cuerpo\n\n"
+        bound = snapshot_binding(path_value, sha_value, body) if binding is None else binding
         artifact.write_text(
-            "cuerpo\n\n<!-- prompt-provenance\n"
+            body + "<!-- prompt-provenance\n"
             "source_repository: owner/repo\n"
             f"operation_path: {path_value}\n"
             f"operation_blob_sha: {sha_value}\n"
-            "generated_at: 2026-01-01T00:00:00Z\n"
+            + (f"snapshot_binding: {bound}\n" if bound else "")
+            + "generated_at: 2026-01-01T00:00:00Z\n"
             "staleness: check\n"
             "-->\n",
             encoding="utf-8",
@@ -1537,6 +1544,212 @@ def test_verify_prompt_provenance_passes_fresh_and_fails_closed_on_staleness(tmp
     no_block.write_text("solo cuerpo\n", encoding="utf-8")
     absent, message = verify_prompt_provenance(no_block, repo_root=repo_root)
     assert absent is False and "missing prompt-provenance" in message
+
+    unbound, message = verify_prompt_provenance(
+        prompt_with("operaciones/MOS-9.8-viva.md", live_sha, binding=""), repo_root=repo_root
+    )
+    assert unbound is False and "regenerate" in message
+
+
+def test_verify_rejects_a_body_from_one_snapshot_carrying_another_snapshots_sha(
+    tmp_path: Path,
+) -> None:
+    """The reviewed defect: old body, new SHA, and the new snapshot is the live one."""
+
+    from tools.operation_prompt_wizard import (
+        git_blob_sha,
+        snapshot_binding,
+        verify_prompt_provenance,
+    )
+
+    repo_root = tmp_path / "repo"
+    source = repo_root / "operaciones" / "MOS-9.7-viva.md"
+    source.parent.mkdir(parents=True)
+    source.write_text("# MOS-9.7 — Snapshot A\n", encoding="utf-8")
+    relative = "operaciones/MOS-9.7-viva.md"
+    body_a = "cuerpo de snapshot A\n\n"
+    sha_a = git_blob_sha(source)
+
+    source.write_text("# MOS-9.7 — Snapshot B\n", encoding="utf-8")
+    sha_b = git_blob_sha(source)
+    assert sha_a != sha_b
+
+    def artifact_with(body: str, sha_value: str, binding: str) -> Path:
+        path = tmp_path / "mixed.md"
+        path.write_text(
+            f"{body}<!-- prompt-provenance\n"
+            "source_repository: owner/repo\n"
+            f"operation_path: {relative}\n"
+            f"operation_blob_sha: {sha_value}\n"
+            f"snapshot_binding: {binding}\n"
+            "generated_at: 2026-01-01T00:00:00Z\n"
+            "staleness: check\n"
+            "-->\n",
+            encoding="utf-8",
+        )
+        return path
+
+    # Substituting only the SHA — what the previous write path could produce —
+    # leaves the binding describing snapshot A and is rejected even though the
+    # declared SHA matches the live file.
+    mixed = artifact_with(body_a, sha_b, snapshot_binding(relative, sha_a, body_a))
+    rejected, message = verify_prompt_provenance(mixed, repo_root=repo_root)
+    assert rejected is False
+    assert "snapshot_binding" in message and "stale" in message
+
+    # Substituting only the body is rejected by the same single check.
+    swapped_body = artifact_with(
+        "cuerpo de snapshot B\n\n", sha_a, snapshot_binding(relative, sha_a, body_a)
+    )
+    body_rejected, _ = verify_prompt_provenance(swapped_body, repo_root=repo_root)
+    assert body_rejected is False
+
+    # A body genuinely rendered from the live snapshot still verifies.
+    body_b = "cuerpo de snapshot B\n\n"
+    coherent = artifact_with(body_b, sha_b, snapshot_binding(relative, sha_b, body_b))
+    fresh, message = verify_prompt_provenance(coherent, repo_root=repo_root)
+    assert fresh is True and "fresh" in message
+
+
+def test_unchanged_operation_generates_and_verifies_from_one_snapshot(tmp_path: Path) -> None:
+    from tools.operation_prompt_wizard import (
+        git_blob_sha,
+        snapshot_binding,
+        verify_prompt_provenance,
+    )
+
+    catalog = tmp_path / "catalog"
+    source = catalog / "MOS-9.6-estable.md"
+    write_spanish_operation(source, "MOS-9.6", "Estable")
+    operation = discover_operations(catalog)[0]
+
+    assert operation.snapshot.path == source
+    assert operation.snapshot.text == source.read_text(encoding="utf-8")
+    assert operation.snapshot.blob_sha == git_blob_sha(source)
+
+    rendered = render_prompt(operation, {})
+    written = write_prompt(tmp_path / "prompt.md", rendered, operation=operation)
+    content = written.read_text(encoding="utf-8")
+
+    assert f"operation_blob_sha: {operation.snapshot.blob_sha}" in content
+    binding = snapshot_binding(
+        "custom:MOS-9.6-estable.md", operation.snapshot.blob_sha, rendered
+    )
+    assert f"snapshot_binding: {binding}" in content
+    fresh, message = verify_prompt_provenance(written, catalog_root=catalog)
+    assert fresh is True and "fresh" in message
+
+
+def test_source_edited_after_discovery_keeps_the_snapshot_and_refuses_to_write(
+    tmp_path: Path,
+) -> None:
+    catalog = tmp_path / "catalog"
+    source = catalog / "MOS-9.5-cambiante.md"
+    write_spanish_operation(source, "MOS-9.5", "Original")
+    operation = discover_operations(catalog)[0]
+
+    source.write_text(
+        source.read_text(encoding="utf-8").replace("Original", "Editada"), encoding="utf-8"
+    )
+
+    # The render keeps consuming the captured snapshot instead of silently
+    # mixing in a body the provenance would not identify.
+    rendered = render_prompt(operation, {})
+    assert "Original" in rendered and "Editada" not in rendered
+
+    output_path = tmp_path / "out" / "prompt.md"
+    with pytest.raises(WizardError) as error:
+        write_prompt(output_path, rendered, operation=operation)
+
+    assert "changed during this session" in str(error.value)
+    assert "regenerate" in str(error.value)
+    assert not output_path.exists()
+    assert not output_path.parent.exists()
+
+
+def test_source_edited_after_render_and_before_write_produces_no_artifact(tmp_path: Path) -> None:
+    catalog = tmp_path / "catalog"
+    source = catalog / "MOS-9.4-tardia.md"
+    write_spanish_operation(source, "MOS-9.4", "Antes")
+    operation = discover_operations(catalog)[0]
+    rendered = render_prompt(operation, {})
+
+    source.write_text(
+        source.read_text(encoding="utf-8").replace("Antes", "Después"), encoding="utf-8"
+    )
+
+    output_path = tmp_path / "prompt.md"
+    with pytest.raises(WizardError, match="changed during this session"):
+        write_prompt(output_path, rendered, operation=operation)
+    assert not output_path.exists()
+
+    # A source that disappears mid-session fails closed through the same gate.
+    source.unlink()
+    with pytest.raises(WizardError, match="reload the catalog"):
+        write_prompt(output_path, rendered, operation=operation)
+    assert not output_path.exists()
+
+
+def test_line_based_flow_fails_closed_when_the_source_changes_before_the_write(
+    tmp_path: Path,
+) -> None:
+    catalog = tmp_path / "catalog"
+    source = catalog / "fase-3" / "MOS-3.5-correccion.md"
+    write_spanish_operation(source, "MOS-3.5", "Corrección", required="TARGET_REPOSITORY")
+    output_dir = tmp_path / "out"
+
+    def answers_editing_before_write(*values: str):
+        iterator = iter(values)
+
+        def input_func(_prompt: str) -> str:
+            answer = next(iterator)
+            if answer == "write":
+                source.write_text(
+                    source.read_text(encoding="utf-8").replace("Corrección", "Editada"),
+                    encoding="utf-8",
+                )
+            return answer
+
+        return input_func
+
+    with pytest.raises(WizardError, match="changed during this session"):
+        run_wizard(
+            operations_dir=catalog,
+            output_dir=output_dir,
+            input_func=answers_editing_before_write(
+                "MOS-3.5", "codefusion-repo/project-os-v2", "write"
+            ),
+            output_stream=StringIO(),
+        )
+
+    assert not output_dir.exists()
+
+
+def test_alias_prompt_binds_body_and_sha_to_the_same_canonical_snapshot(tmp_path: Path) -> None:
+    from tools.operation_prompt_wizard import snapshot_binding, verify_prompt_provenance
+
+    operations = discover_operations()
+    alias = next(op for op in operations if op.mos_code == "MOS-R.10")
+    canonical = next(
+        op for op in operations if not op.is_alias and op.mos_code == alias.resolved_canonical_code
+    )
+
+    assert alias.snapshot == canonical.snapshot
+    assert alias.snapshot.path == canonical.path
+
+    rendered = render_prompt(alias, {})
+    written = write_prompt(tmp_path / "alias.md", rendered, operation=alias)
+    content = written.read_text(encoding="utf-8")
+    relative = canonical.path.relative_to(REPO_ROOT).as_posix()
+
+    assert f"operation_path: {relative}" in content
+    assert f"operation_blob_sha: {canonical.snapshot.blob_sha}" in content
+    assert (
+        f"snapshot_binding: {snapshot_binding(relative, canonical.snapshot.blob_sha, rendered)}"
+        in content
+    )
+    fresh, _ = verify_prompt_provenance(written)
+    assert fresh is True
 
 
 def test_verify_prompt_cli_exits_zero_fresh_and_one_stale(tmp_path: Path) -> None:
@@ -1579,6 +1792,26 @@ def test_verify_prompt_cli_exits_zero_fresh_and_one_stale(tmp_path: Path) -> Non
     assert stale.returncode == 1
     assert stale.stdout == ""
     assert "stale" in stale.stderr
+
+    # A body that no longer belongs to the snapshot its provenance identifies is
+    # equally non-zero, even though that SHA still matches the live operation.
+    mixed = tmp_path / "mixed.md"
+    mixed.write_text(
+        written.read_text(encoding="utf-8").replace(
+            rendered, rendered.replace("MOS-3.5", "MOS-3.5 (cuerpo anterior)"), 1
+        ),
+        encoding="utf-8",
+    )
+    inconsistent = subprocess.run(
+        [sys.executable, "tools/operation_prompt_wizard.py", "--verify-prompt", str(mixed)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert inconsistent.returncode == 1
+    assert inconsistent.stdout == ""
+    assert "snapshot_binding" in inconsistent.stderr
 
 
 def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejected(tmp_path: Path) -> None:
