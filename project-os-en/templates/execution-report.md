@@ -9,9 +9,7 @@ PM-facing density: the resolver projects as `must_include` exactly the
 `HYDRATION_LEVEL` received: a critical unit resolved at `compact` keeps this
 template's `full/debug` block. Use only the block for the resolved density;
 never combine densities. PM-facing traceability lives in the block itself — in
-`full/debug`, `Reviewed evidence`; no density adds a receipt block. Detailed
-provenance is delivered only when the PM asks for it for audit, debugging,
-security or authorization review, or investigating an incorrect resolution.
+`full/debug`, `Reviewed evidence`; no density adds a receipt block.
 
 ## Minimal density
 

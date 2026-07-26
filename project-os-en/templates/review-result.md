@@ -3,9 +3,7 @@
 Responsibility: report findings or verdict supported by evidence.
 
 PM-facing traceability: `Reviewed evidence` is the canonical representation. Do
-not add a receipt block; detailed provenance is delivered only when the PM asks
-for it for audit, debugging, security or authorization review, or investigating
-an incorrect resolution.
+not add a receipt block.
 
 ```markdown
 ## Reviewed scope

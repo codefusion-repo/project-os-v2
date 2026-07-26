@@ -30,7 +30,7 @@ Spanish version: [benchmark-contexto.md](../../project-os-es/docs/benchmark-cont
 ## Declared method
 
 - **Measurement date:** 2026-07-26.
-- **Inputs:** commit `9553b1c` of
+- **Inputs:** commit `3a52509` of
   `codefusion-repo/project-os-v2`; the
   measured inputs (both kernel directories and
   `tools/project_os_resolve.py`) do not change after that commit on the
@@ -71,15 +71,15 @@ Two references, built from the real kernel content:
 | Alternative | Bytes | Characters | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
 | Resolver `minimal` | 15746 | 15746 | 3728 | 3920 |
-| Resolver `compact` | 33103 | 33056 | 7453 | 8115 |
-| Per-tuple baseline (= `full/debug`) | 36989 | 36942 | 8429 | 9109 |
-| Full kernel (11 files) | 77405 | 77358 | 17395 | 18408 |
+| Resolver `compact` | 32897 | 32850 | 7413 | 8074 |
+| Per-tuple baseline (= `full/debug`) | 36783 | 36736 | 8389 | 9068 |
+| Full kernel (11 files) | 77199 | 77152 | 17355 | 18367 |
 
-Reduction against the per-tuple baseline: `minimal` −57.4% bytes (−55.8%
-`o200k_base` tokens, −57.0% `cl100k_base`); `compact` −10.5% bytes (−11.6%,
-−10.9%). Against the full kernel (internal profile only): `minimal` −79.7%
-bytes (−78.6%, −78.7%); `compact` −57.2% (−57.2%, −55.9%); `full/debug`
-−52.2% (−51.5%, −50.5%).
+Reduction against the per-tuple baseline: `minimal` −57.2% bytes (−55.6%
+`o200k_base` tokens, −56.8% `cl100k_base`); `compact` −10.6% bytes (−11.6%,
+−11.0%). Against the full kernel (internal profile only): `minimal` −79.6%
+bytes (−78.5%, −78.7%); `compact` −57.4% (−57.3%, −56.0%); `full/debug`
+−52.4% (−51.7%, −50.6%).
 
 ## English kernel (explicit selection)
 
@@ -88,13 +88,13 @@ Same tuple, same commands, with `--kernel-dir project-os-en/kernel`:
 | Alternative | Bytes | Characters | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
 | Resolver `minimal` | 15421 | 15421 | 3521 | 3517 |
-| Resolver `compact` | 31885 | 31885 | 6817 | 6819 |
-| Per-tuple baseline (= `full/debug`) | 35763 | 35763 | 7783 | 7786 |
-| Full kernel (11 files) | 75339 | 75339 | 16210 | 16214 |
+| Resolver `compact` | 31700 | 31700 | 6789 | 6790 |
+| Per-tuple baseline (= `full/debug`) | 35578 | 35578 | 7755 | 7757 |
+| Full kernel (11 files) | 75154 | 75154 | 16182 | 16185 |
 
-Reduction against the per-tuple baseline: `minimal` −56.9% bytes; `compact`
-−10.8%. Against the full kernel (internal profile only): `minimal` −79.5%
-bytes; `compact` −57.7%; `full/debug` −52.5%.
+Reduction against the per-tuple baseline: `minimal` −56.7% bytes; `compact`
+−10.9%. Against the full kernel (internal profile only): `minimal` −79.5%
+bytes; `compact` −57.8%; `full/debug` −52.7%.
 
 ## Normal critical case (#468)
 
@@ -106,11 +106,11 @@ variable:
 
 | Kernel | Before (automatic `full/debug`) | After (default `compact`) | Δ bytes | Δ % |
 | --- | ---: | ---: | ---: | ---: |
-| Spanish | 37590 | 33704 | −3886 | −10.3% |
-| English | 36341 | 32463 | −3878 | −10.7% |
+| Spanish | 37384 | 33498 | −3886 | −10.4% |
+| English | 36156 | 32278 | −3878 | −10.7% |
 
-In tokens: Spanish 8558 → 7582 `o200k_base` (−11.4%) and 9257 → 8263
-`cl100k_base` (−10.7%); English 7893 → 6927 (−12.2%) and 7897 → 6930 (−12.2%).
+In tokens: Spanish 8518 → 7542 `o200k_base` (−11.5%) and 9216 → 8222
+`cl100k_base` (−10.8%); English 7865 → 6899 (−12.3%) and 7868 → 6901 (−12.3%).
 
 The "before" row reproduces exactly the projection the class used to activate
 automatically, by running `--change-class change_class.critical
@@ -132,14 +132,11 @@ This measurement separates two costs that used to be conflated:
   this measurement. No level requires re-reading the kernel the resolver
   already processed, so a manual re-read is not attributable to the level.
 
-## Complete removal of the receipt and provenance structure (#477)
+## Complete removal of the receipt and provenance structure (#477), and residual guidance correction (#479)
 
-This measurement compares the immediately preceding `main` baseline, commit
-`4a22ce3`, with implementation commit
-`9553b1c`, which fixes every measured input (ES/EN kernels and resolver). Later
-documentation does not alter those inputs, so the six results are the same at
-the draft PR's final head. Both sides run the same tuple,
-`change_class.small`, explicit levels, and `--compact` JSON.
+The structural-removal measurement compares the immediately preceding `main`
+baseline, commit `4a22ce3`, with implementation commit `9553b1c`. Both sides
+run the same tuple, `change_class.small`, explicit levels, and `--compact` JSON.
 
 | Kernel | Level | Before (UTF-8 bytes) | After (UTF-8 bytes) | Δ bytes | Δ % |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -161,6 +158,21 @@ allowed outputs, statuses, change-class gates, and report density remain present
 and equivalent at every level. The reduction is retired structure, not omitted
 live evidence: `Reviewed evidence`, validation, risks, safe degradation, exact
 authorization, secret safety, and fail-closed remain in their real contracts.
+
+The #479 residual-guidance correction measures input baseline `9553b1c` against
+final input commit `3a52509`. `minimal` is
+unchanged because it does not project operating rules; `compact` and
+`full/debug` incorporate the corrected rule. This independent reduction is not
+attributed to #477's structural removal.
+
+| Kernel | Level | Before (UTF-8 bytes) | After (UTF-8 bytes) | Δ bytes | Δ % |
+| --- | --- | ---: | ---: | ---: | ---: |
+| ES | `minimal` | 15746 | 15746 | 0 | 0.0% |
+| ES | `compact` | 33103 | 32897 | −206 | −0.6% |
+| ES | `full/debug` | 36989 | 36783 | −206 | −0.6% |
+| EN | `minimal` | 15421 | 15421 | 0 | 0.0% |
+| EN | `compact` | 31885 | 31700 | −185 | −0.6% |
+| EN | `full/debug` | 35763 | 35578 | −185 | −0.5% |
 
 ## Comparability with earlier measurements
 
@@ -260,8 +272,8 @@ keeps the same `remaining_gates` and the same 10-field `must_include` as the
 first; `jq '.hydration_level, .resuelto.change_class.remaining_gates'` verifies
 it without re-reading the kernel.
 
-To reproduce the #477 benchmark exactly, in a checkout where those commits are
-available:
+To reproduce the #477 removal measurement, in a checkout where those commits
+are available:
 
 ```sh
 git worktree add --detach /tmp/pos-477-before 4a22ce3
@@ -306,7 +318,7 @@ for kernel in kernels:
     for level in levels:
         old, new = resolve(before, kernel, level), resolve(after, kernel, level)
         old_payload, new_payload = json.loads(old), json.loads(new)
-        assert len(new.encode("utf-8")) < len(old.encode("utf-8"))
+        assert len(new.encode("utf-8")) <= len(old.encode("utf-8"))
         assert not any(name in new for name in retired)
         for field in ("limites", "estados_permitidos"):
             assert old_payload["resuelto"][field] == new_payload["resuelto"][field]
@@ -316,6 +328,17 @@ for kernel in kernels:
         print(kernel, level, len(old.encode("utf-8")), len(new.encode("utf-8")))
 PY
 ```
+
+To reproduce the #479 guidance correction, reuse the same script with the
+declared baseline and final input commit:
+
+```sh
+git worktree add --detach /tmp/pos-479-before 9553b1c
+git worktree add --detach /tmp/pos-479-after 3a52509
+```
+
+Run the #477 Python block above again verbatim, replacing its two arguments
+with `/tmp/pos-479-before` and `/tmp/pos-479-after`.
 
 ## Limits of this profile
 

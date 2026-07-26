@@ -3,10 +3,7 @@
 Responsabilidad: draftear instrucciones humano-ejecutables sin reclamar edits.
 
 Trazabilidad PM-facing: `Archivos a inspeccionar` y el plan anclado son la
-representación canónica. No agregues un bloque de recibo; la procedencia
-detallada se entrega solo cuando el PM la solicita para auditoría, debugging,
-revisión de seguridad o autorización, o investigación de una resolución
-incorrecta.
+representación canónica. No agregues un bloque de recibo.
 
 ```markdown
 ## Objetivo

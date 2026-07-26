@@ -30,7 +30,7 @@ Versión inglesa: [context-benchmark.md](../../project-os-en/docs/context-benchm
 ## Metodología declarada
 
 - **Fecha de medición:** 2026-07-26.
-- **Insumos:** commit `9553b1c` de
+- **Insumos:** commit `3a52509` de
   `codefusion-repo/project-os-v2`; los
   insumos medidos (ambos directorios de kernel y
   `tools/project_os_resolve.py`) no cambian después de ese commit en la rama
@@ -71,15 +71,15 @@ Dos referencias, construidas desde el kernel real:
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
 | Resolver `minimal` | 15746 | 15746 | 3728 | 3920 |
-| Resolver `compact` | 33103 | 33056 | 7453 | 8115 |
-| Baseline por tupla (= `full/debug`) | 36989 | 36942 | 8429 | 9109 |
-| Kernel completo (11 archivos) | 77405 | 77358 | 17395 | 18408 |
+| Resolver `compact` | 32897 | 32850 | 7413 | 8074 |
+| Baseline por tupla (= `full/debug`) | 36783 | 36736 | 8389 | 9068 |
+| Kernel completo (11 archivos) | 77199 | 77152 | 17355 | 18367 |
 
-Reducción frente al baseline por tupla: `minimal` −57,4 % bytes (−55,8 %
-tokens `o200k_base`, −57,0 % `cl100k_base`); `compact` −10,5 % bytes (−11,6 %,
-−10,9 %). Frente al kernel completo (solo perfil interno): `minimal` −79,7 %
-bytes (−78,6 %, −78,7 %); `compact` −57,2 % (−57,2 %, −55,9 %); `full/debug`
-−52,2 % (−51,5 %, −50,5 %).
+Reducción frente al baseline por tupla: `minimal` −57,2 % bytes (−55,6 %
+tokens `o200k_base`, −56,8 % `cl100k_base`); `compact` −10,6 % bytes (−11,6 %,
+−11,0 %). Frente al kernel completo (solo perfil interno): `minimal` −79,6 %
+bytes (−78,5 %, −78,7 %); `compact` −57,4 % (−57,3 %, −56,0 %); `full/debug`
+−52,4 % (−51,7 %, −50,6 %).
 
 ## Kernel inglés (selección explícita)
 
@@ -88,13 +88,13 @@ Misma tupla, mismos comandos, con `--kernel-dir project-os-en/kernel`:
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
 | Resolver `minimal` | 15421 | 15421 | 3521 | 3517 |
-| Resolver `compact` | 31885 | 31885 | 6817 | 6819 |
-| Baseline por tupla (= `full/debug`) | 35763 | 35763 | 7783 | 7786 |
-| Kernel completo (11 archivos) | 75339 | 75339 | 16210 | 16214 |
+| Resolver `compact` | 31700 | 31700 | 6789 | 6790 |
+| Baseline por tupla (= `full/debug`) | 35578 | 35578 | 7755 | 7757 |
+| Kernel completo (11 archivos) | 75154 | 75154 | 16182 | 16185 |
 
-Reducción frente al baseline por tupla: `minimal` −56,9 % bytes; `compact`
-−10,8 %. Frente al kernel completo (solo perfil interno): `minimal` −79,5 %
-bytes; `compact` −57,7 %; `full/debug` −52,5 %.
+Reducción frente al baseline por tupla: `minimal` −56,7 % bytes; `compact`
+−10,9 %. Frente al kernel completo (solo perfil interno): `minimal` −79,5 %
+bytes; `compact` −57,8 %; `full/debug` −52,7 %.
 
 ## Caso crítico normal (#468)
 
@@ -106,11 +106,11 @@ que la única variable es la hidratación:
 
 | Kernel | Antes (`full/debug` automático) | Después (`compact` por defecto) | Δ bytes | Δ % |
 | --- | ---: | ---: | ---: | ---: |
-| Español | 37590 | 33704 | −3886 | −10,3 % |
-| Inglés | 36341 | 32463 | −3878 | −10,7 % |
+| Español | 37384 | 33498 | −3886 | −10,4 % |
+| Inglés | 36156 | 32278 | −3878 | −10,7 % |
 
-En tokens: español 8558 → 7582 `o200k_base` (−11,4 %) y 9257 → 8263
-`cl100k_base` (−10,7 %); inglés 7893 → 6927 (−12,2 %) y 7897 → 6930 (−12,2 %).
+En tokens: español 8518 → 7542 `o200k_base` (−11,5 %) y 9216 → 8222
+`cl100k_base` (−10,8 %); inglés 7865 → 6899 (−12,3 %) y 7868 → 6901 (−12,3 %).
 
 La fila «antes» reproduce exactamente la proyección que la clase activaba de
 forma automática, ejecutando hoy `--change-class change_class.critical
@@ -132,14 +132,12 @@ Esta medición separa dos costos que antes se confundían:
   fuera de esta medición. Ningún nivel obliga a releer el kernel que el
   resolver ya procesó, así que una relectura manual no es atribuible al nivel.
 
-## Eliminación total de la estructura de recibo y procedencia (#477)
+## Eliminación total de la estructura de recibo y procedencia (#477), y corrección de guía residual (#479)
 
-Esta medición compara el baseline `main` inmediatamente anterior, commit
-`4a22ce3`, con el commit de implementación
-`9553b1c`, que fija todos los inputs medidos (kernels ES/EN y resolver). La
-documentación posterior no cambia esos inputs; por eso los seis resultados son
-los mismos en el head final de la rama del PR. En ambos lados se ejecutó la
-misma tupla, `change_class.small`, niveles explícitos y JSON `--compact`.
+La medición de eliminación estructural compara el baseline `main` inmediatamente
+anterior, commit `4a22ce3`, con el commit de implementación `9553b1c`. En ambos
+lados se ejecutó la misma tupla, `change_class.small`, niveles explícitos y JSON
+`--compact`.
 
 | Kernel | Nivel | Antes (bytes UTF-8) | Después (bytes UTF-8) | Δ bytes | Δ % |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -162,6 +160,22 @@ siguen presentes y equivalentes en cada nivel. La reducción es estructura
 retirada, no evidencia viva omitida: `Evidencia revisada`, la validación, los
 riesgos, la degradación segura, la autorización exacta, secret safety y
 fail-closed permanecen en sus contratos reales.
+
+La corrección de guía residual de #479 mide el baseline de inputs `9553b1c`
+contra el commit final de inputs
+`3a52509`. El nivel `minimal` no cambia porque
+no proyecta reglas operativas; `compact` y `full/debug` incorporan la regla
+corregida. Esta reducción independiente no se atribuye a la eliminación
+estructural de #477.
+
+| Kernel | Nivel | Antes (bytes UTF-8) | Después (bytes UTF-8) | Δ bytes | Δ % |
+| --- | --- | ---: | ---: | ---: | ---: |
+| ES | `minimal` | 15746 | 15746 | 0 | 0,0 % |
+| ES | `compact` | 33103 | 32897 | −206 | −0,6 % |
+| ES | `full/debug` | 36989 | 36783 | −206 | −0,6 % |
+| EN | `minimal` | 15421 | 15421 | 0 | 0,0 % |
+| EN | `compact` | 31885 | 31700 | −185 | −0,6 % |
+| EN | `full/debug` | 35763 | 35578 | −185 | −0,5 % |
 
 ## Comparabilidad con mediciones anteriores
 
@@ -259,7 +273,7 @@ conserva los mismos `remaining_gates` y el mismo `must_include` de 10 campos
 que la primera; `jq '.hydration_level, .resuelto.change_class.remaining_gates'`
 lo verifica sin releer el kernel.
 
-Para reproducir exactamente el benchmark de #477, en un checkout con esos
+Para reproducir la medición de eliminación de #477, en un checkout con esos
 commits disponibles:
 
 ```sh
@@ -305,7 +319,7 @@ for kernel in kernels:
     for level in levels:
         old, new = resolve(before, kernel, level), resolve(after, kernel, level)
         old_payload, new_payload = json.loads(old), json.loads(new)
-        assert len(new.encode("utf-8")) < len(old.encode("utf-8"))
+        assert len(new.encode("utf-8")) <= len(old.encode("utf-8"))
         assert not any(name in new for name in retired)
         for field in ("limites", "estados_permitidos"):
             assert old_payload["resuelto"][field] == new_payload["resuelto"][field]
@@ -315,6 +329,17 @@ for kernel in kernels:
         print(kernel, level, len(old.encode("utf-8")), len(new.encode("utf-8")))
 PY
 ```
+
+Para reproducir la corrección de guía de #479, reutiliza el mismo script con
+el baseline y el commit final de inputs declarados:
+
+```sh
+git worktree add --detach /tmp/pos-479-before 9553b1c
+git worktree add --detach /tmp/pos-479-after 3a52509
+```
+
+Ejecuta de nuevo literalmente el bloque Python de #477 de arriba, reemplazando
+sus dos argumentos por `/tmp/pos-479-before` y `/tmp/pos-479-after`.
 
 ## Límites de este perfil
 
