@@ -16,7 +16,6 @@
           "workflow.review_only",
           "workflow.issue_implementation_manual",
           "workflow.review_before_close",
-          "workflow.implementation_discipline_audit",
           "workflow.pm_intake",
           "workflow.design_asset",
           "workflow.security_revision",
@@ -179,27 +178,6 @@
         "output.closure_comment",
         "output.pm_command_bundle",
         "output.status_result"
-      ],
-      "active": true
-    },
-    {
-      "key": "workflow.implementation_discipline_audit",
-      "use_for": "auditoria read-only de disciplina de implementacion",
-      "required_behavior": [
-        "auditar la evidencia contra boundary.implementation_discipline, boundary.primary_path_discipline y boundary.validation_discipline",
-        "distinguir gaps de disciplina de tradeoffs locales aceptables o convenciones explicitas del proyecto"
-      ],
-      "required_evidence": [
-        "evidence.repo_state",
-        "evidence.auxiliary_context"
-      ],
-      "minimum_evidence": [
-        "evidence.repo_state"
-      ],
-      "allowed_outputs": [
-        "output.review_result",
-        "output.status_result",
-        "output.draft_issue"
       ],
       "active": true
     },
