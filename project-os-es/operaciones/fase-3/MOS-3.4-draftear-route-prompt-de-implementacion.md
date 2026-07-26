@@ -26,8 +26,7 @@ Cuando la invocación actual ya identifica esa unidad inequívocamente —por
 ejemplo el issue que MOS-3.1, MOS-3.2 o MOS-3.8 acaba de draftear en esta
 sesión— no vuelvas a pedir su locator. Browser chat lee la unidad y sus
 relaciones, reconstruye la `CHANGE_CLASS` desde el scope, el riesgo y las
-superficies afectadas según el contrato `proportionality.change_class`, deriva
-`HYDRATION_LEVEL` desde esa clase (`full/debug` para `change_class.critical`) y
+superficies afectadas según el contrato `proportionality.change_class` y
 resuelve el roadmap relacionado, el PR existente cuando aplique y la rama scoped
 `work/<unidad>-<slug>`. Para un `change_class.small` admitido por la política
 del target, la instrucción PM exacta puede ser la unidad viva sin issue; para
@@ -47,24 +46,25 @@ advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
   ejecución no identifica ya la unidad viva; `OPTIONAL_SKILL`, el feedback y la
   pregunta son inputs humanos opcionales; ninguno autoriza nada)
 
-**Metadata derivada:** `CHANGE_CLASS`, `HYDRATION_LEVEL`, `ROADMAP_ISSUE`,
+**Metadata derivada:** `CHANGE_CLASS`, `ROADMAP_ISSUE`,
 `BRANCH_NAME`, el PR existente y las demás relaciones verificables no son inputs
 manuales del wizard ni campos que el PM copie desde GitHub: browser chat los
 reconstruye desde la evidencia viva y los muestra resueltos en el route prompt
 para verificación del receptor; nunca los inventa. La `CHANGE_CLASS` pertenece a
 la unidad y se conserva en intake, implementación, review, closeout y
-verificación. `HYDRATION_LEVEL` acepta `minimal`, `compact` o `full/debug`, se
-deriva de la clase reconstruida y nunca queda por debajo de su densidad
-contractual. Controla únicamente el contenido hidratado del resolver: ningún
-nivel devuelve `context_plan` ni agrega un bloque de recibo. El wizard captura
+verificación; gobierna los gates materiales y la densidad del execution report,
+nunca la hidratación del resolver. `HYDRATION_LEVEL` no se deriva de la clase:
+el resolver aplica `compact` por defecto para cualquier clase, así que sin
+override la variable se omite. Controla únicamente el contenido hidratado del
+resolver: ningún nivel cambia gates, densidad del reporte ni autoridad, ni
+devuelve `context_plan` o agrega un bloque de recibo. El wizard captura
 los inputs humanos declarados y asiste `PM_AUTHORIZATION_STATUS`; no solicita la
-clase, la densidad predeterminada, el roadmap ni la rama cuando pueden derivarse.
-La densidad conserva una única ruta de override: una decisión PM explícita
+clase, la hidratación, el roadmap ni la rama cuando pueden derivarse u omitirse.
+La hidratación conserva una única ruta de override: una decisión PM explícita
 —`/hydration <nivel>` en el wizard, que
-la escribe como `HYDRATION_LEVEL` en el bloque INPUT— puede mantenerla o
-elevarla, nunca reducirla. No es una pregunta rutinaria: sin ese override
-explícito la variable no se pide ni viaja, y un override por debajo de la
-densidad de la clase falla cerrado en el resolver del receptor. Solo una
+la escribe como `HYDRATION_LEVEL` en el bloque INPUT— puede elegir cualquiera de
+los tres niveles, sin ranking derivado de la clase. No es una pregunta rutinaria:
+sin ese override explícito la variable no se pide ni viaja. Solo una
 ambigüedad material real
 —unidad formal ausente para una clase que la exige, scope que no permite
 determinar la clase con confianza, relaciones no verificables o conflicto entre

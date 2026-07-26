@@ -1101,8 +1101,11 @@ def test_line_wizard_shows_dynamic_skill_choices_and_rejects_unknown_value(tmp_p
 def test_route_prompt_template_keeps_ai_advisory_field_without_pm_input() -> None:
     template = (DEFAULT_OPERATIONS_DIR.parent / "templates" / "route-prompt.md").read_text(encoding="utf-8")
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}" in template
-    assert "HYDRATION_LEVEL = {{minimal | compact | full/debug}}" in template
-    assert "`compact` es el valor predeterminado práctico" in template
+    assert (
+        "HYDRATION_LEVEL = {{opcional; omitir salvo override explícito: "
+        "minimal | compact | full/debug}}" in template
+    )
+    assert "`compact` es el valor predeterminado global" in template
     assert "browser chat infiere" in template
     assert "feedback explícito\ndel PM puede reemplazar" in template
 
@@ -1196,9 +1199,9 @@ def test_hydration_override_parsing_accepts_every_level_and_rejects_unknown_ones
 
     _, error = parse_hydration_override("/hydration verbose")
     assert error is not None
-    # The wizard cannot see the derived class, so it states the equal-or-higher
-    # contract that the resolver enforces instead of guessing a floor.
-    assert "keep or raise" in error
+    # Hydration is independent of the class, so the wizard offers all three
+    # levels without ranking them and without implying any authority.
+    assert "any of the three is allowed for any class" in error
 
     assert is_hydration_override_command("/hydration full/debug") is True
     assert is_hydration_override_command("405") is False

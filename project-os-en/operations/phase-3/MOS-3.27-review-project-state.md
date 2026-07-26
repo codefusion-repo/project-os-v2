@@ -14,8 +14,10 @@ postconditions is declared, verify them one by one against live evidence.
 that a declared action (merge, tag, close, deploy) left the expected state.
 **How:** Reconstruct and preserve the live unit's `CHANGE_CLASS` while verifying,
 without asking for it as a manual PM input: a critical unit is verified as
-`change_class.critical` (`full/debug`, `review.independent`, `validation.broad`).
-Without `ACTION_EXECUTED`, use PM decisions and fixed docs as the main
+`change_class.critical`, `review.independent`, `validation.broad`,
+and the critical report density, while its normal hydration is
+`compact` and only changes through an explicit override. Without
+`ACTION_EXECUTED`, use PM decisions and fixed docs as the main
 truth and report drift. With `ACTION_EXECUTED`, `REVIEWED_REFERENCE`, and
 `EXPECTED_POSTCONDITIONS`, verify each postcondition against the corresponding
 live evidence —effective merge, the main branch's final SHA, correspondence with

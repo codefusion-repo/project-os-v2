@@ -13,7 +13,7 @@ import pytest
 from tools.project_os_resolve import (
     DEFAULT_HYDRATION_LEVEL,
     HYDRATION_LEVEL_VALUES,
-    HydrationLevel,
+    DensityLevel,
     resolve,
     resolver,
 )
@@ -85,7 +85,7 @@ def test_default_is_compact_and_existing_callers_keep_the_compact_result() -> No
     existing_call = resolve(**SELECTOR, kernel_dir=ES_KERNEL)
     explicit = resolve_level(DEFAULT_HYDRATION_LEVEL.value)
 
-    assert DEFAULT_HYDRATION_LEVEL is HydrationLevel.COMPACT
+    assert DEFAULT_HYDRATION_LEVEL is DensityLevel.COMPACT
     assert HYDRATION_LEVEL_VALUES == LEVELS
     assert existing_call == explicit
     assert existing_call["hydration_level"] == "compact"

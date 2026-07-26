@@ -60,7 +60,7 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "use_for": "report implementation work; the resolver projects as must_include exactly the must_include_by_density list for the resolved hydration level, and completion is never claimed without complete scope, respected out of scope, and reported validation",
+      "use_for": "report implementation work; the resolver projects as must_include exactly the must_include_by_density list for the declared class's report density, independent of the hydration level received, and completion is never claimed without complete scope, respected out of scope, and reported validation",
       "status_key": "status.resolved",
       "action_class": "action.mutable",
       "allows_non_material_gaps": false,

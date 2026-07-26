@@ -182,7 +182,7 @@ conservarla, volverla opcional, derivarla o eliminarla:
    contiene evidencia bastante.
 3. **Metadata derivada.** Repositorio, issue o unidad relacionada, PR, review o
    comentario fuente, roadmap, rama existente o scoped derivable,
-   `CHANGE_CLASS`, `HYDRATION_LEVEL` y cualquier otro identificador o relación
+   `CHANGE_CLASS` y cualquier otro identificador o relación
    verificable desde el locator. Nunca es input manual: browser chat la
    reconstruye desde la evidencia viva y la muestra ya resuelta en el route
    prompt, bundle o reporte cuando el receptor debe verificarla.
@@ -198,7 +198,7 @@ Precedencia al resolver cualquiera de esas variables:
 
 1. Reutilizar una fuente inequívoca ya presente en el contexto de ejecución.
 2. Si falta, pedir como máximo un locator primario por cadena de evidencia.
-3. Reconstruir desde él repositorio, issue, PR, roadmap, rama, clase, densidad y
+3. Reconstruir desde él repositorio, issue, PR, roadmap, rama, clase y
    relaciones verificables.
 4. Mostrar los valores derivados en el output cuando el receptor deba
    inspeccionarlos.
@@ -207,19 +207,20 @@ Precedencia al resolver cualquiera de esas variables:
 
 `CHANGE_CLASS` es una propiedad reconstruible de la unidad —se deriva de su
 scope, riesgo y superficies afectadas, y se conserva en intake, implementación,
-review, closeout y verificación—; `HYDRATION_LEVEL` se deriva de esa clase.
-Ningún nivel devuelve `context_plan` ni agrega un bloque de recibo, y la
-procedencia detallada requiere una solicitud explícita
-(`--context-provenance <razón>`). Por eso el wizard de `MOS-3.4` y `MOS-3.5`
-captura solo inputs humanos: el locator cuando hace falta, `OPTIONAL_SKILL`,
-feedback o preguntas del PM, `PM_AUTHORIZATION_STATUS` y, solo en una ruta
-`output.route_prompt`, el override explícito. La densidad conserva una única
-ruta de override, de categoría 1: `/hydration <nivel>` en el wizard registra una
-decisión PM explícita y la escribe como `HYDRATION_LEVEL` en el bloque INPUT
-únicamente cuando se confirma `output.route_prompt`. Ese override puede mantener
-o elevar la densidad derivada, nunca reducirla —el resolver falla cerrado ante un
-downgrade—, y no es una pregunta rutinaria: sin él la variable no se pide ni
-viaja. `RECOMMENDED_TERMINAL_AGENT_FAMILY` se infiere como consejo separado, no
+review, closeout y verificación— que gobierna los gates materiales y la densidad
+del execution report; `HYDRATION_LEVEL` no se deriva de ella. El resolver aplica
+`compact` por defecto para cualquier clase, ningún nivel devuelve `context_plan`
+ni agrega un bloque de recibo, y la procedencia detallada requiere una solicitud
+explícita (`--context-provenance <razón>`). Por eso el wizard de `MOS-3.4` y
+`MOS-3.5` captura solo inputs humanos: el locator cuando hace falta,
+`OPTIONAL_SKILL`, feedback o preguntas del PM, `PM_AUTHORIZATION_STATUS` y, solo
+en una ruta `output.route_prompt`, el override explícito. La hidratación conserva
+una única ruta de override, de categoría 1: `/hydration <nivel>` en el wizard
+registra una decisión PM explícita y la escribe como `HYDRATION_LEVEL` en el
+bloque INPUT únicamente cuando se confirma `output.route_prompt`. Ese override
+puede elegir cualquiera de los tres niveles sin ranking derivado de la clase, no
+cambia gates ni autoridad, y no es una pregunta rutinaria: sin él la variable no
+se pide ni viaja. `RECOMMENDED_TERMINAL_AGENT_FAMILY` se infiere como consejo separado, no
 se pide al PM y nunca autoriza una herramienta o acción.
 
 Ningún valor derivado concede permisos y la autorización nunca se infiere. Se

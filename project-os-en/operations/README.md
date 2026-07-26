@@ -105,7 +105,7 @@ made optional, derived, or removed:
    sufficient primary locator if it carries enough evidence.
 3. **Derived metadata.** The repository, the related issue or unit, the PR, the
    source review or comment, the roadmap, the existing or derivable scoped
-   branch, `CHANGE_CLASS`, `HYDRATION_LEVEL`, and any other identifier or
+   branch, `CHANGE_CLASS`, and any other identifier or
    relation verifiable from the locator. It is never a manual input: browser chat
    reconstructs it from live evidence and shows it already resolved in the route
    prompt, bundle, or report whenever the receiver must verify it.
@@ -120,26 +120,28 @@ Precedence when resolving any of those variables:
 
 1. Reuse an unambiguous source already present in the execution context.
 2. If none exists, ask for at most one primary locator per evidence chain.
-3. Reconstruct from it the repository, issue, PR, roadmap, branch, class,
-   density, and verifiable relations.
+3. Reconstruct from it the repository, issue, PR, roadmap, branch, class, and
+   verifiable relations.
 4. Show the derived values in the output whenever the receiver must inspect them.
 5. Ask for extra data only on real material ambiguity.
 6. Never derive or self-assign PM authorization.
 
 `CHANGE_CLASS` is a reconstructible property of the unit —derived from its scope,
 risk, and affected surfaces, and preserved across intake, implementation, review,
-closeout, and verification—; `HYDRATION_LEVEL` is derived from that class. No
+closeout, and verification— that governs the material gates and the execution
+report density; `HYDRATION_LEVEL` is not derived from it. The resolver applies
+`compact` by default for every class, no
 level returns `context_plan` or adds a receipt block, and detailed provenance
 requires an explicit request (`--context-provenance <reason>`). That is why the
 wizard for `MOS-3.4` and `MOS-3.5` captures only human inputs: the locator when
 needed, `OPTIONAL_SKILL`, PM feedback or questions,
 `PM_AUTHORIZATION_STATUS`, and, only on an `output.route_prompt` path, the
-explicit override. The density keeps a single category-1 override route:
+explicit override. Hydration keeps a single category-1 override route:
 `/hydration <level>` in the wizard records an exact PM decision and writes it as
 `HYDRATION_LEVEL` in the INPUT block only when an `output.route_prompt` is
-confirmed. That override may keep or raise the derived density, never reduce it
-—the resolver fails closed on a downgrade— and it is not a routine question:
-without it the variable is neither asked for nor carried.
+confirmed. That override may select any of the three levels with no ranking
+derived from the class, changes no gate or authority, and it is not a routine
+question: without it the variable is neither asked for nor carried.
 `RECOMMENDED_TERMINAL_AGENT_FAMILY` is inferred as separate advice, never asked
 of the PM, and never authorizes a tool or action.
 

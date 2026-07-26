@@ -184,13 +184,22 @@ and draft-only.
 ### Hydration level
 
 The resolver accepts `--hydration-level minimal|compact|full/debug`. When
-omitted, it uses `compact`: the practical execution view without dumping the
-whole contract. `minimal` retains the IDs, boundaries, evidence, outputs,
+omitted, it uses `compact` for every `--change-class`: the practical execution
+view without dumping the whole contract, and the declared class never changes
+it. `minimal` retains the IDs, boundaries, evidence, outputs,
 statuses, non-authorization, and secret safety needed to stop prohibited work.
 `compact` adds concise mandatory guidance, the selected actor/workflow/mode,
-and resolvable references. `full/debug` expands selected-resolution metadata
-for review, debugging, or audit; it is not the normal mode and does not replace
-the canonical manifest.
+and resolvable references. `full/debug` expands selected-resolution metadata and
+is an opt-in for auditing the kernel, debugging the resolver, or investigating an
+incorrect resolution; it is not the normal mode, no class and no security or
+authorization review requires it on its own, it implies neither detailed
+provenance nor manually re-reading the files the resolver already processed, and
+it does not replace the canonical manifest.
+
+Hydration and `CHANGE_CLASS` are independent axes. The class governs the
+material gates —formal unit, PR, review level, validation, and prior
+documentation— and the execution report density; a critical change resolved at
+`compact` keeps those gates and its detailed report intact.
 
 The response declares `hydration_level` and has these deterministic shapes:
 

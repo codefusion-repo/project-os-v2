@@ -21,7 +21,7 @@ WORKFLOW = {{workflow id}}
 EXECUTION_MODE = {{mode id}}
 OUTPUT_CONTRACT = {{output id}}
 OPTIONAL_SKILL = {{skill.<id> | none}}
-HYDRATION_LEVEL = {{minimal | compact | full/debug}}
+HYDRATION_LEVEL = {{optional; omit unless explicitly overridden: minimal | compact | full/debug}}
 RECOMMENDED_TERMINAL_AGENT_FAMILY = {{Codex | Claude | Gemini | none}}
 SCOPE = {{1-3 lines; do not restate the live unit, its bodies, comments, acceptance criteria, source basis, or checklists}}
 OUT_OF_SCOPE = {{plausible mistakes to avoid}}
@@ -46,9 +46,10 @@ placeholder.
 `CHANGE_CLASS` declares one class from the kernel's
 `proportionality.change_class` contract. The receiving agent passes it to the
 resolver (`--change-class`), which fails closed when the class is unknown or
-incompatible with the workflow or mode and uses the class's contractual density
-when `HYDRATION_LEVEL` is not declared; an explicit `HYDRATION_LEVEL` may keep or
-raise that density, never reduce it. The class belongs to the unit and is
+incompatible with the workflow or mode. The class governs the material gates
+—formal unit, PR, review level, validation, and prior documentation— and the
+execution report density; it never selects `HYDRATION_LEVEL`, which is an
+independent axis. The class belongs to the unit and is
 preserved across intake, implementation, review, closeout, and verification. The
 class never authorizes anything.
 
@@ -57,7 +58,7 @@ metadata. **Human inputs** are the primary locator when needed,
 `OPTIONAL_SKILL`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO`, the explicit
 `/hydration <level>` override, and `PM_AUTHORIZATION_STATUS`; they are not
 derived metadata and never authorize on their own. **Derived metadata** includes
-`CHANGE_CLASS`, the default `HYDRATION_LEVEL` density, `BRANCH_NAME`, the
+`CHANGE_CLASS`, `BRANCH_NAME`, the
 existing PR, the roadmap, and the remaining relations verifiable from the unit
 and its records. Those values are shown already resolved so the receiver can
 verify them; they are never invented. The **inferred recommendation**
@@ -94,10 +95,14 @@ document synthesis, architecture review, or long-context prose; Gemini for
 multimodal work or the Google ecosystem when it has a clear advantage; and
 `none` when there is no meaningful advantage or evidence is insufficient.
 Explicit PM feedback may override that recommendation. `OPTIONAL_SKILL`,
-`HYDRATION_LEVEL`, and the recommended family do not grant permission or replace exact PM approval; they do not force a tool. `HYDRATION_LEVEL` controls how much
-already-resolved contract content the resolver returns: `compact` is the
-practical default, `minimal` retains required boundaries, and `full/debug` serves
-review or debugging. No level returns `context_plan` or adds a receipt block;
+`HYDRATION_LEVEL`, and the recommended family do not grant permission or replace exact PM approval; they do not force a tool. `HYDRATION_LEVEL` controls only how much
+already-resolved contract content the resolver returns: `compact` is the global
+default for every class, `minimal` is the opt-in that retains required
+boundaries, and `full/debug` is the opt-in for kernel auditing, resolver
+debugging, or explicitly requested detailed inspection. No class activates
+`full/debug`, and no level changes gates, report density, authority, or allowed
+actions. No level returns `context_plan`, adds a receipt block, or requires
+manually re-reading the kernel the resolver already processed;
 detailed provenance requires an explicit request
 (`--context-provenance <reason>`). No level reads live state, invents state, or
 changes authority. The template and wizard do not grant permission by

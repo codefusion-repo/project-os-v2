@@ -105,9 +105,10 @@ La superficie inglesa se selecciona solo reemplazando el path por
 selector global de idioma.
 
 El resolver acepta `--hydration-level minimal|compact|full/debug`; `compact`
-es el valor predeterminado práctico. El nivel solo proyecta cuánto contrato ya resuelto se
-devuelve, nunca cambia autoridad ni lee estado vivo. `full/debug` es para
-revisión, debugging o auditoría. El flag existente `--compact` continúa siendo
+es el valor predeterminado para cualquier `--change-class`. El nivel solo proyecta cuánto contrato ya resuelto se
+devuelve, nunca cambia autoridad, gates, densidad del reporte ni lee estado
+vivo. `full/debug` es un opt-in para debuggear el resolver o auditar el kernel,
+no una consecuencia del riesgo. El flag existente `--compact` continúa siendo
 solo formato JSON sin indentación. Los tamaños por nivel, medidos con
 metodología, tokenizer y fecha declarados, están en
 [`project-os-es/docs/benchmark-contexto.md`](project-os-es/docs/benchmark-contexto.md).

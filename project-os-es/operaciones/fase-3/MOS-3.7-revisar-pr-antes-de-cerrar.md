@@ -14,9 +14,11 @@ disposición y, con veredicto GO, entrega el closeout en la misma respuesta.
 **Cómo:** Compara diff, validación y scope; consume execution reports como
 evidence leads. Reconstruye la `CHANGE_CLASS` de la unidad viva desde su
 evidencia —no la pide como input manual al PM— y resuelve el review a esa clase:
-una unidad crítica resuelve como `change_class.critical`, `full/debug`,
-`review.independent` y `validation.broad`. Los findings se leen por intención: el
-incumplimiento material es vinculante, la propuesta de solución es advisory.
+una unidad crítica conserva `change_class.critical`, `review.independent`,
+`validation.broad` y la densidad crítica del reporte, mientras su
+hidratación normal es `compact` y solo cambia mediante un override
+explícito. Los findings se leen por intención: el incumplimiento material
+es vinculante, la propuesta de solución es advisory.
 Antes de tratar una observación como hallazgo aplica el gate de materialidad de
 `rule.economia_de_contexto`: exige un estado actual verificable, un outcome,
 contrato, riesgo o capacidad insatisfecho, una acción concreta de mejora material

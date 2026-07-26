@@ -15,8 +15,10 @@ evidencia viva.
 que una acción declarada (merge, tag, cierre, deploy) dejó el estado esperado.
 **Cómo:** Reconstruye y conserva la `CHANGE_CLASS` de la unidad viva al
 verificar, sin pedirla como input manual al PM: una unidad crítica se verifica
-como `change_class.critical` (`full/debug`, `review.independent`,
-`validation.broad`). Sin `ACTION_EXECUTED`, usa decisiones PM y docs fijos como
+como `change_class.critical`, `review.independent`, `validation.broad`
+y la densidad crítica del reporte, mientras su hidratación normal es
+`compact` y solo cambia mediante un override explícito. Sin
+`ACTION_EXECUTED`, usa decisiones PM y docs fijos como
 verdad principal y reporta drift. Con `ACTION_EXECUTED`, `REVIEWED_REFERENCE` y
 `EXPECTED_POSTCONDITIONS`, verifica cada postcondición contra la evidencia viva
 correspondiente —merge efectivo, SHA final de la rama principal, correspondencia
