@@ -22,18 +22,20 @@ and the critical report density, while its normal hydration is
 is the single primary locator and scopes both review modes. Without
 `ACTION_EXECUTED`, use `REVIEWED_REFERENCE` to scope which PM decisions and
 fixed docs to contrast against live evidence, and report drift only within
-that reference. With `ACTION_EXECUTED`, `REVIEWED_REFERENCE`, and
-`EXPECTED_POSTCONDITIONS`, verify each postcondition against the corresponding
-live evidence —effective merge, the main branch's final SHA, correspondence with
-the reviewed head, post-merge checks, unit closure, remote branch deletion, and
-local cleanup— and report the state of each. `ACTION_EXECUTED` and
+that reference. `ACTION_EXECUTED` and `EXPECTED_POSTCONDITIONS` activate the
+postcondition-verification mode, whose scope comes from an explicit
+`REVIEWED_REFERENCE` or an unambiguous source already present in context;
+verify each postcondition against the corresponding live evidence —effective
+merge, the main branch's final SHA, correspondence with the reviewed head,
+post-merge checks, unit closure, remote branch deletion, and local cleanup—
+and report the state of each. `ACTION_EXECUTED` and
 `EXPECTED_POSTCONDITIONS` only select and scope the verification mode; they are
 never additional locators and never widen the reviewed surface. It runs no
 mutation; an unmet or unverifiable postcondition fails closed.
 
 **Variables**
 - Required: — (none)
-- Optional: ACTION_EXECUTED, REVIEWED_REFERENCE, EXPECTED_POSTCONDITIONS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (declaring the first three enables postcondition verification; PM feedback and questions are context only and never authorize an action)
+- Optional: ACTION_EXECUTED, REVIEWED_REFERENCE, EXPECTED_POSTCONDITIONS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (`ACTION_EXECUTED` and `EXPECTED_POSTCONDITIONS` activate postcondition verification, whose scope comes from an explicit `REVIEWED_REFERENCE` or an unambiguous source already present in context; PM feedback and questions are context only and never authorize an action)
 
 **Single locator and human constraints:** `REVIEWED_REFERENCE` is the only
 primary locator for MOS-3.27 in both modes and is never combined with another

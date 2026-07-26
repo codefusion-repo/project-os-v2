@@ -22,18 +22,20 @@ y la densidad crítica del reporte, mientras su hidratación normal es
 el único locator primario y acota ambos modos de revisión. Sin
 `ACTION_EXECUTED`, usa `REVIEWED_REFERENCE` para acotar qué decisiones PM y
 docs fijos contrastar contra la evidencia viva, y reporta drift únicamente
-dentro de esa referencia. Con `ACTION_EXECUTED`, `REVIEWED_REFERENCE` y
-`EXPECTED_POSTCONDITIONS`, verifica cada postcondición contra la evidencia viva
-correspondiente —merge efectivo, SHA final de la rama principal, correspondencia
-con el head revisado, checks post-merge, cierre de la unidad, eliminación de la
-rama remota y limpieza local— y reporta el estado de cada una. `ACTION_EXECUTED`
+dentro de esa referencia. `ACTION_EXECUTED` y `EXPECTED_POSTCONDITIONS` activan
+el modo de verificación de postcondiciones, cuyo scope proviene de
+`REVIEWED_REFERENCE` explícita o de una fuente inequívoca ya presente en el
+contexto; verifica cada postcondición contra la evidencia viva correspondiente
+—merge efectivo, SHA final de la rama principal, correspondencia con el head
+revisado, checks post-merge, cierre de la unidad, eliminación de la rama
+remota y limpieza local— y reporta el estado de cada una. `ACTION_EXECUTED`
 y `EXPECTED_POSTCONDITIONS` seleccionan y acotan el modo de verificación; nunca
 son locators adicionales ni amplían la superficie revisada. No ejecuta ninguna
 mutación; una postcondición no satisfecha o no verificable falla cerrado.
 
 **Variables**
 - Requeridas: — (ninguna)
-- Opcionales: ACTION_EXECUTED, REVIEWED_REFERENCE, EXPECTED_POSTCONDITIONS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (declarar los tres primeros activa la verificación de postcondiciones; el feedback y la pregunta del PM son contexto humano y nunca autorizan nada)
+- Opcionales: ACTION_EXECUTED, REVIEWED_REFERENCE, EXPECTED_POSTCONDITIONS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (`ACTION_EXECUTED` y `EXPECTED_POSTCONDITIONS` activan la verificación de postcondiciones, cuyo scope proviene de `REVIEWED_REFERENCE` explícita o de una fuente inequívoca ya presente; el feedback y la pregunta del PM son contexto humano y nunca autorizan nada)
 
 **Locator único y constraints humanos:** `REVIEWED_REFERENCE` es el único
 locator primario de MOS-3.27 en ambos modos y nunca se combina con otro
