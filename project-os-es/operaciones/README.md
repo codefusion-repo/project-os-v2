@@ -155,24 +155,81 @@ directorio de fase o código MOS. Selecciona por índice mostrado, código MOS
 (por ejemplo `MOS-3.5`), filename, stem o path relativo exacto. Tras seleccionar,
 el wizard muestra el path relativo para confirmar o desambiguar.
 
-Al draftear `MOS-3.4`, el wizard también captura `HYDRATION_LEVEL` para el
-receptor terminal: acepta `minimal`, `compact` o `full/debug` y precarga la
-densidad contractual de la `CHANGE_CLASS` declarada (`compact` cuando no hay
-clase). En `MOS-3.5` esa metadata no se pide: el wizard solo captura `WORK_UNIT` y
-`PM_AUTHORIZATION_STATUS`, y browser chat reconstruye el PR, el review fuente, la
-`CHANGE_CLASS` y la densidad desde la evidencia viva. Esta ayuda es local a esos
-route prompts; no convierte el nivel en variable canónica del catálogo completo ni
-autoriza escritura. El nivel controla solo la vista devuelta por el resolver;
-ningún nivel devuelve `context_plan` ni agrega un bloque de recibo, y la
-procedencia detallada requiere una solicitud explícita
-(`--context-provenance <razón>`).
-
 Las operaciones `MOS-R.*` son las recomendadas aceptadas del mapa MOSDLC y
 también tienen prompts compactos en esta carpeta, colocados por rol de ciclo de
 vida: `project-os-es/operaciones/cross-fase/`,
 `project-os-es/operaciones/fase-0/`, `project-os-es/operaciones/fase-2/`,
 `project-os-es/operaciones/fase-3/`, `project-os-es/operaciones/fase-4/`,
 `project-os-es/operaciones/fase-5/` y `project-os-es/operaciones/fase-6/`.
+
+## Inputs PM-facing y metadata derivada
+
+Una operación solo pide lo que la IA no puede reconstruir de forma inequívoca.
+Cada variable activa se clasifica en una de estas categorías antes de
+conservarla, volverla opcional, derivarla o eliminarla:
+
+1. **Decisión o constraint humano.** Autorización PM exacta, decisión de
+   producto, scope o constraint ausente de la evidencia viva y overrides
+   explícitos admitidos por el contrato. Siempre requieren al humano: la
+   evidencia viva no puede sustituirlos.
+2. **Locator primario.** Como máximo una referencia viva por cadena de
+   evidencia, y solo cuando la invocación actual no identifica ya la fuente. La
+   unidad viva, el resultado vivo —auditoría, QA, revisión de seguridad,
+   entrega de diseño, checklist, implementación manual, deployment— o el
+   registro equivalente del target sirven por igual: cuando una operación
+   admite issue o PR, cualquiera de los dos es locator primario suficiente si
+   contiene evidencia bastante.
+3. **Metadata derivada.** Repositorio, issue o unidad relacionada, PR, review o
+   comentario fuente, roadmap, rama existente o scoped derivable,
+   `CHANGE_CLASS`, `HYDRATION_LEVEL` y cualquier otro identificador o relación
+   verificable desde el locator. Nunca es input manual: browser chat la
+   reconstruye desde la evidencia viva y la muestra ya resuelta en el route
+   prompt, bundle o reporte cuando el receptor debe verificarla.
+4. **Contexto humano opcional.** `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO`,
+   `OPTIONAL_SKILL` y demás preferencias no autorizantes. Son elecciones
+   humanas, no metadata derivable, y por eso se conservan como inputs.
+5. **Input sobrerrequerido.** Un dato que la operación exige sin necesitarlo
+   para iniciar ni completar de forma segura su comportamiento básico. Se
+   elimina o se vuelve opcional; su ausencia no puede bloquear un escenario
+   seguro.
+
+Precedencia al resolver cualquiera de esas variables:
+
+1. Reutilizar una fuente inequívoca ya presente en el contexto de ejecución.
+2. Si falta, pedir como máximo un locator primario por cadena de evidencia.
+3. Reconstruir desde él repositorio, issue, PR, roadmap, rama, clase, densidad y
+   relaciones verificables.
+4. Mostrar los valores derivados en el output cuando el receptor deba
+   inspeccionarlos.
+5. Pedir datos adicionales solo ante ambigüedad material real.
+6. Nunca derivar ni autoasignar autorización PM.
+
+`CHANGE_CLASS` es una propiedad reconstruible de la unidad —se deriva de su
+scope, riesgo y superficies afectadas, y se conserva en intake, implementación,
+review, closeout y verificación—; `HYDRATION_LEVEL` se deriva de esa clase.
+Ningún nivel devuelve `context_plan` ni agrega un bloque de recibo, y la
+procedencia detallada requiere una solicitud explícita
+(`--context-provenance <razón>`). Por eso el wizard de `MOS-3.4` y `MOS-3.5`
+captura solo el locator y `PM_AUTHORIZATION_STATUS`. La densidad conserva una
+única ruta de override, de categoría 1: `/hydration <nivel>` en el wizard
+registra una decisión PM explícita y la escribe como `HYDRATION_LEVEL` en el
+bloque INPUT. Ese override puede mantener o elevar la densidad derivada, nunca
+reducirla —el resolver falla cerrado ante un downgrade—, y no es una pregunta
+rutinaria: sin él la variable no se pide ni viaja.
+
+Ningún valor derivado concede permisos y la autorización nunca se infiere. Se
+devuelve la decisión al PM con `status.needs_context` o
+`status.needs_pm_decision` solo ante ambigüedad material real —fuentes
+incompatibles igualmente vigentes, relaciones no verificables, scope que no
+permite determinar la clase, unidad formal ausente para una clase que la exige,
+conflicto entre evidencia viva y una decisión PM posterior, o autorización
+ausente, pendiente o fuera de scope—, nunca porque el PM no haya reescrito un
+identificador, una clase, una rama o una densidad reconstruibles.
+
+Un locator repo-wide se conserva cuando es la única fuente de scope: las
+auditorías, adopciones, readiness y ciclos deliberadamente repo-wide siguen
+declarando `TARGET_REPOSITORY` porque ninguna otra evidencia identifica su
+alcance.
 
 ## Índice
 
