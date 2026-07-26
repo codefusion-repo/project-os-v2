@@ -120,14 +120,13 @@ PM_DECISION_ALREADY_MADE_NAME = "PM_DECISION_ALREADY_MADE"
 PM_DECISION_NAME = "PM_DECISION"
 PM_DECISION_TRUE_CHOICES = ("true", "1", "yes", "y", "si", "sí")
 PM_DECISION_FALSE_CHOICES = ("false", "0", "no", "n")
-# CHANGE_CLASS and HYDRATION_LEVEL are derived metadata: browser chat
-# reconstructs them from the unit's live evidence and renders them already
-# resolved in the route prompt, so neither is ever captured as an input.
-# HYDRATION_LEVEL keeps one PM-facing escape hatch: the opt-in /hydration
-# command below records an explicit override the PM typed on purpose. The
-# override may only keep or raise the derived class density; the wizard cannot
-# see the derived class, so the equal-or-higher rule stays enforced where the
-# class is known (project_os_resolve.py and the receiving browser chat).
+# CHANGE_CLASS is derived metadata: browser chat reconstructs it from the unit's
+# live evidence and renders it already resolved in the route prompt, so it is
+# never captured as an input. HYDRATION_LEVEL is not derived from that class at
+# all: the resolver defaults every class to compact, so the route prompt may omit
+# it entirely. It keeps one PM-facing escape hatch: the opt-in /hydration command
+# below records an explicit override the PM typed on purpose, which may select
+# any of the three levels and never changes gates, report density, or authority.
 HYDRATION_LEVEL_NAME = "HYDRATION_LEVEL"
 HYDRATION_LEVEL_CHOICES = ("minimal", "compact", "full/debug")
 HYDRATION_OVERRIDE_COMMANDS = {"/hydration", "/hydration-level"}
@@ -1346,8 +1345,8 @@ def is_hydration_override_command(value: str) -> bool:
 def parse_hydration_override(value: str) -> tuple[str | None, str | None]:
     """Parse `/hydration <level>` into a level to record, or an error to show.
 
-    Returning an empty level drops a previously recorded override so the density
-    goes back to the one derived from the class.
+    Returning an empty level drops a previously recorded override so the resolver
+    applies its compact default.
     """
 
     parts = value.strip().split(maxsplit=1)
@@ -1357,8 +1356,8 @@ def parse_hydration_override(value: str) -> tuple[str | None, str | None]:
     if argument not in HYDRATION_LEVEL_CHOICES:
         return None, (
             f"{HYDRATION_LEVEL_NAME} override must be one of: "
-            f"{', '.join(HYDRATION_LEVEL_CHOICES)}; it may only keep or raise the "
-            "density derived from the class, never reduce it."
+            f"{', '.join(HYDRATION_LEVEL_CHOICES)}; any of the three is allowed "
+            "for any class, and none of them changes gates or authority."
         )
     return argument, None
 
@@ -1375,15 +1374,15 @@ def apply_hydration_override(
     if level:
         values[HYDRATION_LEVEL_NAME] = level
         print(
-            f"{HYDRATION_LEVEL_NAME} override recorded: {level}. It may only keep or "
-            "raise the density derived from the class, and it authorizes nothing.",
+            f"{HYDRATION_LEVEL_NAME} override recorded: {level}. It only changes how "
+            "much resolved contract the agent receives, and it authorizes nothing.",
             file=output_stream,
         )
         return
     values.pop(HYDRATION_LEVEL_NAME, None)
     print(
-        f"{HYDRATION_LEVEL_NAME} override dropped; the density stays the one derived "
-        "from the class.",
+        f"{HYDRATION_LEVEL_NAME} override dropped; the resolver applies its compact "
+        "default.",
         file=output_stream,
     )
 
@@ -1516,13 +1515,13 @@ def print_value_help(output_stream: TextIO, allows_hydration_override: bool) -> 
     if allows_hydration_override:
         print(
             f"  Use /hydration <{' | '.join(HYDRATION_LEVEL_CHOICES)}> only to record an "
-            f"explicit PM override of the derived {HYDRATION_LEVEL_NAME}; /hydration with "
-            "no level drops it.",
+            f"explicit PM override of {HYDRATION_LEVEL_NAME}; /hydration with no level "
+            "drops it and the resolver applies its compact default.",
             file=output_stream,
         )
         print(
-            "  The override may only keep or raise the density derived from the class, "
-            "never reduce it, and it never authorizes anything.",
+            "  Any level is allowed for any class; the override only changes how much "
+            "resolved contract the agent receives and never authorizes anything.",
             file=output_stream,
         )
     print("  Use back to choose another operation, cancel to exit, or ? for this help.", file=output_stream)

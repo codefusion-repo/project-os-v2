@@ -37,24 +37,30 @@ MODE_FALLBACK = "mode.review_only"
 AUTHORIZATION_NOTICE = DEFAULT_SURFACE.authorization_notice
 
 
-class HydrationLevel(str, Enum):
-    """Safe internal names for the public hydration-level values."""
+class DensityLevel(str, Enum):
+    """Safe internal names for the public density vocabulary.
+
+    Two independent axes read these values: the hydration level, which selects
+    how much resolved contract the agent receives, and the report density, which
+    selects one output's ``must_include`` obligation. Sharing the vocabulary
+    never couples the axes.
+    """
 
     MINIMAL = "minimal"
     COMPACT = "compact"
     FULL_DEBUG = "full/debug"
 
 
-DEFAULT_HYDRATION_LEVEL = HydrationLevel.COMPACT
-HYDRATION_LEVEL_VALUES = tuple(level.value for level in HydrationLevel)
+# Hydration is a deliberate view over the resolved contract, never a function of
+# risk: every resolution defaults to compact and only an explicit override asks
+# for the minimal projection or the full/debug one used to audit or debug.
+DEFAULT_HYDRATION_LEVEL = DensityLevel.COMPACT
+HYDRATION_LEVEL_VALUES = tuple(level.value for level in DensityLevel)
 
-# Ordering used to enforce that an explicit hydration level may keep or raise a
-# class's contractual density, but never reduce it.
-DENSITY_RANK = {
-    HydrationLevel.MINIMAL: 0,
-    HydrationLevel.COMPACT: 1,
-    HydrationLevel.FULL_DEBUG: 2,
-}
+# The report density stays proportional to risk and is read from its single
+# canonical source, the class's ``output_density``. A resolution without a
+# declared class never mutates, so it keeps the same practical default.
+DEFAULT_REPORT_DENSITY = DensityLevel.COMPACT
 
 # Gates the resolver only shapes; they must be enforced with actor capability,
 # live evidence, and exact PM approval, not by this deterministic resolution.
@@ -70,7 +76,7 @@ REMAINING_GATE_SOURCES = {
 def _fail_closed(
     errors: list[str],
     surface: ProjectOSSurface = DEFAULT_SURFACE,
-    hydration_level: HydrationLevel | None = None,
+    hydration_level: DensityLevel | None = None,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {"estado": "status.blocked"}
     if hydration_level is not None:
@@ -86,9 +92,9 @@ def _fail_closed(
 
 
 def _parse_hydration_level(
-    hydration_level: str | HydrationLevel | None,
-    compact: str | HydrationLevel | None,
-) -> tuple[HydrationLevel | None, list[str]]:
+    hydration_level: str | DensityLevel | None,
+    compact: str | DensityLevel | None,
+) -> tuple[DensityLevel | None, list[str]]:
     """Validate one explicit level without silently falling back.
 
     ``compact`` is a Python compatibility alias. The command-line ``--compact``
@@ -102,7 +108,7 @@ def _parse_hydration_level(
     if value is None:
         return DEFAULT_HYDRATION_LEVEL, []
     try:
-        return HydrationLevel(value), []
+        return DensityLevel(value), []
     except (TypeError, ValueError):
         return None, [
             "unknown hydration level; expected exactly one of: "
@@ -198,12 +204,17 @@ def _remaining_gates(change_class: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def _projected_must_include(item: dict[str, Any], level: HydrationLevel) -> Any:
-    """Project the single applicable must_include list for one hydration level."""
+def _projected_must_include(item: dict[str, Any], density: DensityLevel) -> Any:
+    """Project the single applicable must_include list for one report density.
+
+    The density comes from the declared class, so a critical unit keeps its
+    detailed report obligation even when the agent asked for a compact
+    resolution.
+    """
 
     by_density = item.get("must_include_by_density")
     if isinstance(by_density, dict):
-        return by_density.get(level.value)
+        return by_density.get(density.value)
     return item.get("must_include")
 
 
@@ -475,13 +486,17 @@ def _compact_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
 
 
 def _project_resolution(
-    resolved: dict[str, Any], hydration_level: HydrationLevel
+    resolved: dict[str, Any], hydration_level: DensityLevel
 ) -> dict[str, Any]:
-    """Apply one explicit view after resolving the complete internal contract."""
+    """Apply one explicit view after resolving the complete internal contract.
 
-    if hydration_level is HydrationLevel.MINIMAL:
+    This selects only how much contract is returned. It never decides an
+    output's ``must_include``, which the report density already resolved.
+    """
+
+    if hydration_level is DensityLevel.MINIMAL:
         return _minimal_resolution(resolved)
-    if hydration_level is HydrationLevel.COMPACT:
+    if hydration_level is DensityLevel.COMPACT:
         return _compact_resolution(resolved)
     return resolved
 
@@ -556,23 +571,23 @@ def resolver(
     workflow: str | None = None,
     kernel_dir: Path | str | None = None,
     skill: str | list[str] | tuple[str, ...] | None = None,
-    hydration_level: str | HydrationLevel | None = None,
-    compact: str | HydrationLevel | None = None,
+    hydration_level: str | DensityLevel | None = None,
+    compact: str | DensityLevel | None = None,
     change_class: str | None = None,
     context_provenance: str | None = None,
 ) -> dict[str, Any]:
     """Resolve an allowed kernel, defaulting to compact Spanish guidance.
 
     The complete selected contract is built first and then projected into one
-    hydration level. A declared ``change_class`` must be coherent with the
-    selected workflow and, when the hydration level is not explicit, selects
-    the class's contractual output density. ``context_provenance`` is the only
-    way to obtain ``context_plan``: a normal resolution never carries it, at any
-    hydration level. Neither the level, the class, the provenance request, nor
-    this result grants authority.
+    hydration level, which always defaults to compact and only changes through
+    an explicit override. A declared ``change_class`` must be coherent with the
+    selected workflow; it selects the proportional gates and the report density,
+    never the hydration level. ``context_provenance`` is the only way to obtain
+    ``context_plan``: a normal resolution never carries it, at any hydration
+    level. Neither the level, the density, the class, the provenance request,
+    nor this result grants authority.
     """
     surface, directory = select_surface(kernel_dir)
-    explicit_hydration = hydration_level is not None or compact is not None
     selected_hydration_level, hydration_errors = _parse_hydration_level(
         hydration_level, compact
     )
@@ -704,31 +719,20 @@ def resolver(
             selected_hydration_level,
         )
 
-    # The class owns the contractual density. An explicit level may keep or raise
-    # it (e.g. audit a small change at full/debug) but never reduce it.
+    # The class owns the report density and the material gates; it never selects
+    # how much contract the agent receives, so a critical unit resolves at the
+    # compact default while keeping its detailed report and every gate.
+    report_density = DEFAULT_REPORT_DENSITY
     remaining_gates: list[dict[str, Any]] | None = None
     if selected_class is not None:
         try:
-            class_density = HydrationLevel(selected_class.get("output_density"))
+            report_density = DensityLevel(selected_class.get("output_density"))
         except ValueError:
             return _fail_closed(
                 [f"{surface.messages['unknown_change_class']}: {change_class!r} output_density"],
                 surface,
                 selected_hydration_level,
             )
-        if explicit_hydration:
-            if DENSITY_RANK[selected_hydration_level] < DENSITY_RANK[class_density]:
-                return _fail_closed(
-                    [
-                        f"{surface.messages['density_downgrade_blocked']}: "
-                        f"{selected_hydration_level.value} < {class_density.value} "
-                        f"({selected_class.get('key')})"
-                    ],
-                    surface,
-                    selected_hydration_level,
-                )
-        else:
-            selected_hydration_level = class_density
         remaining_gates = _remaining_gates(selected_class)
 
     statuses = _index(data["statuses"])
@@ -806,7 +810,7 @@ def resolver(
                         "safe_degradation_key",
                         "context_receipt_key",
                     ),
-                    "must_include": _projected_must_include(item, selected_hydration_level),
+                    "must_include": _projected_must_include(item, report_density),
                     "active": item.get("active"),
                 }
                 for item in outputs.values()
@@ -844,8 +848,8 @@ def resolve(
     mode_id: str,
     kernel_dir: Path | str | None = None,
     skill: str | list[str] | tuple[str, ...] | None = None,
-    hydration_level: str | HydrationLevel | None = None,
-    compact: str | HydrationLevel | None = None,
+    hydration_level: str | DensityLevel | None = None,
+    compact: str | DensityLevel | None = None,
     change_class: str | None = None,
     context_provenance: str | None = None,
 ) -> dict[str, Any]:
@@ -878,14 +882,18 @@ def main(argv: list[str] | None = None) -> int:
         metavar="CLASS",
         help=(
             "declared change class, e.g. change_class.small; must be coherent "
-            "with the workflow and selects the default output density"
+            "with the workflow and selects the proportional gates and the "
+            "report density, never the hydration level"
         ),
     )
     parser.add_argument(
         "--hydration-level",
         default=None,
         metavar="LEVEL",
-        help="minimal, compact (default), or full/debug; changes returned guidance only",
+        help=(
+            "minimal, compact (default for every class), or full/debug for "
+            "auditing or debugging the resolver; changes returned guidance only"
+        ),
     )
     parser.add_argument(
         "--context-provenance",
