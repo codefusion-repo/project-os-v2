@@ -103,9 +103,11 @@ The Spanish surface is the default: omit `--kernel-dir` or pass
 language selector exists.
 
 The resolver accepts `--hydration-level minimal|compact|full/debug`; `compact`
-is the practical default. The level only projects how much already-resolved
-contract is returned; it never changes authority or reads live state.
-`full/debug` is for review, debugging or audit. The pre-existing `--compact`
+is the default for every `--change-class`. The level only projects how much already-resolved
+contract is returned; it never changes authority, gates, report density, or
+reads live state.
+`full/debug` is an opt-in for debugging the resolver or auditing the kernel, not
+a consequence of risk. The pre-existing `--compact`
 flag remains JSON formatting only. Measured sizes per level, with declared
 method, tokenizer and date, live in
 [`project-os-en/docs/context-benchmark.md`](project-os-en/docs/context-benchmark.md).

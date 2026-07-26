@@ -29,19 +29,20 @@ Versión inglesa: [context-benchmark.md](../../project-os-en/docs/context-benchm
 
 ## Metodología declarada
 
-- **Fecha de medición:** 2026-07-25.
-- **Insumos:** commit `5afb2c7` de `codefusion-repo/project-os-v2`; los
+- **Fecha de medición:** 2026-07-26.
+- **Insumos:** commit `5e21a5c` de
+  `codefusion-repo/project-os-v2`; los
   insumos medidos (ambos directorios de kernel y
   `tools/project_os_resolve.py`) no cambian después de ese commit en la rama
   que actualiza este documento.
 - **Clase de cambio constante:** `change_class.small` en los tres niveles, y el
   nivel se selecciona explícitamente con `--hydration-level`. Desde #462 un
   workflow con mutación exige clase declarada, y la clase es material: aporta
-  su propio bloque `change_class`, sus `remaining_gates` y su densidad por
-  defecto. Variar la clase junto con el nivel mezclaría dos efectos, así que
-  aquí se mantiene fija y solo cambia la hidratación. El resolver lo permite
-  porque un nivel explícito puede mantener o elevar la densidad contractual de
-  una clase; solo bloquea reducirla.
+  su propio bloque `change_class` y sus `remaining_gates`. Variar la clase junto
+  con el nivel mezclaría dos efectos, así que aquí se mantiene fija y solo
+  cambia la hidratación. Desde #468 los tres niveles están disponibles para
+  cualquier clase: la clase gobierna los gates materiales y la densidad del
+  reporte, nunca la hidratación.
 - **Métricas:** bytes UTF-8, caracteres y tokens.
 - **Tokenizer declarado:** `tiktoken` 0.13.0 (Python 3.12.13), con dos
   encodings públicos para mostrar la variación entre tokenizers: `o200k_base`
@@ -69,16 +70,16 @@ Dos referencias, construidas desde el kernel real:
 
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 16760 | 16760 | 3956 | 4139 |
-| Resolver `compact` | 33760 | 33713 | 7612 | 8251 |
-| Baseline por tupla (= `full/debug`) | 38250 | 38203 | 8716 | 9389 |
-| Kernel completo (11 archivos) | 78981 | 78934 | 17756 | 18728 |
+| Resolver `minimal` | 16823 | 16823 | 3968 | 4153 |
+| Resolver `compact` | 34180 | 34133 | 7693 | 8348 |
+| Baseline por tupla (= `full/debug`) | 38066 | 38019 | 8669 | 9342 |
+| Kernel completo (11 archivos) | 79350 | 79303 | 17828 | 18814 |
 
-Reducción frente al baseline por tupla: `minimal` −56,2 % bytes (−54,6 %
-tokens `o200k_base`, −55,9 % `cl100k_base`); `compact` −11,7 % bytes (−12,7 %,
-−12,1 %). Frente al kernel completo (solo perfil interno): `minimal` −78,8 %
-bytes (−77,7 %, −77,9 %); `compact` −57,3 % (−57,1 %, −55,9 %); `full/debug`
-−51,6 % (−50,9 %, −49,9 %).
+Reducción frente al baseline por tupla: `minimal` −55,8 % bytes (−54,2 %
+tokens `o200k_base`, −55,5 % `cl100k_base`); `compact` −10,2 % bytes (−11,3 %,
+−10,6 %). Frente al kernel completo (solo perfil interno): `minimal` −78,8 %
+bytes (−77,7 %, −77,9 %); `compact` −56,9 % (−56,8 %, −55,6 %); `full/debug`
+−52,0 % (−51,4 %, −50,3 %).
 
 ## Kernel inglés (selección explícita)
 
@@ -86,14 +87,52 @@ Misma tupla, mismos comandos, con `--kernel-dir project-os-en/kernel`:
 
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 16446 | 16446 | 3752 | 3741 |
-| Resolver `compact` | 32592 | 32592 | 6988 | 6983 |
-| Baseline por tupla (= `full/debug`) | 37051 | 37051 | 8061 | 8057 |
-| Kernel completo (11 archivos) | 76958 | 76958 | 16583 | 16560 |
+| Resolver `minimal` | 16498 | 16498 | 3761 | 3750 |
+| Resolver `compact` | 32962 | 32962 | 7057 | 7052 |
+| Baseline por tupla (= `full/debug`) | 36840 | 36840 | 8023 | 8019 |
+| Kernel completo (11 archivos) | 77284 | 77284 | 16643 | 16620 |
 
-Reducción frente al baseline por tupla: `minimal` −55,6 % bytes; `compact`
-−12,0 %. Frente al kernel completo (solo perfil interno): `minimal` −78,6 %
-bytes; `compact` −57,7 %; `full/debug` −51,9 %.
+Reducción frente al baseline por tupla: `minimal` −55,2 % bytes; `compact`
+−10,5 %. Frente al kernel completo (solo perfil interno): `minimal` −78,7 %
+bytes; `compact` −57,3 %; `full/debug` −52,3 %.
+
+## Caso crítico normal (#468)
+
+Hasta #468 la clase seleccionaba la hidratación: una resolución
+`change_class.critical` sin override recibía automáticamente `full/debug`.
+Desde #468 el default global es `compact` para cualquier clase. Esta sección
+mide ese caso concreto sobre el mismo estado final, con la clase fija y sin
+`--context-provenance`, de modo que la única variable es la hidratación:
+
+| Kernel | Antes (`full/debug` automático) | Después (`compact` por defecto) | Δ bytes | Δ % |
+| --- | ---: | ---: | ---: | ---: |
+| Español | 38667 | 34781 | −3886 | −10,0 % |
+| Inglés | 37418 | 33540 | −3878 | −10,4 % |
+
+En tokens: español 8798 → 7822 `o200k_base` (−11,1 %) y 9490 → 8496
+`cl100k_base` (−10,5 %); inglés 8133 → 7167 (−11,9 %) y 8130 → 7163 (−11,9 %).
+
+La fila «antes» reproduce exactamente la proyección que la clase activaba de
+forma automática, ejecutando hoy `--change-class change_class.critical
+--hydration-level full/debug`; la fila «después» ejecuta el mismo comando sin
+`--hydration-level`. Medir ambas sobre el estado final aísla el efecto de la
+hidratación del crecimiento del kernel, que este documento nunca suma.
+
+Lo que **no** cambia entre esas dos filas, verificado en la misma resolución:
+`formal_unit_required=true`, `pr_required=true`,
+`review_level=review.independent`, `validation_level=validation.broad`,
+`prior_docs=expected`, y un `output.execution_report` con los 10 campos
+`must_include` de la densidad `full/debug`. La reducción es de contrato
+serializado, no de gates ni de densidad del reporte.
+
+Esta medición separa tres costos que antes se confundían:
+
+- **costo de hidratación:** la diferencia de la tabla, el único efecto de #468;
+- **costo de `context_provenance`:** 0 en ambas filas, porque `context_plan`
+  solo aparece con `--context-provenance <razón>` (ver la sección de #464);
+- **lecturas externas del agente:** fuera del output del resolver y por tanto
+  fuera de esta medición. Ningún nivel obliga a releer el kernel que el
+  resolver ya procesó, así que una relectura manual no es atribuible al nivel.
 
 ## Costo del recibo de fuentes (#464)
 
@@ -101,7 +140,10 @@ Antes de #464 cada resolución transportaba el contrato completo del recibo más
 un `context_plan` que repetía parte de él, en los tres niveles. Esta sección
 compara el **baseline inmediato** `3de282f` con el estado corregido de #464,
 ejecutando exactamente el mismo comando en ambos: misma tupla, misma
-`change_class.small` y el mismo `--hydration-level` explícito.
+`change_class.small` y el mismo `--hydration-level` explícito. Ambas columnas
+son la medición histórica del 2026-07-25 sobre `5afb2c7` y se conservan como
+delta de #464; no se recalculan aquí, así que no coinciden con las tablas de
+arriba, medidas sobre el estado final.
 
 Resolución completa, kernel español, bytes UTF-8:
 
@@ -171,8 +213,9 @@ ambos kernels. Son dos efectos distintos y este documento no los suma.
   contexto operativo seleccionado y las referencias resolubles a
   artefactos/templates/skills: la vista con la que se ejecuta.
 - **El baseline por tupla (`full/debug`)** añade los metadatos completos de la
-  resolución seleccionada; como nivel de hidratación es para revisión y
-  auditoría, no el modo normal.
+  resolución seleccionada; como nivel de hidratación es un opt-in para auditar
+  el kernel o debuggear el resolver, nunca el modo normal ni una consecuencia
+  de la clase.
 - **El kernel completo** conserva el kernel entero para todas las tuplas a la
   vez, sin seleccionar nada: cada sesión paga el contrato entero aunque solo
   use una tupla.
@@ -220,6 +263,27 @@ de resolver; `*-full-kernel.txt` reproduce la fila de kernel completo. El
 baseline por tupla es el mismo `*-full-debug.json` (ver «Referencias
 internas»).
 
+Para reproducir el caso crítico normal de #468, sobre el estado final y sin
+worktree adicional:
+
+```sh
+for kernel in project-os-es project-os-en; do
+  python tools/project_os_resolve.py --actor actor.terminal_agent \
+    --workflow workflow.issue_implementation --mode mode.delegated_commit_pr \
+    --change-class change_class.critical --hydration-level full/debug \
+    --kernel-dir "$kernel/kernel" --compact | wc -c
+  python tools/project_os_resolve.py --actor actor.terminal_agent \
+    --workflow workflow.issue_implementation --mode mode.delegated_commit_pr \
+    --change-class change_class.critical \
+    --kernel-dir "$kernel/kernel" --compact | wc -c
+done
+```
+
+La segunda invocación de cada par declara `"hydration_level": "compact"` y
+conserva los mismos `remaining_gates` y el mismo `must_include` de 10 campos
+que la primera; `jq '.hydration_level, .resuelto.change_class.remaining_gates'`
+lo verifica sin releer el kernel.
+
 Para reproducir la comparación de #464 basta ejecutar ese mismo bucle en un
 worktree del baseline y volver a comparar:
 
@@ -263,7 +327,10 @@ PY
 - Un conteo de tokens depende del tokenizer y del modelo; usa el tokenizer de
   tu modelo real antes de planificar contexto con estas cifras.
 - Medir tamaño no mide utilidad ni calidad: `minimal` es más pequeño porque
-  devuelve menos guía, no porque sea siempre suficiente. El default práctico
+  devuelve menos guía, no porque sea siempre suficiente. El default global
   sigue siendo `compact` (ver [empezar.md](empezar.md)).
+- La reducción del caso crítico es de contrato serializado y no toca gates,
+  autoridad ni densidad del reporte; tampoco cubre relecturas manuales o
+  solicitudes de procedencia que ningún nivel exige.
 - Este documento no publica precios, costos ni ahorros de suscripciones, no
   compara features y no afirma que Project OS reemplace herramienta alguna.

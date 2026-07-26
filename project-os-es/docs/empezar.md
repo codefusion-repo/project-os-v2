@@ -182,12 +182,22 @@ superficie en español.
 ### Nivel de hidratación
 
 El resolver acepta `--hydration-level minimal|compact|full/debug`. Si se omite,
-usa `compact`: es la vista práctica para ejecutar sin volcar todo el contrato.
+usa `compact` para cualquier `--change-class`: es la vista práctica para
+ejecutar sin volcar todo el contrato, y la clase declarada nunca la cambia.
 `minimal` conserva IDs, límites, evidencia, outputs, statuses, no-autorización
 y secret safety necesarios para detener acciones prohibidas. `compact` añade la
 guía mandatoria, actor/workflow/mode y referencias resolubles. `full/debug`
-amplía los metadatos de la resolución seleccionada para revisión, debugging o
-auditoría; no es el modo normal ni reemplaza el manifest canónico.
+amplía los metadatos de la resolución seleccionada y es un opt-in para auditar
+el kernel, debuggear el resolver o investigar una resolución incorrecta; no es
+el modo normal, no lo exige ninguna clase ni ninguna revisión de seguridad o
+autorización por sí sola, no implica procedencia detallada ni obliga a releer
+manualmente los archivos que el resolver ya procesó, y no reemplaza el manifest
+canónico.
+
+La hidratación y la `CHANGE_CLASS` son ejes independientes. La clase gobierna
+los gates materiales —unidad formal, PR, nivel de review, validación y
+documentación previa— y la densidad del execution report; un cambio crítico
+resuelto en `compact` conserva íntegros esos gates y su reporte detallado.
 
 La respuesta declara `hydration_level` y usa estos shapes deterministas:
 
