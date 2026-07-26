@@ -88,6 +88,32 @@ def test_mos_0_1_activates_a_session_with_or_without_a_target() -> None:
         assert not [variable for variable in operation.variables if variable.required]
 
 
+def test_mos_0_1_unbound_session_keeps_review_only_minimum_evidence_contractual() -> None:
+    """The unbound session does not weaken review_only evidence or select a target."""
+    for operations_dir, kernel_dir in (
+        (REPO_ROOT / "project-os-es" / "operaciones", ES_KERNEL),
+        (REPO_ROOT / "project-os-en" / "operations", EN_KERNEL),
+    ):
+        operation = next(
+            item for item in discover_operations(operations_dir) if item.mos_code == "MOS-0.1"
+        )
+        resolved = resolve(
+            "actor.browser_chat",
+            "workflow.review_only",
+            "mode.review_only",
+            kernel_dir=kernel_dir,
+        )
+        evidence = {
+            item["key"]: item for item in resolved["resuelto"]["workflow"]["minimum_evidence"]
+        }
+
+        variables = {variable.name: variable for variable in operation.variables}
+        assert variables["TARGET_REPOSITORY"].required is False
+        assert "evidence.repo_state" in evidence
+        assert evidence["evidence.repo_state"]["source"]["primary"] == "source.live_repository_state"
+        assert "KERNEL_REPOSITORY" in operation.text
+
+
 def test_route_prompt_template_declares_wizard_consumed_fields_and_bundle_stays_copy_safe() -> None:
     """The wizard fills these route-prompt fields; the bundle commands are PM-executed shell."""
     templates = REPO_ROOT / "project-os-en/templates"

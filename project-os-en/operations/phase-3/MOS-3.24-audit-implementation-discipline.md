@@ -13,18 +13,18 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 **How:** Read-only audit with findings and follow-up drafts.
 
 **Variables**
-- Required: TARGET_REPOSITORY
-- Optional: PATH_SCOPE, FOCUS, AUDIT_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Required: — (none)
+- Optional: TARGET_REPOSITORY, AUDIT_SCOPE, PATH_SCOPE, FOCUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are human context only and never authorize an action)
 
-**Derived metadata:** `TARGET_REPOSITORY`, `PATH_SCOPE`, `FOCUS`, and
-`AUDIT_SCOPE` represent different scope levels, so their precedence is
-explicit: (1) use the source the current invocation already selected; (2) if
-none exists, one supplied primary locator —`AUDIT_SCOPE` accepts the issue or
-the PR that narrows the audit; (3) derive the rest of the metadata and scope
-from it; (4) return the decision to the PM only when several material
-interpretations are equally valid. `TARGET_REPOSITORY` is kept because a
-deliberately repo-wide audit has no other source of reach; the issue and the PR
-are never asked for together.
+**Alternative locators and human constraints:** `TARGET_REPOSITORY` and
+`AUDIT_SCOPE` are alternative locators, never cumulative requirements. First
+reuse an unambiguous source already selected. Without one, a deliberately
+repo-wide audit asks for `TARGET_REPOSITORY`; a scoped audit asks for
+`AUDIT_SCOPE` —an issue or PR— and derives the repository and the remaining
+verifiable relations from that source. `PATH_SCOPE` and `FOCUS` are optional
+human constraints, not derived metadata. If no sufficient source exists, or
+both locators are declared and resolve to incompatible targets, fail closed with
+`status.needs_context`; never select a target or mix evidence.
 
 **Deliver:** output.review_result (+output.draft_issue). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

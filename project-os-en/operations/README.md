@@ -71,17 +71,18 @@ file is only a stub pointing through `alias_of`; it never repeats workflows,
 modes, outputs, evidence, approval, variables, or connections. The canonical
 Markdown is therefore the single source of operational semantics.
 
-The confirmed pair is `MOS-0.4` (canonical) / `MOS-R.10` (supported,
-non-deprecated historical alias). Normal wizard views show only `MOS-0.4`, but
-an explicit `MOS-R.10` selection by code, filename, or path reports the
-canonical code and renders exactly the `MOS-0.4` contract and variables.
+The confirmed pairs are `MOS-0.4` (canonical) / `MOS-R.10` (supported,
+non-deprecated historical alias) and `MOS-3.14` (canonical for every audit) /
+`MOS-6.11` (compatible historical code-improvement entry point). Normal wizard
+views show only canonicals, but an explicit alias selection by code, filename, or
+path reports the canonical code and renders exactly its contract and variables.
 
 The initial audit classified the asset request/delivery families
 (`MOS-3.15`–`MOS-3.22`), environment-specific deploy flows (`MOS-5.*`), and the
 draft/update or analysis/processing pairs in requirements, design, and
 maintenance as related but materially distinct. Their purposes, inputs,
-artifacts, or environments differ, so they are not aliases. No other alias was
-confirmed. Catalog guards reject dangling, ambiguous, or cyclic aliases,
+artifacts, or environments differ, so they are not aliases. Catalog guards
+reject dangling, ambiguous, or cyclic aliases,
 copied contracts in stubs, ES/EN drift, and two canonicals for one identity. An
 additional undeclared contractual match returns `status.needs_pm_decision` and
 is never merged automatically.
@@ -130,13 +131,17 @@ risk, and affected surfaces, and preserved across intake, implementation, review
 closeout, and verification—; `HYDRATION_LEVEL` is derived from that class. No
 level returns `context_plan` or adds a receipt block, and detailed provenance
 requires an explicit request (`--context-provenance <reason>`). That is why the
-wizard for `MOS-3.4` and `MOS-3.5` captures only the locator and
-`PM_AUTHORIZATION_STATUS`. The density keeps a single override route, of category
-1: `/hydration <level>` in the wizard records an explicit PM decision and writes
-it as `HYDRATION_LEVEL` in the INPUT block. That override may keep or raise the
-derived density, never reduce it —the resolver fails closed on a downgrade— and
-it is not a routine question: without it the variable is neither asked for nor
-carried.
+wizard for `MOS-3.4` and `MOS-3.5` captures only human inputs: the locator when
+needed, `OPTIONAL_SKILL`, PM feedback or questions,
+`PM_AUTHORIZATION_STATUS`, and, only on an `output.route_prompt` path, the
+explicit override. The density keeps a single category-1 override route:
+`/hydration <level>` in the wizard records an exact PM decision and writes it as
+`HYDRATION_LEVEL` in the INPUT block only when an `output.route_prompt` is
+confirmed. That override may keep or raise the derived density, never reduce it
+—the resolver fails closed on a downgrade— and it is not a routine question:
+without it the variable is neither asked for nor carried.
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` is inferred as separate advice, never asked
+of the PM, and never authorizes a tool or action.
 
 No derived value grants permission and authorization is never inferred. The
 decision returns to the PM with `status.needs_context` or
@@ -280,7 +285,7 @@ declaring `TARGET_REPOSITORY` because no other evidence identifies their reach.
 
 - [MOS-6.1 — Review security production readiness](phase-6/MOS-6.1-review-security-production-readiness.md)
 - [MOS-6.10 — Process product improvements](phase-6/MOS-6.10-process-product-improvements.md)
-- [MOS-6.11 — Process code improvements](phase-6/MOS-6.11-process-code-improvements.md)
+- [MOS-6.11 — Compatible alias of MOS-3.14](phase-6/MOS-6.11-process-code-improvements.md)
 - [MOS-6.12 — Process dead code cleanup](phase-6/MOS-6.12-process-dead-code-cleanup.md)
 - [MOS-6.2 — Review feature gaps production](phase-6/MOS-6.2-review-feature-gaps-production.md)
 - [MOS-6.3 — Analyze performance improvements](phase-6/MOS-6.3-analyze-performance-improvements.md)

@@ -1,5 +1,13 @@
 # MOS-3.14 — Procesar el resultado de una auditoría
 
+<!-- project-os-operation
+canonical_code: MOS-3.14
+operation_id: process-audit-result
+aliases: MOS-6.11
+deprecation: none
+compatibility_reason: MOS-6.11 conserva su entrypoint histórico de mejoras de código y resuelve este contrato canónico para cualquier auditoría.
+-->
+
 Operación MOSDLC `process-audit-result` · Fase 3 — Implementación · Riesgo: low.
 Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
 

@@ -16,10 +16,11 @@ unit to a terminal agent.
 **How:** Use a compact bootloader referenced to the live unit: detail stays in
 the unit and its records (issue or PR and comments when the target uses GitHub;
 a change request, target record, or exact PM instruction when it does not), not
-in the route prompt. The only human input normally needed is `WORK_UNIT` —the
-live reference the PM wants implemented— plus the applicable exact
-authorization; the rest of the metadata is reconstructed from live evidence and
-shown resolved for inspection, not asked again. When the current invocation
+in the route prompt. Human inputs are `WORK_UNIT` when context does not already
+identify the unit, `OPTIONAL_SKILL`, PM feedback or questions, the explicit
+`/hydration` override, and the applicable exact authorization; they are not
+derived metadata and authorize nothing. The rest of the metadata is reconstructed
+from live evidence and shown resolved for inspection, not asked again. When the current invocation
 already identifies that unit unambiguously —for example the issue MOS-3.1,
 MOS-3.2, or MOS-3.8 just drafted in this session— do not ask for its locator
 again. Browser chat reads the unit and its relations, reconstructs
@@ -40,7 +41,7 @@ overridden by explicit PM feedback.
 
 **Variables**
 - Required: none
-- Optional: WORK_UNIT, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (`WORK_UNIT` is the single primary locator and is asked for only when the execution context does not already identify the live unit; the unit, skill, PM feedback, and PM questions are context only and never authorize an action)
+- Optional: WORK_UNIT, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (`WORK_UNIT` is the single primary locator and is asked for only when the execution context does not already identify the live unit; `OPTIONAL_SKILL`, PM feedback, and PM questions are optional human inputs; none authorize an action)
 
 **Derived metadata:** `CHANGE_CLASS`, `HYDRATION_LEVEL`, `ROADMAP_ISSUE`,
 `BRANCH_NAME`, the existing PR, and the remaining verifiable relations are not
@@ -51,10 +52,11 @@ the unit and is preserved across intake, implementation, review, closeout, and
 verification. `HYDRATION_LEVEL` accepts `minimal`, `compact`, or `full/debug`, is
 derived from the reconstructed class, and never drops below its contractual
 density. It controls only the resolver's hydrated content: no level returns
-`context_plan` or adds a receipt block. The wizard asks only for `WORK_UNIT` and
-`PM_AUTHORIZATION_STATUS`; it does not request the class, the density, the
-roadmap, or the branch when they can be derived. The density keeps a single
-override route: an explicit PM decision —`/hydration <level>` in the wizard,
+`context_plan` or adds a receipt block. The wizard captures the declared human
+inputs and assists with `PM_AUTHORIZATION_STATUS`; it does not request the
+class, the default density, the roadmap, or the branch when they can be derived.
+The density keeps a single override route: an explicit PM decision
+—`/hydration <level>` in the wizard,
 which writes it as `HYDRATION_LEVEL` in the INPUT block— may keep or raise it,
 never reduce it. It is not a routine question: without that explicit override the
 variable is neither asked for nor carried, and an override below the class
@@ -63,6 +65,10 @@ missing formal unit for a class that requires one, a scope that does not allow
 determining the class with confidence, unverifiable relations, or a conflict
 between live evidence and a later PM decision— returns `status.needs_context` or
 `status.needs_pm_decision`.
+
+**Inferred recommendation:** `RECOMMENDED_TERMINAL_AGENT_FAMILY` is browser-chat
+advice based on the work; it is shown for inspection, never requested from the
+PM, and never authorizes a tool or action.
 
 **Authorization contract:** Browser chat only drafts and can never self-assign,
 complete, change, or infer `granted`. A route prompt that is a draft, was not

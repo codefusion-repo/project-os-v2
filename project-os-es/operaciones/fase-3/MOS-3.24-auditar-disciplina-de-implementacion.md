@@ -13,18 +13,18 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 **Cómo:** Auditoría read-only con findings y drafts de follow-up.
 
 **Variables**
-- Requeridas: TARGET_REPOSITORY
-- Opcionales: PATH_SCOPE, FOCUS, AUDIT_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Requeridas: — (ninguna)
+- Opcionales: TARGET_REPOSITORY, AUDIT_SCOPE, PATH_SCOPE, FOCUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
 
-**Metadata derivada:** `TARGET_REPOSITORY`, `PATH_SCOPE`, `FOCUS` y
-`AUDIT_SCOPE` representan niveles distintos de scope, así que su precedencia es
-explícita: (1) usa la fuente que la invocación actual ya seleccionó; (2) si
-falta, un único locator primario proporcionado —`AUDIT_SCOPE` acepta el issue o
-el PR que acota la auditoría; (3) deriva desde él el resto de la metadata y del
-scope; (4) devuelve la decisión al PM solo cuando varias interpretaciones
-materiales sean igualmente válidas. `TARGET_REPOSITORY` se conserva porque una
-auditoría deliberadamente repo-wide no tiene otra fuente de alcance; el issue y
-el PR nunca se piden juntos.
+**Locators alternativos y constraints humanos:** `TARGET_REPOSITORY` y
+`AUDIT_SCOPE` son locators alternativos, nunca requisitos acumulativos. Primero
+reutiliza una fuente inequívoca ya seleccionada. Sin ella, una auditoría
+deliberadamente repo-wide pide `TARGET_REPOSITORY`; una auditoría acotada pide
+`AUDIT_SCOPE` —issue o PR— y deriva desde esa fuente el repositorio y las demás
+relaciones verificables. `PATH_SCOPE` y `FOCUS` son constraints humanos
+opcionales, no metadata derivada. Si no existe fuente suficiente, o ambos
+locators se declaran y resuelven targets incompatibles, falla cerrado con
+`status.needs_context`; nunca elige un target ni mezcla evidencias.
 
 **Entrega:** output.review_result (+output.draft_issue). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

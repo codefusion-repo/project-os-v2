@@ -1,5 +1,13 @@
 # MOS-3.14 — Process audit result
 
+<!-- project-os-operation
+canonical_code: MOS-3.14
+operation_id: process-audit-result
+aliases: MOS-6.11
+deprecation: none
+compatibility_reason: MOS-6.11 keeps its historical code-improvement entry point and resolves this canonical contract for every audit.
+-->
+
 MOSDLC operation `process-audit-result` · Phase 3 — Implementation · Risk: low.
 Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
 

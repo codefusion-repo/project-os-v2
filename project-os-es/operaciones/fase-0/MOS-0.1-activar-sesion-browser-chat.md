@@ -5,8 +5,8 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 - Superficie: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
-- Evidencia: evidence.repo_state (solo en la sesión vinculada; la desvinculada no
-  tiene target y por eso no hay estado de repositorio en su alcance)
+- Evidencia: evidence.repo_state (en la sesión vinculada, el target exacto; en
+  la desvinculada, exclusivamente el repositorio vivo del kernel resuelto)
 - Aprobación PM: No (read-only)
 
 **Hace:** Establece la sesión draft-only del PM en browser chat resolviendo el manifest del kernel, con o sin un target seleccionado.
@@ -21,8 +21,11 @@ inicial nombrando el target revisado.
 
 Sin `TARGET_REPOSITORY`: activa la sesión desvinculada, read-only y draft-only, y
 declara explícitamente que todavía no hay target seleccionado. No lee, elige ni
-infiere ningún repositorio conectado, no reconstruye estado de repositorio
-—ninguno está en el alcance de esta activación— y no devuelve
+infiere ningún repositorio conectado. Para satisfacer la evidencia mínima
+`evidence.repo_state` de `workflow.review_only`, registra exclusivamente el
+estado vivo del `KERNEL_REPOSITORY` que se resolvió para leer el manifest; esa
+evidencia no convierte el kernel en target ni permite inspeccionar otro
+repositorio. No devuelve
 `status.needs_context` solo por arrancar sin repositorio. La sesión desvinculada
 no concede autoridad ni permite que una operación target-specific omita su
 evidencia: antes de ejecutar cualquier operación que dependa realmente de estado

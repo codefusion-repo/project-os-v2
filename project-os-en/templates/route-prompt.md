@@ -53,15 +53,18 @@ preserved across intake, implementation, review, closeout, and verification. The
 class never authorizes anything.
 
 The PM supplies decisions, constraints, and authority; browser chat supplies the
-metadata. Every field except the live reference the PM chooses and
-`PM_AUTHORIZATION_STATUS` is metadata reconstructed from the unit's live
-evidence: `CHANGE_CLASS` from its scope, risk, and affected surfaces;
-`HYDRATION_LEVEL` from that class; `BRANCH_NAME`, the existing PR, the roadmap,
-and the remaining relations from the unit and its records. Those values are shown
-already resolved here so the receiver verifies them; they are never asked of the
-PM as manual inputs and never invented. Browser chat uses at most one primary
-locator per evidence chain and does not ask for it again when the current
-invocation already identifies the source; it returns `status.needs_context` or
+metadata. **Human inputs** are the primary locator when needed,
+`OPTIONAL_SKILL`, `PM_FEEDBACK_HUMANO`, `PM_QUESTION_HUMANO`, the explicit
+`/hydration <level>` override, and `PM_AUTHORIZATION_STATUS`; they are not
+derived metadata and never authorize on their own. **Derived metadata** includes
+`CHANGE_CLASS`, the default `HYDRATION_LEVEL` density, `BRANCH_NAME`, the
+existing PR, the roadmap, and the remaining relations verifiable from the unit
+and its records. Those values are shown already resolved so the receiver can
+verify them; they are never invented. The **inferred recommendation**
+`RECOMMENDED_TERMINAL_AGENT_FAMILY` is browser-chat advice, not an input or
+authorization. Browser chat uses at most one primary locator per evidence chain
+and does not ask for it again when the current invocation already identifies the
+source; it returns `status.needs_context` or
 `status.needs_pm_decision` only on real material ambiguity —incompatible sources
 equally active, unverifiable relations, a scope that does not allow determining
 the class, a missing formal unit for a class that requires one, or a conflict

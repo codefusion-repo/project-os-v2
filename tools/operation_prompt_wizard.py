@@ -916,6 +916,18 @@ def operation_requires_route_prompt_path_selection(operation: OperationTemplate)
     return "output.route_prompt" in refs and len(refs) > 1
 
 
+def operation_keeps_hydration_override(
+    operation: OperationTemplate,
+    include_route_prompt_authorization: bool = False,
+) -> bool:
+    """Return whether this rendered path is a route prompt that may carry an override."""
+
+    return operation_produces_route_prompt(operation) and (
+        not operation_requires_route_prompt_path_selection(operation)
+        or include_route_prompt_authorization
+    )
+
+
 def operation_needs_pm_authorization_assistance(operation: OperationTemplate) -> bool:
     """Return whether initial variable entry should ask for authorization status."""
 
@@ -1009,8 +1021,15 @@ def render_prompt(
             values.get(PM_AUTHORIZATION_STATUS_NAME, "").strip(),
         )
     hydration_override = values.get(HYDRATION_LEVEL_NAME, "").strip()
-    if hydration_override and not any(
-        variable.name == HYDRATION_LEVEL_NAME for variable in variables
+    if (
+        hydration_override
+        and operation_keeps_hydration_override(
+            operation,
+            include_route_prompt_authorization=include_route_prompt_authorization,
+        )
+        and not any(
+            variable.name == HYDRATION_LEVEL_NAME for variable in variables
+        )
     ):
         lines = insert_input_variable_line(lines, HYDRATION_LEVEL_NAME, hydration_override)
     return "\n".join(lines) + "\n"
@@ -1474,7 +1493,7 @@ def print_output_path_help(output_stream: TextIO) -> None:
     print("  A route-prompt path requires explicit PM_AUTHORIZATION_STATUS entry.", file=output_stream)
 
 
-def print_value_help(output_stream: TextIO) -> None:
+def print_value_help(output_stream: TextIO, allows_hydration_override: bool) -> None:
     """Print variable-entry help without leaving the current flow."""
 
     print("", file=output_stream)
@@ -1482,17 +1501,18 @@ def print_value_help(output_stream: TextIO) -> None:
     print("  Required values must be filled; optional values may be left blank.", file=output_stream)
     print("  During edits, pressing Enter keeps the current value.", file=output_stream)
     print("  Use /clear to blank the current optional value.", file=output_stream)
-    print(
-        f"  Use /hydration <{' | '.join(HYDRATION_LEVEL_CHOICES)}> only to record an "
-        f"explicit PM override of the derived {HYDRATION_LEVEL_NAME}; /hydration with "
-        "no level drops it.",
-        file=output_stream,
-    )
-    print(
-        "  The override may only keep or raise the density derived from the class, "
-        "never reduce it, and it never authorizes anything.",
-        file=output_stream,
-    )
+    if allows_hydration_override:
+        print(
+            f"  Use /hydration <{' | '.join(HYDRATION_LEVEL_CHOICES)}> only to record an "
+            f"explicit PM override of the derived {HYDRATION_LEVEL_NAME}; /hydration with "
+            "no level drops it.",
+            file=output_stream,
+        )
+        print(
+            "  The override may only keep or raise the density derived from the class, "
+            "never reduce it, and it never authorizes anything.",
+            file=output_stream,
+        )
     print("  Use back to choose another operation, cancel to exit, or ? for this help.", file=output_stream)
 
 
@@ -1606,16 +1626,16 @@ def collect_values_with_controls(
     print_stage("Step 2/3", "Fill INPUT variables", output_stream)
     display_operation_summary(operation, output_stream)
     variables = wizard_variables(operation)
+    allows_hydration_override = operation_produces_route_prompt(operation)
     if not variables:
         print("This operation declares no INPUT variables.", file=output_stream)
         return ValueCollectionResult("values", values)
 
     print("", file=output_stream)
-    print(
-        "Optional values may be left blank. Commands: back, cancel, /clear optional, "
-        "/hydration override, ? help.",
-        file=output_stream,
-    )
+    commands = "Optional values may be left blank. Commands: back, cancel, /clear optional"
+    if allows_hydration_override:
+        commands += ", /hydration override"
+    print(f"{commands}, ? help.", file=output_stream)
     for variable in variables:
         if is_pm_authorization_status_variable(variable.name):
             print_pm_authorization_assistance(output_stream)
@@ -1632,9 +1652,15 @@ def collect_values_with_controls(
             )
             raw_value = input_func(prompt_label)
             if is_help_command(raw_value):
-                print_value_help(output_stream)
+                print_value_help(output_stream, allows_hydration_override)
                 continue
             if is_hydration_override_command(raw_value):
+                if not allows_hydration_override:
+                    print(
+                        "Invalid command: /hydration is available only for an output.route_prompt path.",
+                        file=output_stream,
+                    )
+                    continue
                 apply_hydration_override(raw_value, values, output_stream)
                 continue
             if is_cancel_command(raw_value):
@@ -1706,6 +1732,11 @@ def collect_route_prompt_path_with_controls(
             return RoutePromptPathResult("values", values, False)
         if answer in {"2", "non-route", "nonroute", "status", "status_result", "pm_command_bundle"}:
             values.pop(PM_AUTHORIZATION_STATUS_NAME, None)
+            if values.pop(HYDRATION_LEVEL_NAME, None) is not None:
+                print(
+                    f"{HYDRATION_LEVEL_NAME} override dropped because the selected output is non-route.",
+                    file=output_stream,
+                )
             return RoutePromptPathResult("preview", values, False)
         if answer in {"1", "route", "route-prompt", "route_prompt", "output.route_prompt"}:
             return collect_route_prompt_authorization_status(
@@ -2427,6 +2458,7 @@ if HAVE_PROMPT_TOOLKIT:
         print_stage("Step 2/3", "Fill INPUT variables", output_stream)
         display_operation_summary(operation, output_stream)
         variables = wizard_variables(operation)
+        allows_hydration_override = operation_produces_route_prompt(operation)
         if not variables:
             print("This operation declares no INPUT variables.", file=output_stream)
             return ValueCollectionResult("values", values)
@@ -2445,10 +2477,10 @@ if HAVE_PROMPT_TOOLKIT:
             label = "required" if variable.required else "optional"
 
             def bottom_toolbar():
-                return HTML(
-                    f' <b>{variable.name}</b> ({label}) | Commands: back, cancel, /clear, '
-                    '/hydration, ? help'
-                )
+                commands = "back, cancel, /clear"
+                if allows_hydration_override:
+                    commands += ", /hydration"
+                return HTML(f' <b>{variable.name}</b> ({label}) | Commands: {commands}, ? help')
 
             class VariableValidator(Validator):
                 def validate(self, document):
@@ -2458,7 +2490,10 @@ if HAVE_PROMPT_TOOLKIT:
                         or is_back_command(text)
                         or is_clear_command(text)
                         or is_help_command(text)
-                        or is_hydration_override_command(text)
+                        or (
+                            allows_hydration_override
+                            and is_hydration_override_command(text)
+                        )
                     ):
                         return
                     error = validate_variable_value(
@@ -2506,9 +2541,15 @@ if HAVE_PROMPT_TOOLKIT:
                     return ValueCollectionResult("cancel", values)
 
                 if is_help_command(raw_value):
-                    print_value_help(output_stream)
+                    print_value_help(output_stream, allows_hydration_override)
                     continue
                 if is_hydration_override_command(raw_value):
+                    if not allows_hydration_override:
+                        print(
+                            "Invalid command: /hydration is available only for an output.route_prompt path.",
+                            file=output_stream,
+                        )
+                        continue
                     apply_hydration_override(raw_value, values, output_stream)
                     continue
                 if is_cancel_command(raw_value):
@@ -2616,6 +2657,11 @@ if HAVE_PROMPT_TOOLKIT:
                 return RoutePromptPathResult("values", values, False)
             if answer in {"2", "non-route", "nonroute", "status", "status_result", "pm_command_bundle"}:
                 values.pop(PM_AUTHORIZATION_STATUS_NAME, None)
+                if values.pop(HYDRATION_LEVEL_NAME, None) is not None:
+                    print(
+                        f"{HYDRATION_LEVEL_NAME} override dropped because the selected output is non-route.",
+                        file=output_stream,
+                    )
                 return RoutePromptPathResult("preview", values, False)
             return collect_route_prompt_authorization_status_pt(values, output_stream)
 

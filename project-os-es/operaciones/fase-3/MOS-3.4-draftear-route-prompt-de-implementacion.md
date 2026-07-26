@@ -16,10 +16,12 @@ viva a un terminal agent.
 **Cómo:** Usa un bootloader compacto referenciado a la unidad viva: el detalle
 permanece en la unidad y sus registros (issue o PR y comentarios cuando el
 target usa GitHub; change request, registro del target o instrucción PM exacta
-cuando no), no en el route prompt. El único input humano normalmente necesario
-es `WORK_UNIT` —la referencia viva que el PM quiere implementar— más la
-autorización exacta aplicable; el resto de la metadata se reconstruye desde la
-evidencia viva y se muestra resuelta para inspección, no se vuelve a pedir.
+cuando no), no en el route prompt. Los inputs humanos son `WORK_UNIT` cuando el
+contexto no identifica ya la unidad, `OPTIONAL_SKILL`, feedback o preguntas del
+PM, el override explícito `/hydration` y la autorización exacta aplicable; no
+son metadata derivada ni autorizan nada. El resto de la metadata se reconstruye
+desde la evidencia viva y se muestra resuelta para inspección, no se vuelve a
+pedir.
 Cuando la invocación actual ya identifica esa unidad inequívocamente —por
 ejemplo el issue que MOS-3.1, MOS-3.2 o MOS-3.8 acaba de draftear en esta
 sesión— no vuelvas a pedir su locator. Browser chat lee la unidad y sus
@@ -42,8 +44,8 @@ advisory, no autoriza nada y el feedback explícito del PM puede reemplazarla.
 - Requeridas: ninguna
 - Opcionales: WORK_UNIT, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO
   (`WORK_UNIT` es el único locator primario y se pide solo cuando el contexto de
-  ejecución no identifica ya la unidad viva; la unidad, el skill, el feedback y
-  la pregunta del PM son contexto; nunca autorizan nada)
+  ejecución no identifica ya la unidad viva; `OPTIONAL_SKILL`, el feedback y la
+  pregunta son inputs humanos opcionales; ninguno autoriza nada)
 
 **Metadata derivada:** `CHANGE_CLASS`, `HYDRATION_LEVEL`, `ROADMAP_ISSUE`,
 `BRANCH_NAME`, el PR existente y las demás relaciones verificables no son inputs
@@ -54,10 +56,11 @@ la unidad y se conserva en intake, implementación, review, closeout y
 verificación. `HYDRATION_LEVEL` acepta `minimal`, `compact` o `full/debug`, se
 deriva de la clase reconstruida y nunca queda por debajo de su densidad
 contractual. Controla únicamente el contenido hidratado del resolver: ningún
-nivel devuelve `context_plan` ni agrega un bloque de recibo. El wizard pide solo
-`WORK_UNIT` y `PM_AUTHORIZATION_STATUS`; no solicita la clase, la densidad, el
-roadmap ni la rama cuando pueden derivarse. La densidad conserva una única ruta
-de override: una decisión PM explícita —`/hydration <nivel>` en el wizard, que
+nivel devuelve `context_plan` ni agrega un bloque de recibo. El wizard captura
+los inputs humanos declarados y asiste `PM_AUTHORIZATION_STATUS`; no solicita la
+clase, la densidad predeterminada, el roadmap ni la rama cuando pueden derivarse.
+La densidad conserva una única ruta de override: una decisión PM explícita
+—`/hydration <nivel>` en el wizard, que
 la escribe como `HYDRATION_LEVEL` en el bloque INPUT— puede mantenerla o
 elevarla, nunca reducirla. No es una pregunta rutinaria: sin ese override
 explícito la variable no se pide ni viaja, y un override por debajo de la
@@ -67,6 +70,10 @@ ambigüedad material real
 determinar la clase con confianza, relaciones no verificables o conflicto entre
 la evidencia viva y una decisión PM posterior— devuelve `status.needs_context` o
 `status.needs_pm_decision`.
+
+**Recomendación inferida:** `RECOMMENDED_TERMINAL_AGENT_FAMILY` es consejo de
+browser chat basado en el trabajo; se muestra para inspección, no se solicita al
+PM y nunca autoriza una herramienta o acción.
 
 **Contrato de autorización:** El browser chat solo draftea y nunca puede
 autoasignar, completar, cambiar ni inferir `granted`. Un route prompt en draft,

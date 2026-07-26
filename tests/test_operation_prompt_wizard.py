@@ -397,6 +397,139 @@ def test_mos_0_1_activates_an_unbound_session_without_a_target(
     assert f"{PM_AUTHORIZATION_STATUS_NAME}=" not in content
 
 
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_mos_3_24_accepts_one_scoped_locator_without_a_redundant_repository(
+    tmp_path: Path, language: str
+) -> None:
+    operation = next(
+        item for item in operations_for(language) if item.mos_code == "MOS-3.24"
+    )
+    variables = {variable.name: variable for variable in operation.variables}
+
+    assert variables["TARGET_REPOSITORY"].required is False
+    assert variables["AUDIT_SCOPE"].required is False
+    assert variables["PATH_SCOPE"].required is False
+    assert variables["FOCUS"].required is False
+
+    output = run_wizard(
+        language=language,
+        output_dir=tmp_path,
+        input_func=answers(
+            "MOS-3.24",
+            "",
+            "issue #465",
+            "",
+            "",
+            "",
+            "",
+            "write",
+            "exit",
+        ),
+        output_stream=StringIO(),
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert "TARGET_REPOSITORY=" in content
+    assert "AUDIT_SCOPE=issue #465" in content
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_hydration_override_never_contaminates_non_route_or_non_route_paths(
+    tmp_path: Path, language: str
+) -> None:
+    no_route_stream = StringIO()
+    no_route = run_wizard(
+        language=language,
+        output_dir=tmp_path / "no-route",
+        input_func=answers(
+            "MOS-0.1",
+            "/hydration full/debug",
+            "",
+            "",
+            "",
+            "write",
+            "exit",
+        ),
+        output_stream=no_route_stream,
+    )
+
+    assert no_route is not None
+    assert f"{HYDRATION_LEVEL_NAME}=" not in no_route.read_text(encoding="utf-8")
+    assert "only for an output.route_prompt path" in no_route_stream.getvalue()
+
+    arbitrary_non_route = next(
+        item for item in operations_for(language) if item.mos_code == "MOS-3.24"
+    )
+    assert f"{HYDRATION_LEVEL_NAME}=" not in render_prompt(
+        arbitrary_non_route, {HYDRATION_LEVEL_NAME: "full/debug"}
+    )
+
+    multi_output_stream = StringIO()
+    multi_output = run_wizard(
+        language=language,
+        output_dir=tmp_path / "multi-output",
+        input_func=answers(
+            "MOS-3.14",
+            "/hydration full/debug",
+            "audit result",
+            "",
+            "",
+            "2",
+            "write",
+            "exit",
+        ),
+        output_stream=multi_output_stream,
+    )
+
+    assert multi_output is not None
+    assert f"{HYDRATION_LEVEL_NAME}=" not in multi_output.read_text(encoding="utf-8")
+    assert "override dropped because the selected output is non-route" in multi_output_stream.getvalue()
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_route_surfaces_separate_human_inputs_metadata_and_inferred_recommendation(
+    language: str,
+) -> None:
+    root = REPO_ROOT / ("project-os-es" if language == "es" else "project-os-en")
+    template = (root / "templates" / "route-prompt.md").read_text(encoding="utf-8")
+    labels = (
+        ("inputs humanos", "metadata derivada", "recomendación inferida")
+        if language == "es"
+        else ("Human inputs", "Derived metadata", "inferred recommendation")
+    )
+    assert all(label in template for label in labels)
+    for field in (
+        "OPTIONAL_SKILL",
+        "PM_FEEDBACK_HUMANO",
+        "PM_QUESTION_HUMANO",
+        "PM_AUTHORIZATION_STATUS",
+        "HYDRATION_LEVEL",
+        "RECOMMENDED_TERMINAL_AGENT_FAMILY",
+    ):
+        assert field in template
+
+    for mos_code in ("MOS-3.4", "MOS-3.5"):
+        operation = next(item for item in operations_for(language) if item.mos_code == mos_code)
+        variables = {variable.name for variable in operation.variables}
+        assert {"OPTIONAL_SKILL", "PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO"} <= variables
+        assert "RECOMMENDED_TERMINAL_AGENT_FAMILY" not in variables
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_mos_6_11_resolves_as_the_supported_mos_3_14_alias(language: str) -> None:
+    operations = operations_for(language)
+    canonical = next(item for item in operations if item.mos_code == "MOS-3.14")
+    alias = next(item for item in operations if item.mos_code == "MOS-6.11")
+
+    assert canonical.aliases == ("MOS-6.11",)
+    assert alias.is_alias is True
+    assert alias.resolved_canonical_code == "MOS-3.14"
+    rendered = render_prompt(alias, {"AUDIT_RESULT": "code audit"})
+    assert "Alias requested: `MOS-6.11`; canonical operation resolved: `MOS-3.14`" in rendered
+    assert "Process audit result" in rendered or "Procesar el resultado de una auditoría" in rendered
+
+
 def test_mos_r3_asks_one_locator_and_derives_the_related_identifiers() -> None:
     for operations_dir in (
         REPO_ROOT / "project-os-es" / "operaciones",

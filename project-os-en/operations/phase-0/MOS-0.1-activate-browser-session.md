@@ -5,8 +5,8 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 - Surface: browser_chat
 - Kernel: workflow.review_only · mode.review_only · output.status_result
-- Evidence: evidence.repo_state (bound session only; the unbound one has no
-  target, so no repository state is within its reach)
+- Evidence: evidence.repo_state (the exact target in a bound session; only the
+  resolved kernel's live repository in an unbound session)
 - PM approval: No (read-only)
 
 **Does:** Establish the PM draft-only session in browser chat by resolving the kernel manifest, with or without a selected target.
@@ -21,9 +21,12 @@ naming the reviewed target.
 
 Without `TARGET_REPOSITORY`: activate the unbound, read-only, draft-only session
 and declare explicitly that no target is selected yet. Do not read, pick, or
-infer any connected repository, do not rebuild repository state —none is within
-the reach of this activation— and do not return `status.needs_context` merely for
-starting without a repository. The unbound session grants no authority and never
+infer any connected repository. To satisfy `workflow.review_only` minimum
+`evidence.repo_state`, record only the live state of the resolved
+`KERNEL_REPOSITORY` used to read the manifest; that evidence neither turns the
+kernel into a target nor permits inspecting another repository. Do not return
+`status.needs_context` merely for starting without a repository. The unbound
+session grants no authority and never
 lets a target-specific operation skip its evidence: before running any operation
 that genuinely depends on repository state, require or derive an unambiguous
 target, and fail closed with `status.needs_context` when such an operation

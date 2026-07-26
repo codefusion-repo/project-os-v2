@@ -130,18 +130,19 @@ del alias es solo un stub que apunta mediante `alias_of`; nunca repite workflow,
 mode, outputs, evidencia, aprobación, variables ni conexiones. Por tanto, el
 Markdown canónico es la única fuente de semántica operativa.
 
-El par confirmado es `MOS-0.4` (canónica) / `MOS-R.10` (alias histórico
-soportado, no deprecado). El wizard muestra solo `MOS-0.4` en las vistas
-normales, pero resuelve `MOS-R.10` de forma explícita por código, filename o
-path, informa el código canónico y renderiza exactamente el contrato y las
-variables de `MOS-0.4`.
+Los pares confirmados son `MOS-0.4` (canónica) / `MOS-R.10` (alias histórico
+soportado, no deprecado) y `MOS-3.14` (canónica para cualquier auditoría) /
+`MOS-6.11` (entrypoint histórico compatible para mejoras de código). El wizard
+muestra solo las canónicas en las vistas normales, pero resuelve los aliases de
+forma explícita por código, filename o path, informa el código canónico y
+renderiza exactamente su contrato y variables.
 
 La auditoría inicial clasificó como relacionadas pero materialmente distintas
 las familias de solicitud/entrega de assets (`MOS-3.15`–`MOS-3.22`), los flujos
 por entorno de deploy (`MOS-5.*`) y los pares de draft/actualización o
 análisis/procesamiento de requisitos, diseño y mantenimiento. Sus propósitos,
-inputs, artefactos o entornos difieren, así que no son aliases. No se confirmó
-otro alias. Los guards del catálogo fallan ante aliases colgantes, ambiguos o
+inputs, artefactos o entornos difieren, así que no son aliases. Los guards del
+catálogo fallan ante aliases colgantes, ambiguos o
 cíclicos, contratos copiados en stubs, drift ES/EN y dos canónicas con la misma
 identidad. Una coincidencia contractual adicional no declarada devuelve
 `status.needs_pm_decision`; nunca se fusiona automáticamente.
@@ -210,12 +211,16 @@ review, closeout y verificación—; `HYDRATION_LEVEL` se deriva de esa clase.
 Ningún nivel devuelve `context_plan` ni agrega un bloque de recibo, y la
 procedencia detallada requiere una solicitud explícita
 (`--context-provenance <razón>`). Por eso el wizard de `MOS-3.4` y `MOS-3.5`
-captura solo el locator y `PM_AUTHORIZATION_STATUS`. La densidad conserva una
-única ruta de override, de categoría 1: `/hydration <nivel>` en el wizard
-registra una decisión PM explícita y la escribe como `HYDRATION_LEVEL` en el
-bloque INPUT. Ese override puede mantener o elevar la densidad derivada, nunca
-reducirla —el resolver falla cerrado ante un downgrade—, y no es una pregunta
-rutinaria: sin él la variable no se pide ni viaja.
+captura solo inputs humanos: el locator cuando hace falta, `OPTIONAL_SKILL`,
+feedback o preguntas del PM, `PM_AUTHORIZATION_STATUS` y, solo en una ruta
+`output.route_prompt`, el override explícito. La densidad conserva una única
+ruta de override, de categoría 1: `/hydration <nivel>` en el wizard registra una
+decisión PM explícita y la escribe como `HYDRATION_LEVEL` en el bloque INPUT
+únicamente cuando se confirma `output.route_prompt`. Ese override puede mantener
+o elevar la densidad derivada, nunca reducirla —el resolver falla cerrado ante un
+downgrade—, y no es una pregunta rutinaria: sin él la variable no se pide ni
+viaja. `RECOMMENDED_TERMINAL_AGENT_FAMILY` se infiere como consejo separado, no
+se pide al PM y nunca autoriza una herramienta o acción.
 
 Ningún valor derivado concede permisos y la autorización nunca se infiere. Se
 devuelve la decisión al PM con `status.needs_context` o
@@ -368,7 +373,7 @@ alcance.
 - [MOS-6.8 — Procesar resultados de gaps funcionales](fase-6/MOS-6.8-procesar-resultados-de-gaps-funcionales.md)
 - [MOS-6.9 — Procesar mejoras de rendimiento](fase-6/MOS-6.9-procesar-mejoras-de-rendimiento.md)
 - [MOS-6.10 — Procesar mejoras de producto](fase-6/MOS-6.10-procesar-mejoras-de-producto.md)
-- [MOS-6.11 — Procesar mejoras de código](fase-6/MOS-6.11-procesar-mejoras-de-codigo.md)
+- [MOS-6.11 — Alias compatible de MOS-3.14](fase-6/MOS-6.11-procesar-mejoras-de-codigo.md)
 - [MOS-6.12 — Procesar limpieza de código muerto](fase-6/MOS-6.12-procesar-limpieza-de-codigo-muerto.md)
 - [MOS-R.17 — Auditar actualizaciones de seguridad de dependencias](fase-6/MOS-R.17-auditar-actualizaciones-de-seguridad-de-dependencias.md)
 - [MOS-R.18 — Auditar configuración de forma segura para secretos](fase-6/MOS-R.18-auditar-configuracion-de-forma-segura-para-secretos.md)
