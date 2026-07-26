@@ -30,7 +30,7 @@ Spanish version: [benchmark-contexto.md](../../project-os-es/docs/benchmark-cont
 ## Declared method
 
 - **Measurement date:** 2026-07-26.
-- **Inputs:** commit `3a52509` of
+- **Inputs:** commit `c669210` of
   `codefusion-repo/project-os-v2`; the
   measured inputs (both kernel directories and
   `tools/project_os_resolve.py`) do not change after that commit on the
@@ -72,14 +72,14 @@ Two references, built from the real kernel content:
 | --- | ---: | ---: | ---: | ---: |
 | Resolver `minimal` | 15746 | 15746 | 3728 | 3920 |
 | Resolver `compact` | 32897 | 32850 | 7413 | 8074 |
-| Per-tuple baseline (= `full/debug`) | 36783 | 36736 | 8389 | 9068 |
-| Full kernel (11 files) | 77199 | 77152 | 17355 | 18367 |
+| Per-tuple baseline (= `full/debug`) | 36739 | 36692 | 8380 | 9060 |
+| Full kernel (11 files) | 75974 | 75927 | 17104 | 18121 |
 
-Reduction against the per-tuple baseline: `minimal` −57.2% bytes (−55.6%
-`o200k_base` tokens, −56.8% `cl100k_base`); `compact` −10.6% bytes (−11.6%,
-−11.0%). Against the full kernel (internal profile only): `minimal` −79.6%
-bytes (−78.5%, −78.7%); `compact` −57.4% (−57.3%, −56.0%); `full/debug`
-−52.4% (−51.7%, −50.6%).
+Reduction against the per-tuple baseline: `minimal` −57.1% bytes (−55.5%
+`o200k_base` tokens, −56.7% `cl100k_base`); `compact` −10.5% bytes (−11.5%,
+−10.9%). Against the full kernel (internal profile only): `minimal` −79.3%
+bytes (−78.2%, −78.4%); `compact` −56.7% (−56.7%, −55.4%); `full/debug`
+−51.6% (−51.0%, −50.0%).
 
 ## English kernel (explicit selection)
 
@@ -89,12 +89,12 @@ Same tuple, same commands, with `--kernel-dir project-os-en/kernel`:
 | --- | ---: | ---: | ---: | ---: |
 | Resolver `minimal` | 15421 | 15421 | 3521 | 3517 |
 | Resolver `compact` | 31700 | 31700 | 6789 | 6790 |
-| Per-tuple baseline (= `full/debug`) | 35578 | 35578 | 7755 | 7757 |
-| Full kernel (11 files) | 75154 | 75154 | 16182 | 16185 |
+| Per-tuple baseline (= `full/debug`) | 35534 | 35534 | 7746 | 7749 |
+| Full kernel (11 files) | 73950 | 73950 | 15940 | 15954 |
 
-Reduction against the per-tuple baseline: `minimal` −56.7% bytes; `compact`
-−10.9%. Against the full kernel (internal profile only): `minimal` −79.5%
-bytes; `compact` −57.8%; `full/debug` −52.7%.
+Reduction against the per-tuple baseline: `minimal` −56.6% bytes; `compact`
+−10.8%. Against the full kernel (internal profile only): `minimal` −79.1%
+bytes; `compact` −57.1%; `full/debug` −51.9%.
 
 ## Normal critical case (#468)
 
@@ -106,11 +106,11 @@ variable:
 
 | Kernel | Before (automatic `full/debug`) | After (default `compact`) | Δ bytes | Δ % |
 | --- | ---: | ---: | ---: | ---: |
-| Spanish | 37384 | 33498 | −3886 | −10.4% |
-| English | 36156 | 32278 | −3878 | −10.7% |
+| Spanish | 37340 | 33498 | −3842 | −10.3% |
+| English | 36112 | 32278 | −3834 | −10.6% |
 
-In tokens: Spanish 8518 → 7542 `o200k_base` (−11.5%) and 9216 → 8222
-`cl100k_base` (−10.8%); English 7865 → 6899 (−12.3%) and 7868 → 6901 (−12.3%).
+In tokens: Spanish 8509 → 7542 `o200k_base` (−11.4%) and 9208 → 8222
+`cl100k_base` (−10.7%); English 7856 → 6899 (−12.2%) and 7860 → 6901 (−12.2%).
 
 The "before" row reproduces exactly the projection the class used to activate
 automatically, by running `--change-class change_class.critical
@@ -173,6 +173,56 @@ attributed to #477's structural removal.
 | EN | `minimal` | 15421 | 15421 | 0 | 0.0% |
 | EN | `compact` | 31885 | 31700 | −185 | −0.6% |
 | EN | `full/debug` | 35763 | 35578 | −185 | −0.5% |
+
+## Collapsing the discipline audit into workflow.review_only (OSIM.2, #481)
+
+The OSIM.2 measurement compares the immediately preceding `main` baseline,
+commit `70ddc398`, with implementation commit `c669210`, which retires
+`workflow.implementation_discipline_audit` from both kernels and its
+associations across evidence, outputs, and artifacts. Both sides run the
+same tuple, `change_class.small`, explicit levels, and `--compact` JSON.
+
+| Kernel | Level | Before (UTF-8 bytes) | After (UTF-8 bytes) | Δ bytes | Δ % |
+| --- | --- | ---: | ---: | ---: | ---: |
+| ES | `minimal` | 15746 | 15746 | 0 | 0.0% |
+| ES | `compact` | 32897 | 32897 | 0 | 0.0% |
+| ES | `full/debug` | 36783 | 36739 | −44 | −0.1% |
+| EN | `minimal` | 15421 | 15421 | 0 | 0.0% |
+| EN | `compact` | 31700 | 31700 | 0 | 0.0% |
+| EN | `full/debug` | 35578 | 35534 | −44 | −0.1% |
+
+`minimal` and `compact` do not change: `workflow.issue_implementation` — the
+measured tuple — never referenced the retired workflow, so its resolved
+projection is byte-for-byte identical. The only measurable resolver
+difference shows up at `full/debug`, which dumps the complete
+`proportionality_contract` with all four classes for auditing on top of the
+resolved tuple; there, `change_class.read.allowed_workflows` stops listing
+the retired workflow.
+
+OSIM.2's real reduction lives mostly in the full kernel, which does
+serialize the retired workflow object and its full associations:
+
+| Kernel | Before (bytes) | After (bytes) | Δ bytes | Δ % |
+| --- | ---: | ---: | ---: | ---: |
+| ES | 77199 | 75974 | −1225 | −1.6% |
+| EN | 75154 | 73950 | −1204 | −1.6% |
+
+The `workflow.implementation_discipline_audit` identifier and the
+`audit-implementation-discipline` MOSDLC code appear only as historical
+names of the retired specialization in this section and in git history; no
+active contract serializes them after `c669210`. MOS-3.24 keeps its stable
+code and its PM-facing entrypoint, now resolved entirely through
+`workflow.review_only`/`mode.review_only`, with an explicit focus on
+`boundary.implementation_discipline`, `boundary.primary_path_discipline`, and
+`boundary.validation_discipline`, with no workflow of its own and no direct
+`output.draft_issue` delivery.
+
+The comparison verifies that limits, allowed statuses, required evidence,
+allowed outputs, and the resolved `change_class` of the measured tuple
+remain present and equivalent at every level: the reduction is retired
+contract structure (a duplicated workflow and its associations), not omitted
+live evidence, gates, or report density. This independent reduction is not
+attributed to OSIM.1 (#477/#479).
 
 ## Comparability with earlier measurements
 
@@ -339,6 +389,20 @@ git worktree add --detach /tmp/pos-479-after 3a52509
 
 Run the #477 Python block above again verbatim, replacing its two arguments
 with `/tmp/pos-479-before` and `/tmp/pos-479-after`.
+
+To reproduce the OSIM.2 collapse measurement (#481), in a checkout where
+those commits are available:
+
+```sh
+git worktree add --detach /tmp/pos-481-before 70ddc398
+git worktree add --detach /tmp/pos-481-after c669210
+```
+
+Run the #477 Python block above again verbatim, replacing its two arguments
+with `/tmp/pos-481-before` and `/tmp/pos-481-after`, and `retired` with
+`("workflow.implementation_discipline_audit",)`; for the full-kernel row,
+concatenate `manifest.json` and the remaining `*.json` files in name order on
+each side and compare bytes directly.
 
 ## Limits of this profile
 
