@@ -225,6 +225,7 @@ PRIMARY_LOCATORS = (
     "QA_SOURCE",
     "QA_RESULT",
     "AUDIT_RESULT",
+    "REVIEW_SOURCE",
     "SECURITY_REVIEW_RESULT",
     "DESIGN_DELIVERY",
     "CHECKLIST_RESULT",
@@ -504,7 +505,7 @@ def test_hydration_override_never_contaminates_non_route_or_non_route_paths(
         input_func=answers(
             "MOS-3.14",
             "/hydration full/debug",
-            "audit result",
+            "review de PR #463",
             "",
             "",
             "2",
@@ -557,9 +558,59 @@ def test_mos_6_11_resolves_as_the_supported_mos_3_14_alias(language: str) -> Non
     assert canonical.aliases == ("MOS-6.11",)
     assert alias.is_alias is True
     assert alias.resolved_canonical_code == "MOS-3.14"
-    rendered = render_prompt(alias, {"AUDIT_RESULT": "code audit"})
+    rendered = render_prompt(alias, {"REVIEW_SOURCE": "MOS-6.5 review de codigo"})
     assert "Alias requested: `MOS-6.11`; canonical operation resolved: `MOS-3.14`" in rendered
     assert "Process audit result" in rendered or "Procesar el resultado de una auditoría" in rendered
+
+
+# The maintenance family: three analyses that report findings and three
+# processors that consume one live review source and route the resulting work.
+MAINTENANCE_ANALYSIS_CODES = ("MOS-6.3", "MOS-6.4", "MOS-6.5")
+MAINTENANCE_PROCESSING_CODES = ("MOS-6.9", "MOS-6.10", "MOS-3.14")
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_maintenance_analysis_delivers_a_review_result(language: str) -> None:
+    for mos_code in MAINTENANCE_ANALYSIS_CODES:
+        operation = next(
+            item for item in operations_for(language) if item.mos_code == mos_code
+        )
+        variables = {variable.name: variable for variable in operation.variables}
+
+        # A successful analysis is a review finding set; the unresolved state
+        # stays available only as the fail-closed path.
+        assert operation_output_refs(operation) == (
+            "output.review_result",
+            "output.status_result",
+        )
+        assert variables["TARGET_REPOSITORY"].required is True
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_maintenance_processing_asks_one_live_review_source(language: str) -> None:
+    for mos_code in MAINTENANCE_PROCESSING_CODES:
+        operation = next(
+            item for item in operations_for(language) if item.mos_code == mos_code
+        )
+        variables = {variable.name: variable for variable in operation.variables}
+
+        # Exactly one primary locator, and never the retired paste-a-text input.
+        assert [name for name, item in variables.items() if item.required] == ["REVIEW_SOURCE"]
+        assert "AUDIT_RESULT" not in variables
+        for derived in DERIVED_IDENTIFIERS:
+            assert derived not in variables
+
+        # A resolved classification routes the work; status_result is the tail.
+        assert operation_output_refs(operation) == (
+            "output.route_prompt",
+            "output.pm_command_bundle",
+            "output.status_result",
+        )
+
+        # An absent source fails closed instead of resolving anything.
+        assert validate_variable_value(variables["REVIEW_SOURCE"], "") is not None
+        rendered = render_prompt(operation, {"REVIEW_SOURCE": "review de PR #463"})
+        assert "REVIEW_SOURCE=review de PR #463" in rendered
 
 
 def test_mos_r3_asks_one_locator_and_derives_the_related_identifiers() -> None:
