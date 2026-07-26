@@ -8,6 +8,7 @@ contract. This module only reads and validates those local files.
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -62,6 +63,7 @@ class OperationSource:
     relative_path: str
     code: str
     text: str
+    blob_sha: str
     metadata: OperationMetadata
 
     @property
@@ -92,6 +94,17 @@ class OperationCatalogFinding:
 
     def render(self) -> str:
         return f"{self.code} {self.path}: {self.message} ({self.status})"
+
+
+def blob_sha_from_bytes(data: bytes) -> str:
+    """Compute the git blob SHA-1 of already-read bytes.
+
+    Taking the bytes rather than a path is what lets one read produce both the
+    text a consumer renders and the SHA that identifies it, so the two can never
+    describe different revisions of the same file.
+    """
+
+    return hashlib.sha1(b"blob %d\x00" % len(data) + data).hexdigest()
 
 
 def _code(value: str) -> str:
@@ -169,13 +182,15 @@ def load_operation_sources(operations_dir: Path) -> list[OperationSource]:
         code = _operation_code(path)
         if code is None:
             raise ValueError(f"operation filename has no MOS code: {path.relative_to(root)}")
-        text = path.read_text(encoding="utf-8")
+        data = path.read_bytes()
+        text = data.decode("utf-8")
         sources.append(
             OperationSource(
                 path=path,
                 relative_path=path.relative_to(root).as_posix(),
                 code=code,
                 text=text,
+                blob_sha=blob_sha_from_bytes(data),
                 metadata=parse_operation_metadata(text, code),
             )
         )

@@ -40,14 +40,24 @@ except ImportError:
     HAVE_PROMPT_TOOLKIT = False
 
 try:
-    from tools.operation_catalog import load_operation_sources, validate_operation_catalog
+    from tools.operation_catalog import (
+        OperationSource,
+        blob_sha_from_bytes,
+        load_operation_sources,
+        validate_operation_catalog,
+    )
     from tools.project_os_surfaces import (
         ProjectOSSurface,
         surface_for_language,
         surface_for_operations_dir,
     )
 except ModuleNotFoundError:  # Direct ``python tools/operation_prompt_wizard.py`` execution.
-    from operation_catalog import load_operation_sources, validate_operation_catalog  # type: ignore[no-redef]
+    from operation_catalog import (  # type: ignore[no-redef]
+        OperationSource,
+        blob_sha_from_bytes,
+        load_operation_sources,
+        validate_operation_catalog,
+    )
     from project_os_surfaces import (  # type: ignore[no-redef]
         ProjectOSSurface,
         surface_for_language,
@@ -156,6 +166,20 @@ class SkillOption:
 
 
 @dataclass(frozen=True)
+class OperationSnapshot:
+    """One immutable capture of the operation source a prompt is built from.
+
+    ``text`` and ``blob_sha`` always come from the same read of ``path``, so the
+    rendered body and the provenance that identifies it cannot drift apart: the
+    wizard never re-reads the source to obtain a second, possibly different SHA.
+    """
+
+    path: Path
+    text: str
+    blob_sha: str
+
+
+@dataclass(frozen=True)
 class OperationTemplate:
     """A discovered operation template and parsed metadata."""
 
@@ -163,15 +187,26 @@ class OperationTemplate:
     path: Path
     title: str
     description: str
-    text: str
+    snapshot: OperationSnapshot
     variables: tuple[InputVariable, ...]
     catalog_root: Path | None = None
     canonical_code: str | None = None
-    canonical_path: Path | None = None
     aliases: tuple[str, ...] = ()
     alias_of: str | None = None
     deprecation: str = "none"
     compatibility_reason: str = ""
+
+    @property
+    def text(self) -> str:
+        """The operational body, always read from the captured snapshot."""
+
+        return self.snapshot.text
+
+    @property
+    def canonical_path(self) -> Path:
+        """The source file the snapshot captured: canonical even for an alias."""
+
+        return self.snapshot.path
 
     @property
     def filename(self) -> str:
@@ -396,11 +431,10 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 path=source.path,
                 title=extract_title(source.text, source.path),
                 description=extract_description(source.text, source.path),
-                text=source.text,
+                snapshot=operation_snapshot(source),
                 variables=parse_input_variables(source.text),
                 catalog_root=operations_dir,
                 canonical_code=source.code,
-                canonical_path=source.path,
                 aliases=source.metadata.aliases,
                 deprecation=source.metadata.deprecation,
                 compatibility_reason=source.metadata.compatibility_reason,
@@ -414,17 +448,24 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 path=source.path,
                 title=extract_title(source.text, source.path),
                 description=extract_description(canonical.text, canonical.path),
-                text=canonical.text,
+                # An alias inherits the canonical snapshot whole: its body and
+                # its provenance identify the same single canonical capture.
+                snapshot=operation_snapshot(canonical),
                 variables=parse_input_variables(canonical.text),
                 catalog_root=operations_dir,
                 canonical_code=canonical.code,
-                canonical_path=canonical.path,
                 alias_of=canonical.code,
                 deprecation=source.metadata.deprecation,
                 compatibility_reason=source.metadata.compatibility_reason,
             )
         )
     return operations
+
+
+def operation_snapshot(source: OperationSource) -> OperationSnapshot:
+    """Carry one catalog read into the wizard without re-reading the source."""
+
+    return OperationSnapshot(path=source.path, text=source.text, blob_sha=source.blob_sha)
 
 
 def canonical_operations(operations: list[OperationTemplate]) -> list[OperationTemplate]:
@@ -1430,7 +1471,7 @@ def variable_summary_lines(operation: OperationTemplate) -> list[str]:
             f"Canonical resolution: {operation.mos_code} -> {operation.resolved_canonical_code} "
             f"({operation.deprecation})"
         )
-        if operation.canonical_path is not None and operation.catalog_root is not None:
+        if operation.catalog_root is not None:
             lines.append(
                 f"Canonical path: {operation.canonical_path.relative_to(operation.catalog_root).as_posix()}"
             )
@@ -1991,23 +2032,78 @@ def source_repository_identity() -> str:
 def git_blob_sha(path: Path) -> str:
     """Compute the git blob SHA-1 of a file so receivers can detect staleness."""
 
-    data = path.read_bytes()
-    return hashlib.sha1(b"blob %d\x00" % len(data) + data).hexdigest()
+    return blob_sha_from_bytes(path.read_bytes())
 
 
-def prompt_provenance_block(operation: OperationTemplate, generated_at: datetime | None = None) -> str:
-    """Build the provenance trailer that lets a receiver detect a stale prompt.
+def provenance_operation_path(source_path: Path) -> str:
+    """Reduce a snapshot source to a persistable, machine-independent identity."""
 
-    ``operation_path`` is always repository-relative; a custom catalog outside
-    the repository is reduced to ``custom:<filename>`` so no machine-local
-    absolute path is ever persisted.
+    try:
+        return source_path.resolve().relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        return f"custom:{source_path.name}"
+
+
+def snapshot_binding(operation_path: str, operation_blob_sha: str, rendered_body: str) -> str:
+    """Bind one rendered body to the snapshot identity declared next to it.
+
+    The wizard writes the body and its provenance from a single snapshot, so
+    this digest is the receiver-checkable form of that construction: swapping
+    either the body or the declared snapshot alone breaks it. It is an internal
+    integrity binding of the artifact, never authentication and never authority.
     """
 
-    source_path = operation.canonical_path or operation.path
+    digest = hashlib.sha256()
+    digest.update(b"project-os-operation-prompt-snapshot-binding-v1\n")
+    # Neither field can contain a newline, so the joined preimage is unambiguous.
+    digest.update(f"{operation_path}\n{operation_blob_sha}\n".encode("utf-8"))
+    digest.update(rendered_body.encode("utf-8"))
+    return digest.hexdigest()
+
+
+def preflight_live_operation_snapshot(operation: OperationTemplate) -> None:
+    """Fail closed when the source changed after the prompt's snapshot was taken.
+
+    Called immediately before writing: a source edited during the session makes
+    the already-rendered body and the live operation two different revisions,
+    and the wizard refuses to emit an artifact that mixes them.
+    """
+
+    snapshot = operation.snapshot
+    operation_path = provenance_operation_path(snapshot.path)
     try:
-        operation_path = source_path.resolve().relative_to(REPO_ROOT.resolve()).as_posix()
-    except ValueError:
-        operation_path = f"custom:{source_path.name}"
+        live_sha = git_blob_sha(snapshot.path)
+    except OSError as exc:
+        raise WizardError(
+            f"the operation changed during this session: {operation_path} is no longer "
+            f"readable ({exc.strerror or type(exc).__name__}); reload the catalog and "
+            "regenerate the prompt. No file was written."
+        ) from exc
+    if live_sha != snapshot.blob_sha:
+        raise WizardError(
+            f"the operation changed during this session: {operation_path} no longer "
+            "matches the snapshot this prompt was rendered from; reload the catalog "
+            "and regenerate the prompt instead of writing a body and a provenance "
+            "that identify different revisions. No file was written."
+        )
+
+
+def prompt_provenance_block(
+    operation: OperationTemplate,
+    rendered_body: str,
+    generated_at: datetime | None = None,
+) -> str:
+    """Build the provenance trailer that lets a receiver detect a stale prompt.
+
+    ``operation_blob_sha`` is the snapshot that produced ``rendered_body``, taken
+    when the operation was read, not a fresh reading of whatever happens to be
+    live at write time. ``operation_path`` is always repository-relative; a custom
+    catalog outside the repository is reduced to ``custom:<filename>`` so no
+    machine-local absolute path is ever persisted.
+    """
+
+    snapshot = operation.snapshot
+    operation_path = provenance_operation_path(snapshot.path)
     moment = (generated_at or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
     custom_hint = (
         " Custom catalogs pass `--catalog-root <live catalog dir>` to verify."
@@ -2018,12 +2114,15 @@ def prompt_provenance_block(operation: OperationTemplate, generated_at: datetime
         "<!-- prompt-provenance\n"
         f"source_repository: {source_repository_identity()}\n"
         f"operation_path: {operation_path}\n"
-        f"operation_blob_sha: {git_blob_sha(source_path)}\n"
+        f"operation_blob_sha: {snapshot.blob_sha}\n"
+        f"snapshot_binding: {snapshot_binding(operation_path, snapshot.blob_sha, rendered_body)}\n"
         f"generated_at: {moment}\n"
         "staleness: verify with `python tools/operation_prompt_wizard.py "
-        "--verify-prompt <this file>`; if the live operation at operation_path "
-        "no longer matches operation_blob_sha, reload it and regenerate this "
-        f"prompt instead of executing stale semantics.{custom_hint}\n"
+        "--verify-prompt <this file>`; operation_blob_sha identifies the snapshot "
+        "this body was rendered from, and snapshot_binding proves the two belong "
+        "together. If the live operation at operation_path no longer matches "
+        "operation_blob_sha, reload it and regenerate this prompt instead of "
+        f"executing stale semantics.{custom_hint}\n"
         "-->"
     )
 
@@ -2038,12 +2137,16 @@ def verify_prompt_provenance(
 ) -> tuple[bool, str]:
     """Fail closed unless the prompt's source operation is live and unchanged.
 
-    The receiver-side check: parse the provenance block, locate the live
-    operation, and compare its blob SHA. A repository-relative ``operation_path``
-    resolves inside this repository; a ``custom:<filename>`` path resolves inside
-    an explicitly supplied ``catalog_root`` (its live catalog), which lets custom
+    The receiver-side check: parse the provenance block, confirm the body was
+    rendered from the snapshot the block declares, then locate the live operation
+    and compare its blob SHA. A repository-relative ``operation_path`` resolves
+    inside this repository; a ``custom:<filename>`` path resolves inside an
+    explicitly supplied ``catalog_root`` (its live catalog), which lets custom
     catalogs be verified without ever persisting a machine-local absolute path.
-    Any missing, unresolvable, escaping, or mismatched provenance is stale.
+    Any missing, unresolvable, escaping, unbound, or mismatched provenance is
+    stale. The binding check runs first and needs no filesystem, so a body from
+    one snapshot carrying another snapshot's SHA is rejected deterministically
+    even when that other snapshot is the live one.
     """
 
     root = (repo_root or REPO_ROOT).resolve()
@@ -2061,8 +2164,20 @@ def verify_prompt_provenance(
             fields.setdefault(key.strip(), value.strip())
     operation_path = fields.get("operation_path", "")
     blob_sha = fields.get("operation_blob_sha", "")
-    if not operation_path or not re.fullmatch(r"[0-9a-f]{40}", blob_sha):
+    binding = fields.get("snapshot_binding", "")
+    if (
+        not operation_path
+        or not re.fullmatch(r"[0-9a-f]{40}", blob_sha)
+        or not re.fullmatch(r"[0-9a-f]{64}", binding)
+    ):
         return False, "incomplete or invalid provenance fields; regenerate the prompt"
+    if snapshot_binding(operation_path, blob_sha, text[: match.start()]) != binding:
+        return False, (
+            "stale prompt: the body does not belong to the declared snapshot "
+            "(snapshot_binding mismatch), so operation_blob_sha does not identify the "
+            "operation this prompt was rendered from; regenerate the prompt from the "
+            "live catalog instead of executing stale semantics"
+        )
     if operation_path.startswith("custom:"):
         if catalog_root is None:
             return False, (
@@ -2114,13 +2229,20 @@ def write_prompt(
     rendered_prompt: str,
     operation: OperationTemplate | None = None,
 ) -> Path:
-    """Write the prompt artifact, tagged with the wizard-generated marker, after confirmation."""
+    """Write the prompt artifact, tagged with the wizard-generated marker, after confirmation.
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    content = rendered_prompt if rendered_prompt.endswith("\n") else rendered_prompt + "\n"
+    The single write path of both interactive flows, so the snapshot preflight
+    here covers each of them: nothing is created when the operation changed
+    between its capture and this write.
+    """
+
+    body = rendered_prompt if rendered_prompt.endswith("\n") else rendered_prompt + "\n"
+    content = body
     if operation is not None:
-        content += prompt_provenance_block(operation) + "\n"
+        preflight_live_operation_snapshot(operation)
+        content += prompt_provenance_block(operation, body) + "\n"
     content += WIZARD_PROMPT_MARKER + "\n"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(content, encoding="utf-8")
     return output_path
 
@@ -3084,10 +3206,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         metavar="PROMPT",
         help=(
-            "Receiver-side provenance check for a generated prompt: compares "
-            "its operation_blob_sha against the live operation and fails "
-            "closed (exit 1) when the prompt is stale, unverifiable, or has "
-            "no provenance. Runs no wizard session."
+            "Receiver-side provenance check for a generated prompt: confirms the "
+            "body was rendered from the snapshot the prompt declares, compares "
+            "that operation_blob_sha against the live operation, and fails closed "
+            "(exit 1) when the prompt is stale, unbound, unverifiable, or has no "
+            "provenance. Runs no wizard session."
         ),
     )
     parser.add_argument(
