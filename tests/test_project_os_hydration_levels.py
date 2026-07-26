@@ -31,6 +31,14 @@ SELECTOR = {
     "mode_id": "mode.review_only",
 }
 LEVELS = ("minimal", "compact", "full/debug")
+RETIRED_IDENTIFIERS = (
+    "context_receipt",
+    "context_plan",
+    "context_provenance",
+    "executor_reported_fields",
+    "detailed_provenance_reasons",
+    "unknown_provenance_reason",
+)
 SAFETY_LIMITS = {
     "boundary.branch_preflight",
     "boundary.separate_pm_approval",
@@ -176,13 +184,8 @@ def test_levels_have_deterministic_monotonic_contract_shapes_and_keep_safety() -
     for level, result in results.items():
         resolved = result["resuelto"]
         assert result["estado"] == "status.resolved", level
-        # No level pays for provenance; raising density never turns it back on.
-        assert "context_plan" not in result, level
-        contract = resolved["workflow"]["context_receipt_contract"]
-        assert contract["detailed_provenance_default"] == "omitted"
-        assert contract["pm_facing_traceability"] == "reviewed_evidence"
-        assert contract["stores_source_bodies"] is False
-        assert contract["stores_durable_live_state"] is False
+        serialized = json.dumps(result, ensure_ascii=False)
+        assert not any(identifier in serialized for identifier in RETIRED_IDENTIFIERS), level
         assert "nunca concede permisos" in result["autorizacion"]
         assert item_keys(resolved["limites"]) == expected_limits
         assert SAFETY_LIMITS <= item_keys(resolved["limites"])

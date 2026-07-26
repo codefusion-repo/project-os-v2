@@ -210,10 +210,8 @@ The response declares `hydration_level` and has these deterministic shapes:
 - `full/debug`: all of `compact` plus complete selected-resolution metadata,
   including active flags and internal audit links.
 
-No level returns `context_plan`: detailed resolver provenance is a separate,
-explicit route (`--context-provenance <reason>`). During execution, PM-facing
-traceability is the output's reviewed evidence and no level adds a receipt
-block. Bare `debug` is not a valid alias.
+During execution, PM-facing traceability is the output's reviewed evidence.
+Bare `debug` is not a valid alias.
 
 ```sh
 python tools/project_os_resolve.py --actor actor.terminal_agent \

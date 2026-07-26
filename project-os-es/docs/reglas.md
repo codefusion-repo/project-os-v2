@@ -90,21 +90,13 @@ en vez de repetir cuerpos completos; usa subagentes solo con razón acotada y
 verifica su salida contra evidencia viva. El detalle operativo de esta
 superficie vive en `project-os-es/kernel/reglas-operativas.json`.
 
-La superficie normal de lectura parte en el manifest y se limita a la
-resolución seleccionada, límites y evidencia, output y artefacto aplicables,
-template exacto, skills solicitadas, evidencia viva mínima y fuentes del target
-requeridas por scope, validación o source basis. Tooling interno, metadata
-proyectada, contexto real del modelo y aperturas posteriores son categorías
-distintas. `context_receipt.minimum_read_surface` acota esa superficie normal.
-La trazabilidad PM-facing predeterminada es la evidencia revisada del output:
-ninguna resolución normal devuelve `context_plan` ni agrega un bloque de recibo,
-en ningún nivel. La procedencia detallada se solicita explícitamente
-(`--context-provenance <razón>`) y usa paths relativos al repositorio o
-identificadores vivos y razones cortas, nunca paths absolutos de máquina ni
-cuerpos completos.
-Lecturas fuera de la superficie normal requieren `full/debug`, auditoría,
-debugging, revisión de seguridad/autorización, arquitectura compleja o una
-decisión PM concreta; ninguna razón sustituye evidencia ni gates.
+Después de resolver, abre la resolución seleccionada, límites y evidencia,
+output y artefacto aplicables, template exacto, skills solicitadas, evidencia
+viva mínima y fuentes del target requeridas por scope, validación o source
+basis. Las aperturas posteriores requieren la misma justificación y nunca
+exponen paths absolutos de máquina ni cuerpos completos. La trazabilidad
+PM-facing predeterminada es la evidencia revisada del output; ninguna razón
+sustituye evidencia ni gates.
 
 ## Secretos
 

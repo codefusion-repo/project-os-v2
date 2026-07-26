@@ -95,44 +95,6 @@ SAFE_DEGRADATION_CONTRACT = {
     "completion_claim_with_gaps": False,
     "revalidation_required_before_write": True,
 }
-CONTEXT_RECEIPT_KEY = "context_receipt.minimum_read_surface"
-# Provenance the executor alone observes; resolver-known provenance lives in the
-# on-request ``context_plan`` and is never duplicated into this list.
-CONTEXT_RECEIPT_EXECUTOR_FIELDS = [
-    "project_os_sources_read",
-    "target_sources_read",
-    "live_evidence_sources",
-    "model_context_sources",
-]
-CONTEXT_PROVENANCE_REASONS = [
-    "audit",
-    "debugging",
-    "security_or_authorization_review",
-    "incorrect_resolution_investigation",
-]
-CONTEXT_RECEIPT_CONTRACT = {
-    "key": CONTEXT_RECEIPT_KEY,
-    "normal_read_surface": [
-        "selected_resolution",
-        "required_limits_and_evidence",
-        "applicable_output_and_artifact",
-        "resolved_template",
-        "requested_skills",
-        "minimum_live_evidence",
-        "target_scope_validation_or_source_basis",
-    ],
-    "pm_facing_traceability": "reviewed_evidence",
-    "detailed_provenance_default": "omitted",
-    "detailed_provenance_reasons": CONTEXT_PROVENANCE_REASONS,
-    "resolver_provenance_field": "context_plan",
-    "executor_reported_fields": CONTEXT_RECEIPT_EXECUTOR_FIELDS,
-    "source_reference_format": "repository_relative_path_or_live_identifier",
-    "reason_format": "short_non_sensitive_identifier",
-    "stores_source_bodies": False,
-    "stores_secret_values": False,
-    "stores_durable_live_state": False,
-    "resolver_external_access": False,
-}
 HYDRATION_LEVELS = ["minimal", "compact", "full/debug"]
 PROPORTIONALITY_KEY = "proportionality.change_class"
 CHANGE_CLASS_KEYS = [
@@ -185,7 +147,7 @@ def _load(
         contract_fields = {
             "evidence": ("materiality_contract",),
             "workflows": ("proportionality_contract",),
-            "outputs": ("safe_degradation_contract", "context_receipt_contract"),
+            "outputs": ("safe_degradation_contract",),
         }.get(family, ())
         for contract_field in contract_fields:
             contract = content.get(contract_field)
@@ -480,31 +442,6 @@ def _check_output_density_schema(
                 )
 
 
-def _check_context_receipt_schema(
-    data: dict[str, Any],
-    surface: ProjectOSSurface,
-    findings: list[Finding],
-) -> None:
-    output_file = surface.kernel_files["outputs"][0]
-    if data.get("context_receipt_contract") != CONTEXT_RECEIPT_CONTRACT:
-        findings.append(
-            Finding(
-                "KES-017",
-                output_file,
-                "context_receipt_contract does not match the canonical schema",
-            )
-        )
-    for output in data["outputs"]:
-        if output.get("context_receipt_key") != CONTEXT_RECEIPT_KEY:
-            findings.append(
-                Finding(
-                    "KES-017",
-                    output_file,
-                    f"{output.get('key')!r} does not reference the canonical context receipt",
-                )
-            )
-
-
 def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[str, Any] | None:
     try:
         evidence_doc = json.loads((directory / surface.kernel_files["evidence"][0]).read_text(encoding="utf-8"))
@@ -571,7 +508,6 @@ def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[s
         "materiality_contract": evidence_doc.get("materiality_contract"),
         "proportionality_contract": proportionality_projection(workflows_doc),
         "safe_degradation_contract": outputs_doc.get("safe_degradation_contract"),
-        "context_receipt_contract": outputs_doc.get("context_receipt_contract"),
         "evidence": {
             item.get("key"): evidence_projection(item)
             for item in active_items(evidence_doc, "evidence")
@@ -589,7 +525,6 @@ def _new_schema_projection(directory: Path, surface: ProjectOSSurface) -> dict[s
                 "action_class": item.get("action_class"),
                 "allows_non_material_gaps": item.get("allows_non_material_gaps"),
                 "safe_degradation_key": item.get("safe_degradation_key"),
-                "context_receipt_key": item.get("context_receipt_key"),
                 "must_include_by_density_keys": density_keys(item),
             }
             for item in active_items(outputs_doc, "outputs")
@@ -827,7 +762,6 @@ def validate_kernel(kernel_dir: Path | str | None = None) -> list[Finding]:
     _check_materiality_schema(data, surface, indexes, findings)
     _check_proportionality_schema(data, surface, indexes, findings)
     _check_output_density_schema(data, surface, findings)
-    _check_context_receipt_schema(data, surface, findings)
     _check_bilingual_new_schema_parity(directory, surface, findings)
     _check_operation_catalogs(directory, surface, findings)
     _check_operation_kernel_coherence(surface, actors, workflows, data["artifacts"], findings)

@@ -139,7 +139,7 @@ def _load(
         contract_fields = {
             "evidence": ("materiality_contract",),
             "workflows": ("proportionality_contract",),
-            "outputs": ("safe_degradation_contract", "context_receipt_contract"),
+            "outputs": ("safe_degradation_contract",),
         }.get(family, ())
         for contract_field in contract_fields:
             contract = content.get(contract_field)
@@ -363,7 +363,6 @@ def _allowed_outputs(outputs: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "action_class",
             "allows_non_material_gaps",
             "safe_degradation_key",
-            "context_receipt_key",
             "must_include",
         )
         for item in outputs
@@ -415,7 +414,6 @@ def _minimal_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
             "key": workflow["key"],
             "materiality_contract": workflow["materiality_contract"],
             "safe_degradation_contract": workflow["safe_degradation_contract"],
-            "context_receipt_contract": workflow["context_receipt_contract"],
             "required_evidence": _required_evidence(workflow["required_evidence"]),
             "minimum_evidence": _required_evidence(workflow["minimum_evidence"]),
             "allowed_outputs": _allowed_outputs(workflow["allowed_outputs"]),
@@ -461,7 +459,6 @@ def _compact_resolution(resolved: dict[str, Any]) -> dict[str, Any]:
             "required_behavior": workflow["required_behavior"],
             "materiality_contract": workflow["materiality_contract"],
             "safe_degradation_contract": workflow["safe_degradation_contract"],
-            "context_receipt_contract": workflow["context_receipt_contract"],
             "required_evidence": _required_evidence(workflow["required_evidence"]),
             "minimum_evidence": _required_evidence(workflow["minimum_evidence"]),
             "allowed_outputs": _allowed_outputs(workflow["allowed_outputs"]),
@@ -501,70 +498,6 @@ def _project_resolution(
     return resolved
 
 
-def _context_plan(
-    resolved: dict[str, Any],
-    projected: dict[str, Any],
-    provenance_reason: str,
-    surface: ProjectOSSurface,
-) -> dict[str, Any]:
-    """Report resolver-observable provenance for one explicit audit or debugging request.
-
-    This is never part of a normal resolution: the caller must ask for it with an
-    allowed reason. It carries only what the resolver alone observes; anything the
-    resolution already states (contract key, hydration level, normal read surface,
-    executor-reported fields, external-access flag) is read from the resolved
-    contract instead of being duplicated here.
-    """
-
-    kernel_sources = {
-        "manifest": ("manifest",),
-        "reglas_operativas": ("operational_rules",),
-        "actor": ("actors",),
-        "limites": ("limits",),
-        "mode": ("modes",),
-        "workflow": ("workflows", "evidence", "outputs", "artifacts"),
-        "change_class": ("workflows",),
-        "estados_permitidos": ("statuses",),
-        "requested_skills": ("skills",),
-    }
-
-    def kernel_path(family: str) -> str:
-        filename = surface.kernel_files[family][0]
-        return f"{surface.root_name}/kernel/{filename}"
-
-    projected_metadata: dict[str, list[str]] = {}
-    for field in projected:
-        families = kernel_sources.get(field, ())
-        if families:
-            projected_metadata[f"resuelto.{field}"] = [
-                kernel_path(family) for family in families
-            ]
-
-    return {
-        "provenance_reason": provenance_reason,
-        "tool_internal_sources": [
-            kernel_path(family) for family in surface.kernel_files
-        ],
-        "resolver_projected_metadata": projected_metadata,
-        "resolved_templates": [
-            {
-                "artifact": artifact["key"],
-                "output": artifact["output_key"],
-                "source": artifact["required_template"],
-            }
-            for artifact in resolved["workflow"]["artefactos"]
-        ],
-        "requested_skills": [
-            {
-                "key": skill["key"],
-                "source": skill["required_skill"],
-            }
-            for skill in resolved.get("requested_skills", [])
-        ],
-        "model_context_observation": "executor_report_required",
-    }
-
-
 def resolver(
     actor: str | None,
     mode: str | None = None,
@@ -574,7 +507,6 @@ def resolver(
     hydration_level: str | DensityLevel | None = None,
     compact: str | DensityLevel | None = None,
     change_class: str | None = None,
-    context_provenance: str | None = None,
 ) -> dict[str, Any]:
     """Resolve an allowed kernel, defaulting to compact Spanish guidance.
 
@@ -582,10 +514,8 @@ def resolver(
     hydration level, which always defaults to compact and only changes through
     an explicit override. A declared ``change_class`` must be coherent with the
     selected workflow; it selects the proportional gates and the report density,
-    never the hydration level. ``context_provenance`` is the only way to obtain
-    ``context_plan``: a normal resolution never carries it, at any hydration
-    level. Neither the level, the density, the class, the provenance request,
-    nor this result grants authority.
+    never the hydration level. Neither the level, the density, the class, nor
+    this result grants authority.
     """
     surface, directory = select_surface(kernel_dir)
     selected_hydration_level, hydration_errors = _parse_hydration_level(
@@ -610,19 +540,6 @@ def resolver(
     data, errors = _load(directory, surface)
     if errors:
         return _fail_closed(errors, surface, selected_hydration_level)
-
-    # The receipt contract owns the allowed reasons, so an unknown one fails
-    # closed instead of silently downgrading to a normal resolution.
-    allowed_reasons = data["context_receipt_contract"].get("detailed_provenance_reasons", [])
-    if context_provenance is not None and context_provenance not in allowed_reasons:
-        return _fail_closed(
-            [
-                f"{surface.messages['unknown_provenance_reason']}: {context_provenance!r} "
-                f"({surface.messages['known']}: {sorted(allowed_reasons)})"
-            ],
-            surface,
-            selected_hydration_level,
-        )
 
     manifests = data["manifest"]
     if len(manifests) != 1:
@@ -767,7 +684,6 @@ def resolver(
             "materiality_contract": data["materiality_contract"],
             "proportionality_contract": data["proportionality_contract"],
             "safe_degradation_contract": data["safe_degradation_contract"],
-            "context_receipt_contract": data["context_receipt_contract"],
             "required_evidence": [
                 _fields(
                     item,
@@ -808,7 +724,6 @@ def resolver(
                         "action_class",
                         "allows_non_material_gaps",
                         "safe_degradation_key",
-                        "context_receipt_key",
                     ),
                     "must_include": _projected_must_include(item, report_density),
                     "active": item.get("active"),
@@ -835,10 +750,6 @@ def resolver(
         "autorizacion": surface.authorization_notice,
         "errores": [],
     }
-    if context_provenance is not None:
-        result["context_plan"] = _context_plan(
-            resolved, projected, context_provenance, surface
-        )
     return result
 
 
@@ -851,7 +762,6 @@ def resolve(
     hydration_level: str | DensityLevel | None = None,
     compact: str | DensityLevel | None = None,
     change_class: str | None = None,
-    context_provenance: str | None = None,
 ) -> dict[str, Any]:
     """Compatibility import; Spanish remains the default surface."""
     return resolver(
@@ -863,7 +773,6 @@ def resolve(
         hydration_level=hydration_level,
         compact=compact,
         change_class=change_class,
-        context_provenance=context_provenance,
     )
 
 
@@ -896,16 +805,6 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
-        "--context-provenance",
-        default=None,
-        metavar="REASON",
-        help=(
-            "explicitly request detailed resolver provenance (context_plan) for one "
-            "allowed reason: audit, debugging, security_or_authorization_review, or "
-            "incorrect_resolution_investigation; omitted, no provenance is returned"
-        ),
-    )
-    parser.add_argument(
         "--compact",
         action="store_true",
         help="omit JSON indentation; legacy formatting flag, not a hydration selector",
@@ -920,7 +819,6 @@ def main(argv: list[str] | None = None) -> int:
             args.skill,
             hydration_level=args.hydration_level,
             change_class=args.change_class,
-            context_provenance=args.context_provenance,
         )
     except Exception as exc:
         surface, _ = select_surface(args.kernel_dir)

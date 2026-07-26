@@ -55,8 +55,7 @@ in the route prompt for the receiver's verification. `HYDRATION_LEVEL` is not
 derived from `CHANGE_CLASS`: the resolver applies `compact` by default for every
 class, so without an override the variable is omitted; it controls only
 the resolver's hydrated content and no level changes gates, report density, or
-authority, and none returns `context_plan` or adds a
-receipt block. The wizard captures the declared human inputs and assists with
+authority. The wizard captures the declared human inputs and assists with
 `PM_AUTHORIZATION_STATUS`; it does not request `SOURCE_REVIEW`, `PR_NUMBER`,
 `CHANGE_CLASS`, or the hydration when they can be derived or omitted. As in MOS-3.4,
 hydration keeps a single explicit override route —`/hydration <level>` in the

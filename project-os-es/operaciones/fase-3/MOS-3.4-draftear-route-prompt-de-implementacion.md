@@ -56,8 +56,7 @@ verificación; gobierna los gates materiales y la densidad del execution report,
 nunca la hidratación del resolver. `HYDRATION_LEVEL` no se deriva de la clase:
 el resolver aplica `compact` por defecto para cualquier clase, así que sin
 override la variable se omite. Controla únicamente el contenido hidratado del
-resolver: ningún nivel cambia gates, densidad del reporte ni autoridad, ni
-devuelve `context_plan` o agrega un bloque de recibo. El wizard captura
+resolver: ningún nivel cambia gates, densidad del reporte ni autoridad. El wizard captura
 los inputs humanos declarados y asiste `PM_AUTHORIZATION_STATUS`; no solicita la
 clase, la hidratación, el roadmap ni la rama cuando pueden derivarse u omitirse.
 La hidratación conserva una única ruta de override: una decisión PM explícita

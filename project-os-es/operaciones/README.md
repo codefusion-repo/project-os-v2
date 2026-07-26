@@ -209,9 +209,7 @@ Precedencia al resolver cualquiera de esas variables:
 scope, riesgo y superficies afectadas, y se conserva en intake, implementación,
 review, closeout y verificación— que gobierna los gates materiales y la densidad
 del execution report; `HYDRATION_LEVEL` no se deriva de ella. El resolver aplica
-`compact` por defecto para cualquier clase, ningún nivel devuelve `context_plan`
-ni agrega un bloque de recibo, y la procedencia detallada requiere una solicitud
-explícita (`--context-provenance <razón>`). Por eso el wizard de `MOS-3.4` y
+`compact` por defecto para cualquier clase. Por eso el wizard de `MOS-3.4` y
 `MOS-3.5` captura solo inputs humanos: el locator cuando hace falta,
 `OPTIONAL_SKILL`, feedback o preguntas del PM, `PM_AUTHORIZATION_STATUS` y, solo
 en una ruta `output.route_prompt`, el override explícito. La hidratación conserva

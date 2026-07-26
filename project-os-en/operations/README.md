@@ -130,10 +130,8 @@ Precedence when resolving any of those variables:
 risk, and affected surfaces, and preserved across intake, implementation, review,
 closeout, and verification— that governs the material gates and the execution
 report density; `HYDRATION_LEVEL` is not derived from it. The resolver applies
-`compact` by default for every class, no
-level returns `context_plan` or adds a receipt block, and detailed provenance
-requires an explicit request (`--context-provenance <reason>`). That is why the
-wizard for `MOS-3.4` and `MOS-3.5` captures only human inputs: the locator when
+`compact` by default for every class. That is why the wizard for `MOS-3.4` and
+`MOS-3.5` captures only human inputs: the locator when
 needed, `OPTIONAL_SKILL`, PM feedback or questions,
 `PM_AUTHORIZATION_STATUS`, and, only on an `output.route_prompt` path, the
 explicit override. Hydration keeps a single category-1 override route:

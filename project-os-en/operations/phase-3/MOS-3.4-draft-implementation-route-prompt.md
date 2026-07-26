@@ -52,8 +52,7 @@ verification; it governs the material gates and the execution report density,
 never the resolver hydration. `HYDRATION_LEVEL` is not derived from the class:
 the resolver applies `compact` by default for every class, so without an override
 the variable is omitted. It controls only the resolver's hydrated content: no
-level changes gates, report density, or authority, and none returns
-`context_plan` or adds a receipt block. The wizard captures the declared human
+level changes gates, report density, or authority. The wizard captures the declared human
 inputs and assists with `PM_AUTHORIZATION_STATUS`; it does not request the
 class, the hydration, the roadmap, or the branch when they can be derived or omitted.
 Hydration keeps a single override route: an explicit PM decision

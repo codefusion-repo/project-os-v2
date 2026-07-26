@@ -117,22 +117,13 @@ resolver aborta el fast path, ningún paso posterior queda habilitado.
 
 El resolver acelera la resolución; el manifest sigue siendo canónico. Ambos
 solo dan forma y nunca autorizan una acción. Consulta artefactos, templates y
-skills desde las referencias resueltas, sin copiar sus contratos aquí. Una
-resolución normal no devuelve `context_plan`: la procedencia detallada del
-resolver requiere `--context-provenance <razón>` con una razón de
-`detailed_provenance_reasons`, y aun entonces no es prueba del contenido
-entregado al modelo.
+skills desde las referencias resueltas, sin copiar sus contratos aquí.
 
 Abre después de resolver solo el template aplicable, las skills solicitadas y
 las fuentes Project OS, target o evidencia viva exigidas por scope, validación
 o source basis. La trazabilidad PM-facing es `Evidencia revisada` y su
-equivalente por output; no agregues un bloque de recibo en ningún nivel. Cuando
-el PM pida procedencia detallada por auditoría, debugging, revisión de seguridad
-o autorización, o investigación de una resolución incorrecta, reporta los
-`executor_reported_fields` del contrato junto al `context_plan` solicitado, con
-paths relativos al repositorio o identificadores vivos y razones cortas, nunca
-con cuerpos completos. Una lectura adicional requiere una razón admitida por el
-contrato; no recorras recursivamente Project OS por defecto.
+equivalente por output. Una lectura adicional debe estar justificada por scope,
+validación o source basis; no recorras recursivamente Project OS por defecto.
 
 ## Evidencia viva
 

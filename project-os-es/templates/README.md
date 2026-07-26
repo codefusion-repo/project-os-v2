@@ -10,18 +10,11 @@ El catalogo `project-os-es/kernel/artefactos.json` enlaza cada artefacto con
 exactamente un `required_template`. El resolver debe exponer esas referencias,
 no copiar el contenido del template.
 
-Todo output referencia `context_receipt.minimum_read_surface`, que acota la
-superficie de lectura normal. Ningún template agrega un bloque de recibo: la
-trazabilidad PM-facing es `Evidencia revisada` y su equivalente por output.
-La procedencia detallada no es predeterminada; el PM la solicita para auditoría,
-debugging, revisión de seguridad o autorización, o investigación de una
-resolución incorrecta, y entonces el agente reporta sus
-`executor_reported_fields` junto al `context_plan` del resolver
-(`--context-provenance <razón>`). Esa procedencia usa paths relativos al
-repositorio o identificadores vivos y razones cortas; nunca paths absolutos de
-máquina, cuerpos, secretos ni estado vivo durable. Cuando un artefacto exige un
-cuerpo exacto —por ejemplo un route prompt— la procedencia queda fuera de ese
-cuerpo y no lo altera.
+La trazabilidad PM-facing es `Evidencia revisada` y su equivalente por output.
+Las lecturas se limitan a las fuentes exigidas por scope, validación o source
+basis; nunca exponen paths absolutos de máquina, cuerpos, secretos ni estado
+vivo durable. Cuando un artefacto exige un cuerpo exacto —por ejemplo un route
+prompt— el template es su única fuente.
 
 ## Puente operativo
 
