@@ -14,17 +14,19 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Variables**
 - Requeridas: — (ninguna)
-- Opcionales: TARGET_REPOSITORY, AUDIT_SCOPE, PATH_SCOPE, FOCUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Opcionales: AUDIT_SCOPE, PATH_SCOPE, FOCUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
 
-**Locators alternativos y constraints humanos:** `TARGET_REPOSITORY` y
-`AUDIT_SCOPE` son locators alternativos, nunca requisitos acumulativos. Primero
-reutiliza una fuente inequívoca ya seleccionada. Sin ella, una auditoría
-deliberadamente repo-wide pide `TARGET_REPOSITORY`; una auditoría acotada pide
-`AUDIT_SCOPE` —issue o PR— y deriva desde esa fuente el repositorio y las demás
-relaciones verificables. `PATH_SCOPE` y `FOCUS` son constraints humanos
-opcionales, no metadata derivada. Si no existe fuente suficiente, o ambos
-locators se declaran y resuelven targets incompatibles, falla cerrado con
-`status.needs_context`; nunca elige un target ni mezcla evidencias.
+**Locator único y constraints humanos:** `AUDIT_SCOPE` es el único locator
+primario y nunca se combina con otro locator en la captura rutinaria. Primero
+reutiliza una fuente inequívoca ya seleccionada; en ese caso `AUDIT_SCOPE` puede
+quedar vacío. Sin contexto suficiente, recibe exactamente una referencia
+verificable: `owner/repo` para una auditoría repo-wide, o issue o PR para una
+auditoría acotada. Deriva desde esa fuente o desde el contexto el repositorio y
+las demás relaciones verificables. `PATH_SCOPE` y `FOCUS` son constraints
+humanos opcionales, no metadata derivada. Si falta locator y contexto suficiente,
+el formato no es verificable, o la evidencia resuelve fuentes incompatibles,
+falla cerrado con `status.needs_context`; nunca elige un target ni mezcla
+evidencias.
 
 **Entrega:** output.review_result (+output.draft_issue). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

@@ -398,7 +398,7 @@ def test_mos_0_1_activates_an_unbound_session_without_a_target(
 
 
 @pytest.mark.parametrize("language", ("es", "en"))
-def test_mos_3_24_accepts_one_scoped_locator_without_a_redundant_repository(
+def test_mos_3_24_accepts_one_locator_without_a_redundant_repository(
     tmp_path: Path, language: str
 ) -> None:
     operation = next(
@@ -406,32 +406,64 @@ def test_mos_3_24_accepts_one_scoped_locator_without_a_redundant_repository(
     )
     variables = {variable.name: variable for variable in operation.variables}
 
-    assert variables["TARGET_REPOSITORY"].required is False
     assert variables["AUDIT_SCOPE"].required is False
     assert variables["PATH_SCOPE"].required is False
     assert variables["FOCUS"].required is False
+    assert set(variables) == {
+        "AUDIT_SCOPE",
+        "PATH_SCOPE",
+        "FOCUS",
+        "PM_FEEDBACK_HUMANO",
+        "PM_QUESTION_HUMANO",
+    }
 
-    output = run_wizard(
-        language=language,
-        output_dir=tmp_path,
-        input_func=answers(
-            "MOS-3.24",
-            "",
-            "issue #465",
-            "",
-            "",
-            "",
-            "",
-            "write",
-            "exit",
-        ),
-        output_stream=StringIO(),
-    )
+    audit_scopes = ("codefusion-repo/project-os-v2", "issue #465", "PR #467")
+    for index, audit_scope in enumerate(audit_scopes):
+        stream = StringIO()
+        prompts: list[str] = []
+        responses = iter(
+            (
+                "MOS-3.24",
+                audit_scope,
+                "src",
+                "single locator",
+                "",
+                "",
+                "write",
+                "exit",
+            )
+        )
 
-    assert output is not None
-    content = output.read_text(encoding="utf-8")
-    assert "TARGET_REPOSITORY=" in content
-    assert "AUDIT_SCOPE=issue #465" in content
+        def input_func(prompt: str) -> str:
+            prompts.append(prompt)
+            return next(responses)
+
+        output = run_wizard(
+            language=language,
+            output_dir=tmp_path / str(index),
+            input_func=input_func,
+            output_stream=stream,
+        )
+
+        assert output is not None
+        assert "TARGET_REPOSITORY" not in stream.getvalue()
+        assert sum(prompt.startswith("AUDIT_SCOPE (optional") for prompt in prompts) == 1
+        content = output.read_text(encoding="utf-8")
+        assert "TARGET_REPOSITORY=" not in content
+        assert content.count("AUDIT_SCOPE=") == 1
+        assert f"AUDIT_SCOPE={audit_scope}" in content
+        assert "PATH_SCOPE=src" in content
+        assert "FOCUS=single locator" in content
+
+
+def test_audit_scope_rejects_unverifiable_locator_formats() -> None:
+    variable = InputVariable("AUDIT_SCOPE", "<AUDIT_SCOPE>", False, "")
+
+    for valid in ("", "codefusion-repo/project-os-v2", "issue #465", "PR 467"):
+        assert validate_variable_value(variable, valid) is None
+    for invalid in ("owner", "issue", "#465", "review #467", "https://github.com/o/r"):
+        error = validate_variable_value(variable, invalid)
+        assert error is not None and "AUDIT_SCOPE must be owner/repo, issue #N, or PR #N" in error
 
 
 @pytest.mark.parametrize("language", ("es", "en"))

@@ -74,6 +74,10 @@ INPUT_VARIABLE_PATTERN = re.compile(
 )
 REPOSITORY_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 POSITIVE_NUMBER_PATTERN = re.compile(r"^#?[1-9][0-9]*$")
+AUDIT_SCOPE_PATTERN = re.compile(
+    r"(?:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+|(?:issue|pr)\s+#?[1-9][0-9]*)$",
+    re.IGNORECASE,
+)
 SAFE_FILENAME_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
 SECRET_LOOKING_PATTERN = re.compile(
     r"\b(?:gh[pousr]_[A-Za-z0-9_]{12,}|github_pat_[A-Za-z0-9_]{20,}|"
@@ -693,6 +697,12 @@ def validate_variable_value(
     if is_issue_or_pr_number(variable.name) and not POSITIVE_NUMBER_PATTERN.fullmatch(stripped):
         return f"{variable.name} must be a positive issue/PR number. Examples: 123 or #123."
 
+    if variable.name == "AUDIT_SCOPE" and not AUDIT_SCOPE_PATTERN.fullmatch(stripped):
+        return (
+            "AUDIT_SCOPE must be owner/repo, issue #N, or PR #N. "
+            "Examples: codefusion-repo/project-os-v2, issue #465, or PR #467."
+        )
+
     if is_repository_variable(variable.name) and not REPOSITORY_PATTERN.fullmatch(stripped):
         return f"{variable.name} must look like owner/repo. Example: codefusion-repo/project-os-v2."
 
@@ -722,6 +732,8 @@ def validation_example(
         return f"Use one of: {', '.join(choices)}."
     if is_issue_or_pr_number(variable.name):
         return "Example: 123 or #123."
+    if variable.name == "AUDIT_SCOPE":
+        return "Example: owner/repo, issue #465, or PR #467."
     if is_repository_variable(variable.name):
         return "Example: codefusion-repo/project-os-v2."
     if is_positive_limit_variable(variable.name):

@@ -14,16 +14,17 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Variables**
 - Required: — (none)
-- Optional: TARGET_REPOSITORY, AUDIT_SCOPE, PATH_SCOPE, FOCUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are human context only and never authorize an action)
+- Optional: AUDIT_SCOPE, PATH_SCOPE, FOCUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are human context only and never authorize an action)
 
-**Alternative locators and human constraints:** `TARGET_REPOSITORY` and
-`AUDIT_SCOPE` are alternative locators, never cumulative requirements. First
-reuse an unambiguous source already selected. Without one, a deliberately
-repo-wide audit asks for `TARGET_REPOSITORY`; a scoped audit asks for
-`AUDIT_SCOPE` —an issue or PR— and derives the repository and the remaining
-verifiable relations from that source. `PATH_SCOPE` and `FOCUS` are optional
-human constraints, not derived metadata. If no sufficient source exists, or
-both locators are declared and resolve to incompatible targets, fail closed with
+**Single locator and human constraints:** `AUDIT_SCOPE` is the only primary
+locator and is never combined with another locator in routine capture. First
+reuse an unambiguous source already selected; in that case `AUDIT_SCOPE` may be
+empty. Without sufficient context, supply exactly one verifiable reference:
+`owner/repo` for a repo-wide audit, or an issue or PR for a scoped audit. Derive
+the repository and the remaining verifiable relations from that source or the
+context. `PATH_SCOPE` and `FOCUS` are optional human constraints, not derived
+metadata. If a locator and sufficient context are both absent, its format is not
+verifiable, or the evidence resolves incompatible sources, fail closed with
 `status.needs_context`; never select a target or mix evidence.
 
 **Deliver:** output.review_result (+output.draft_issue). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
