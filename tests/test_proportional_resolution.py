@@ -1,8 +1,9 @@
 """Behavioral guards for change-class enforcement and density projection.
 
-These cover only executable resolver behavior: fail-closed coherence, the
-non-downgradable critical gate, mutation requiring a declared class, and the
-per-density field projection. They intentionally do not assert configured prose.
+These cover only executable resolver behavior: fail-closed coherence, mutation
+requiring a declared class, the material gates the class keeps, and the report
+density projected from the class independently of hydration. They intentionally
+do not assert configured prose.
 """
 
 from __future__ import annotations
@@ -34,13 +35,18 @@ def execution_report(result: dict) -> dict:
 
 
 @pytest.mark.parametrize("kernel_dir", (ES_KERNEL, EN_KERNEL))
-def test_declared_small_class_resolves_with_minimal_density_default(kernel_dir: Path) -> None:
-    result = resolve(**IMPLEMENTATION, kernel_dir=kernel_dir, change_class="change_class.small")
+@pytest.mark.parametrize(
+    "change_class", ("change_class.small", "change_class.standard", "change_class.critical")
+)
+def test_every_class_resolves_at_the_compact_hydration_default(
+    kernel_dir: Path, change_class: str
+) -> None:
+    result = resolve(**IMPLEMENTATION, kernel_dir=kernel_dir, change_class=change_class)
 
     assert result["estado"] == "status.resolved"
-    assert result["hydration_level"] == "minimal"
+    assert result["hydration_level"] == "compact"
     selected = result["resuelto"]["change_class"]
-    assert selected["key"] == "change_class.small"
+    assert selected["key"] == change_class
     assert selected["contract_key"] == "proportionality.change_class"
     assert "workflow.issue_implementation" in selected["allowed_workflows"]
 
@@ -76,37 +82,64 @@ def test_read_only_stage_needs_no_class_but_the_write_stage_does() -> None:
     assert write_without_class["resuelto"] is None
 
 
-def test_critical_density_is_full_debug_and_cannot_be_downgraded() -> None:
+@pytest.mark.parametrize("level", LEVELS)
+def test_any_level_resolves_for_a_critical_class_without_a_ranking(level: str) -> None:
+    result = resolve(
+        **IMPLEMENTATION,
+        kernel_dir=ES_KERNEL,
+        change_class="change_class.critical",
+        hydration_level=level,
+    )
+
+    assert result["estado"] == "status.resolved"
+    assert result["hydration_level"] == level
+
+
+def test_critical_class_keeps_its_gates_and_report_at_the_compact_default() -> None:
     default = resolve(**IMPLEMENTATION, kernel_dir=ES_KERNEL, change_class="change_class.critical")
-    kept = resolve(
+    audited = resolve(
         **IMPLEMENTATION,
         kernel_dir=ES_KERNEL,
         change_class="change_class.critical",
         hydration_level="full/debug",
     )
-    downgraded = resolve(
-        **IMPLEMENTATION,
-        kernel_dir=ES_KERNEL,
-        change_class="change_class.critical",
-        hydration_level="compact",
+
+    assert default["hydration_level"] == "compact"
+    gates = {gate["gate"]: gate["required"] for gate in default["resuelto"]["change_class"]["remaining_gates"]}
+    assert gates == {
+        "formal_unit_required": True,
+        "pr_required": True,
+        "review_level": "review.independent",
+        "validation_level": "validation.broad",
+        "prior_docs": "expected",
+    }
+    # A lower hydration never degrades the class's material contract.
+    assert execution_report(default)["must_include"] == execution_report(audited)["must_include"]
+    assert default["resuelto"]["change_class"] == audited["resuelto"]["change_class"]
+
+
+@pytest.mark.parametrize("level", LEVELS)
+def test_report_density_follows_the_class_not_the_hydration_level(level: str) -> None:
+    small = execution_report(
+        resolve(
+            **IMPLEMENTATION,
+            kernel_dir=ES_KERNEL,
+            change_class="change_class.small",
+            hydration_level=level,
+        )
+    )
+    critical = execution_report(
+        resolve(
+            **IMPLEMENTATION,
+            kernel_dir=ES_KERNEL,
+            change_class="change_class.critical",
+            hydration_level=level,
+        )
     )
 
-    assert default["hydration_level"] == "full/debug"
-    assert kept["estado"] == "status.resolved" and kept["hydration_level"] == "full/debug"
-    assert downgraded["estado"] == "status.blocked"
-    assert downgraded["resuelto"] is None
-
-
-def test_explicit_level_may_raise_but_not_lower_the_class_density() -> None:
-    elevated = resolve(
-        **IMPLEMENTATION,
-        kernel_dir=ES_KERNEL,
-        change_class="change_class.small",
-        hydration_level="full/debug",
-    )
-
-    assert elevated["estado"] == "status.resolved"
-    assert elevated["hydration_level"] == "full/debug"
+    assert len(small["must_include"]) == 4
+    assert len(critical["must_include"]) == 10
+    assert small["must_include"] != critical["must_include"]
 
 
 def test_critical_class_surfaces_the_unverifiable_gates_as_remaining_gates() -> None:
@@ -134,7 +167,7 @@ def test_critical_class_survives_the_review_of_the_unit() -> None:
     )
 
     assert review["estado"] == "status.resolved"
-    assert review["hydration_level"] == "full/debug"
+    assert review["hydration_level"] == "compact"
     assert review["resuelto"]["change_class"]["review_level"] == "review.independent"
 
 
@@ -159,21 +192,25 @@ def test_unknown_class_fails_closed_listing_known_classes() -> None:
 @pytest.mark.parametrize("kernel_dir", (ES_KERNEL, EN_KERNEL))
 def test_execution_report_projects_exactly_one_density_contract(kernel_dir: Path) -> None:
     reports = {
-        level: execution_report(
-            resolve(
-                **IMPLEMENTATION,
-                kernel_dir=kernel_dir,
-                change_class="change_class.small",
-                hydration_level=level,
-            )
+        change_class: execution_report(
+            resolve(**IMPLEMENTATION, kernel_dir=kernel_dir, change_class=change_class)
         )
-        for level in LEVELS
+        for change_class in (
+            "change_class.small",
+            "change_class.standard",
+            "change_class.critical",
+        )
     }
 
-    for level, report in reports.items():
-        assert isinstance(report["must_include"], list) and report["must_include"], level
-        assert "must_include_by_density" not in report, level
-    assert len(reports["minimal"]["must_include"]) == 4
-    assert len(reports["compact"]["must_include"]) == 4
-    assert reports["minimal"]["must_include"] != reports["compact"]["must_include"]
-    assert len(reports["full/debug"]["must_include"]) > len(reports["compact"]["must_include"])
+    for change_class, report in reports.items():
+        assert isinstance(report["must_include"], list) and report["must_include"], change_class
+        assert "must_include_by_density" not in report, change_class
+    assert len(reports["change_class.small"]["must_include"]) == 4
+    assert len(reports["change_class.standard"]["must_include"]) == 4
+    assert (
+        reports["change_class.small"]["must_include"]
+        != reports["change_class.standard"]["must_include"]
+    )
+    assert len(reports["change_class.critical"]["must_include"]) > len(
+        reports["change_class.standard"]["must_include"]
+    )
