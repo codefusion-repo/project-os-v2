@@ -101,11 +101,9 @@ default for every class, `minimal` is the opt-in that retains required
 boundaries, and `full/debug` is the opt-in for kernel auditing, resolver
 debugging, or explicitly requested detailed inspection. No class activates
 `full/debug`, and no level changes gates, report density, authority, or allowed
-actions. No level returns `context_plan`, adds a receipt block, or requires
-manually re-reading the kernel the resolver already processed;
-detailed provenance requires an explicit request
-(`--context-provenance <reason>`). No level reads live state, invents state, or
-changes authority. The template and wizard do not grant permission by
+actions. No level requires manually re-reading the kernel the resolver already
+processed, reads live state, invents state, or changes authority. The template
+and wizard do not grant permission by
 themselves. A route prompt that is a draft, was not delivered by the PM, or has
 `PM_AUTHORIZATION_STATUS=pending` does not authorize writing. When the PM
 delivers the route prompt with

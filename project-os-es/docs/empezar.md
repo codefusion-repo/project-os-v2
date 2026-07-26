@@ -208,10 +208,8 @@ La respuesta declara `hydration_level` y usa estos shapes deterministas:
 - `full/debug`: todo `compact` más los metadatos completos de la resolución
   seleccionada, incluidos flags de actividad y enlaces internos de auditoría.
 
-Ningún nivel devuelve `context_plan`: la procedencia detallada del resolver es
-una ruta explícita y aparte (`--context-provenance <razón>`). En la ejecución,
-la trazabilidad PM-facing es la evidencia revisada del output y ningún nivel
-agrega un bloque de recibo. `debug` aislado no es un alias válido.
+En la ejecución, la trazabilidad PM-facing es la evidencia revisada del output.
+`debug` aislado no es un alias válido.
 
 ```sh
 python tools/project_os_resolve.py --actor actor.terminal_agent \

@@ -100,11 +100,9 @@ para cualquier clase, `minimal` es el opt-in que conserva los límites
 obligatorios y `full/debug` es el opt-in para auditoría del kernel, debugging
 del resolver o inspección detallada explícitamente solicitada. Ninguna clase
 activa `full/debug` y ningún nivel cambia gates, densidad del reporte,
-autoridad ni acciones permitidas. Ningún nivel devuelve `context_plan`, agrega
-un bloque de recibo ni obliga a releer manualmente el kernel que el resolver ya
-procesó; la procedencia detallada requiere una solicitud explícita
-(`--context-provenance <razón>`). Ningún nivel lee estado vivo, inventa estado
-o cambia autorización.
+autoridad ni acciones permitidas. Ningún nivel obliga a releer manualmente el
+kernel que el resolver ya procesó, lee estado vivo, inventa estado o cambia
+autorización.
 La plantilla y el wizard no conceden permisos por sí mismos. Un route prompt en
 draft, no entregado por el PM o con `PM_AUTHORIZATION_STATUS=pending` no
 autoriza escrituras. Cuando el PM entrega el route prompt con

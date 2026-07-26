@@ -59,7 +59,6 @@ STABLE_FIELDS: dict[str, tuple[str, ...]] = {
         "action_class",
         "allows_non_material_gaps",
         "safe_degradation_key",
-        "context_receipt_key",
         "active",
     ),
     "artifacts": ("key", "workflow_key", "output_key", "active"),

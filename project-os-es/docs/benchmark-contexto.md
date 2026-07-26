@@ -30,7 +30,7 @@ Versión inglesa: [context-benchmark.md](../../project-os-en/docs/context-benchm
 ## Metodología declarada
 
 - **Fecha de medición:** 2026-07-26.
-- **Insumos:** commit `5e21a5c` de
+- **Insumos:** commit `9553b1c` de
   `codefusion-repo/project-os-v2`; los
   insumos medidos (ambos directorios de kernel y
   `tools/project_os_resolve.py`) no cambian después de ese commit en la rama
@@ -70,16 +70,16 @@ Dos referencias, construidas desde el kernel real:
 
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 16823 | 16823 | 3968 | 4153 |
-| Resolver `compact` | 34180 | 34133 | 7693 | 8348 |
-| Baseline por tupla (= `full/debug`) | 38066 | 38019 | 8669 | 9342 |
-| Kernel completo (11 archivos) | 79350 | 79303 | 17828 | 18814 |
+| Resolver `minimal` | 15746 | 15746 | 3728 | 3920 |
+| Resolver `compact` | 33103 | 33056 | 7453 | 8115 |
+| Baseline por tupla (= `full/debug`) | 36989 | 36942 | 8429 | 9109 |
+| Kernel completo (11 archivos) | 77405 | 77358 | 17395 | 18408 |
 
-Reducción frente al baseline por tupla: `minimal` −55,8 % bytes (−54,2 %
-tokens `o200k_base`, −55,5 % `cl100k_base`); `compact` −10,2 % bytes (−11,3 %,
-−10,6 %). Frente al kernel completo (solo perfil interno): `minimal` −78,8 %
-bytes (−77,7 %, −77,9 %); `compact` −56,9 % (−56,8 %, −55,6 %); `full/debug`
-−52,0 % (−51,4 %, −50,3 %).
+Reducción frente al baseline por tupla: `minimal` −57,4 % bytes (−55,8 %
+tokens `o200k_base`, −57,0 % `cl100k_base`); `compact` −10,5 % bytes (−11,6 %,
+−10,9 %). Frente al kernel completo (solo perfil interno): `minimal` −79,7 %
+bytes (−78,6 %, −78,7 %); `compact` −57,2 % (−57,2 %, −55,9 %); `full/debug`
+−52,2 % (−51,5 %, −50,5 %).
 
 ## Kernel inglés (selección explícita)
 
@@ -87,30 +87,30 @@ Misma tupla, mismos comandos, con `--kernel-dir project-os-en/kernel`:
 
 | Alternativa | Bytes | Caracteres | Tokens `o200k_base` | Tokens `cl100k_base` |
 | --- | ---: | ---: | ---: | ---: |
-| Resolver `minimal` | 16498 | 16498 | 3761 | 3750 |
-| Resolver `compact` | 32962 | 32962 | 7057 | 7052 |
-| Baseline por tupla (= `full/debug`) | 36840 | 36840 | 8023 | 8019 |
-| Kernel completo (11 archivos) | 77284 | 77284 | 16643 | 16620 |
+| Resolver `minimal` | 15421 | 15421 | 3521 | 3517 |
+| Resolver `compact` | 31885 | 31885 | 6817 | 6819 |
+| Baseline por tupla (= `full/debug`) | 35763 | 35763 | 7783 | 7786 |
+| Kernel completo (11 archivos) | 75339 | 75339 | 16210 | 16214 |
 
-Reducción frente al baseline por tupla: `minimal` −55,2 % bytes; `compact`
-−10,5 %. Frente al kernel completo (solo perfil interno): `minimal` −78,7 %
-bytes; `compact` −57,3 %; `full/debug` −52,3 %.
+Reducción frente al baseline por tupla: `minimal` −56,9 % bytes; `compact`
+−10,8 %. Frente al kernel completo (solo perfil interno): `minimal` −79,5 %
+bytes; `compact` −57,7 %; `full/debug` −52,5 %.
 
 ## Caso crítico normal (#468)
 
 Hasta #468 la clase seleccionaba la hidratación: una resolución
 `change_class.critical` sin override recibía automáticamente `full/debug`.
 Desde #468 el default global es `compact` para cualquier clase. Esta sección
-mide ese caso concreto sobre el mismo estado final, con la clase fija y sin
-`--context-provenance`, de modo que la única variable es la hidratación:
+mide ese caso concreto sobre el mismo estado final, con la clase fija, de modo
+que la única variable es la hidratación:
 
 | Kernel | Antes (`full/debug` automático) | Después (`compact` por defecto) | Δ bytes | Δ % |
 | --- | ---: | ---: | ---: | ---: |
-| Español | 38667 | 34781 | −3886 | −10,0 % |
-| Inglés | 37418 | 33540 | −3878 | −10,4 % |
+| Español | 37590 | 33704 | −3886 | −10,3 % |
+| Inglés | 36341 | 32463 | −3878 | −10,7 % |
 
-En tokens: español 8798 → 7822 `o200k_base` (−11,1 %) y 9490 → 8496
-`cl100k_base` (−10,5 %); inglés 8133 → 7167 (−11,9 %) y 8130 → 7163 (−11,9 %).
+En tokens: español 8558 → 7582 `o200k_base` (−11,4 %) y 9257 → 8263
+`cl100k_base` (−10,7 %); inglés 7893 → 6927 (−12,2 %) y 7897 → 6930 (−12,2 %).
 
 La fila «antes» reproduce exactamente la proyección que la clase activaba de
 forma automática, ejecutando hoy `--change-class change_class.critical
@@ -125,68 +125,43 @@ Lo que **no** cambia entre esas dos filas, verificado en la misma resolución:
 `must_include` de la densidad `full/debug`. La reducción es de contrato
 serializado, no de gates ni de densidad del reporte.
 
-Esta medición separa tres costos que antes se confundían:
+Esta medición separa dos costos que antes se confundían:
 
 - **costo de hidratación:** la diferencia de la tabla, el único efecto de #468;
-- **costo de `context_provenance`:** 0 en ambas filas, porque `context_plan`
-  solo aparece con `--context-provenance <razón>` (ver la sección de #464);
 - **lecturas externas del agente:** fuera del output del resolver y por tanto
   fuera de esta medición. Ningún nivel obliga a releer el kernel que el
   resolver ya procesó, así que una relectura manual no es atribuible al nivel.
 
-## Costo del recibo de fuentes (#464)
+## Eliminación total de la estructura de recibo y procedencia (#477)
 
-Antes de #464 cada resolución transportaba el contrato completo del recibo más
-un `context_plan` que repetía parte de él, en los tres niveles. Esta sección
-compara el **baseline inmediato** `3de282f` con el estado corregido de #464,
-ejecutando exactamente el mismo comando en ambos: misma tupla, misma
-`change_class.small` y el mismo `--hydration-level` explícito. Ambas columnas
-son la medición histórica del 2026-07-25 sobre `5afb2c7` y se conservan como
-delta de #464; no se recalculan aquí, así que no coinciden con las tablas de
-arriba, medidas sobre el estado final.
+Esta medición compara el baseline `main` inmediatamente anterior, commit
+`4a22ce3`, con el commit de implementación
+`9553b1c`, que fija todos los inputs medidos (kernels ES/EN y resolver). La
+documentación posterior no cambia esos inputs; por eso los seis resultados son
+los mismos en el head final de la rama del PR. En ambos lados se ejecutó la
+misma tupla, `change_class.small`, niveles explícitos y JSON `--compact`.
 
-Resolución completa, kernel español, bytes UTF-8:
+| Kernel | Nivel | Antes (bytes UTF-8) | Después (bytes UTF-8) | Δ bytes | Δ % |
+| --- | --- | ---: | ---: | ---: | ---: |
+| ES | `minimal` | 16823 | 15746 | −1077 | −6,4 % |
+| ES | `compact` | 34180 | 33103 | −1077 | −3,2 % |
+| ES | `full/debug` | 38066 | 36989 | −1077 | −2,8 % |
+| EN | `minimal` | 16498 | 15421 | −1077 | −6,5 % |
+| EN | `compact` | 32962 | 31885 | −1077 | −3,3 % |
+| EN | `full/debug` | 36840 | 35763 | −1077 | −2,9 % |
 
-| Nivel | `3de282f` | Con #464 | Δ bytes | Δ % |
-| --- | ---: | ---: | ---: | ---: |
-| `minimal` | 19332 | 16760 | −2572 | −13,3 % |
-| `compact` | 36211 | 33760 | −2451 | −6,8 % |
-| `full/debug` | 40712 | 38250 | −2462 | −6,0 % |
+Los identificadores de esta lista aparecen solo como nombres históricos de la
+estructura eliminada en el baseline: `context_receipt_contract`,
+`context_receipt_key`, `context_plan`, `context_provenance`,
+`executor_reported_fields` y `--context-provenance`. El estado después no
+serializa ni expone ninguno; no existe un reemplazo funcional.
 
-Resolución completa, kernel inglés, bytes UTF-8:
-
-| Nivel | `3de282f` | Con #464 | Δ bytes | Δ % |
-| --- | ---: | ---: | ---: | ---: |
-| `minimal` | 19008 | 16446 | −2562 | −13,5 % |
-| `compact` | 35063 | 32592 | −2471 | −7,0 % |
-| `full/debug` | 39533 | 37051 | −2482 | −6,3 % |
-
-Casi toda esa diferencia proviene del recibo. Midiendo por separado las dos
-superficies dentro de la misma resolución —cada subobjeto reserializado con
-`json.dumps(obj, ensure_ascii=False)`, el mismo formato con el que el resolver
-emite su salida, y contado en bytes UTF-8— el costo del recibo por resolución
-queda así:
-
-| Superficie | Antes (ES) | Antes (EN) | Después |
-| --- | ---: | ---: | ---: |
-| `context_receipt_contract` | 1300 | 1300 | 921 |
-| `context_plan` en la ruta normal | 2175–2265 | 2165–2255 | 0 |
-| Total del recibo por resolución | 3475–3565 | 3465–3555 | 921 |
-
-Los rangos cubren los tres niveles: el contrato del recibo no varía con la
-hidratación y el `context_plan` anterior crecía de `minimal` a `full/debug`.
-
-Como el formato coincide con el de la salida, las cifras son aditivas contra
-los totales. En `minimal` el recibo explica la diferencia completa: −2554 bytes
-de contenido más los 18 de la clave `context_plan` suprimida dan exactamente
-los −2572 de la tabla anterior (−2544 + 18 = −2562 en el kernel inglés). En
-`compact` y `full/debug` la reducción del recibo es mayor que la neta porque
-#464 también añadió prosa a las reglas operativas —200 bytes en español y 170
-en inglés—, que solo se transportan desde `compact`. El saldo es negativo en
-los seis casos medidos.
-
-La procedencia detallada sigue disponible fuera de la ruta normal con
-`--context-provenance <razón>`, y ese costo ya no se paga en cada resolución.
+La comparación verifica que los límites, acciones prohibidas, evidencia
+requerida, outputs permitidos, statuses, gates de la clase y densidad de reporte
+siguen presentes y equivalentes en cada nivel. La reducción es estructura
+retirada, no evidencia viva omitida: `Evidencia revisada`, la validación, los
+riesgos, la degradación segura, la autorización exacta, secret safety y
+fail-closed permanecen en sus contratos reales.
 
 ## Comparabilidad con mediciones anteriores
 
@@ -284,36 +259,60 @@ conserva los mismos `remaining_gates` y el mismo `must_include` de 10 campos
 que la primera; `jq '.hydration_level, .resuelto.change_class.remaining_gates'`
 lo verifica sin releer el kernel.
 
-Para reproducir la comparación de #464 basta ejecutar ese mismo bucle en un
-worktree del baseline y volver a comparar:
+Para reproducir exactamente el benchmark de #477, en un checkout con esos
+commits disponibles:
 
 ```sh
-git worktree add /tmp/pos-base 3de282f07c65 --detach
-```
+git worktree add --detach /tmp/pos-477-before 4a22ce3
+git worktree add --detach /tmp/pos-477-after 9553b1c
 
-Y para el desglose por superficie, sobre cualquiera de los dos estados:
+python - /tmp/pos-477-before /tmp/pos-477-after <<'PY'
+import json
+import subprocess
+import sys
+from pathlib import Path
 
-```sh
-python - <<'PY'
-import json, subprocess, sys
-for level in ("minimal", "compact", "full/debug"):
-    out = subprocess.run([sys.executable, "tools/project_os_resolve.py",
+before, after = map(Path, sys.argv[1:])
+levels = ("minimal", "compact", "full/debug")
+kernels = ("project-os-es", "project-os-en")
+retired = (
+    "context_receipt", "context_plan", "context_provenance",
+    "executor_reported_fields", "detailed_provenance_reasons",
+)
+
+def resolve(root, kernel, level):
+    return subprocess.run([
+        sys.executable, "tools/project_os_resolve.py",
         "--actor", "actor.terminal_agent",
         "--workflow", "workflow.issue_implementation",
         "--mode", "mode.delegated_commit_pr",
         "--change-class", "change_class.small",
         "--hydration-level", level,
-        "--kernel-dir", "project-os-es/kernel", "--compact"],
-        capture_output=True, text=True, check=True).stdout
-    payload = json.loads(out)
-    def size(obj):
-        if obj is None:
-            return 0
-        return len(json.dumps(obj, ensure_ascii=False).encode("utf-8"))
-    print(level,
-          "receipt", size(payload["resuelto"]["workflow"].get("context_receipt_contract")),
-          "plan", size(payload.get("context_plan")),
-          "total", len(out.encode("utf-8")))
+        "--kernel-dir", f"{kernel}/kernel", "--compact",
+    ], cwd=root, check=True, capture_output=True, text=True).stdout
+
+def normalize(value):
+    if isinstance(value, dict):
+        return {
+            key: normalize(item) for key, item in value.items()
+            if key not in {"context_receipt_key", "context_receipt_contract"}
+        }
+    if isinstance(value, list):
+        return [normalize(item) for item in value]
+    return value
+
+for kernel in kernels:
+    for level in levels:
+        old, new = resolve(before, kernel, level), resolve(after, kernel, level)
+        old_payload, new_payload = json.loads(old), json.loads(new)
+        assert len(new.encode("utf-8")) < len(old.encode("utf-8"))
+        assert not any(name in new for name in retired)
+        for field in ("limites", "estados_permitidos"):
+            assert old_payload["resuelto"][field] == new_payload["resuelto"][field]
+        for field in ("required_evidence", "minimum_evidence", "allowed_outputs"):
+            assert normalize(old_payload["resuelto"]["workflow"][field]) == new_payload["resuelto"]["workflow"][field]
+        assert old_payload["resuelto"]["change_class"] == new_payload["resuelto"]["change_class"]
+        print(kernel, level, len(old.encode("utf-8")), len(new.encode("utf-8")))
 PY
 ```
 
@@ -330,7 +329,6 @@ PY
   devuelve menos guía, no porque sea siempre suficiente. El default global
   sigue siendo `compact` (ver [empezar.md](empezar.md)).
 - La reducción del caso crítico es de contrato serializado y no toca gates,
-  autoridad ni densidad del reporte; tampoco cubre relecturas manuales o
-  solicitudes de procedencia que ningún nivel exige.
+  autoridad ni densidad del reporte; tampoco cubre relecturas manuales.
 - Este documento no publica precios, costos ni ahorros de suscripciones, no
   compara features y no afirma que Project OS reemplace herramienta alguna.

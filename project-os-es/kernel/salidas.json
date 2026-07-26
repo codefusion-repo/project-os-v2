@@ -1,37 +1,4 @@
 {
-  "context_receipt_contract": {
-    "key": "context_receipt.minimum_read_surface",
-    "normal_read_surface": [
-      "selected_resolution",
-      "required_limits_and_evidence",
-      "applicable_output_and_artifact",
-      "resolved_template",
-      "requested_skills",
-      "minimum_live_evidence",
-      "target_scope_validation_or_source_basis"
-    ],
-    "pm_facing_traceability": "reviewed_evidence",
-    "detailed_provenance_default": "omitted",
-    "detailed_provenance_reasons": [
-      "audit",
-      "debugging",
-      "security_or_authorization_review",
-      "incorrect_resolution_investigation"
-    ],
-    "resolver_provenance_field": "context_plan",
-    "executor_reported_fields": [
-      "project_os_sources_read",
-      "target_sources_read",
-      "live_evidence_sources",
-      "model_context_sources"
-    ],
-    "source_reference_format": "repository_relative_path_or_live_identifier",
-    "reason_format": "short_non_sensitive_identifier",
-    "stores_source_bodies": false,
-    "stores_secret_values": false,
-    "stores_durable_live_state": false,
-    "resolver_external_access": false
-  },
   "safe_degradation_contract": {
     "key": "safe_degradation.non_material_gaps",
     "status_key": "status.resolved",
@@ -65,7 +32,6 @@
       "action_class": "action.mutable",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include_by_density": {
         "minimal": [
           "resultado",
@@ -105,7 +71,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": true,
       "safe_degradation_key": "safe_degradation.non_material_gaps",
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "objetivo",
         "archivos a inspeccionar",
@@ -133,7 +98,6 @@
       "action_class": "action.read_only",
       "allows_non_material_gaps": true,
       "safe_degradation_key": "safe_degradation.non_material_gaps",
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "scope revisado",
         "evidencia revisada",
@@ -156,7 +120,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "evidencia de completitud",
         "evidencia de validacion con output real",
@@ -179,7 +142,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": true,
       "safe_degradation_key": "safe_degradation.non_material_gaps",
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "por que existe",
         "objetivo",
@@ -204,7 +166,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "bloque de variables estandar",
         "skill opcional recomendado cuando ayude, sin hacerlo obligatorio ni autorizante",
@@ -233,7 +194,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "que hace el bundle y su scope en prosa",
         "comandos con targets exactos en orden de ejecucion",
@@ -253,7 +213,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": true,
       "safe_degradation_key": "safe_degradation.non_material_gaps",
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "contexto leido vivo",
         "objetivo del asset",
@@ -278,7 +237,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": true,
       "safe_degradation_key": "safe_degradation.non_material_gaps",
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "contexto leido vivo",
         "objetivo de la revision",
@@ -303,7 +261,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": true,
       "safe_degradation_key": "safe_degradation.non_material_gaps",
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "estado actual con referencias vivas",
         "verificado versus asumido",
@@ -324,7 +281,6 @@
       "action_class": "action.draft_only",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "target y repositorio",
         "version del kernel adoptada",
@@ -364,7 +320,6 @@
       "action_class": "action.read_only",
       "allows_non_material_gaps": false,
       "safe_degradation_key": null,
-      "context_receipt_key": "context_receipt.minimum_read_surface",
       "must_include": [
         "el estado",
         "que falta, conflictua o bloquea exactamente",

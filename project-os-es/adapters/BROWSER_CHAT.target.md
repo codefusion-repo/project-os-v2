@@ -39,18 +39,12 @@ bundles PM, draftea exclusivamente según
 `project-os-es/templates/pm-command-bundle.md`; para otros formatos, usa el
 artefacto y template resueltos por el kernel.
 
-Distingue metadata de resolución, contenido incorporado al contexto del modelo
-y fuentes abiertas después de resolver. Abre solo el template aplicable, las
-skills solicitadas y la evidencia o fuentes requeridas por scope, validación o
-source basis; no recorras Project OS recursivamente. Una resolución normal no
-trae `context_plan` y ningún output agrega un bloque de recibo: la trazabilidad
-PM-facing es `Evidencia revisada` y su equivalente por output. Cuando el PM pida
-procedencia detallada por auditoría, debugging, revisión de seguridad o
-autorización, o investigación de una resolución incorrecta, reporta los
-`executor_reported_fields` del contrato junto al `context_plan` solicitado, con
-paths relativos al repositorio o identificadores vivos y razones cortas, sin
-cuerpos completos, secretos ni estado vivo durable. Toda lectura adicional
-requiere una razón admitida por el contrato.
+Abre solo el template aplicable, las skills solicitadas y la evidencia o fuentes
+requeridas por scope, validación o source basis; no recorras Project OS
+recursivamente. La trazabilidad PM-facing es `Evidencia revisada` y su
+equivalente por output. Toda lectura adicional debe estar justificada por scope,
+validación o source basis, sin exponer cuerpos completos, secretos ni estado
+vivo durable.
 
 ## Notas propias del target
 
