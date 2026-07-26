@@ -13,7 +13,6 @@ import pytest
 
 from tools.operation_prompt_wizard import (
     DEFAULT_OPERATIONS_DIR,
-    HYDRATION_LEVEL_DEFAULT,
     HYDRATION_LEVEL_NAME,
     HAVE_PROMPT_TOOLKIT,
     PM_AUTHORIZATION_GRANTED,
@@ -296,7 +295,7 @@ def test_active_mos34_collects_authorization_in_prompt_toolkit_mode(
     monkeypatch.setattr(
         "tools.operation_prompt_wizard.prompt",
         mock_prompt([
-            "MOS-3.4", "change_class.standard", "405", "274", "skill.arquitectura_backend", "", "", "", "2", "write", "exit",
+            "MOS-3.4", "405", "skill.arquitectura_backend", "", "", "2", "write", "exit",
         ]),
     )
     result = run_wizard_pt(
@@ -309,10 +308,40 @@ def test_active_mos34_collects_authorization_in_prompt_toolkit_mode(
     content = result.read_text(encoding="utf-8")
     assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" in content
     assert content.count(f"{PM_AUTHORIZATION_STATUS_NAME}=") == 1
-    assert f"{HYDRATION_LEVEL_NAME}={HYDRATION_LEVEL_DEFAULT}" in content
+    assert "WORK_UNIT=405" in content
+    # The class and the density are derived, so neither is asked for nor carried
+    # unless the PM records an explicit override.
+    assert f"{HYDRATION_LEVEL_NAME}=" not in content
+    assert "CHANGE_CLASS=" not in content
     assert "RECOMMENDED_TERMINAL_AGENT_FAMILY=" not in content
     assert "OPTIONAL_SKILL=skill.arquitectura_backend" in content
     assert "PM_AUTHORIZATION_STATUS: 1=pending; 2=granted" in stream.getvalue()
+
+
+def test_hydration_override_is_opt_in_in_prompt_toolkit_mode(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    stream = StringIO()
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([
+            "MOS-3.4", "/hydration full/debug", "405", "none", "", "", "2", "write", "exit",
+        ]),
+    )
+    result = run_wizard_pt(
+        operations_dir=DEFAULT_OPERATIONS_DIR,
+        output_dir=tmp_path / "out",
+        output_stream=stream,
+    )
+
+    assert result is not None
+    content = result.read_text(encoding="utf-8")
+    # The override is never prompted for; typing it records it and it then
+    # travels as an explicit INPUT value alongside the derived metadata.
+    assert f"{HYDRATION_LEVEL_NAME}=full/debug" in content
+    assert "WORK_UNIT=405" in content
+    assert f"{HYDRATION_LEVEL_NAME} (" not in stream.getvalue()
 
 
 def test_prompt_toolkit_skill_completion_uses_active_catalog(
@@ -394,7 +423,7 @@ def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_pat
     completed = subprocess.run(
         [script, "-qec", command, "/dev/null"],
         cwd=Path(__file__).resolve().parents[1],
-        input="\n/enumerator\n/phases\nMOS-3.4\nchange_class.standard\n405\n274\ncancel\n",
+        input="\n/enumerator\n/phases\nMOS-3.4\n405\ncancel\n",
         text=True,
         capture_output=True,
         check=False,
@@ -413,7 +442,7 @@ def test_prompt_toolkit_pseudo_tty_keeps_views_and_skill_options_visible(tmp_pat
     assert not list(output_dir.glob("*.md"))
 
 
-def test_mos_r3_prompt_toolkit_pseudo_tty_allows_empty_references_after_invalid_numeric_input(
+def test_mos_r3_prompt_toolkit_pseudo_tty_asks_only_source_and_decision_fields(
     tmp_path: Path,
 ) -> None:
     script = shutil.which("script")
@@ -428,7 +457,7 @@ def test_mos_r3_prompt_toolkit_pseudo_tty_allows_empty_references_after_invalid_
     completed = subprocess.run(
         [script, "-qec", command, "/dev/null"],
         cwd=Path(__file__).resolve().parents[1],
-        input="MOS-R.3\nMOS-3.7 review\nfalse\nissue #429\n\n\ncancel\n",
+        input="MOS-R.3\nMOS-3.7 review\nfalse\n\ncancel\n",
         text=True,
         capture_output=True,
         check=False,
@@ -436,6 +465,9 @@ def test_mos_r3_prompt_toolkit_pseudo_tty_allows_empty_references_after_invalid_
     )
 
     assert completed.returncode == 1
-    assert "Invalid value: ISSUE_NUMBER must be a positive issue/PR number" in completed.stdout
+    # DECISION_SOURCE is the single primary locator; the related issue and PR are
+    # derived from it, so neither is ever prompted for.
+    assert "ISSUE_NUMBER (" not in completed.stdout
+    assert "PR_NUMBER (" not in completed.stdout
     assert "DECISION_OPTIONS (optional, <DECISION_OPTIONS>):" in completed.stdout
     assert not list(output_dir.glob("*.md"))
