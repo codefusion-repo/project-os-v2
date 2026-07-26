@@ -141,6 +141,11 @@ and live GitHub traceability.
    selection by index, MOS code (`MOS-3.5`), filename, stem or relative path,
    and only writes the local artifact you confirm. The selection lives only
    in the wizard session and never adopts, installs or configures a target.
+   Every generated prompt records the exact operation snapshot its body was
+   rendered from (`operation_blob_sha`), checkable with
+   `python tools/operation_prompt_wizard.py --verify-prompt <file>`. Edit that
+   operation mid-session and the wizard writes nothing: reload the catalog and
+   regenerate the prompt.
 
 ## Validation
 

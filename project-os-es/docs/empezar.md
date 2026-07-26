@@ -274,7 +274,9 @@ artefactos/templates, referenciado por `required_skill` bajo
    `python tools/operation_prompt_wizard.py --language es` (o responde su
    pregunta única `es/en`; español sigue siendo el default). La selección es
    solo de sesión, no ejecuta la operación y nunca adopta un idioma para el
-   target.
+   target. El prompt escrito queda ligado al snapshot de la operación que
+   produjo su cuerpo; si esa operación cambia durante la sesión, el wizard
+   falla cerrado sin escribir y pide recargar el catálogo y regenerarlo.
 
 ## 6. Delegar, revisar, corregir y cerrar
 

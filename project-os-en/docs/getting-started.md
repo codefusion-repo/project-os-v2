@@ -274,7 +274,10 @@ referenced by `required_skill` under
    `python tools/operation_prompt_wizard.py --language en` (or answer its
    one-time `es/en` question; Spanish stays the default). The selection is
    session-only, does not execute the chosen work, and never adopts a
-   language on the target.
+   language on the target. The written prompt stays bound to the operation
+   snapshot its body came from; if that operation changes during the session
+   the wizard fails closed without writing and asks you to reload the catalog
+   and regenerate it.
 
 ## 6. Delegate, review, correct, and close
 

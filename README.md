@@ -146,7 +146,11 @@ variables PM y trazabilidad viva en GitHub.
    mantener la lista enumerada, usar `/phases` para agruparla por `cross-fase`
    y `fase-*`, filtrar por título/path/fase, o seleccionar por índice, código
    MOS (`MOS-3.5`), filename, stem o path relativo. Solo escribe el artefacto
-   local que confirmes.
+   local que confirmes. Cada prompt generado registra el snapshot exacto de la
+   operación del que salió su cuerpo (`operation_blob_sha`), verificable con
+   `python tools/operation_prompt_wizard.py --verify-prompt <archivo>`. Si
+   editas esa operación durante la sesión, el wizard no escribe nada: recarga
+   el catálogo y regenera el prompt.
 
 ## Validación
 
