@@ -25,8 +25,7 @@ already identifies that unit unambiguously —for example the issue MOS-3.1,
 MOS-3.2, or MOS-3.8 just drafted in this session— do not ask for its locator
 again. Browser chat reads the unit and its relations, reconstructs
 `CHANGE_CLASS` from the scope, risk, and affected surfaces per the
-`proportionality.change_class` contract, derives `HYDRATION_LEVEL` from that
-class (`full/debug` for `change_class.critical`), and resolves the related
+`proportionality.change_class` contract, and resolves the related
 roadmap, the existing PR when applicable, and the scoped branch
 `work/<unit>-<slug>`. For a `change_class.small` admitted by target policy, the
 exact PM instruction may be the live unit without an issue; for a class that
@@ -43,24 +42,26 @@ overridden by explicit PM feedback.
 - Required: none
 - Optional: WORK_UNIT, OPTIONAL_SKILL, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (`WORK_UNIT` is the single primary locator and is asked for only when the execution context does not already identify the live unit; `OPTIONAL_SKILL`, PM feedback, and PM questions are optional human inputs; none authorize an action)
 
-**Derived metadata:** `CHANGE_CLASS`, `HYDRATION_LEVEL`, `ROADMAP_ISSUE`,
+**Derived metadata:** `CHANGE_CLASS`, `ROADMAP_ISSUE`,
 `BRANCH_NAME`, the existing PR, and the remaining verifiable relations are not
 manual wizard inputs nor fields the PM copies from GitHub: browser chat
 reconstructs them from live evidence and shows them resolved in the route prompt
 for the receiver's verification; it never invents them. `CHANGE_CLASS` belongs to
 the unit and is preserved across intake, implementation, review, closeout, and
-verification. `HYDRATION_LEVEL` accepts `minimal`, `compact`, or `full/debug`, is
-derived from the reconstructed class, and never drops below its contractual
-density. It controls only the resolver's hydrated content: no level returns
+verification; it governs the material gates and the execution report density,
+never the resolver hydration. `HYDRATION_LEVEL` is not derived from the class:
+the resolver applies `compact` by default for every class, so without an override
+the variable is omitted. It controls only the resolver's hydrated content: no
+level changes gates, report density, or authority, and none returns
 `context_plan` or adds a receipt block. The wizard captures the declared human
 inputs and assists with `PM_AUTHORIZATION_STATUS`; it does not request the
-class, the default density, the roadmap, or the branch when they can be derived.
-The density keeps a single override route: an explicit PM decision
+class, the hydration, the roadmap, or the branch when they can be derived or omitted.
+Hydration keeps a single override route: an explicit PM decision
 —`/hydration <level>` in the wizard,
-which writes it as `HYDRATION_LEVEL` in the INPUT block— may keep or raise it,
-never reduce it. It is not a routine question: without that explicit override the
-variable is neither asked for nor carried, and an override below the class
-density fails closed in the receiver's resolver. Only real material ambiguity —a
+which writes it as `HYDRATION_LEVEL` in the INPUT block— may select any of the
+three levels, with no ranking derived from the class. It is not a routine question:
+without that explicit override the
+variable is neither asked for nor carried. Only real material ambiguity —a
 missing formal unit for a class that requires one, a scope that does not allow
 determining the class with confidence, unverifiable relations, or a conflict
 between live evidence and a later PM decision— returns `status.needs_context` or

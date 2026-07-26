@@ -22,9 +22,8 @@ Browser chat lee la unidad viva y sus relaciones, localiza el PR
 existente cuando aplique, lee su conversación completa, selecciona el último review
 vigente con `blocking-correction` sin resolver e incorpora sus addenda PM
 posteriores como parte del mismo source basis, reconstruye o conserva la
-`CHANGE_CLASS` de la unidad y deriva `HYDRATION_LEVEL` desde esa clase (`full/debug`
-para `change_class.critical`). Con esos valores resueltos completa `WORK_UNIT`,
-`SOURCE_REVIEW`, `PR_NUMBER`, `CHANGE_CLASS` y `HYDRATION_LEVEL` en el route-prompt
+`CHANGE_CLASS` de la unidad. Con esos valores resueltos completa `WORK_UNIT`,
+`SOURCE_REVIEW`, `PR_NUMBER` y `CHANGE_CLASS` en el route-prompt
 para que el receptor terminal verifique el contrato; nunca los inventa. Cuando
 existe un único review vigente con `blocking-correction` sin resolver, lo selecciona
 automáticamente; solo devuelve `status.needs_pm_decision` o `status.needs_context`
@@ -50,20 +49,21 @@ PM puede reemplazarla.
   feedback y la pregunta del PM son inputs humanos opcionales; nunca autorizan
   nada)
 
-**Metadata derivada:** `SOURCE_REVIEW`, `PR_NUMBER`, `CHANGE_CLASS` y
-`HYDRATION_LEVEL` no son inputs manuales del wizard ni campos que el PM copie desde
+**Metadata derivada:** `SOURCE_REVIEW`, `PR_NUMBER` y `CHANGE_CLASS` no son inputs
+manuales del wizard ni campos que el PM copie desde
 GitHub: browser chat los reconstruye desde la evidencia viva y los muestra
-resueltos en el route-prompt para verificación del receptor. `HYDRATION_LEVEL`
-acepta `minimal`, `compact` o `full/debug`, se deriva de la `CHANGE_CLASS`
-reconstruida y nunca queda por debajo de su densidad contractual; controla solo el
-contenido hidratado del resolver y ningún nivel devuelve `context_plan` ni agrega
+resueltos en el route-prompt para verificación del receptor. `HYDRATION_LEVEL` no
+se deriva de la `CHANGE_CLASS`: el resolver aplica `compact` por defecto para
+cualquier clase, así que sin override la variable se omite; controla solo el
+contenido hidratado del resolver y ningún nivel cambia gates, densidad del
+reporte ni autoridad, ni devuelve `context_plan` o agrega
 un bloque de recibo. El wizard captura los inputs humanos declarados y asiste
 `PM_AUTHORIZATION_STATUS`; no solicita `SOURCE_REVIEW`, `PR_NUMBER`,
-`CHANGE_CLASS` ni la densidad predeterminada cuando pueden derivarse. Igual que en
-MOS-3.4, la densidad conserva una única ruta de override explícito
+`CHANGE_CLASS` ni la hidratación cuando pueden derivarse u omitirse. Igual que en
+MOS-3.4, la hidratación conserva una única ruta de override explícito
 —`/hydration <nivel>` en
-el wizard, escrito como `HYDRATION_LEVEL` en el bloque INPUT— que puede
-mantenerla o elevarla, nunca reducirla, y que no se pregunta de forma rutinaria.
+el wizard, escrito como `HYDRATION_LEVEL` en el bloque INPUT— que puede elegir
+cualquiera de los tres niveles y que no se pregunta de forma rutinaria.
 
 **Recomendación inferida:** `RECOMMENDED_TERMINAL_AGENT_FAMILY` es consejo de
 browser chat basado en el trabajo; se muestra para inspección, no se solicita al

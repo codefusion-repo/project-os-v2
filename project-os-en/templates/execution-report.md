@@ -4,14 +4,16 @@ Responsibility: report executed work, evidence and validation without asking
 merge/close.
 
 PM-facing density: the resolver projects as `must_include` exactly the
-`output.execution_report.must_include_by_density` list for the resolved
-hydration level. Use only the block for the resolved level; never combine
-levels. PM-facing traceability lives in the level's own block — in `full/debug`,
-`Reviewed evidence`; no level adds a receipt block. Detailed provenance is
-delivered only when the PM asks for it for audit, debugging, security or
-authorization review, or investigating an incorrect resolution.
+`output.execution_report.must_include_by_density` list for the declared
+`CHANGE_CLASS`'s report density. That density is independent of the
+`HYDRATION_LEVEL` received: a critical unit resolved at `compact` keeps this
+template's `full/debug` block. Use only the block for the resolved density;
+never combine densities. PM-facing traceability lives in the block itself — in
+`full/debug`, `Reviewed evidence`; no density adds a receipt block. Detailed
+provenance is delivered only when the PM asks for it for audit, debugging,
+security or authorization review, or investigating an incorrect resolution.
 
-## Minimal level
+## Minimal density
 
 ```markdown
 ## Result
@@ -31,7 +33,7 @@ authorization review, or investigating an incorrect resolution.
 {{Live work unit, commit, or PR.}}
 ```
 
-## Compact level
+## Compact density
 
 ```markdown
 ## Scope
@@ -53,7 +55,7 @@ authorization review, or investigating an incorrect resolution.
 {{Remaining risks and accepted exceptions, or none.}}
 ```
 
-## Full/debug level
+## Full/debug density
 
 ```markdown
 ## Issue or PR

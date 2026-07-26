@@ -4,15 +4,17 @@ Responsabilidad: reportar trabajo ejecutado, evidencia y validacion sin pedir
 merge/cierre.
 
 Densidad PM-facing: el resolver proyecta como `must_include` exactamente la
-lista de `output.execution_report.must_include_by_density` para el nivel de
-hidratación resuelto. Usa solo el bloque del nivel resuelto; no combines
-niveles. La trazabilidad PM-facing vive en el propio bloque del nivel —en
-`full/debug`, `Evidencia revisada`—; ningún nivel agrega un bloque de recibo. La
-procedencia detallada se entrega solo cuando el PM la solicita para auditoría,
-debugging, revisión de seguridad o autorización, o investigación de una
-resolución incorrecta.
+lista de `output.execution_report.must_include_by_density` para la densidad de
+reporte de la `CHANGE_CLASS` declarada. Esa densidad es independiente del
+`HYDRATION_LEVEL` recibido: una unidad crítica resuelta en `compact` conserva el
+bloque `full/debug` de este template. Usa solo el bloque de la densidad
+resuelta; no combines densidades. La trazabilidad PM-facing vive en el propio
+bloque —en `full/debug`, `Evidencia revisada`—; ninguna densidad agrega un
+bloque de recibo. La procedencia detallada se entrega solo cuando el PM la
+solicita para auditoría, debugging, revisión de seguridad o autorización, o
+investigación de una resolución incorrecta.
 
-## Nivel minimal
+## Densidad minimal
 
 ```markdown
 ## Resultado
@@ -32,7 +34,7 @@ resolución incorrecta.
 {{Unidad viva, commit o PR.}}
 ```
 
-## Nivel compact
+## Densidad compact
 
 ```markdown
 ## Scope
@@ -54,7 +56,7 @@ resolución incorrecta.
 {{Riesgos restantes y excepciones aceptadas, o ninguno.}}
 ```
 
-## Nivel full/debug
+## Densidad full/debug
 
 ```markdown
 ## Issue o PR
