@@ -232,12 +232,15 @@ artefactos/templates, referenciado por `required_skill` bajo
    terminal agent para implementación delegada; Humano PM para cierre, merge,
    settings, secretos y despliegues.
 2. **Activa browser chat con
-   [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md),
-   declarando `TARGET_REPOSITORY` en formato `owner/repo`.** MOS-0.1 solicita
-   el target antes de resolver el estado inicial y reconstruye
-   `evidence.repo_state` solo contra ese repositorio; si el target falta, es
-   inválido o no puede leerse, devuelve `status.needs_context` sin usar otro
-   repositorio conectado.
+   [MOS-0.1](../operaciones/fase-0/MOS-0.1-activar-sesion-browser-chat.md).**
+   `TARGET_REPOSITORY` es opcional: declararlo en formato `owner/repo` activa la
+   sesión vinculada a ese target exacto y reconstruye `evidence.repo_state` solo
+   contra él; omitirlo activa una sesión desvinculada, read-only y draft-only,
+   que resuelve el kernel y declara que aún no hay target seleccionado sin elegir
+   silenciosamente ningún repositorio conectado. Arrancar sin repositorio no es
+   un error; solo devuelve `status.needs_context` cuando el target declarado es
+   inválido o ilegible, o cuando una operación posterior depende realmente de
+   estado de repositorio y no puede identificar un target inequívoco.
 3. **Verifica adopción cuando haya target con
    [MOS-0.5](../operaciones/fase-0/MOS-0.5-verificar-adopcion-del-target.md),**
    que audita la readiness browser y terminal por separado y solo da GO global
@@ -269,7 +272,8 @@ El ciclo completo de una unidad de trabajo, una vez activa la sesión:
 
 1. **Delegar la implementación.** Draftea el route prompt con
    [MOS-3.4](../operaciones/fase-3/MOS-3.4-draftear-route-prompt-de-implementacion.md)
-   (el wizard captura `HYDRATION_LEVEL`; `compact` es el default) y entrégalo
+   (el wizard solo pide la unidad viva y la autorización; browser chat deriva
+   clase, densidad, rama y relaciones desde la evidencia viva) y entrégalo
    al terminal agent. El agente re-resuelve el kernel, verifica preflight, scope
    vivo y aprobación PM exacta, implementa solo el scope, valida y abre un
    draft PR. El route prompt da forma y nunca autoriza por sí mismo.
