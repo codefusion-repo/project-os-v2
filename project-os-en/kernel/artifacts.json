@@ -27,7 +27,6 @@
       "workflow_key": [
         "workflow.review_only",
         "workflow.review_before_close",
-        "workflow.implementation_discipline_audit",
         "workflow.release_readiness"
       ],
       "output_key": "output.review_result",
@@ -48,7 +47,6 @@
     {
       "key": "artefacto.issue",
       "workflow_key": [
-        "workflow.implementation_discipline_audit",
         "workflow.pm_intake"
       ],
       "output_key": "output.draft_issue",
@@ -127,7 +125,6 @@
         "workflow.issue_implementation",
         "workflow.issue_implementation_manual",
         "workflow.review_before_close",
-        "workflow.implementation_discipline_audit",
         "workflow.pm_intake",
         "workflow.design_asset",
         "workflow.security_revision",

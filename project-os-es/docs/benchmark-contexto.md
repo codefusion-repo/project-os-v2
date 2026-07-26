@@ -30,7 +30,7 @@ Versión inglesa: [context-benchmark.md](../../project-os-en/docs/context-benchm
 ## Metodología declarada
 
 - **Fecha de medición:** 2026-07-26.
-- **Insumos:** commit `3a52509` de
+- **Insumos:** commit `c669210` de
   `codefusion-repo/project-os-v2`; los
   insumos medidos (ambos directorios de kernel y
   `tools/project_os_resolve.py`) no cambian después de ese commit en la rama
@@ -72,14 +72,14 @@ Dos referencias, construidas desde el kernel real:
 | --- | ---: | ---: | ---: | ---: |
 | Resolver `minimal` | 15746 | 15746 | 3728 | 3920 |
 | Resolver `compact` | 32897 | 32850 | 7413 | 8074 |
-| Baseline por tupla (= `full/debug`) | 36783 | 36736 | 8389 | 9068 |
-| Kernel completo (11 archivos) | 77199 | 77152 | 17355 | 18367 |
+| Baseline por tupla (= `full/debug`) | 36739 | 36692 | 8380 | 9060 |
+| Kernel completo (11 archivos) | 75974 | 75927 | 17104 | 18121 |
 
-Reducción frente al baseline por tupla: `minimal` −57,2 % bytes (−55,6 %
-tokens `o200k_base`, −56,8 % `cl100k_base`); `compact` −10,6 % bytes (−11,6 %,
-−11,0 %). Frente al kernel completo (solo perfil interno): `minimal` −79,6 %
-bytes (−78,5 %, −78,7 %); `compact` −57,4 % (−57,3 %, −56,0 %); `full/debug`
-−52,4 % (−51,7 %, −50,6 %).
+Reducción frente al baseline por tupla: `minimal` −57,1 % bytes (−55,5 %
+tokens `o200k_base`, −56,7 % `cl100k_base`); `compact` −10,5 % bytes (−11,5 %,
+−10,9 %). Frente al kernel completo (solo perfil interno): `minimal` −79,3 %
+bytes (−78,2 %, −78,4 %); `compact` −56,7 % (−56,7 %, −55,4 %); `full/debug`
+−51,6 % (−51,0 %, −50,0 %).
 
 ## Kernel inglés (selección explícita)
 
@@ -89,12 +89,12 @@ Misma tupla, mismos comandos, con `--kernel-dir project-os-en/kernel`:
 | --- | ---: | ---: | ---: | ---: |
 | Resolver `minimal` | 15421 | 15421 | 3521 | 3517 |
 | Resolver `compact` | 31700 | 31700 | 6789 | 6790 |
-| Baseline por tupla (= `full/debug`) | 35578 | 35578 | 7755 | 7757 |
-| Kernel completo (11 archivos) | 75154 | 75154 | 16182 | 16185 |
+| Baseline por tupla (= `full/debug`) | 35534 | 35534 | 7746 | 7749 |
+| Kernel completo (11 archivos) | 73950 | 73950 | 15940 | 15954 |
 
-Reducción frente al baseline por tupla: `minimal` −56,7 % bytes; `compact`
-−10,9 %. Frente al kernel completo (solo perfil interno): `minimal` −79,5 %
-bytes; `compact` −57,8 %; `full/debug` −52,7 %.
+Reducción frente al baseline por tupla: `minimal` −56,6 % bytes; `compact`
+−10,8 %. Frente al kernel completo (solo perfil interno): `minimal` −79,1 %
+bytes; `compact` −57,1 %; `full/debug` −51,9 %.
 
 ## Caso crítico normal (#468)
 
@@ -106,11 +106,11 @@ que la única variable es la hidratación:
 
 | Kernel | Antes (`full/debug` automático) | Después (`compact` por defecto) | Δ bytes | Δ % |
 | --- | ---: | ---: | ---: | ---: |
-| Español | 37384 | 33498 | −3886 | −10,4 % |
-| Inglés | 36156 | 32278 | −3878 | −10,7 % |
+| Español | 37340 | 33498 | −3842 | −10,3 % |
+| Inglés | 36112 | 32278 | −3834 | −10,6 % |
 
-En tokens: español 8518 → 7542 `o200k_base` (−11,5 %) y 9216 → 8222
-`cl100k_base` (−10,8 %); inglés 7865 → 6899 (−12,3 %) y 7868 → 6901 (−12,3 %).
+En tokens: español 8509 → 7542 `o200k_base` (−11,4 %) y 9208 → 8222
+`cl100k_base` (−10,7 %); inglés 7856 → 6899 (−12,2 %) y 7860 → 6901 (−12,2 %).
 
 La fila «antes» reproduce exactamente la proyección que la clase activaba de
 forma automática, ejecutando hoy `--change-class change_class.critical
@@ -176,6 +176,68 @@ estructural de #477.
 | EN | `minimal` | 15421 | 15421 | 0 | 0,0 % |
 | EN | `compact` | 31885 | 31700 | −185 | −0,6 % |
 | EN | `full/debug` | 35763 | 35578 | −185 | −0,5 % |
+
+## Colapso de la auditoría de disciplina en workflow.review_only (OSIM.2, #481)
+
+La medición de OSIM.2 compara el baseline `main` inmediatamente anterior,
+commit `70ddc398`, con el commit de implementación `c669210`, que retira
+`workflow.implementation_discipline_audit` de ambos kernels y sus
+asociaciones en evidence, outputs y artifacts. En ambos lados se ejecutó la
+misma tupla, `change_class.small`, niveles explícitos y JSON `--compact`.
+
+| Kernel | Nivel | Antes (bytes UTF-8) | Después (bytes UTF-8) | Δ bytes | Δ % |
+| --- | --- | ---: | ---: | ---: | ---: |
+| ES | `minimal` | 15746 | 15746 | 0 | 0,0 % |
+| ES | `compact` | 32897 | 32897 | 0 | 0,0 % |
+| ES | `full/debug` | 36783 | 36739 | −44 | −0,1 % |
+| EN | `minimal` | 15421 | 15421 | 0 | 0,0 % |
+| EN | `compact` | 31700 | 31700 | 0 | 0,0 % |
+| EN | `full/debug` | 35578 | 35534 | −44 | −0,1 % |
+
+`minimal` y `compact` no cambian: `workflow.issue_implementation` —la tupla
+medida— nunca referenció al workflow retirado, así que su proyección
+resuelta es idéntica byte a byte. La única diferencia mensurable en el
+resolver aparece en `full/debug`, que además de la tupla resuelta vuelca el
+`proportionality_contract` completo con las cuatro clases para auditoría; ahí
+`change_class.read.allowed_workflows` deja de listar el workflow retirado.
+
+La reducción real de OSIM.2 vive sobre todo en el kernel completo, que sí
+serializa el objeto de workflow retirado y sus asociaciones íntegras:
+
+| Kernel | Antes (bytes) | Después (bytes) | Δ bytes | Δ % |
+| --- | ---: | ---: | ---: | ---: |
+| ES | 77199 | 75974 | −1225 | −1,6 % |
+| EN | 75154 | 73950 | −1204 | −1,6 % |
+
+El identificador de workflow `workflow.implementation_discipline_audit` fue
+retirado de todos los contratos activos del kernel: ningún workflow,
+evidence, output ni artifact lo serializa después de `c669210`, y en esta
+sección y en el historial git solo persiste como nombre histórico de la
+especialización retirada.
+
+El código MOSDLC `audit-implementation-discipline` es distinto: permanece
+intencionalmente activo como operation ID PM-facing de MOS-3.24 en ambos
+idiomas, por decisión explícita de issue #481 de conservar MOS-3.24 como
+entrypoint estable. Esa permanencia no reintroduce ni serializa un workflow
+sustituto en el kernel: MOS-3.24 resuelve íntegramente por
+`workflow.review_only`/`mode.review_only`, con foco explícito en
+`boundary.implementation_discipline`, `boundary.primary_path_discipline` y
+`boundary.validation_discipline`, sin workflow propio ni entrega directa de
+`output.draft_issue`.
+
+Inventario de OSIM.2 sobre `workflow.implementation_discipline_audit` y
+`audit-implementation-discipline`: cero asociaciones activas del workflow
+retirado en los contratos del kernel; dos referencias activas e
+intencionales al operation ID en los archivos MOS-3.24 ES/EN; el resto de
+coincidencias del repositorio son menciones históricas o explicativas en
+esta sección de benchmark y en el historial git.
+
+La comparación verifica que los límites, los estados permitidos, la evidencia
+requerida, los outputs permitidos y el `change_class` resuelto de la tupla
+medida siguen presentes y equivalentes en cada nivel: la reducción es
+estructura de contrato retirada (un workflow duplicado y sus asociaciones),
+no evidencia viva, gates ni densidad de reporte omitidos. Esta reducción
+independiente no se atribuye a OSIM.1 (#477/#479).
 
 ## Comparabilidad con mediciones anteriores
 
@@ -340,6 +402,21 @@ git worktree add --detach /tmp/pos-479-after 3a52509
 
 Ejecuta de nuevo literalmente el bloque Python de #477 de arriba, reemplazando
 sus dos argumentos por `/tmp/pos-479-before` y `/tmp/pos-479-after`.
+
+Para reproducir la medición de colapso de OSIM.2 (#481), en un checkout con
+esos commits disponibles:
+
+```sh
+git worktree add --detach /tmp/pos-481-before 70ddc398
+git worktree add --detach /tmp/pos-481-after c669210
+```
+
+Ejecuta de nuevo literalmente el bloque Python de #477 de arriba,
+reemplazando sus dos argumentos por `/tmp/pos-481-before` y
+`/tmp/pos-481-after`, y `retired` por
+`("workflow.implementation_discipline_audit",)`; para la fila de kernel
+completo, concatena `manifest.json` y el resto de `*.json` en orden de
+nombre en cada lado y compara bytes directamente.
 
 ## Límites de este perfil
 

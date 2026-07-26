@@ -214,7 +214,6 @@ def test_every_artifact_template_and_active_skill_resolves_in_both_languages() -
         "workflow.issue_implementation": ("actor.terminal_agent", "mode.delegated_commit_pr", "change_class.standard"),
         "workflow.issue_implementation_manual": ("actor.browser_chat", "mode.review_only", None),
         "workflow.review_before_close": ("actor.browser_chat", "mode.review_only", None),
-        "workflow.implementation_discipline_audit": ("actor.browser_chat", "mode.review_only", None),
         "workflow.pm_intake": ("actor.browser_chat", "mode.review_only", None),
         "workflow.design_asset": ("actor.browser_chat", "mode.review_only", None),
         "workflow.security_revision": ("actor.browser_chat", "mode.review_only", None),
