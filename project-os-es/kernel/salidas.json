@@ -60,7 +60,7 @@
         "workflow.deployment"
       ],
       "mode_key": [],
-      "use_for": "reportar trabajo de implementacion; el resolver proyecta como must_include exactamente la lista de must_include_by_density del nivel de hidratacion resuelto, y nunca se declara done sin scope completo, out of scope respetado y validacion reportada",
+      "use_for": "reportar trabajo de implementacion; el resolver proyecta como must_include exactamente la lista de must_include_by_density de la densidad de reporte de la clase declarada, independiente del nivel de hidratacion recibido, y nunca se declara done sin scope completo, out of scope respetado y validacion reportada",
       "status_key": "status.resolved",
       "action_class": "action.mutable",
       "allows_non_material_gaps": false,
