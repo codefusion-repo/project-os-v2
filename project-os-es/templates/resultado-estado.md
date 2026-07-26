@@ -4,9 +4,7 @@ Responsabilidad: devolver un estado y, cuando MOS-R.3 procesa una decisión PM,
 su resolución canónica sin rellenar con reglas repetidas.
 
 Trazabilidad PM-facing: `Fuente o decision requerida` es la representación
-canónica. No agregues un bloque de recibo; la procedencia detallada se entrega
-solo cuando el PM la solicita para auditoría, debugging, revisión de seguridad o
-autorización, o investigación de una resolución incorrecta.
+canónica. No agregues un bloque de recibo.
 
 ```markdown
 ## Estado

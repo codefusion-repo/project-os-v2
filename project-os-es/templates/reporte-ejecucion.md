@@ -10,9 +10,7 @@ reporte de la `CHANGE_CLASS` declarada. Esa densidad es independiente del
 bloque `full/debug` de este template. Usa solo el bloque de la densidad
 resuelta; no combines densidades. La trazabilidad PM-facing vive en el propio
 bloque —en `full/debug`, `Evidencia revisada`—; ninguna densidad agrega un
-bloque de recibo. La procedencia detallada se entrega solo cuando el PM la
-solicita para auditoría, debugging, revisión de seguridad o autorización, o
-investigación de una resolución incorrecta.
+bloque de recibo.
 
 ## Densidad minimal
 

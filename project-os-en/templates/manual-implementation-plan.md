@@ -3,9 +3,7 @@
 Responsibility: draft human-executable instructions without claiming edits.
 
 PM-facing traceability: `Files to inspect` and the anchored plan are the
-canonical representation. Do not add a receipt block; detailed provenance is
-delivered only when the PM asks for it for audit, debugging, security or
-authorization review, or investigating an incorrect resolution.
+canonical representation. Do not add a receipt block.
 
 ```markdown
 ## Objective

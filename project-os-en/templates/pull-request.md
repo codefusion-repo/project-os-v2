@@ -4,9 +4,7 @@ Responsibility: document claims, scope and validation of a PR draft. It is not
 completeness test until review against diff/final files.
 
 PM-facing traceability: `Validation` and the declared scope are the canonical
-representation. Do not add a receipt block; detailed provenance is delivered only
-when the PM asks for it for audit, debugging, security or authorization review,
-or investigating an incorrect resolution.
+representation. Do not add a receipt block.
 
 ```markdown
 ## Summary

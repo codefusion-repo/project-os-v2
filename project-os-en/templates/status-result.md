@@ -4,9 +4,7 @@ Responsibility: return a status and, when MOS-R.3 processes a PM decision,
 its canonical resolution without padding it with repeated rules.
 
 PM-facing traceability: `Required source or decision` is the canonical
-representation. Do not add a receipt block; detailed provenance is delivered only
-when the PM asks for it for audit, debugging, security or authorization review,
-or investigating an incorrect resolution.
+representation. Do not add a receipt block.
 
 ```markdown
 ## Status
