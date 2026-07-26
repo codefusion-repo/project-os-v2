@@ -13,8 +13,15 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 **Cómo:** Extrae criterios del issue/PR a pasos verificables por un humano.
 
 **Variables**
-- Requeridas: ISSUE_NUMBER
-- Opcionales: PR_NUMBER, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Requeridas: QA_SOURCE
+- Opcionales: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+
+**Metadata derivada:** `QA_SOURCE` es el único locator primario y acepta por
+igual un issue o un PR: cualquiera sirve cuando contiene evidencia suficiente
+para extraer los criterios. Desde él se reconstruyen el issue o PR relacionado,
+el repositorio y las demás relaciones verificables, que se muestran resueltas
+en la salida sin volver a pedirlas. Solo una relación no verificable o varias
+fuentes incompatibles igualmente vigentes devuelven `status.needs_context`.
 
 **Entrega:** output.status_result. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

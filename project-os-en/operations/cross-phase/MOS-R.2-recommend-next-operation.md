@@ -14,7 +14,15 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Variables**
 - Required: — (none)
-- Optional: TARGET_REPOSITORY, ISSUE_NUMBER, PR_NUMBER, ROADMAP_ISSUE, CURRENT_STATUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Optional: ROUTING_SOURCE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+
+**Derived metadata:** the repository, the issue, the PR, the roadmap, and the
+current status are derived metadata, not inputs. Apply the common contract's
+precedence: reuse the unambiguous source the current invocation already
+identifies; if none exists, ask for a single `ROUTING_SOURCE` —repository,
+issue, PR, roadmap, or equivalent live record— and reconstruct the rest from
+it. Return the decision to the PM only on real material ambiguity, never
+because a reconstructible identifier is missing.
 
 **Deliver:** output.status_result. In the event of insufficient or unreadable traceability, fail closed: report with `output.status_result` and return the decision to the PM.
 

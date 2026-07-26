@@ -57,7 +57,10 @@ reconstruida y nunca queda por debajo de su densidad contractual; controla solo 
 contenido hidratado del resolver y ningún nivel devuelve `context_plan` ni agrega
 un bloque de recibo. El wizard pide solo
 `WORK_UNIT` y `PM_AUTHORIZATION_STATUS`; no solicita `SOURCE_REVIEW`, `PR_NUMBER`,
-`CHANGE_CLASS` ni la densidad cuando pueden derivarse.
+`CHANGE_CLASS` ni la densidad cuando pueden derivarse. Igual que en MOS-3.4, la
+densidad conserva una única ruta de override explícito —`/hydration <nivel>` en
+el wizard, escrito como `HYDRATION_LEVEL` en el bloque INPUT— que puede
+mantenerla o elevarla, nunca reducirla, y que no se pregunta de forma rutinaria.
 
 **Entrega:** output.route_prompt. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 

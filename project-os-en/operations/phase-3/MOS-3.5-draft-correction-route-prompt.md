@@ -57,7 +57,10 @@ the resolver's hydrated content and no level returns `context_plan` or adds a
 receipt block. The wizard
 asks only for `WORK_UNIT` and `PM_AUTHORIZATION_STATUS`; it does not request
 `SOURCE_REVIEW`, `PR_NUMBER`, `CHANGE_CLASS`, or the density when they can be
-derived.
+derived. As in MOS-3.4, the density keeps a single explicit override route
+—`/hydration <level>` in the wizard, written as `HYDRATION_LEVEL` in the INPUT
+block— that may keep or raise it, never reduce it, and that is never asked
+routinely.
 
 **Deliver:** output.route_prompt. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

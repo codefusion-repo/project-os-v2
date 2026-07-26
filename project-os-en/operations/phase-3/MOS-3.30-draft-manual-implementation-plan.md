@@ -14,7 +14,12 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Variables**
 - Required: ISSUE_NUMBER
-- Optional: TARGET_REPOSITORY, PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+- Optional: PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
+
+**Derived metadata:** the repository, the existing PR, and the branch are
+reconstructed from the issue and are never asked of the PM. `PATH_SCOPE` stays
+an input because it deliberately narrows the plan and is not derived from the
+unit.
 
 **Deliver:** output.manual_implementation_plan. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 

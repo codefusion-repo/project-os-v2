@@ -14,7 +14,15 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Variables**
 - Requeridas: ninguna
-- Opcionales: TARGET_REPOSITORY, ISSUE_NUMBER, PR_NUMBER, ROADMAP_ISSUE, CURRENT_STATUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+- Opcionales: ROUTING_SOURCE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
+
+**Metadata derivada:** el repositorio, el issue, el PR, el roadmap y el estado
+actual son metadata derivada, no inputs. Aplica la precedencia del contrato
+común: reutiliza la fuente inequívoca que la invocación actual ya identifica;
+si falta, pide un único `ROUTING_SOURCE` —repositorio, issue, PR, roadmap o
+registro vivo equivalente— y reconstruye el resto desde él. Devuelve la
+decisión al PM solo ante ambigüedad material real, nunca porque falte un
+identificador reconstruible.
 
 **Entrega:** output.status_result. Ante trazabilidad insuficiente o ilegible: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
