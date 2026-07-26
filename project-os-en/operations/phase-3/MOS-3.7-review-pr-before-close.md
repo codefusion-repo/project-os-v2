@@ -14,9 +14,11 @@ disposition, and on a GO verdict deliver the closeout in the same response.
 **How:** Compare the diff, validation, and scope; use execution reports as
 evidence leads. Reconstruct the live unit's `CHANGE_CLASS` from its evidence —not
 asked as a manual PM input— and resolve the review at that class: a critical unit
-resolves as `change_class.critical`, `full/debug`, `review.independent`, and
-`validation.broad`. Read findings by intent: the material breach is binding, the
-proposed solution is advisory. Before treating an observation as a finding, apply
+keeps `change_class.critical`, `review.independent`, `validation.broad`,
+and the critical report density, while its normal hydration is `compact`
+and only changes through an explicit override. Read findings by intent:
+the material breach is binding, the proposed solution is advisory.
+Before treating an observation as a finding, apply
 the materiality gate from `rule.economia_de_contexto`: it requires a verifiable
 current state, an unsatisfied outcome, contract, risk, or capability, a concrete
 materially improving action, and durable value; something merely historical,
