@@ -15,15 +15,19 @@ from tools.operation_prompt_wizard import (
     DEFAULT_OPERATIONS_DIR,
     HYDRATION_LEVEL_NAME,
     HAVE_PROMPT_TOOLKIT,
+    INTENT_ROUTING_MOS_CODE,
     PM_AUTHORIZATION_GRANTED,
     PM_AUTHORIZATION_PENDING,
     PM_AUTHORIZATION_STATUS_NAME,
+    PM_QUESTION_HUMANO_NAME,
+    discover_operations,
 )
 
 if not HAVE_PROMPT_TOOLKIT:
     pytest.skip("prompt_toolkit not installed; enhanced wizard path unavailable", allow_module_level=True)
 
-from tools.operation_prompt_wizard import run_wizard_pt
+from tools.operation_prompt_wizard import OperationValidator, run_wizard_pt
+from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import fragment_list_to_text, to_formatted_text
 
 
@@ -53,6 +57,18 @@ def setup_catalog(tmp_path: Path) -> Path:
         "MOS-3.5",
         "Corrección",
         "TARGET_REPOSITORY",
+    )
+    return operations
+
+
+def setup_catalog_with_intent_router(tmp_path: Path) -> Path:
+    operations = setup_catalog(tmp_path)
+    write_operation(
+        operations / "cross-fase" / f"{INTENT_ROUTING_MOS_CODE}-recomendar-siguiente-operacion.md",
+        INTENT_ROUTING_MOS_CODE,
+        "Recomendar la siguiente operación",
+        "— (ninguna)",
+        optional="ROUTING_SOURCE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO",
     )
     return operations
 
@@ -114,6 +130,75 @@ def test_cancel_at_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
     operations = setup_catalog(tmp_path)
     monkeypatch.setattr("tools.operation_prompt_wizard.prompt", mock_prompt(["cancel"]))
     assert run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out") is None
+
+
+def test_operation_validator_accepts_intent_text_when_catalog_has_intent_router(
+    tmp_path: Path,
+) -> None:
+    operations = discover_operations(setup_catalog_with_intent_router(tmp_path))
+    validator = OperationValidator(operations)
+
+    validator.validate(Document("free-form intent that names no catalog operation"))
+
+
+def test_operation_validator_still_rejects_unmatched_text_without_intent_router(
+    tmp_path: Path,
+) -> None:
+    operations = discover_operations(setup_catalog(tmp_path))
+    validator = OperationValidator(operations)
+
+    with pytest.raises(Exception, match="Invalid or ambiguous selection"):
+        validator.validate(Document("free-form intent that names no catalog operation"))
+
+
+def test_intent_first_text_with_no_catalog_match_routes_via_mos_r2_pt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations = setup_catalog_with_intent_router(tmp_path)
+    intent_text = "quiero saber que operacion sigue para el issue 500 del roadmap"
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt([intent_text, "", "", "", "write", "exit"]),
+    )
+    stream = StringIO()
+    result = run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out", output_stream=stream)
+
+    assert result is not None
+    content = result.read_text(encoding="utf-8")
+    assert f"PM_QUESTION_HUMANO={intent_text}" in content
+    assert INTENT_ROUTING_MOS_CODE in stream.getvalue()
+
+
+def test_intent_first_rejects_secret_looking_text_before_write_pt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations = setup_catalog_with_intent_router(tmp_path)
+    # Split so this fixture never contains a contiguous secret-shaped literal
+    # in the repo's own source text (the same pattern guards this file too).
+    fake_key = "AKIA" + "ABCDEFGHIJKLMNOP"
+    secret_intent = f"usa AWS_SECRET_ACCESS_KEY={fake_key} para continuar"
+    clean_intent = "texto limpio sin secretos para describir mi intencion"
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard.prompt",
+        mock_prompt(
+            [
+                secret_intent,
+                "",  # ROUTING_SOURCE blank
+                "",  # PM_FEEDBACK_HUMANO blank
+                "",  # PM_QUESTION_HUMANO attempt 1: reuses the secret-looking captured intent
+                clean_intent,  # PM_QUESTION_HUMANO attempt 2: accepted
+                "write",
+                "exit",
+            ]
+        ),
+    )
+    stream = StringIO()
+    result = run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out", output_stream=stream)
+
+    assert result is not None
+    content = result.read_text(encoding="utf-8")
+    assert fake_key not in content
+    assert f"PM_QUESTION_HUMANO={clean_intent}" in content
 
 
 def test_language_question_empty_answer_keeps_spanish_default(

@@ -264,15 +264,21 @@ artefactos/templates, referenciado por `required_skill` bajo
 4. **Usa
    [MOS-0.6](../operaciones/fase-0/MOS-0.6-transferir-contexto-de-sesion.md)
    solo si la sesión está incoherente, agotada o necesita traspaso.**
-5. **Elige la siguiente operación por fase** desde el catálogo
-   [`operaciones/README.md`](../operaciones/README.md) (incluye una tabla de
-   casos frecuentes en [docs/README.md](README.md)) y el ciclo día a día de
-   [ritmo.md](ritmo.md).
+5. **Expresa tu intención.** Describe en browser chat el target o referencia
+   relevante, el outcome que buscas y tus constraints; la ruta normal
+   reutiliza [MOS-R.2](../operaciones/cross-fase/MOS-R.2-recomendar-siguiente-operacion.md)
+   para reconstruir desde evidencia viva y recomendar exactamente una
+   operación aplicable. Para elegir explícitamente por fase o código MOS, usa
+   el catálogo [`operaciones/README.md`](../operaciones/README.md) (incluye
+   una tabla de casos frecuentes en [docs/README.md](README.md)) y el ciclo
+   día a día de [ritmo.md](ritmo.md).
 6. **Genera prompts locales opcionalmente** con
    `python tools/operation_prompt_wizard.py --language es` (o responde su
-   pregunta única `es/en`; español sigue siendo el default). La selección es
-   solo de sesión, no ejecuta la operación y nunca adopta un idioma para el
-   target.
+   pregunta única `es/en`; español sigue siendo el default). Describe tu
+   intención en el primer paso del wizard para que la transporte hacia
+   MOS-R.2, o selecciona explícitamente por índice, código MOS, filename,
+   stem o path. La selección es solo de sesión, no ejecuta la operación y
+   nunca adopta un idioma para el target.
 
 ## 6. Delegar, revisar, corregir y cerrar
 

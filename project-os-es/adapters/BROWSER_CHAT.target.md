@@ -46,6 +46,27 @@ equivalente por output. Toda lectura adicional debe estar justificada por scope,
 validación o source basis, sin exponer cuerpos completos, secretos ni estado
 vivo durable.
 
+## Entrada intent-first
+
+La ruta normal para el PM es describir su intención —el target o referencia
+relevante cuando no se derive ya del contexto, el outcome que busca y sus
+constraints— sin seleccionar antes un código MOS. Aplica directamente la
+capacidad canónica de
+`project-os-es/operaciones/cross-fase/MOS-R.2-recomendar-siguiente-operacion.md`:
+reutiliza la fuente inequívoca ya presente, pide como máximo un locator
+primario cuando falte, reconstruye el resto desde evidencia viva y selecciona
+exactamente una operación cuando la intención y la evidencia son inequívocas.
+Explica en una frase breve por qué eligió esa operación y devuelve la decisión
+al PM con `status.needs_context` o `status.needs_pm_decision` solo ante
+ambigüedad material real, nunca eligiendo por orden de catálogo o coincidencia
+superficial. No repitas aquí el contrato de MOS-R.2; consúltalo resuelto.
+
+La selección explícita —código MOS, workflow, mode, path, o un override de
+hidratación— sigue disponible y tiene precedencia cuando el PM la declara
+directamente. Ninguna de las dos rutas infiere autorización PM, aprobación,
+merge, cierre, labels, tags, releases, deploys ni cambios de secretos desde la
+intención.
+
 ## Notas propias del target
 
 Añade únicamente restricciones estables de dominio, seguridad, idioma PM-facing
