@@ -129,6 +129,15 @@ HYDRATION_LEVEL_NAME = "HYDRATION_LEVEL"
 HYDRATION_LEVEL_CHOICES = ("minimal", "compact", "full/debug")
 HYDRATION_OVERRIDE_COMMANDS = {"/hydration", "/hydration-level"}
 
+# Intent-first entry (OSIM.4): free text that names no catalog operation is
+# PM intent, not a failed search. The wizard never decides which operation
+# applies; it only transports the intent, verbatim, into MOS-R.2's own
+# PM_QUESTION_HUMANO variable so the canonical routing capability resolves it
+# from live evidence. Explicit selection (index, MOS code, filename, stem,
+# path) always takes precedence and is checked first.
+INTENT_ROUTING_MOS_CODE = "MOS-R.2"
+PM_QUESTION_HUMANO_NAME = "PM_QUESTION_HUMANO"
+
 
 class WizardError(RuntimeError):
     """Raised when the local wizard cannot proceed safely."""
@@ -633,6 +642,16 @@ def resolve_operation_selection(
 def _unique_operation(candidates) -> OperationTemplate | None:
     unique = {operation.path.resolve(): operation for operation in candidates}
     return next(iter(unique.values())) if len(unique) == 1 else None
+
+
+def intent_routing_operation(operations: list[OperationTemplate]) -> OperationTemplate | None:
+    """Return the active MOS-R.2 operation in this catalog, or None if absent."""
+
+    return _unique_operation(
+        operation
+        for operation in operations
+        if not operation.is_alias and operation.mos_code == INTENT_ROUTING_MOS_CODE
+    )
 
 
 def validate_variable_value(
@@ -1399,6 +1418,12 @@ def print_selection_help(output_stream: TextIO) -> None:
     print("", file=output_stream)
     print("Selection help:", file=output_stream)
     print(
+        f"  Describe your intent in your own words; text that names no catalog entry "
+        f"routes via {INTENT_ROUTING_MOS_CODE}, which recommends one operation from live "
+        "evidence. This never authorizes anything.",
+        file=output_stream,
+    )
+    print(
         "  Filter by title, filename, stem, relative path, phase directory, MOS code, "
         "or displayed index.",
         file=output_stream,
@@ -1530,12 +1555,26 @@ def select_operation(
     input_func: Callable[[str], str] = input,
     output_stream: TextIO = sys.stdout,
     phase_by_operation: dict[int, str] | None = None,
+    captured_intent: dict[str, str] | None = None,
 ) -> OperationTemplate | None:
-    """Interactively search/filter/group and select one operation."""
+    """Interactively search/filter/group and select one operation.
+
+    A query that names no catalog entry at all (no exact match, no title/
+    filename/path/phase match) is never a dead end: it is PM intent. When
+    this catalog carries MOS-R.2, that intent is captured verbatim into
+    ``captured_intent`` and MOS-R.2 is returned so the canonical routing
+    capability -- not this wizard -- resolves it from live evidence.
+    """
 
     phase_by_operation = phase_by_operation or {}
     filtered = canonical_operations(operations)
     print_stage("Step 1/3", "Search and select an operation", output_stream)
+    print(
+        "Describe what you want (target, outcome, constraints) to route via "
+        f"{INTENT_ROUTING_MOS_CODE}, or select explicitly by index, MOS code, "
+        "filename, title, relative path, or phase.",
+        file=output_stream,
+    )
     print(
         "Commands: /enumerated (aliases /enumerator, /), /phases (alias /phase), "
         "s search, ? help, cancel exit.",
@@ -1544,8 +1583,8 @@ def select_operation(
     print_enumerated_view(filtered, output_stream)
     while True:
         query = input_func(
-            "\nSearch by index, MOS code, filename, title, relative path, or phase "
-            "(Enter keeps view; /enumerated; /phases; ? help; cancel): "
+            "\nDescribe your intent, or search by index, MOS code, filename, title, "
+            "relative path, or phase (Enter keeps view; /enumerated; /phases; ? help; cancel): "
         ).strip()
         if is_cancel_command(query):
             return None
@@ -1570,6 +1609,16 @@ def select_operation(
                 return operation
             matches = filter_operations(operations, query, phase_by_operation)
             if not matches:
+                recommended = intent_routing_operation(operations)
+                if recommended is not None:
+                    if captured_intent is not None:
+                        captured_intent[PM_QUESTION_HUMANO_NAME] = query
+                    print(
+                        f"No catalog match for that text. Treating it as your intent and "
+                        f"routing via {recommended.mos_code} — {recommended.title}.",
+                        file=output_stream,
+                    )
+                    return recommended
                 print(
                     "No matching operations. Try a title, MOS code, filename, relative path, phase, or index.",
                     file=output_stream,
@@ -2034,11 +2083,13 @@ def run_wizard(
     while True:
         if stage == "select_operation":
             print_session_state(output_stream, current_prompt_path, selection, output_directory)
+            captured_intent: dict[str, str] = {}
             picked = select_operation(
                 operations,
                 input_func=input_func,
                 output_stream=output_stream,
                 phase_by_operation=phase_by_operation,
+                captured_intent=captured_intent,
             )
             if picked is None:
                 if current_prompt_path is not None:
@@ -2048,6 +2099,7 @@ def run_wizard(
                 return None
             operation = picked
             values = carryover_values(values)
+            values.update(captured_intent)
             include_route_prompt_authorization = False
             stage = "collect_values"
             continue
@@ -2224,28 +2276,40 @@ if HAVE_PROMPT_TOOLKIT:
             ):
                 return
             if resolve_operation_selection(self.operations, text) is None:
-                raise ValidationError(
-                    message=(
-                        "Invalid or ambiguous selection. Use a displayed index, MOS code, "
-                        "exact filename/stem/path, or cancel."
-                    ),
-                    cursor_position=len(document.text)
-                )
+                # Text that names no catalog entry is still valid: it is PM
+                # intent, captured and routed via MOS-R.2 by the caller, not a
+                # rejected search. Only reject when this catalog has no
+                # MOS-R.2 to route through.
+                if intent_routing_operation(self.operations) is None:
+                    raise ValidationError(
+                        message=(
+                            "Invalid or ambiguous selection. Use a displayed index, MOS code, "
+                            "exact filename/stem/path, or cancel."
+                        ),
+                        cursor_position=len(document.text)
+                    )
 
     def select_operation_pt(
         operations: list[OperationTemplate],
         output_stream: TextIO,
         phase_by_operation: dict[int, str] | None = None,
+        captured_intent: dict[str, str] | None = None,
     ) -> OperationTemplate | None:
         phase_by_operation = phase_by_operation or {}
         print_stage("Step 1/3", "Search and select an operation", output_stream)
+        print(
+            "Describe what you want (target, outcome, constraints) to route via "
+            f"{INTENT_ROUTING_MOS_CODE}, or select explicitly by index, MOS code, "
+            "filename, title, relative path, or phase.",
+            file=output_stream,
+        )
         print_enumerated_view(operations, output_stream)
         style = Style.from_dict({
             'bottom-toolbar': 'bg:#333333 #ffffff',
         })
         def bottom_toolbar():
             return HTML(
-                ' <b>Commands</b>: index/MOS/path, /enumerated (/enumerator, /), '
+                ' <b>Commands</b>: intent text, index/MOS/path, /enumerated (/enumerator, /), '
                 '/phases (/phase), cancel, ? help.'
             )
 
@@ -2255,7 +2319,7 @@ if HAVE_PROMPT_TOOLKIT:
         while True:
             try:
                 selection = prompt(
-                    "Search/select operation: ",
+                    "Describe your intent, or search/select operation: ",
                     completer=completer,
                     validator=validator,
                     style=style,
@@ -2279,6 +2343,20 @@ if HAVE_PROMPT_TOOLKIT:
             operation = resolve_operation_selection(operations, selection)
             if operation is not None:
                 return operation
+
+            if not selection:
+                continue
+
+            recommended = intent_routing_operation(operations)
+            if recommended is not None:
+                if captured_intent is not None:
+                    captured_intent[PM_QUESTION_HUMANO_NAME] = selection
+                print(
+                    f"No catalog match for that text. Treating it as your intent and "
+                    f"routing via {recommended.mos_code} — {recommended.title}.",
+                    file=output_stream,
+                )
+                return recommended
 
     def collect_values_with_controls_pt(
         operation: OperationTemplate,
@@ -2727,8 +2805,12 @@ if HAVE_PROMPT_TOOLKIT:
         while True:
             if stage == "select_operation":
                 print_session_state(output_stream, current_prompt_path, selection, output_directory)
+                captured_intent: dict[str, str] = {}
                 picked = select_operation_pt(
-                    operations, output_stream=output_stream, phase_by_operation=phase_by_operation
+                    operations,
+                    output_stream=output_stream,
+                    phase_by_operation=phase_by_operation,
+                    captured_intent=captured_intent,
                 )
                 if picked is None:
                     if current_prompt_path is not None:
@@ -2738,6 +2820,7 @@ if HAVE_PROMPT_TOOLKIT:
                     return None
                 operation = picked
                 values = carryover_values(values)
+                values.update(captured_intent)
                 include_route_prompt_authorization = False
                 stage = "collect_values"
                 continue

@@ -13,7 +13,9 @@ from tools.operation_prompt_wizard import (
     DEFAULT_SKILLS_CATALOG,
     HYDRATION_LEVEL_CHOICES,
     HYDRATION_LEVEL_NAME,
+    INTENT_ROUTING_MOS_CODE,
     LANGUAGE_QUESTION,
+    PM_QUESTION_HUMANO_NAME,
     REPO_ROOT,
     InputVariable,
     PM_AUTHORIZATION_GRANTED,
@@ -28,6 +30,7 @@ from tools.operation_prompt_wizard import (
     extract_description,
     filter_operations,
     generated_filename,
+    intent_routing_operation,
     load_active_skill_choices,
     load_active_skill_options,
     load_phase_map,
@@ -192,6 +195,113 @@ def test_filter_matches_active_spanish_search_surface() -> None:
         target.description,
     ):
         assert target in filter_operations(operations, query, phases)
+
+
+def test_intent_routing_operation_finds_active_mos_r2_and_none_when_absent(tmp_path: Path) -> None:
+    operations = discover_operations()
+    recommended = intent_routing_operation(operations)
+    assert recommended is not None
+    assert recommended.mos_code == INTENT_ROUTING_MOS_CODE
+
+    write_spanish_operation(tmp_path / "fase-1" / "MOS-1.1-sin-router.md", "MOS-1.1", "Sin router")
+    assert intent_routing_operation(discover_operations(tmp_path)) is None
+
+
+def test_intent_text_with_no_catalog_match_routes_via_mos_r2_and_captures_question() -> None:
+    operations = discover_operations()
+    intent_text = "quiero saber que operacion sigue para el issue 500 del roadmap"
+    captured: dict[str, str] = {}
+    stream = StringIO()
+
+    selected = select_operation(
+        operations,
+        input_func=answers(intent_text),
+        output_stream=stream,
+        captured_intent=captured,
+    )
+
+    assert selected is not None
+    assert selected.mos_code == INTENT_ROUTING_MOS_CODE
+    assert captured == {PM_QUESTION_HUMANO_NAME: intent_text}
+    assert INTENT_ROUTING_MOS_CODE in stream.getvalue()
+
+
+def test_explicit_selection_takes_precedence_over_intent_capture() -> None:
+    operations = discover_operations()
+    target = next(operation for operation in operations if operation.mos_code == "MOS-3.5")
+    captured: dict[str, str] = {}
+
+    selected = select_operation(
+        operations,
+        input_func=answers("MOS-3.5"),
+        output_stream=StringIO(),
+        captured_intent=captured,
+    )
+
+    assert selected == target
+    assert captured == {}
+
+
+def test_intent_fallback_is_absent_without_mos_r2_and_keeps_original_dead_end(tmp_path: Path) -> None:
+    write_spanish_operation(tmp_path / "fase-1" / "MOS-1.1-sin-router.md", "MOS-1.1", "Sin router")
+    operations = discover_operations(tmp_path)
+    captured: dict[str, str] = {}
+    stream = StringIO()
+
+    selected = select_operation(
+        operations,
+        input_func=answers("texto que no coincide con nada del catalogo", "cancel"),
+        output_stream=stream,
+        captured_intent=captured,
+    )
+
+    assert selected is None
+    assert captured == {}
+    assert "No matching operations" in stream.getvalue()
+
+
+def test_run_wizard_intent_first_end_to_end_prefills_pm_question_humano(tmp_path: Path) -> None:
+    intent_text = "quiero saber que operacion sigue para el issue 500 del roadmap"
+    output = run_wizard(
+        language="es",
+        output_dir=tmp_path,
+        input_func=answers(intent_text, "", "", "", "write", "exit"),
+        output_stream=StringIO(),
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert f"PM_QUESTION_HUMANO={intent_text}" in content
+    assert "ROUTING_SOURCE=\n" in content
+
+
+def test_run_wizard_intent_first_rejects_secret_looking_text_before_write(tmp_path: Path) -> None:
+    # Split so this fixture never contains a contiguous secret-shaped literal
+    # in the repo's own source text (the same pattern guards this file too).
+    fake_key = "AKIA" + "ABCDEFGHIJKLMNOP"
+    secret_intent = f"usa AWS_SECRET_ACCESS_KEY={fake_key} para continuar"
+    clean_intent = "texto limpio sin secretos para describir mi intencion"
+    stream = StringIO()
+    output = run_wizard(
+        language="es",
+        output_dir=tmp_path,
+        input_func=answers(
+            secret_intent,
+            "",  # ROUTING_SOURCE blank
+            "",  # PM_FEEDBACK_HUMANO blank
+            "",  # PM_QUESTION_HUMANO attempt 1: reuses the secret-looking captured intent
+            clean_intent,  # PM_QUESTION_HUMANO attempt 2: accepted
+            "write",
+            "exit",
+        ),
+        output_stream=stream,
+    )
+
+    assert output is not None
+    content = output.read_text(encoding="utf-8")
+    assert fake_key not in content
+    assert f"PM_QUESTION_HUMANO={clean_intent}" in content
+    assert "looks like a secret" in stream.getvalue()
 
 
 def test_selected_summary_exposes_relative_path_without_repeating_it_in_main_list() -> None:

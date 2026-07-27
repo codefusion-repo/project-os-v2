@@ -265,14 +265,20 @@ referenced by `required_skill` under
 4. **Use
    [MOS-0.6](../operations/phase-0/MOS-0.6-handoff-session-context.md) only
    when the session is incoherent, exhausted, or needs handoff.**
-5. **Pick the next lifecycle-phase operation** from the catalog
-   [`operations/README.md`](../operations/README.md) and the day-to-day cycle
-   in [rhythm.md](rhythm.md).
+5. **State your intent.** Describe in browser chat the target or relevant
+   reference, the outcome you want, and your constraints; the normal path
+   reuses [MOS-R.2](../operations/cross-phase/MOS-R.2-recommend-next-operation.md)
+   to reconstruct from live evidence and recommend exactly one applicable
+   operation. To choose explicitly by phase or MOS code, use the catalog
+   [`operations/README.md`](../operations/README.md) and the day-to-day
+   cycle in [rhythm.md](rhythm.md).
 6. **Optionally generate local prompts** with
    `python tools/operation_prompt_wizard.py --language en` (or answer its
-   one-time `es/en` question; Spanish stays the default). The selection is
-   session-only, does not execute the chosen work, and never adopts a
-   language on the target.
+   one-time `es/en` question; Spanish stays the default). Describe your
+   intent at the wizard's first step so it transports it to MOS-R.2, or
+   select explicitly by index, MOS code, filename, stem, or path. The
+   selection is session-only, does not execute the chosen work, and never
+   adopts a language on the target.
 
 ## 6. Delegate, review, correct, and close
 
