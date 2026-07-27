@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -55,7 +56,7 @@ def resolver_fast_path(surface: str, source_kind: str) -> str:
         encoding="utf-8"
     )
     blocks = re.findall(r"```sh\n(.*?)\n```", source, re.S)
-    block = next(item for item in blocks if "TARGET_REF=$(sed" in item)
+    block = next(item for item in blocks if "KERNEL_REF=$(sed" in item)
     return (
         block.replace("<actor>", "actor.browser_chat")
         .replace("<workflow>", "workflow.pm_intake")
@@ -92,8 +93,9 @@ def write_fast_path_kernel(
             )
         (kernel / "manifest.json").write_text(payload, encoding="utf-8")
     if with_resolver:
-        resolver = root / "tools" / "project_os_resolve.py"
-        resolver.parent.mkdir(parents=True)
+        tools_dir = root / "tools"
+        tools_dir.mkdir(parents=True)
+        resolver = tools_dir / "project_os_resolve.py"
         # One line per invocation, so tests can assert the resolver ran exactly
         # once and not merely at least once.
         resolver.write_text(
@@ -103,6 +105,10 @@ def write_fast_path_kernel(
             "raise SystemExit(int(os.environ['RESOLVER_EXIT']))\n",
             encoding="utf-8",
         )
+        # The short block and its debugging-reference fallback both delegate to
+        # the real fast-path launcher; only the resolver itself is faked here.
+        shutil.copy(REPO_ROOT / "tools" / "project_os_fast_path.py", tools_dir / "project_os_fast_path.py")
+        shutil.copy(REPO_ROOT / "tools" / "project_os_surfaces.py", tools_dir / "project_os_surfaces.py")
     return kernel
 
 
@@ -184,7 +190,8 @@ def test_target_terminal_adapter_uses_only_portable_allowlisted_path_references(
     assert "$PWD" not in target_adapter
     assert "eval" in target_adapter
     assert "no usa `eval`" in target_adapter
-    assert 'python "$PROJECT_OS_ROOT/tools/project_os_resolve.py"' in target_adapter
+    assert 'python "$PROJECT_OS_ROOT/tools/project_os_fast_path.py"' in target_adapter
+    assert "tools/project_os_resolve.py" in target_adapter
 
 
 @pytest.mark.parametrize(

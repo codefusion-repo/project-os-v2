@@ -93,74 +93,50 @@ paths; a neutral mount such as `/workspace/...` is valid but not required.
 is no installer, package, or CLI; any future tooling has its own gate and is
 not required to operate today.
 
-Resolver fast path for the adopted target:
+Resolver fast path for the adopted target. The normal path is this short
+command:
+
+```sh
+python tools/project_os_fast_path.py \
+  --actor <actor> --workflow <workflow> --mode <mode> [--skill skill.<id>]
+```
+
+`tools/project_os_fast_path.py` is the single executable source that locates
+the root `AGENTS.md` by walking up from the current directory, validates the
+candidate, and only then invokes `tools/project_os_resolve.py`, exactly once. The block below
+is implementation/debugging documentation, not the daily interface: it
+reproduces the same upward search by delegating each candidate to
+`project_os_fast_path.py --agents-file`.
 
 ```sh
 select_target_bootloader() {
   AGENTS_FILE=$1
-  TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
   KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
-  case "$TARGET_REF" in
-    '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
-      test -n "${PROJECT_OS_TARGET_ROOT:-}" || return 1
-      TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
-      ;;
-    /*) case "$TARGET_REF" in *'$'*) return 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
-    *) return 1 ;;
-  esac
   case "$KERNEL_REF" in
-    '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
-      test -n "${PROJECT_OS_KERNEL_DIR:-}" || return 1
-      KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
-      ;;
-    /*) case "$KERNEL_REF" in *'$'*) return 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
-    *) return 1 ;;
+    '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}') KERNEL_DIR="${PROJECT_OS_KERNEL_DIR:-}" ;;
+    /*) case "$KERNEL_REF" in *'$'*) KERNEL_DIR= ;; *) KERNEL_DIR="$KERNEL_REF" ;; esac ;;
+    *) KERNEL_DIR= ;;
   esac
-  case "$TARGET_ROOT" in /*) ;; *) return 1 ;; esac
-  case "$KERNEL_DIR" in /*) ;; *) return 1 ;; esac
-  case "$KERNEL_DIR" in */project-os-en/kernel) ;; *) return 1 ;; esac
-  PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-en/kernel}"
-  test -n "$PROJECT_OS_ROOT" || return 1
-  test -d "$TARGET_ROOT" || return 1
-  test "$AGENTS_FILE" -ef "$TARGET_ROOT/AGENTS.md" || return 1
-  test -f "$KERNEL_DIR/manifest.json" || return 1
-  test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || return 1
-  python -c '
-import json
-import sys
-try:
-    payload = json.load(open(sys.argv[1], encoding="utf-8"))
-    entries = payload.get("manifest") if isinstance(payload, dict) else None
-    valid = (
-        isinstance(entries, list) and len(entries) == 1
-        and isinstance(entries[0], dict)
-        and entries[0].get("key") == "manifest.kernel_es"
-        and entries[0].get("language") == "en"
-        and entries[0].get("active") is True
-    )
-except (OSError, UnicodeError, json.JSONDecodeError):
-    valid = False
-raise SystemExit(0 if valid else 1)
-' "$KERNEL_DIR/manifest.json" || return 1
+  test -n "$KERNEL_DIR" || return 111
+  PROJECT_OS_ROOT=$(dirname "$(dirname "$KERNEL_DIR")")
+  test -f "$PROJECT_OS_ROOT/tools/project_os_fast_path.py" || return 111
+  python "$PROJECT_OS_ROOT/tools/project_os_fast_path.py" --agents-file "$AGENTS_FILE" \
+    --actor <actor> --workflow <workflow> --mode <mode> [--skill skill.<id>]
 }
-AGENTS_FILE=
 probe=$(pwd)
-while :; do
-  if test -f "$probe/AGENTS.md" && select_target_bootloader "$probe/AGENTS.md"; then
-    break
+rc=111
+while test "$rc" -eq 111; do
+  if test -f "$probe/AGENTS.md"; then
+    select_target_bootloader "$probe/AGENTS.md"
+    rc=$?
   fi
-  AGENTS_FILE=
-  test "$probe" = / && break
-  probe=$(dirname "$probe")
+  if test "$rc" -eq 111; then
+    test "$probe" = / && { echo 'no root AGENTS.md coherent with the adopted target' >&2; exit 1; }
+    probe=$(dirname "$probe")
+  fi
 done
-test -n "$AGENTS_FILE" || {
-  echo 'no root AGENTS.md coherent with the adopted target' >&2
-  exit 1
-}
-python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
-  --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_DIR" [--skill skill.<id>] || exit $?
-cd "$TARGET_ROOT" || exit 1
+test "$rc" -eq 0 || exit "$rc"
+cd "$probe" || exit 1
 ```
 
 The same resolution consumes either persisted modality, without `eval` or
