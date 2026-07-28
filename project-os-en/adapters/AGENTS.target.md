@@ -22,6 +22,15 @@ KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR
 KERNEL_VERSION_ADOPTED = {{adopted version or "tracks latest"}}
 
+## Local configuration
+
+The only normal way to configure the portable references is an untracked local
+`.envrc` containing the absolute `PROJECT_OS_TARGET_ROOT` and
+`PROJECT_OS_KERNEL_DIR` values. Load it manually and explicitly in your
+terminal; it requires no additional tools. The fast path never runs `source`,
+`eval`, or `.envrc`; without valid variables it fails closed before the
+resolver.
+
 ## Kernel resolution
 
 Before non-trivial work, read `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. When the kernel checkout is available in a terminal, the normal path is this short command. It is location-safe: it behaves identically from the target root or any subdirectory because it locates the script from the already-known kernel reference, without searching for it again:

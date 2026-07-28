@@ -7,4 +7,5 @@ venv
 skill_example
 .*
 !.github
+# Configuración local de rutas portables de Project OS; nunca versionar.
 .envrc

@@ -77,18 +77,24 @@ Haz esto solo cuando vayas a delegar implementación a un terminal agent:
    comentarlos o abrir PRs.
 4. Ten Python disponible si usaras el resolver.
 5. Adopta o revisa el adapter terminal del target con
-   [`project-os-es/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md) y
-   conserva sus referencias portables y define localmente
-   `PROJECT_OS_TARGET_ROOT` y `PROJECT_OS_KERNEL_DIR`, o usa paths absolutos
-   literales en los dos campos para una adopción privada.
+   [`project-os-es/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md).
+   Configura sus dos referencias portables en un `.envrc` local no trackeado
+   y actívalo explícitamente en la terminal.
 
 La adopción es copy-based por diseño: copiar el adapter al target y ajustar sus
 campos de identidad es la instalación completa. Las referencias persistidas
 `$PROJECT_OS_TARGET_ROOT` y `$PROJECT_OS_KERNEL_DIR` permiten compartir el
-adapter sin commitear paths personales. Define sus valores solo en el entorno
-local, por ejemplo con `export`, y verifica la adopción con el auditor. Para un
-adapter privado de una máquina también se admiten paths absolutos literales;
-un mount neutral como `/workspace/...` es válido, pero no obligatorio. `$PWD`,
+adapter sin commitear paths personales. La única ruta normal es crear un
+`.envrc` local no trackeado que contenga solamente las dos exportaciones con
+paths absolutos y cargarlo manualmente con `. ./.envrc` desde el directorio del
+target. Carga solo un archivo que controles y hayas revisado: es código de
+shell local, aunque el fast path nunca lo lee. No requiere herramientas
+adicionales. Ninguna ruta carga el archivo de forma implícita y el fast path
+nunca hace `source` ni `eval`. Por eso una terminal sin variables válidas falla
+cerrado antes del resolver. El archivo reúne las dos configuraciones en un
+único paso explícito por terminal. Para un adapter privado de una máquina aún
+se admiten paths absolutos literales, pero no son la ruta normal compartida; un
+mount neutral como `/workspace/...` es válido, pero no obligatorio. `$PWD`,
 variables distintas, valores compuestos y placeholders fallan cerrado. No hay
 installer, package ni CLI; cualquier tooling futuro tiene su propio gate y no
 es requisito para operar hoy.

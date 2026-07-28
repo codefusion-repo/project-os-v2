@@ -77,21 +77,26 @@ Do this only when you will delegate implementation to a terminal agent:
    comment, or open PRs.
 4. Have Python available when you will use the resolver.
 5. Adopt or review the target's terminal adapter with
-   [`project-os-en/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md)
-   and keep its portable references with `PROJECT_OS_TARGET_ROOT` and
-   `PROJECT_OS_KERNEL_DIR` defined locally, or use literal absolute values in
-   both fields for a private adoption.
+   [`project-os-en/adapters/AGENTS.target.md`](../adapters/AGENTS.target.md).
+   Configure its two portable references in an untracked local `.envrc` and
+   activate it explicitly in the terminal.
 
 Adoption is copy-based by design: copying the adapter into the target and
 filling its identity fields is the complete install. The persisted
 `$PROJECT_OS_TARGET_ROOT` and `$PROJECT_OS_KERNEL_DIR` references let the
-adapter be shared without committing personal paths. Define their values only
-in the local environment, for example with `export`, and verify adoption with
-the auditor. A private single-machine adapter may instead use literal absolute
-paths; a neutral mount such as `/workspace/...` is valid but not required.
-`$PWD`, other variables, composed values, and placeholders fail closed. There
-is no installer, package, or CLI; any future tooling has its own gate and is
-not required to operate today.
+adapter be shared without committing personal paths. The only normal route is
+to create an untracked local `.envrc` containing only the two absolute-path
+exports and manually load it with `. ./.envrc` from the target directory. Load
+only a file you control and have reviewed: it is local shell code even though
+the fast path never reads it. It requires no additional tools. No route loads
+the file implicitly, and the fast path never runs `source` or `eval`. Therefore
+a terminal without valid variables fails closed before the resolver. The file
+joins the two settings in one explicit per-terminal step. A private
+single-machine adapter may still use literal absolute paths, but that is not
+the normal shared route; a neutral mount such as `/workspace/...` is valid but
+not required. `$PWD`, other variables, composed values, and placeholders fail
+closed. There is no installer, package, or CLI; any future tooling has its own
+gate and is not required to operate today.
 
 Resolver fast path for the adopted target. The normal path is this short
 command. It is location-safe: it behaves identically from the target root or
