@@ -66,7 +66,9 @@ keeps the existing programmatic API and is labeled neither es nor en.
 Each canonical operation keeps its complete prompt and stable operational
 identity in its own Markdown file. When compatible historical codes exist, the
 canonical file's `project-os-operation` metadata declares `canonical_code`,
-`operation_id`, `aliases`, `deprecation`, and `compatibility_reason`. An alias
+`operation_id`, `aliases`, `deprecation`, and `compatibility_reason`. A
+maintenance alias that binds its historical focus also declares
+`alias_focus_area`. An alias
 file is only a stub pointing through `alias_of`; it never repeats workflows,
 modes, outputs, evidence, approval, variables, or connections. The canonical
 Markdown is therefore the single source of operational semantics.
@@ -76,6 +78,11 @@ non-deprecated historical alias) and `MOS-3.14` (canonical for every audit) /
 `MOS-6.11` (compatible historical code-improvement entry point). Normal wizard
 views show only canonicals, but an explicit alias selection by code, filename, or
 path reports the canonical code and renders exactly its contract and variables.
+
+`MOS-6.13` is the canonical maintenance-improvement analysis operation. Its
+supported aliases `MOS-6.3`, `MOS-6.4`, and `MOS-6.5` bind
+`FOCUS_AREA=performance`, `product`, and `code_quality` respectively, without
+duplicating the contract or asking for that focus again.
 
 The initial audit classified the asset request/delivery families
 (`MOS-3.15`–`MOS-3.22`), environment-specific deploy flows (`MOS-5.*`), and the
@@ -288,12 +295,13 @@ declaring `TARGET_REPOSITORY` because no other evidence identifies their reach.
 - [MOS-6.11 — Compatible alias of MOS-3.14](phase-6/MOS-6.11-process-code-improvements.md)
 - [MOS-6.12 — Process dead code cleanup](phase-6/MOS-6.12-process-dead-code-cleanup.md)
 - [MOS-6.2 — Review feature gaps production](phase-6/MOS-6.2-review-feature-gaps-production.md)
-- [MOS-6.3 — Analyze performance improvements](phase-6/MOS-6.3-analyze-performance-improvements.md)
-- [MOS-6.4 — Analyze product improvements](phase-6/MOS-6.4-analyze-product-improvements.md)
-- [MOS-6.5 — Analyze code quality gaps](phase-6/MOS-6.5-analyze-code-quality-gaps.md)
+- [MOS-6.3 — Performance-analysis alias](phase-6/MOS-6.3-analyze-performance-improvements.md)
+- [MOS-6.4 — Product-analysis alias](phase-6/MOS-6.4-analyze-product-improvements.md)
+- [MOS-6.5 — Code-quality-analysis alias](phase-6/MOS-6.5-analyze-code-quality-gaps.md)
 - [MOS-6.6 — Audit dead code](phase-6/MOS-6.6-audit-dead-code.md)
 - [MOS-6.7 — Process security production results](phase-6/MOS-6.7-process-security-production-results.md)
 - [MOS-6.8 — Process feature gap results](phase-6/MOS-6.8-process-feature-gap-results.md)
 - [MOS-6.9 — Process performance improvements](phase-6/MOS-6.9-process-performance-improvements.md)
+- [MOS-6.13 — Analyze maintenance improvements](phase-6/MOS-6.13-analyze-maintenance-improvements.md)
 - [MOS-R.17 — Dependency security update audit](phase-6/MOS-R.17-dependency-security-update-audit.md)
 - [MOS-R.18 — Secret safe config audit](phase-6/MOS-R.18-secret-safe-config-audit.md)

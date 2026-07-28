@@ -675,7 +675,7 @@ def test_mos_6_11_resolves_as_the_supported_mos_3_14_alias(language: str) -> Non
 
 # The maintenance family: three analyses that report findings and three
 # processors that consume one live review source and route the resulting work.
-MAINTENANCE_ANALYSIS_CODES = ("MOS-6.3", "MOS-6.4", "MOS-6.5")
+MAINTENANCE_ANALYSIS_CODES = ("MOS-6.13", "MOS-6.3", "MOS-6.4", "MOS-6.5")
 MAINTENANCE_PROCESSING_CODES = ("MOS-6.9", "MOS-6.10", "MOS-3.14")
 
 
@@ -694,6 +694,114 @@ def test_maintenance_analysis_delivers_a_review_result(language: str) -> None:
             "output.status_result",
         )
         assert variables["TARGET_REPOSITORY"].required is True
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+@pytest.mark.parametrize(
+    ("mos_code", "focus"),
+    (("MOS-6.3", "performance"), ("MOS-6.4", "product"), ("MOS-6.5", "code_quality")),
+)
+def test_maintenance_aliases_bind_their_focus_without_a_second_contract(
+    language: str, mos_code: str, focus: str
+) -> None:
+    operations = operations_for(language)
+    alias = next(item for item in operations if item.mos_code == mos_code)
+    canonical = next(item for item in operations if item.mos_code == "MOS-6.13")
+
+    assert alias.is_alias is True
+    assert alias.resolved_canonical_code == "MOS-6.13"
+    assert alias.alias_focus_area == focus
+    assert alias.variables == canonical.variables
+    for selector in (mos_code, alias.filename, alias.relative_path):
+        assert resolve_operation_selection(operations, selector) == alias
+    rendered = render_prompt(alias, {"TARGET_REPOSITORY": "codefusion-repo/project-os-v2"})
+    assert f"FOCUS_AREA={focus}" in rendered
+    assert "FOCUS_AREA=<performance|product|code_quality>" not in rendered
+
+    prompts: list[str] = []
+    result = collect_values_with_controls(
+        alias,
+        input_func=lambda prompt: (prompts.append(prompt), {
+            "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
+            "PATH_SCOPE": "",
+            "PM_FEEDBACK_HUMANO": "",
+            "PM_QUESTION_HUMANO": "",
+        }[prompt.split(" ", 1)[0]])[1],
+        output_stream=StringIO(),
+    )
+    assert result.values["FOCUS_AREA"] == focus
+    assert all(not prompt.startswith("FOCUS_AREA ") for prompt in prompts)
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+@pytest.mark.parametrize(
+    ("mos_code", "focus"),
+    (("MOS-6.3", "performance"), ("MOS-6.4", "product"), ("MOS-6.5", "code_quality")),
+)
+def test_line_search_for_a_maintenance_alias_keeps_its_linked_focus(
+    language: str, mos_code: str, focus: str
+) -> None:
+    operations = operations_for(language)
+    alias = next(item for item in operations if item.mos_code == mos_code)
+    partial_queries = (
+        f"{alias.mos_code}-",
+        alias.filename[:-2],
+        alias.path.stem[:-2],
+        alias.relative_path[:-2],
+    )
+    selectors = (
+        str(alias.index),
+        alias.mos_code,
+        alias.filename,
+        alias.path.stem,
+        alias.relative_path,
+    )
+    general_view = StringIO()
+    display_operations(operations, general_view)
+    assert f"{alias.mos_code} → canonical" not in general_view.getvalue()
+
+    for query in partial_queries:
+        for selector in selectors:
+            stream = StringIO()
+            selected = select_operation(
+                operations,
+                input_func=answers(query, selector),
+                output_stream=stream,
+            )
+
+            assert selected == alias
+            transcript = stream.getvalue()
+            assert f"{alias.mos_code} → canonical {alias.resolved_canonical_code}" in transcript
+            prompts: list[str] = []
+            values = collect_values_with_controls(
+                selected,
+                input_func=lambda prompt: (
+                    prompts.append(prompt),
+                    {
+                        "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
+                        "PATH_SCOPE": "",
+                        "PM_FEEDBACK_HUMANO": "",
+                        "PM_QUESTION_HUMANO": "",
+                    }[prompt.split(" ", 1)[0]],
+                )[1],
+                output_stream=StringIO(),
+            ).values
+            assert values["FOCUS_AREA"] == focus
+            assert all(not prompt.startswith("FOCUS_AREA ") for prompt in prompts)
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+def test_maintenance_canonical_requires_an_explicit_allowlisted_focus(language: str) -> None:
+    operations = operations_for(language)
+    canonical = next(item for item in operations if item.mos_code == "MOS-6.13")
+    focus = next(variable for variable in canonical.variables if variable.name == "FOCUS_AREA")
+
+    for selector in ("MOS-6.13", canonical.filename, canonical.relative_path):
+        assert resolve_operation_selection(operations, selector) == canonical
+    assert focus.required is True
+    assert validate_variable_value(focus, "") is not None
+    assert validate_variable_value(focus, "mixed") is not None
+    assert validate_variable_value(focus, "performance") is None
 
 
 @pytest.mark.parametrize("language", ("es", "en"))

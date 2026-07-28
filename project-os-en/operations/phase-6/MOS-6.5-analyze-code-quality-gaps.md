@@ -1,23 +1,12 @@
-# MOS-6.5 — Analyze code quality gaps
+# MOS-6.5 — Compatible alias of MOS-6.13
 
-MOSDLC operation `analyze-code-quality-gaps` · Phase 6 — Maintenance and improvements · Risk: low.
-Common contract: `project-os-en/operations/README.md` (kernel resolution, live state, validation, non-authorization, fail-closed behavior, and secret safety).
+<!-- project-os-operation
+canonical_code: MOS-6.13
+alias_of: MOS-6.13
+deprecation: supported
+compatibility_reason: This historical code keeps selection by code, filename, and path; it resolves MOS-6.13 with FOCUS_AREA=code_quality.
+alias_focus_area: code_quality
+-->
 
-- Surface: browser_chat
-- Kernel: workflow.review_only · mode.review_only · output.review_result (+output.status_result)
-- Evidence: evidence.repo_state
-- PM approval: No (read-only)
-
-**Does:** Analyze and recommend code-normalization improvements or clean-code gaps.
-**For:** To keep code consistent with Phase 2 standards.
-**How:** Read-only analysis against the documented standards, delivered as
-findings with their reference, verifiable disposition, recommendation, risks,
-and what was not reviewed.
-
-**Variables**
-- Required: TARGET_REPOSITORY
-- Optional: PATH_SCOPE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
-
-**Deliver:** output.review_result (+output.status_result). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
-
-**Connections:** Previous: periodic maintenance. Next: MOS-6.11 (compatible alias of MOS-3.14). Recommended: MOS-3.14.
+Supported historical alias. Use the one canonical contract in
+`MOS-6.13-analyze-maintenance-improvements.md`.

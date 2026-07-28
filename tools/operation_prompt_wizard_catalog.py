@@ -193,6 +193,7 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 aliases=source.metadata.aliases,
                 deprecation=source.metadata.deprecation,
                 compatibility_reason=source.metadata.compatibility_reason,
+                alias_focus_area=source.metadata.alias_focus_area,
             )
         )
     for source in (item for item in sources if item.is_alias):
@@ -211,6 +212,7 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 alias_of=canonical.code,
                 deprecation=source.metadata.deprecation,
                 compatibility_reason=source.metadata.compatibility_reason,
+                alias_focus_area=source.metadata.alias_focus_area,
             )
         )
     return operations

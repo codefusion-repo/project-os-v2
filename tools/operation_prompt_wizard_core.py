@@ -180,6 +180,7 @@ class OperationTemplate:
     alias_of: str | None = None
     deprecation: str = "none"
     compatibility_reason: str = ""
+    alias_focus_area: str = ""
 
     @property
     def filename(self) -> str:
@@ -275,6 +276,12 @@ def canonical_operation_for(
         for candidate in operations
         if not candidate.is_alias and candidate.mos_code == operation.resolved_canonical_code
     )
+
+
+def alias_bound_values(operation: OperationTemplate) -> dict[str, str]:
+    """Return the maintenance focus bound by one historical alias, if any."""
+
+    return {"FOCUS_AREA": operation.alias_focus_area} if operation.alias_focus_area else {}
 
 
 def extract_title(text: str, path: Path) -> str:
@@ -424,6 +431,25 @@ def filter_operations(
             searchable.add(phase.lower())
         if any(normalized in value for value in searchable if value):
             matches.append(operation)
+    # The compact catalog normally represents aliases through their canonical
+    # operation.  A query that names an alias's stable identity is different:
+    # accepting that result must retain its bound compatibility values.
+    explicitly_matched_aliases: dict[Path, OperationTemplate] = {}
+    for operation in matches:
+        if operation.is_alias and any(
+            normalized in identity
+            for identity in (
+                operation.filename.lower(),
+                operation.path.stem.lower(),
+                operation.relative_path.lower(),
+                (operation.mos_code or "").lower(),
+            )
+        ):
+            explicitly_matched_aliases[operation.path] = operation
+
+    if len(explicitly_matched_aliases) == 1:
+        return list(explicitly_matched_aliases.values())
+
     canonical_matches: dict[Path, OperationTemplate] = {}
     for operation in matches:
         canonical = canonical_operation_for(operations, operation)
@@ -788,6 +814,9 @@ def render_prompt(
         include_route_prompt_authorization=include_route_prompt_authorization,
     )
     rendered_values = dict(values)
+    # A historical maintenance alias owns selection compatibility, not a second
+    # prompt. Its metadata therefore wins over any stale carried-over value.
+    rendered_values.update(alias_bound_values(operation))
     for variable in variables:
         if variable.name in rendered_values:
             rendered_values[variable.name] = normalize_variable_value(
@@ -911,6 +940,8 @@ def transition_session(
     if event == "selected":
         next_values = carryover_values(session.values)
         next_values.update(captured_intent or {})
+        if operation is not None:
+            next_values.update(alias_bound_values(operation))
         return replace(session, stage="collect_values", operation=operation, values=next_values,
                        include_route_prompt_authorization=False)
     if event == "selection_cancel":

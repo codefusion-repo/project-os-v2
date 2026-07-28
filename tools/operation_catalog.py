@@ -22,6 +22,7 @@ OPERATION_ID_PATTERN = re.compile(
     re.IGNORECASE,
 )
 ALLOWED_DEPRECATION_STATES = {"none", "supported", "deprecated"}
+ALLOWED_ALIAS_FOCUS_AREAS = {"performance", "product", "code_quality"}
 ALIAS_CONTRACT_MARKERS = (
     "- Kernel:",
     "- Evidencia:",
@@ -53,6 +54,7 @@ class OperationMetadata:
     alias_of: str | None = None
     deprecation: str = "none"
     compatibility_reason: str = ""
+    alias_focus_area: str = ""
     explicit: bool = False
 
 
@@ -138,6 +140,7 @@ def parse_operation_metadata(text: str, code: str) -> OperationMetadata:
         "alias_of",
         "deprecation",
         "compatibility_reason",
+        "alias_focus_area",
     }
     unknown = sorted(set(values) - allowed)
     if unknown:
@@ -152,6 +155,7 @@ def parse_operation_metadata(text: str, code: str) -> OperationMetadata:
         alias_of=alias_of,
         deprecation=values.get("deprecation", "supported" if alias_of else "none").lower(),
         compatibility_reason=values.get("compatibility_reason", ""),
+        alias_focus_area=values.get("alias_focus_area", "").lower(),
         explicit=True,
     )
 
@@ -270,6 +274,8 @@ def validate_operation_catalog(sources: list[OperationSource]) -> list[Operation
             findings.append(OperationCatalogFinding("OPS-003", source.relative_path, "canonical_code must match the canonical filename code", "status.blocked"))
         if not metadata.operation_id:
             findings.append(OperationCatalogFinding("OPS-004", source.relative_path, "canonical operation identity is missing", "status.needs_pm_decision"))
+        if metadata.alias_focus_area:
+            findings.append(OperationCatalogFinding("OPS-019", source.relative_path, "canonical operations cannot bind an alias focus area", "status.blocked"))
         if len(set(metadata.aliases)) != len(metadata.aliases) or source.code in metadata.aliases:
             findings.append(OperationCatalogFinding("OPS-005", source.relative_path, "canonical aliases are duplicated or self-referential", "status.blocked"))
         for alias_code in metadata.aliases:
@@ -295,6 +301,10 @@ def validate_operation_catalog(sources: list[OperationSource]) -> list[Operation
             findings.append(OperationCatalogFinding("OPS-012", alias.relative_path, "alias must declare supported or deprecated status", "status.blocked"))
         if not metadata.compatibility_reason or not canonical.metadata.compatibility_reason:
             findings.append(OperationCatalogFinding("OPS-013", alias.relative_path, "canonical and alias compatibility reasons are required", "status.blocked"))
+        if metadata.alias_focus_area and metadata.alias_focus_area not in ALLOWED_ALIAS_FOCUS_AREAS:
+            findings.append(OperationCatalogFinding("OPS-020", alias.relative_path, "alias focus area is not allowlisted", "status.blocked"))
+        if metadata.alias_focus_area and "FOCUS_AREA" not in dict(_variables(canonical.text)):
+            findings.append(OperationCatalogFinding("OPS-021", alias.relative_path, "alias focus area requires FOCUS_AREA on its canonical contract", "status.blocked"))
         if any(marker in alias.text for marker in ALIAS_CONTRACT_MARKERS):
             findings.append(OperationCatalogFinding("OPS-014", alias.relative_path, "alias stub duplicates operational fields instead of inheriting the canonical prompt", "status.blocked"))
 
@@ -331,8 +341,8 @@ def validate_bilingual_alias_parity(
     for code in sorted(es):
         left = es[code].metadata
         right = en[code].metadata
-        projection_left = (left.canonical_code, left.operation_id, left.aliases, left.alias_of, left.deprecation)
-        projection_right = (right.canonical_code, right.operation_id, right.aliases, right.alias_of, right.deprecation)
+        projection_left = (left.canonical_code, left.operation_id, left.aliases, left.alias_of, left.deprecation, left.alias_focus_area)
+        projection_right = (right.canonical_code, right.operation_id, right.aliases, right.alias_of, right.deprecation, right.alias_focus_area)
         if projection_left != projection_right:
             findings.append(OperationCatalogFinding("OPS-018", code, "canonical/alias metadata drift between ES and EN", "status.blocked"))
     return findings

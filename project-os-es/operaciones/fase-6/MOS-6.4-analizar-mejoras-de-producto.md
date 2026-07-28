@@ -1,23 +1,12 @@
-# MOS-6.4 — Analizar mejoras de producto
+# MOS-6.4 — Alias compatible de MOS-6.13
 
-Operación MOSDLC `analyze-product-improvements` · Fase 6 — Mantenimiento y mejoras · Riesgo: low.
-Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+<!-- project-os-operation
+canonical_code: MOS-6.13
+alias_of: MOS-6.13
+deprecation: supported
+compatibility_reason: Este código histórico conserva selección por código, filename y path; resuelve MOS-6.13 con FOCUS_AREA=product.
+alias_focus_area: product
+-->
 
-- Superficie: browser_chat
-- Kernel: workflow.review_only · mode.review_only · output.review_result (+output.status_result)
-- Evidencia: evidence.repo_state
-- Aprobación PM: No (read-only)
-
-**Hace:** Analiza y recomienda mejoras de producto.
-**Para:** Alimentar el roadmap con mejoras fundadas.
-**Cómo:** Análisis read-only del producto contra uso y docs, entregado como
-hallazgos con referencia, disposición verificable, recomendación, riesgos y lo
-no revisado.
-
-**Variables**
-- Requeridas: TARGET_REPOSITORY
-- Opcionales: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
-
-**Entrega:** output.review_result (+output.status_result). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
-
-**Conexiones:** Antes: mantenimiento periódico. Después: MOS-6.10. Recomendada: MOS-6.10.
+Alias histórico soportado. Usa el contrato canónico único de
+`MOS-6.13-analizar-mejoras-de-mantenimiento.md`.

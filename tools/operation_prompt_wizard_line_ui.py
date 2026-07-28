@@ -24,12 +24,15 @@ def _validate_variable_value(
         skill_choices = load_active_skill_choices()
     return validate_variable_value(variable, value, skill_choices, current_values)
 
-def display_operations(operations: list[OperationTemplate], output_stream: TextIO) -> None:
-    """Print one compact, non-duplicative line for each operation."""
+def display_operations(
+    operations: list[OperationTemplate], output_stream: TextIO, *, canonicalize: bool = True
+) -> None:
+    """Print the canonical catalog view or an explicit filtered result set."""
 
     print("", file=output_stream)
     print("Available operations:", file=output_stream)
-    for operation in canonical_operations(operations):
+    visible_operations = canonical_operations(operations) if canonicalize else operations
+    for operation in visible_operations:
         print(f"  {operation_display_line(operation)}", file=output_stream)
 
 
@@ -203,6 +206,8 @@ def variable_summary_lines(operation: OperationTemplate) -> list[str]:
             lines.append(
                 f"Canonical path: {operation.canonical_path.relative_to(operation.catalog_root).as_posix()}"
             )
+        if operation.alias_focus_area:
+            lines.append(f"Linked focus: FOCUS_AREA={operation.alias_focus_area}")
     lines.append(f"Path: {operation.relative_path}")
     variables = wizard_variables(operation)
     required = [variable for variable in variables if variable.required]
@@ -373,13 +378,15 @@ def select_operation(
                 )
                 continue
             filtered = matches
-            display_operations(filtered, output_stream)
+            # A filtered alias is an explicit compatibility selection, not a
+            # general catalog view: preserve it so its linked values survive.
+            display_operations(filtered, output_stream, canonicalize=False)
 
         selection = input_func(
             "Select by displayed index, MOS code, exact filename/stem/path (s search again, ? help, cancel): "
         ).strip()
         if is_search_command(selection):
-            display_operations(filtered, output_stream)
+            display_operations(filtered, output_stream, canonicalize=False)
             continue
         if is_phase_view_command(selection):
             filtered = canonical_operations(operations)
@@ -394,7 +401,22 @@ def select_operation(
             continue
         if is_cancel_command(selection):
             return None
-        operation = resolve_operation_selection(operations, selection)
+        # A displayed alias shares its canonical operation's catalog index.
+        # Resolve numeric choices against the visible results so the index the
+        # UI advertises cannot silently discard its linked compatibility data.
+        normalized_selection = (
+            selection.lower()
+            .removeprefix("index:")
+            .removeprefix("indice:")
+            .removeprefix("índice:")
+        )
+        if normalized_selection.isdigit():
+            displayed_matches = [
+                operation for operation in filtered if operation.index == int(normalized_selection)
+            ]
+            operation = displayed_matches[0] if len(displayed_matches) == 1 else None
+        else:
+            operation = resolve_operation_selection(operations, selection)
         if operation is not None:
             return operation
         print(
@@ -445,6 +467,10 @@ def collect_values_with_controls(
             commands += ", /hydration override"
         print(f"{commands}, ? help.", file=output_stream)
     for variable in variables:
+        bound_value = alias_bound_values(operation).get(variable.name)
+        if bound_value is not None:
+            values[variable.name] = bound_value
+            continue
         if is_pm_authorization_status_variable(variable.name):
             print_pm_authorization_assistance(output_stream)
         if is_optional_skill_variable(variable.name):
