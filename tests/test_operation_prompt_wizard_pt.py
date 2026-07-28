@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import shlex
 import shutil
 import subprocess
 import sys
+from contextlib import suppress
 from io import StringIO
 from pathlib import Path
 
@@ -21,14 +23,23 @@ from tools.operation_prompt_wizard import (
     PM_AUTHORIZATION_STATUS_NAME,
     PM_QUESTION_HUMANO_NAME,
     discover_operations,
+    surface_selection_for_language,
 )
 
 if not HAVE_PROMPT_TOOLKIT:
     pytest.skip("prompt_toolkit not installed; enhanced wizard path unavailable", allow_module_level=True)
 
-from tools.operation_prompt_wizard import OperationValidator, run_wizard_pt
+from tools.operation_prompt_wizard import (
+    OperationCompleter,
+    OperationValidator,
+    PromptToolkitWizardAdapter,
+    run_wizard_pt,
+)
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import fragment_list_to_text, to_formatted_text
+from prompt_toolkit.input.defaults import create_pipe_input
+from prompt_toolkit.output import DummyOutput
+from prompt_toolkit.shortcuts import PromptSession
 
 
 def write_operation(
@@ -80,6 +91,26 @@ def mock_prompt(inputs: list[str]):
         return inputs.pop(0)
 
     return replacement
+
+
+def select_with_prompt_toolkit(
+    operations,
+    inputs: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+):
+    calls: list[str] = []
+
+    def replacement(label: str, **_kwargs) -> str:
+        calls.append(label)
+        if not inputs:
+            raise EOFError
+        return inputs.pop(0)
+
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard_prompt_toolkit_ui.prompt", replacement
+    )
+    operation, captured_intent = PromptToolkitWizardAdapter(StringIO()).select(operations, {})
+    return operation, captured_intent, calls
 
 
 def test_full_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -149,6 +180,214 @@ def test_operation_validator_still_rejects_unmatched_text_without_intent_router(
 
     with pytest.raises(Exception, match="Invalid or ambiguous selection"):
         validator.validate(Document("free-form intent that names no catalog operation"))
+
+
+@pytest.mark.parametrize("selector", ["index", "mos", "filename", "relative_path"])
+def test_prompt_toolkit_exact_selection_stays_a_single_direct_interaction(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, selector: str
+) -> None:
+    operations = discover_operations(setup_catalog_with_intent_router(tmp_path))
+    target = next(operation for operation in operations if operation.mos_code == "MOS-3.5")
+    selection = {
+        "index": str(target.index),
+        "mos": target.mos_code,
+        "filename": target.filename,
+        "relative_path": target.relative_path,
+    }[selector]
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard_prompt_toolkit_ui.line_ui.select_operation",
+        lambda *_args, **_kwargs: pytest.fail("prompt_toolkit must not delegate selection to line UI"),
+    )
+
+    selected, captured_intent, calls = select_with_prompt_toolkit(
+        operations, [selection], monkeypatch
+    )
+
+    assert selected is not None
+    assert selected.mos_code == "MOS-3.5"
+    assert captured_intent == {}
+    assert len(calls) == 1
+
+
+def test_prompt_toolkit_partial_and_ambiguous_search_keep_completions_and_route_directly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations_path = setup_catalog_with_intent_router(tmp_path)
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.6-correccion-extra.md",
+        "MOS-3.6",
+        "Corrección extra",
+        "PR_NUMBER",
+    )
+    operations = discover_operations(operations_path)
+    completion_codes = {
+        completion.text
+        for completion in OperationCompleter(operations).get_completions(Document("MOS-3"), None)
+    }
+
+    assert {"MOS-3.5", "MOS-3.6"} <= completion_codes
+    for query in ("MOS-3", "corrección"):
+        selected, captured_intent, calls = select_with_prompt_toolkit(
+            operations, [query], monkeypatch
+        )
+        assert selected is not None
+        assert selected.mos_code == INTENT_ROUTING_MOS_CODE
+        assert captured_intent == {PM_QUESTION_HUMANO_NAME: query}
+        assert len(calls) == 1
+
+
+def test_prompt_toolkit_option_selectors_preserve_live_session_completion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations_path = setup_catalog(tmp_path)
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.6-output-path.md",
+        "MOS-3.6",
+        "Output path",
+        "PR_NUMBER",
+        delivery="output.route_prompt, output.status_result",
+    )
+    operations = discover_operations(operations_path)
+    selected_operation = next(operation for operation in operations if operation.mos_code == "MOS-3.5")
+    route_operation = next(operation for operation in operations if operation.mos_code == "MOS-3.6")
+    calls: list[tuple[str, dict]] = []
+    inputs = iter(["MOS-3.5", "1", "2", "cancel", "exit"])
+
+    def recording_prompt(label: str, **kwargs) -> str:
+        calls.append((label, kwargs))
+        return next(inputs)
+
+    monkeypatch.setattr("tools.operation_prompt_wizard_prompt_toolkit_ui.prompt", recording_prompt)
+    adapter = PromptToolkitWizardAdapter(StringIO())
+
+    selected, _ = adapter.select(operations, {})
+    assert selected == selected_operation
+    assert adapter.choose_route_path(route_operation, {}).action == "preview"
+    assert adapter.choose_preview(
+        selected_operation,
+        {},
+        "rendered prompt",
+        tmp_path / "out" / "generated.md",
+        [],
+        False,
+    ) == "cancel"
+    assert adapter.choose_post_write(tmp_path / "out" / "generated.md") == "exit"
+
+    option_prompts = {
+        "Describe your intent, or search/select operation: ",
+        "Selected output path [1 route-prompt / 2 non-route]: ",
+        "Choose action [write/edit/operation/cancel]: ",
+        "Choose action [new/same/edit/path/exit]: ",
+    }
+    live_calls = [kwargs for label, kwargs in calls if label in option_prompts]
+    assert len(live_calls) == len(option_prompts)
+    assert all(kwargs["complete_while_typing"] is None for kwargs in live_calls)
+    authorization_calls = [
+        kwargs for label, kwargs in calls if label.startswith(f"{PM_AUTHORIZATION_STATUS_NAME} ")
+    ]
+    assert len(authorization_calls) == 1
+    assert authorization_calls[0]["complete_while_typing"] is None
+
+
+def test_prompt_toolkit_live_operation_dropdown_filters_with_pipe_input(tmp_path: Path) -> None:
+    operations_path = setup_catalog(tmp_path)
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.51-correccion-extra.md",
+        "MOS-3.51",
+        "Corrección extra",
+        "PR_NUMBER",
+    )
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.52-correccion-final.md",
+        "MOS-3.52",
+        "Corrección final",
+        "SOURCE_REVIEW",
+    )
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.6-other.md",
+        "MOS-3.6",
+        "Other",
+        "WORK_UNIT",
+    )
+    completer = OperationCompleter(discover_operations(operations_path))
+
+    async def verify_dropdown() -> None:
+        with create_pipe_input() as pipe_input:
+            session = PromptSession(
+                completer=completer,
+                input=pipe_input,
+                output=DummyOutput(),
+            )
+            prompt_task = asyncio.create_task(session.prompt_async("Search: "))
+            await asyncio.sleep(0.05)
+            pipe_input.send_text("MOS-3")
+            await asyncio.sleep(0.05)
+            menu = session.default_buffer.complete_state
+            assert menu is not None
+            assert {completion.text for completion in menu.completions} == {
+                "MOS-3.5",
+                "MOS-3.51",
+                "MOS-3.52",
+                "MOS-3.6",
+            }
+
+            pipe_input.send_text(".5")
+            await asyncio.sleep(0.05)
+            filtered_menu = session.default_buffer.complete_state
+            assert filtered_menu is not None
+            assert {completion.text for completion in filtered_menu.completions} == {
+                "MOS-3.5",
+                "MOS-3.51",
+                "MOS-3.52",
+            }
+
+            prompt_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await prompt_task
+
+    asyncio.run(verify_dropdown())
+
+
+def test_prompt_toolkit_intent_and_navigation_preserve_prompt_sequence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations = discover_operations(setup_catalog_with_intent_router(tmp_path))
+    intent = "necesito decidir el siguiente paso"
+    selected, captured_intent, calls = select_with_prompt_toolkit(
+        operations, [intent], monkeypatch
+    )
+
+    assert selected is not None
+    assert selected.mos_code == INTENT_ROUTING_MOS_CODE
+    assert captured_intent == {PM_QUESTION_HUMANO_NAME: intent}
+    assert len(calls) == 1
+
+    for command in ("/enumerated", "/phases", "?"):
+        selected, captured_intent, calls = select_with_prompt_toolkit(
+            operations, [command, "MOS-3.5"], monkeypatch
+        )
+        assert selected is not None
+        assert selected.mos_code == "MOS-3.5"
+        assert captured_intent == {}
+        assert len(calls) == 2
+
+
+@pytest.mark.parametrize("language", ["es", "en"])
+def test_prompt_toolkit_selection_semantics_are_equal_for_es_and_en(
+    language: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    selection = surface_selection_for_language(language)
+    operations = discover_operations(selection.operations_dir)
+    target = next(operation for operation in operations if operation.mos_code == "MOS-3.5")
+
+    selected, captured_intent, calls = select_with_prompt_toolkit(
+        operations, [target.mos_code or ""], monkeypatch
+    )
+
+    assert selected is not None
+    assert selected.mos_code == target.mos_code
+    assert captured_intent == {}
+    assert len(calls) == 1
 
 
 def test_intent_first_text_with_no_catalog_match_routes_via_mos_r2_pt(
