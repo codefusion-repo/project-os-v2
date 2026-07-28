@@ -68,6 +68,7 @@ missing approval, out-of-scope corrections and human QA — lives in
 | `project-os-es/kernel/*.json` | Spanish operating kernel: actors, modes, workflows, boundaries, evidence, outputs, statuses, artifacts and skills | **Active (default)** |
 | `project-os-en/kernel/*.json` | Parallel English operating kernel, with the same IDs, gates and relationships | **Active (explicit)** |
 | `tools/project_os_resolve.py` | Single principal deterministic resolver: Spanish by default, English via explicit path, never granting permission | **Active** |
+| `tools/project_os_fast_path.py` | Single executable source of the terminal fast path: locates and validates the root `AGENTS.md`, then invokes the resolver exactly once | **Active** |
 | `project-os-en/docs/` | PM-facing docs: `project-os-en/docs/getting-started.md`, `project-os-en/docs/rules.md`, `project-os-en/docs/rhythm.md`, `project-os-en/docs/benefits.md`, `project-os-en/docs/context-benchmark.md` | **Active (explicit)** |
 | `project-os-en/operations/` | Compact English MOSDLC catalog, by phase | **Active (explicit)** |
 | `project-os-en/adapters/` | Adapter templates `*.target.md` to adopt Project OS on a target | **Active (explicit)** |
@@ -89,9 +90,13 @@ Read `project-os-en/kernel/manifest.json` and follow its
 `status.blocked` — selects shape and gates, and **grants no permission**. On
 any missing or ambiguous input, it fails closed.
 
-On a terminal surface with a local checkout and Python, the fast path is the
-principal resolver (adoption details live in
-`project-os-en/docs/getting-started.md`):
+On a terminal surface with a local checkout and Python, the normal path is
+the fast path (`tools/project_os_fast_path.py`; adoption details and the
+debugging-reference block live in `project-os-en/docs/getting-started.md`),
+which locates the root `AGENTS.md` and no longer requires passing
+`--kernel-dir`. Invoking the principal resolver directly remains valid once
+you already know the kernel dir, for example to explicitly pick the English
+surface:
 
 ```sh
 python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \

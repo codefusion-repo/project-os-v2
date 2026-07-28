@@ -27,93 +27,25 @@ KERNEL_VERSION_ADOPTED = tracks latest
 
 Antes de trabajo no trivial, lee `project-os-es/kernel/manifest.json` y sigue
 su `resolution_sequence`. En esta superficie terminal, cuando el checkout del
-kernel esté disponible, usa este fast path. Localiza el `AGENTS.md` raíz
-subiendo desde el directorio actual: valida cada candidato completo y sigue
-subiendo cuando no sea el bootloader raíz coherente con el target resuelto, de
-modo que un `AGENTS.md` intermedio de una subcarpeta no detenga la búsqueda.
-Lee los dos campos persistidos, acepta solo la referencia portable exacta o un
-literal absoluto y comprueba la identidad estructural del kernel antes del
-resolver; no usa `eval`, no expande nombres arbitrarios y propaga sin alterar
-cualquier código de salida no cero del resolver:
+kernel esté disponible, la ruta normal es este comando corto. Es
+location-safe: funciona igual desde la raíz o cualquier subdirectorio porque
+ubica el script a partir de la referencia de kernel ya conocida, sin volver a
+buscarla:
 
 ```sh
-select_target_bootloader() {
-  AGENTS_FILE=$1
-  TARGET_REF=$(sed -n 's/^REPOSITORY_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
-  KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
-  case "$TARGET_REF" in
-    '$PROJECT_OS_TARGET_ROOT'|'${PROJECT_OS_TARGET_ROOT}')
-      test -n "${PROJECT_OS_TARGET_ROOT:-}" || return 1
-      TARGET_ROOT="$PROJECT_OS_TARGET_ROOT"
-      ;;
-    /*) case "$TARGET_REF" in *'$'*) return 1 ;; esac; TARGET_ROOT="$TARGET_REF" ;;
-    *) return 1 ;;
-  esac
-  case "$KERNEL_REF" in
-    '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}')
-      test -n "${PROJECT_OS_KERNEL_DIR:-}" || return 1
-      KERNEL_DIR="$PROJECT_OS_KERNEL_DIR"
-      ;;
-    /*) case "$KERNEL_REF" in *'$'*) return 1 ;; esac; KERNEL_DIR="$KERNEL_REF" ;;
-    *) return 1 ;;
-  esac
-  case "$TARGET_ROOT" in /*) ;; *) return 1 ;; esac
-  case "$KERNEL_DIR" in /*) ;; *) return 1 ;; esac
-  case "$KERNEL_DIR" in */project-os-es/kernel) ;; *) return 1 ;; esac
-  PROJECT_OS_ROOT="${KERNEL_DIR%/project-os-es/kernel}"
-  test -n "$PROJECT_OS_ROOT" || return 1
-  test -d "$TARGET_ROOT" || return 1
-  test "$AGENTS_FILE" -ef "$TARGET_ROOT/AGENTS.md" || return 1
-  test -f "$KERNEL_DIR/manifest.json" || return 1
-  test -f "$PROJECT_OS_ROOT/tools/project_os_resolve.py" || return 1
-  python -c '
-import json
-import sys
-try:
-    payload = json.load(open(sys.argv[1], encoding="utf-8"))
-    entries = payload.get("manifest") if isinstance(payload, dict) else None
-    valid = (
-        isinstance(entries, list) and len(entries) == 1
-        and isinstance(entries[0], dict)
-        and entries[0].get("key") == "manifest.kernel_es"
-        and entries[0].get("language") == "es"
-        and entries[0].get("active") is True
-    )
-except (OSError, UnicodeError, json.JSONDecodeError):
-    valid = False
-raise SystemExit(0 if valid else 1)
-' "$KERNEL_DIR/manifest.json" || return 1
-}
-AGENTS_FILE=
-probe=$(pwd)
-while :; do
-  if test -f "$probe/AGENTS.md" && select_target_bootloader "$probe/AGENTS.md"; then
-    break
-  fi
-  AGENTS_FILE=
-  test "$probe" = / && break
-  probe=$(dirname "$probe")
-done
-test -n "$AGENTS_FILE" || {
-  echo 'sin AGENTS.md raiz coherente con el target adoptado' >&2
-  exit 1
-}
-python "$PROJECT_OS_ROOT/tools/project_os_resolve.py" \
+python "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
-  --kernel-dir "$KERNEL_DIR" [--change-class change_class.<id>] [--skill skill.<id>] || exit $?
-cd "$TARGET_ROOT" || exit 1
+  [--change-class change_class.<id>] [--skill skill.<id>]
 ```
 
-El alcance de esas comprobaciones es estructural y demostrable: exigen que el
-`AGENTS.md` seleccionado sea el del target resuelto, rechazan referencias fuera
-del allowlist, paths relativos, kernels ubicados en otra superficie y manifests
-ilegibles, no activos o de otro idioma, y no invocan el resolver cuando ninguna
-ruta ascendente las satisface. Continuar la búsqueda no relaja ninguna: un
-candidato solo se acepta si él mismo las cumple todas, y el resolver se invoca
-una sola vez sobre el candidato aceptado. No verifican procedencia del repositorio, commit, firma, hash ni
-integridad del checkout, así que no son un trust anchor: un directorio local que
-reproduzca esa estructura sigue siendo ejecutable. Si un código no cero del
-resolver aborta el fast path, ningún paso posterior queda habilitado.
+Si tu `AGENTS.md` usa un path absoluto literal en `KERNEL_LOCAL_PATH` en vez
+de la referencia portable, sustituye `$PROJECT_OS_KERNEL_DIR` por esa misma
+ruta literal en el comando.
+
+`tools/project_os_fast_path.py` es la única fuente ejecutable: falla cerrado
+si no puede establecer una adopción estructuralmente coherente y delega
+exactamente una vez en `tools/project_os_resolve.py`. Los bootloaders y
+adapters son consumidores de esa entrada, no implementaciones alternativas.
 
 El resolver acelera la resolución; el manifest sigue siendo canónico. Ambos
 solo dan forma y nunca autorizan una acción. Consulta artefactos, templates y

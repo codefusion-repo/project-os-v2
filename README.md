@@ -71,6 +71,7 @@ de aprobación, corrección fuera de scope y QA humano — está en
 | `project-os-es/kernel/*.json` | Kernel operativo en español: actores, modos, workflows, límites, evidencia, salidas, estados, artefactos y skills | **Activa (default)** |
 | `project-os-en/kernel/*.json` | Kernel operativo paralelo en inglés, con los mismos IDs, gates y relaciones | **Activa (explícita)** |
 | `tools/project_os_resolve.py` | Único resolver determinista principal: default ES o EN mediante path explícito, sin conceder permisos | **Activa** |
+| `tools/project_os_fast_path.py` | Única fuente ejecutable del fast path terminal: localiza y valida el `AGENTS.md` raíz e invoca el resolver exactamente una vez | **Activa** |
 | `project-os-es/docs/` | Docs PM-facing: `project-os-es/docs/empezar.md`, `project-os-es/docs/reglas.md`, `project-os-es/docs/ritmo.md`, `project-os-es/docs/beneficios.md`, `project-os-es/docs/benchmark-contexto.md` | **Activa** |
 | `project-os-es/operaciones/` | Catálogo MOSDLC compacto en español, por fase | **Activa** |
 | `project-os-es/adapters/` | Adapter templates `*.target.md` para adoptar Project OS en un target | **Activa** |
@@ -91,9 +92,12 @@ exactamente. La resolución devuelve exactamente un estado —
 `status.blocked` — selecciona forma y gates, y **no otorga permiso** alguno.
 Ante cualquier faltante o ambigüedad, falla cerrado.
 
-En una superficie terminal con checkout local y Python, el fast path es el
-resolver principal (los detalles de adopción viven en
-`project-os-es/docs/empezar.md`):
+En una superficie terminal con checkout local y Python, la ruta normal es el
+fast path (`tools/project_os_fast_path.py`; detalles de adopción y del bloque
+de depuración en `project-os-es/docs/empezar.md`), que localiza el `AGENTS.md`
+raíz y ya no requiere pasar `--kernel-dir`. Invocar el resolver principal
+directamente sigue siendo válido cuando ya conoces el kernel-dir, por ejemplo
+para elegir explícitamente la superficie inglesa:
 
 ```sh
 python tools/project_os_resolve.py --actor <actor> --workflow <workflow> \

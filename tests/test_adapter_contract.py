@@ -2,13 +2,8 @@
 
 from __future__ import annotations
 
-import json
-import os
 import re
-import subprocess
 from pathlib import Path
-
-import pytest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -44,113 +39,6 @@ def metadata_fields(path: Path) -> list[str]:
     ]
 
 
-def resolver_fast_path(surface: str, source_kind: str) -> str:
-    relative_path = {
-        ("project-os-es", "adapter"): "adapters/AGENTS.target.md",
-        ("project-os-es", "docs"): "docs/empezar.md",
-        ("project-os-en", "adapter"): "adapters/AGENTS.target.md",
-        ("project-os-en", "docs"): "docs/getting-started.md",
-    }[(surface, source_kind)]
-    source = (REPO_ROOT / surface / relative_path).read_text(
-        encoding="utf-8"
-    )
-    blocks = re.findall(r"```sh\n(.*?)\n```", source, re.S)
-    block = next(item for item in blocks if "TARGET_REF=$(sed" in item)
-    return (
-        block.replace("<actor>", "actor.browser_chat")
-        .replace("<workflow>", "workflow.pm_intake")
-        .replace("<mode>", "mode.review_only")
-        .replace(" [--change-class change_class.<id>]", "")
-        .replace(" [--skill skill.<id>]", "")
-    )
-
-
-def write_fast_path_kernel(
-    root: Path,
-    surface: str,
-    language: str,
-    *,
-    manifest_text: str | None = None,
-    with_manifest: bool = True,
-    with_resolver: bool = True,
-) -> Path:
-    kernel = root / surface / "kernel"
-    kernel.mkdir(parents=True)
-    if with_manifest:
-        payload = manifest_text
-        if payload is None:
-            payload = json.dumps(
-                {
-                    "manifest": [
-                        {
-                            "key": "manifest.kernel_es",
-                            "language": language,
-                            "active": True,
-                        }
-                    ]
-                }
-            )
-        (kernel / "manifest.json").write_text(payload, encoding="utf-8")
-    if with_resolver:
-        resolver = root / "tools" / "project_os_resolve.py"
-        resolver.parent.mkdir(parents=True)
-        # One line per invocation, so tests can assert the resolver ran exactly
-        # once and not merely at least once.
-        resolver.write_text(
-            "import os\n"
-            "with open(os.environ['RESOLVER_SENTINEL'], 'a', encoding='utf-8') as handle:\n"
-            "    handle.write('invoked\\n')\n"
-            "raise SystemExit(int(os.environ['RESOLVER_EXIT']))\n",
-            encoding="utf-8",
-        )
-    return kernel
-
-
-def run_resolver_fast_path(
-    target: Path,
-    surface: str,
-    source_kind: str,
-    target_ref: str,
-    kernel_ref: str,
-    *,
-    target_variable: str | None = None,
-    kernel_variable: str | None = None,
-    cwd: Path | None = None,
-    resolver_exit: int = 0,
-) -> tuple[subprocess.CompletedProcess[str], Path, Path]:
-    (target / "AGENTS.md").write_text(
-        f"REPOSITORY_LOCAL_PATH = {target_ref}\nKERNEL_LOCAL_PATH = {kernel_ref}\n",
-        encoding="utf-8",
-    )
-    sentinel = target / "resolver-invoked"
-    after_resolver = target / "step-after-resolver"
-    env = os.environ.copy()
-    env.pop("PROJECT_OS_TARGET_ROOT", None)
-    env.pop("PROJECT_OS_KERNEL_DIR", None)
-    if target_variable is not None:
-        env["PROJECT_OS_TARGET_ROOT"] = target_variable
-    if kernel_variable is not None:
-        env["PROJECT_OS_KERNEL_DIR"] = kernel_variable
-    env["RESOLVER_SENTINEL"] = str(sentinel)
-    env["RESOLVER_EXIT"] = str(resolver_exit)
-    env["AFTER_RESOLVER_SENTINEL"] = str(after_resolver)
-    # subprocess `cwd` does not refresh `PWD`; a real interactive shell keeps it
-    # in sync, so mirror that instead of leaving a stale inherited value.
-    env["PWD"] = str(cwd or target)
-    # The trailing step stands for any work the fast path would enable; it must
-    # only run when every preceding step, the resolver included, succeeded.
-    script = resolver_fast_path(surface, source_kind) + '\ntouch "$AFTER_RESOLVER_SENTINEL"\n'
-    result = subprocess.run(
-        ["sh", "-c", script],
-        cwd=cwd or target,
-        env=env,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    return result, sentinel, after_resolver
-
-
 def test_main_adapters_share_the_standard_metadata_block_in_order() -> None:
     for path in MAIN_BOOTLOADERS:
         assert metadata_fields(path) == list(METADATA_FIELDS), path
@@ -182,229 +70,43 @@ def test_target_terminal_adapter_uses_only_portable_allowlisted_path_references(
     assert "REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT" in target_adapter
     assert "KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR" in target_adapter
     assert "$PWD" not in target_adapter
-    assert "eval" in target_adapter
-    assert "no usa `eval`" in target_adapter
-    assert 'python "$PROJECT_OS_ROOT/tools/project_os_resolve.py"' in target_adapter
+    assert 'python "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py"' in target_adapter
+    assert "tools/project_os_resolve.py" in target_adapter
+    assert "select_target_bootloader" not in target_adapter
 
 
-@pytest.mark.parametrize(
-    ("surface", "language"),
-    (("project-os-es", "es"), ("project-os-en", "en")),
-)
-@pytest.mark.parametrize("source_kind", ("adapter", "docs"))
-@pytest.mark.parametrize("reference_mode", ("portable", "literal"))
-def test_resolver_fast_path_supports_portable_and_literal_paths(
-    tmp_path: Path,
-    surface: str,
-    language: str,
-    source_kind: str,
-    reference_mode: str,
-) -> None:
-    target = tmp_path / "target"
-    target.mkdir()
-    kernel = write_fast_path_kernel(tmp_path / "project-os", surface, language)
-    if reference_mode == "portable":
-        result, sentinel, after_resolver = run_resolver_fast_path(
-            target,
-            surface,
-            source_kind,
-            "$PROJECT_OS_TARGET_ROOT",
-            "$PROJECT_OS_KERNEL_DIR",
-            target_variable=str(target),
-            kernel_variable=str(kernel),
-        )
-    else:
-        result, sentinel, after_resolver = run_resolver_fast_path(
-            target,
-            surface,
-            source_kind,
-            str(target),
-            str(kernel),
-        )
-
-    assert result.returncode == 0
-    assert sentinel.is_file()
-    assert after_resolver.is_file()
-
-
-@pytest.mark.parametrize(
-    ("surface", "language"),
-    (("project-os-es", "es"), ("project-os-en", "en")),
-)
-@pytest.mark.parametrize("source_kind", ("adapter", "docs"))
-def test_resolver_fast_path_propagates_a_non_zero_resolver_exit_code(
-    tmp_path: Path,
-    surface: str,
-    language: str,
-    source_kind: str,
-) -> None:
-    target = tmp_path / "target"
-    target.mkdir()
-    kernel = write_fast_path_kernel(tmp_path / "project-os", surface, language)
-
-    result, sentinel, after_resolver = run_resolver_fast_path(
-        target,
-        surface,
-        source_kind,
-        "$PROJECT_OS_TARGET_ROOT",
-        "$PROJECT_OS_KERNEL_DIR",
-        target_variable=str(target),
-        kernel_variable=str(kernel),
-        resolver_exit=7,
+def test_no_consumer_reimplements_the_upward_agents_search() -> None:
+    consumers = (
+        REPO_ROOT / "AGENTS.md",
+        REPO_ROOT / "project-os-es/adapters/AGENTS.target.md",
+        REPO_ROOT / "project-os-en/adapters/AGENTS.target.md",
+        REPO_ROOT / "project-os-es/docs/empezar.md",
+        REPO_ROOT / "project-os-en/docs/getting-started.md",
     )
+    for path in consumers:
+        text = path.read_text(encoding="utf-8")
+        assert "select_target_bootloader" not in text, path
+        assert "KERNEL_REF=$(sed" not in text, path
+        assert "while test" not in text, path
+        assert 'python "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py"' in text, path
 
-    assert sentinel.is_file(), "the resolver must actually be invoked in this case"
-    assert result.returncode == 7
-    assert not after_resolver.exists()
 
-
-@pytest.mark.parametrize(
-    ("surface", "language"),
-    (("project-os-es", "es"), ("project-os-en", "en")),
-)
-@pytest.mark.parametrize("source_kind", ("adapter", "docs"))
-def test_resolver_fast_path_runs_from_a_target_subdirectory(
-    tmp_path: Path,
-    surface: str,
-    language: str,
-    source_kind: str,
-) -> None:
-    target = tmp_path / "target"
-    nested = target / "docs" / "decisions"
-    nested.mkdir(parents=True)
-    kernel = write_fast_path_kernel(tmp_path / "project-os", surface, language)
-
-    result, sentinel, after_resolver = run_resolver_fast_path(
-        target,
-        surface,
-        source_kind,
-        "$PROJECT_OS_TARGET_ROOT",
-        "$PROJECT_OS_KERNEL_DIR",
-        target_variable=str(target),
-        kernel_variable=str(kernel),
-        cwd=nested,
+def test_terminal_bootloaders_exclude_internal_fast_path_debugging_details() -> None:
+    bootloaders = (
+        REPO_ROOT / "AGENTS.md",
+        REPO_ROOT / "project-os-es/adapters/AGENTS.target.md",
+        REPO_ROOT / "project-os-en/adapters/AGENTS.target.md",
     )
-
-    assert result.returncode == 0
-    assert sentinel.is_file()
-    assert after_resolver.is_file()
-
-
-@pytest.mark.parametrize(
-    ("surface", "language"),
-    (("project-os-es", "es"), ("project-os-en", "en")),
-)
-@pytest.mark.parametrize("source_kind", ("adapter", "docs"))
-def test_resolver_fast_path_walks_past_an_intermediate_agents_file(
-    tmp_path: Path,
-    surface: str,
-    language: str,
-    source_kind: str,
-) -> None:
-    target = tmp_path / "target"
-    component = target / "packages" / "component"
-    nested = component / "src"
-    nested.mkdir(parents=True)
-    # A legitimate subtree with its own nested instructions: it is not the root
-    # bootloader, so the upward search must skip it instead of failing there.
-    (component / "AGENTS.md").write_text(
-        "# component notes\nREPOSITORY_LOCAL_PATH = ./packages/component\n",
-        encoding="utf-8",
+    internal_details = (
+        "--agents-file",
+        "111",
+        "select_target_bootloader",
+        "KERNEL_REF=$(sed",
+        "while test",
     )
-    kernel = write_fast_path_kernel(tmp_path / "project-os", surface, language)
-
-    result, sentinel, after_resolver = run_resolver_fast_path(
-        target,
-        surface,
-        source_kind,
-        "$PROJECT_OS_TARGET_ROOT",
-        "$PROJECT_OS_KERNEL_DIR",
-        target_variable=str(target),
-        kernel_variable=str(kernel),
-        cwd=nested,
-    )
-
-    assert result.returncode == 0
-    assert sentinel.read_text(encoding="utf-8") == "invoked\n"
-    assert after_resolver.is_file()
-
-
-@pytest.mark.parametrize(
-    ("surface", "language"),
-    (("project-os-es", "es"), ("project-os-en", "en")),
-)
-@pytest.mark.parametrize("source_kind", ("adapter", "docs"))
-@pytest.mark.parametrize(
-    "invalid_kernel",
-    (
-        "wrong-surface",
-        "missing-manifest",
-        "invalid-manifest",
-        "wrong-identity",
-        "invalid-root",
-        "foreign-agents-file",
-        "intermediate-agents-file-without-root",
-    ),
-)
-def test_resolver_fast_path_never_invokes_lure_before_invalid_kernel_preconditions(
-    tmp_path: Path,
-    surface: str,
-    language: str,
-    source_kind: str,
-    invalid_kernel: str,
-) -> None:
-    target = tmp_path / "target"
-    target.mkdir()
-    root = tmp_path / "project-os"
-    cwd = None
-    if invalid_kernel == "wrong-surface":
-        kernel = write_fast_path_kernel(root, "unexpected-surface", language)
-    elif invalid_kernel == "missing-manifest":
-        kernel = write_fast_path_kernel(root, surface, language, with_manifest=False)
-    elif invalid_kernel == "invalid-manifest":
-        kernel = write_fast_path_kernel(root, surface, language, manifest_text="{")
-    elif invalid_kernel == "wrong-identity":
-        opposite = "en" if language == "es" else "es"
-        kernel = write_fast_path_kernel(root, surface, opposite)
-    elif invalid_kernel == "foreign-agents-file":
-        # An unrelated checkout whose own AGENTS.md points at a different target.
-        kernel = write_fast_path_kernel(root, surface, language)
-        foreign = tmp_path / "foreign"
-        foreign.mkdir()
-        (foreign / "AGENTS.md").write_text(
-            f"REPOSITORY_LOCAL_PATH = {target}\nKERNEL_LOCAL_PATH = {kernel}\n",
-            encoding="utf-8",
-        )
-        cwd = foreign
-    elif invalid_kernel == "intermediate-agents-file-without-root":
-        # Walking past an intermediate AGENTS.md must not degrade into accepting
-        # an ancestor that is not the resolved target's own root bootloader.
-        kernel = write_fast_path_kernel(root, surface, language)
-        foreign = tmp_path / "foreign" / "packages" / "component"
-        foreign.mkdir(parents=True)
-        (foreign / "AGENTS.md").write_text("# component notes\n", encoding="utf-8")
-        (foreign.parents[1] / "AGENTS.md").write_text(
-            f"REPOSITORY_LOCAL_PATH = {target}\nKERNEL_LOCAL_PATH = {kernel}\n",
-            encoding="utf-8",
-        )
-        cwd = foreign
-    else:
-        kernel = Path(f"/{surface}/kernel")
-
-    result, sentinel, after_resolver = run_resolver_fast_path(
-        target,
-        surface,
-        source_kind,
-        "$PROJECT_OS_TARGET_ROOT",
-        "$PROJECT_OS_KERNEL_DIR",
-        target_variable=str(target),
-        kernel_variable=str(kernel),
-        cwd=cwd,
-    )
-
-    assert result.returncode != 0
-    assert not sentinel.exists()
-    assert not after_resolver.exists()
+    for path in bootloaders:
+        text = path.read_text(encoding="utf-8")
+        assert not any(detail in text for detail in internal_details), path
 
 
 def test_browser_adapter_keeps_its_read_only_manual_resolution_boundary() -> None:
