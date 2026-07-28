@@ -27,13 +27,20 @@ KERNEL_VERSION_ADOPTED = tracks latest
 
 Antes de trabajo no trivial, lee `project-os-es/kernel/manifest.json` y sigue
 su `resolution_sequence`. En esta superficie terminal, cuando el checkout del
-kernel esté disponible, la ruta normal es este comando corto:
+kernel esté disponible, la ruta normal es este comando corto. Es
+location-safe: funciona igual desde la raíz o cualquier subdirectorio porque
+ubica el script a partir de la referencia de kernel ya conocida, sin volver a
+buscarla:
 
 ```sh
-python tools/project_os_fast_path.py \
+python "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
   [--change-class change_class.<id>] [--skill skill.<id>]
 ```
+
+Si tu `AGENTS.md` usa un path absoluto literal en `KERNEL_LOCAL_PATH` en vez
+de la referencia portable, sustituye `$PROJECT_OS_KERNEL_DIR` por esa misma
+ruta literal en el comando.
 
 `tools/project_os_fast_path.py` es la única fuente ejecutable de esta lógica:
 localiza el `AGENTS.md` raíz subiendo desde el directorio actual, valida cada
@@ -43,45 +50,14 @@ subcarpeta no detiene la búsqueda. Lee los dos campos persistidos, acepta solo
 la referencia portable exacta o un literal absoluto y comprueba la identidad
 estructural del kernel antes del resolver; no usa `eval`, no expande nombres
 arbitrarios e invoca `tools/project_os_resolve.py` exactamente una vez, propagando sin alterar
-cualquier código de salida no cero.
-
-El siguiente bloque es documentación de implementación y depuración, no la
-interfaz diaria: reproduce la misma búsqueda ascendente delegando cada
-candidato a `project_os_fast_path.py --agents-file`, útil cuando el comando
-corto no es alcanzable por ruta relativa desde el directorio actual o para
-auditar el mecanismo paso a paso:
-
-```sh
-select_target_bootloader() {
-  AGENTS_FILE=$1
-  KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
-  case "$KERNEL_REF" in
-    '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}') KERNEL_DIR="${PROJECT_OS_KERNEL_DIR:-}" ;;
-    /*) case "$KERNEL_REF" in *'$'*) KERNEL_DIR= ;; *) KERNEL_DIR="$KERNEL_REF" ;; esac ;;
-    *) KERNEL_DIR= ;;
-  esac
-  test -n "$KERNEL_DIR" || return 111
-  PROJECT_OS_ROOT=$(dirname "$(dirname "$KERNEL_DIR")")
-  test -f "$PROJECT_OS_ROOT/tools/project_os_fast_path.py" || return 111
-  python "$PROJECT_OS_ROOT/tools/project_os_fast_path.py" --agents-file "$AGENTS_FILE" \
-    --actor <actor> --workflow <workflow> --mode <mode> \
-    [--change-class change_class.<id>] [--skill skill.<id>]
-}
-probe=$(pwd)
-rc=111
-while test "$rc" -eq 111; do
-  if test -f "$probe/AGENTS.md"; then
-    select_target_bootloader "$probe/AGENTS.md"
-    rc=$?
-  fi
-  if test "$rc" -eq 111; then
-    test "$probe" = / && { echo 'sin AGENTS.md raiz coherente con el target adoptado' >&2; exit 1; }
-    probe=$(dirname "$probe")
-  fi
-done
-test "$rc" -eq 0 || exit "$rc"
-cd "$probe" || exit 1
-```
+cualquier código de salida no cero. Ningún bootloader, adapter ni doc
+reimplementa esta búsqueda ni la validación: todos son consumidores de este
+mismo módulo. Como referencia de depuración no ejecutable, `--agents-file`
+valida un único candidato puntual sin recorrer el árbol: `python
+tools/project_os_fast_path.py --agents-file RUTA/AGENTS.md --actor <actor>
+--workflow <workflow> --mode <mode>` devuelve el código reservado 111 cuando
+ese archivo por sí solo no es un candidato coherente, distinto de cualquier
+veredicto real del resolver.
 
 El alcance de esas comprobaciones es estructural y demostrable: exigen que el
 `AGENTS.md` seleccionado sea el del target resuelto, rechazan referencias fuera

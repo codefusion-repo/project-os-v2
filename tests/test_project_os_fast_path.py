@@ -3,8 +3,14 @@
 These tests exercise ``tools/project_os_fast_path.py`` as real, importable
 Python -- not by extracting and running shell text -- so parsing, allowlists,
 identity checks, and the exactly-once resolver dispatch are protected by
-ordinary pytest assertions in addition to the shell-level matrix in
-``tests/test_adapter_contract.py``.
+ordinary pytest assertions. ``tests/test_adapter_contract.py`` only checks
+that the five documented consumers stay thin pass-throughs to this module.
+
+Subprocess cases that walk the real repository's ``AGENTS.md`` (which uses
+the portable ``$PROJECT_OS_TARGET_ROOT`` / ``$PROJECT_OS_KERNEL_DIR``
+references) set those two variables explicitly via ``_repo_env`` instead of
+inheriting whatever a developer's shell happens to export, so the same
+assertions hold on a clean CI runner.
 """
 
 from __future__ import annotations
@@ -17,6 +23,23 @@ from pathlib import Path
 from tools.project_os_fast_path import NOT_A_CANDIDATE, locate_target, main, validate_candidate
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_KERNEL_DIR = REPO_ROOT / "project-os-es" / "kernel"
+
+
+def _repo_env(**overrides: str) -> dict[str, str]:
+    """A hermetic subprocess environment for real-repository fast-path runs.
+
+    Explicitly sets the two portable references to this checkout's own
+    absolute paths -- never inferred or left to inheritance -- so these tests
+    fail closed the same way on a developer machine and on a clean CI runner.
+    """
+
+    env = {
+        "PROJECT_OS_TARGET_ROOT": str(REPO_ROOT),
+        "PROJECT_OS_KERNEL_DIR": str(REPO_KERNEL_DIR),
+    }
+    env.update(overrides)
+    return env
 
 
 def _write_manifest(kernel_dir: Path, *, language: str, active: bool = True, key: str = "manifest.kernel_es") -> None:
@@ -198,6 +221,7 @@ def test_main_dispatches_to_the_real_repository_resolver_and_matches_it() -> Non
             "--compact",
         ],
         cwd=REPO_ROOT,
+        env=_repo_env(),
         capture_output=True,
         text=True,
         check=False,
@@ -217,6 +241,7 @@ def test_main_dispatches_to_the_real_repository_resolver_and_matches_it() -> Non
             "--compact",
         ],
         cwd=REPO_ROOT,
+        env=_repo_env(),
         capture_output=True,
         text=True,
         check=False,
@@ -224,6 +249,34 @@ def test_main_dispatches_to_the_real_repository_resolver_and_matches_it() -> Non
 
     assert via_fast_path.returncode == direct.returncode == 0
     assert via_fast_path.stdout == direct.stdout
+
+
+def test_documented_short_command_runs_from_the_repository_root_and_a_subdirectory() -> None:
+    """Run the exact documented invocation, not a test-built script path.
+
+    The daily command is ``python "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py" ...``:
+    location-safe because it derives the script's path from the already-known
+    kernel reference instead of a path relative to the current directory.
+    """
+
+    for cwd in (REPO_ROOT, REPO_ROOT / "docs" / "decisions"):
+        completed = subprocess.run(
+            [
+                "/bin/sh",
+                "-c",
+                '"$PYTHON" "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py" '
+                "--actor actor.browser_chat --workflow workflow.pm_intake "
+                "--mode mode.review_only --compact",
+            ],
+            cwd=cwd,
+            env=_repo_env(PYTHON=sys.executable),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        assert completed.returncode == 0
+        assert '"estado": "status.resolved"' in completed.stdout
 
 
 def test_main_runs_from_a_real_subdirectory_of_this_repository() -> None:
@@ -240,6 +293,7 @@ def test_main_runs_from_a_real_subdirectory_of_this_repository() -> None:
             "--compact",
         ],
         cwd=REPO_ROOT / "docs" / "decisions",
+        env=_repo_env(),
         capture_output=True,
         text=True,
         check=False,
@@ -263,6 +317,7 @@ def test_main_propagates_a_blocked_resolver_exit_code_and_body() -> None:
             "--compact",
         ],
         cwd=REPO_ROOT,
+        env=_repo_env(),
         capture_output=True,
         text=True,
         check=False,
@@ -271,6 +326,25 @@ def test_main_propagates_a_blocked_resolver_exit_code_and_body() -> None:
     assert completed.returncode == 1
     assert '"estado": "status.blocked"' in completed.stdout
     assert "actor desconocido" in completed.stdout
+
+
+def test_main_propagates_an_arbitrary_nonzero_resolver_exit_code_exactly(tmp_path: Path) -> None:
+    target, kernel_dir = _coherent_target(tmp_path)
+    resolver_path = kernel_dir.parent.parent / "tools" / "project_os_resolve.py"
+    resolver_path.write_text("raise SystemExit(7)\n", encoding="utf-8")
+
+    exit_code = main(
+        [
+            "--start-dir",
+            str(target),
+            "--actor",
+            "actor.terminal_agent",
+            "--workflow",
+            "workflow.issue_implementation",
+        ]
+    )
+
+    assert exit_code == 7
 
 
 def test_main_fails_closed_with_no_coherent_ancestor(tmp_path: Path) -> None:

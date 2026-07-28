@@ -24,49 +24,17 @@ KERNEL_VERSION_ADOPTED = {{adopted version or "tracks latest"}}
 
 ## Kernel resolution
 
-Before non-trivial work, read `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. When the kernel checkout is available in a terminal, the normal path is this short command:
+Before non-trivial work, read `project-os-en/kernel/manifest.json` and follow its `resolution_sequence`. When the kernel checkout is available in a terminal, the normal path is this short command. It is location-safe: it behaves identically from the target root or any subdirectory because it locates the script from the already-known kernel reference, without searching for it again:
 
 ```sh
-python tools/project_os_fast_path.py \
+python "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py" \
   --actor <actor> --workflow <workflow> --mode <mode> \
   [--change-class change_class.<id>] [--skill skill.<id>]
 ```
 
-`tools/project_os_fast_path.py` is the single executable source of this logic: it locates the root `AGENTS.md` by walking up from the current directory, validates each candidate in full, and keeps walking up when the candidate is not the root bootloader coherent with the resolved target, so an intermediate `AGENTS.md` inside a subdirectory never stops the search. It reads the two persisted fields, accepts only the exact portable reference or an absolute literal, and checks structural kernel identity before the resolver; it does not use `eval`, does not expand arbitrary names, and invokes `tools/project_os_resolve.py` exactly once, propagating any non-zero exit code unchanged.
+If your `AGENTS.md` uses a literal absolute path in `KERNEL_LOCAL_PATH` instead of the portable reference, substitute `$PROJECT_OS_KERNEL_DIR` with that same literal path in the command.
 
-The block below is implementation/debugging documentation, not the daily interface: it reproduces the same upward search by delegating each candidate to `project_os_fast_path.py --agents-file`, useful when the short command is not reachable by a relative path from the current directory, or to audit the mechanism step by step:
-
-```sh
-select_target_bootloader() {
-  AGENTS_FILE=$1
-  KERNEL_REF=$(sed -n 's/^KERNEL_LOCAL_PATH[[:space:]]*=[[:space:]]*//p' "$AGENTS_FILE")
-  case "$KERNEL_REF" in
-    '$PROJECT_OS_KERNEL_DIR'|'${PROJECT_OS_KERNEL_DIR}') KERNEL_DIR="${PROJECT_OS_KERNEL_DIR:-}" ;;
-    /*) case "$KERNEL_REF" in *'$'*) KERNEL_DIR= ;; *) KERNEL_DIR="$KERNEL_REF" ;; esac ;;
-    *) KERNEL_DIR= ;;
-  esac
-  test -n "$KERNEL_DIR" || return 111
-  PROJECT_OS_ROOT=$(dirname "$(dirname "$KERNEL_DIR")")
-  test -f "$PROJECT_OS_ROOT/tools/project_os_fast_path.py" || return 111
-  python "$PROJECT_OS_ROOT/tools/project_os_fast_path.py" --agents-file "$AGENTS_FILE" \
-    --actor <actor> --workflow <workflow> --mode <mode> \
-    [--change-class change_class.<id>] [--skill skill.<id>]
-}
-probe=$(pwd)
-rc=111
-while test "$rc" -eq 111; do
-  if test -f "$probe/AGENTS.md"; then
-    select_target_bootloader "$probe/AGENTS.md"
-    rc=$?
-  fi
-  if test "$rc" -eq 111; then
-    test "$probe" = / && { echo 'no root AGENTS.md coherent with the adopted target' >&2; exit 1; }
-    probe=$(dirname "$probe")
-  fi
-done
-test "$rc" -eq 0 || exit "$rc"
-cd "$probe" || exit 1
-```
+`tools/project_os_fast_path.py` is the single executable source of this logic: it locates the root `AGENTS.md` by walking up from the current directory, validates each candidate in full, and keeps walking up when the candidate is not the root bootloader coherent with the resolved target, so an intermediate `AGENTS.md` inside a subdirectory never stops the search. It reads the two persisted fields, accepts only the exact portable reference or an absolute literal, and checks structural kernel identity before the resolver; it does not use `eval`, does not expand arbitrary names, and invokes `tools/project_os_resolve.py` exactly once, propagating any non-zero exit code unchanged. No bootloader, adapter, or doc reimplements this search or validation: all of them are consumers of this same module. As a non-executable debugging reference, `--agents-file` validates exactly one candidate without walking the tree: `python tools/project_os_fast_path.py --agents-file PATH/AGENTS.md --actor <actor> --workflow <workflow> --mode <mode>` returns the reserved code 111 when that single file is not a coherent candidate, distinct from any real resolver verdict.
 
 Those checks are structural and demonstrable in scope: they require the selected `AGENTS.md` to be the resolved target's own, and they reject references outside the allowlist, relative paths, kernels located on another surface, and manifests that are unreadable, inactive, or in another language, without invoking the resolver when no ancestor satisfies them. Continuing the walk relaxes none of them: a candidate is accepted only when it satisfies every check itself, and the resolver runs once against the accepted candidate. They do not verify repository provenance, commit, signature, hash, or checkout integrity, so they are not a trust anchor: a local directory reproducing that structure remains executable. When a non-zero resolver exit code aborts the fast path, no later step is enabled.
 
