@@ -8,7 +8,6 @@ contract. This module only reads and validates those local files.
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -34,8 +33,6 @@ ALIAS_CONTRACT_MARKERS = (
     "**Entrega:**",
     "**Deliver:**",
 )
-SHARED_CONTRACT_ROOT = Path(__file__).resolve().parent.parent / "operation-contracts"
-SHARED_CONTRACT_REFERENCE = "shared_contract"
 CLASSIFIED_DISTINCT_CONTRACT_GROUPS = frozenset(
     {
         frozenset({"MOS-0.3", "MOS-0.4"}),
@@ -58,7 +55,6 @@ class OperationMetadata:
     deprecation: str = "none"
     compatibility_reason: str = ""
     alias_focus_area: str = ""
-    shared_contract: str = ""
     explicit: bool = False
 
 
@@ -69,7 +65,6 @@ class OperationSource:
     code: str
     text: str
     metadata: OperationMetadata
-    localized_text: str = ""
 
     @property
     def is_alias(self) -> bool:
@@ -146,7 +141,6 @@ def parse_operation_metadata(text: str, code: str) -> OperationMetadata:
         "deprecation",
         "compatibility_reason",
         "alias_focus_area",
-        SHARED_CONTRACT_REFERENCE,
     }
     unknown = sorted(set(values) - allowed)
     if unknown:
@@ -162,176 +156,8 @@ def parse_operation_metadata(text: str, code: str) -> OperationMetadata:
         deprecation=values.get("deprecation", "supported" if alias_of else "none").lower(),
         compatibility_reason=values.get("compatibility_reason", ""),
         alias_focus_area=values.get("alias_focus_area", "").lower(),
-        shared_contract=values.get(SHARED_CONTRACT_REFERENCE, ""),
         explicit=True,
     )
-
-
-def _shared_contract_path(key: str) -> Path:
-    if not re.fullmatch(r"[a-z][a-z0-9-]*", key):
-        raise ValueError(f"invalid shared operation contract reference: {key!r}")
-    return SHARED_CONTRACT_ROOT / f"{key}.json"
-
-
-def _shared_contract(key: str) -> dict[str, object]:
-    path = _shared_contract_path(key)
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"cannot read shared operation contract {key!r}: {exc}") from exc
-    if not isinstance(value, dict):
-        raise ValueError(f"shared operation contract {key!r} must be an object")
-    allowed = {"key", "canonical", "aliases"}
-    unknown = sorted(set(value) - allowed)
-    if unknown or value.get("key") != key:
-        raise ValueError(f"invalid shared operation contract {key!r}")
-    canonical = value.get("canonical")
-    aliases = value.get("aliases")
-    if not isinstance(canonical, dict) or not isinstance(aliases, list):
-        raise ValueError(f"shared operation contract {key!r} is incomplete")
-    required = {
-        "code", "operation_id", "aliases", "deprecation", "risk", "surface", "workflow",
-        "mode", "outputs", "evidence", "pm_approval", "variables", "connections",
-    }
-    if set(canonical) != required:
-        raise ValueError(f"shared operation contract {key!r} has unknown or missing canonical fields")
-    if not all(isinstance(canonical[name], str) for name in ("code", "operation_id", "deprecation", "risk", "surface", "workflow", "mode", "pm_approval")):
-        raise ValueError(f"shared operation contract {key!r} has invalid canonical values")
-    if not all(isinstance(canonical[name], list) for name in ("aliases", "outputs", "evidence", "variables", "connections")):
-        raise ValueError(f"shared operation contract {key!r} has invalid canonical lists")
-    if canonical["deprecation"] not in ALLOWED_DEPRECATION_STATES:
-        raise ValueError(f"shared operation contract {key!r} has invalid deprecation")
-    if canonical["risk"] not in {"low", "medium", "high", "critical"} or canonical["surface"] not in {"browser_chat", "terminal_agent", "human_pm"}:
-        raise ValueError(f"shared operation contract {key!r} has invalid risk or surface")
-    if canonical["pm_approval"] not in {"not_required", "required"}:
-        raise ValueError(f"shared operation contract {key!r} has invalid approval")
-    if not all(isinstance(item, str) for name in ("aliases", "outputs", "evidence", "connections") for item in canonical[name]):
-        raise ValueError(f"shared operation contract {key!r} has non-string references")
-    if not all(isinstance(item, dict) and set(item) == {"name", "required", "placeholder"} and isinstance(item["name"], str) and isinstance(item["required"], bool) and isinstance(item["placeholder"], str) for item in canonical["variables"]):
-        raise ValueError(f"shared operation contract {key!r} has invalid variables")
-    variable_names = [item["name"] for item in canonical["variables"]]
-    if len(set(variable_names)) != len(variable_names):
-        raise ValueError(f"shared operation contract {key!r} has duplicate variables")
-    alias_codes: list[str] = []
-    for alias in aliases:
-        if not isinstance(alias, dict) or set(alias) != {"code", "alias_of", "deprecation", "alias_focus_area"}:
-            raise ValueError(f"shared operation contract {key!r} has invalid alias fields")
-        if not all(isinstance(alias[name], str) for name in alias):
-            raise ValueError(f"shared operation contract {key!r} has invalid alias values")
-        if alias["alias_of"] != canonical["code"] or alias["deprecation"] not in {"supported", "deprecated"}:
-            raise ValueError(f"shared operation contract {key!r} has an invalid alias relation")
-        if alias["alias_focus_area"] not in ALLOWED_ALIAS_FOCUS_AREAS:
-            raise ValueError(f"shared operation contract {key!r} has an invalid alias focus area")
-        alias_codes.append(alias["code"])
-    if len(set(alias_codes)) != len(alias_codes) or tuple(alias_codes) != tuple(canonical["aliases"]):
-        raise ValueError(f"shared operation contract {key!r} has ambiguous aliases")
-    focus = next((item for item in canonical["variables"] if item["name"] == "FOCUS_AREA"), None)
-    if not {"FOCUS_AREA", "TARGET_REPOSITORY"} <= set(variable_names) or not isinstance(focus, dict) or focus["placeholder"] != "<performance|product|code_quality>":
-        raise ValueError(f"shared operation contract {key!r} has incompatible variables")
-    _validate_shared_references(key, canonical)
-    return value
-
-
-def _validate_shared_references(key: str, canonical: dict[str, object]) -> None:
-    """Validate only references that are machine identifiers against the active kernel."""
-
-    kernel_root = Path(__file__).resolve().parent.parent / "project-os-es" / "kernel"
-    collections = {
-        "workflow": ("workflows.json", "workflows"),
-        "mode": ("modos.json", "modes"),
-        "output": ("salidas.json", "outputs"),
-        "evidence": ("evidencia.json", "evidence"),
-    }
-    known: dict[str, set[str]] = {}
-    for kind, (filename, collection) in collections.items():
-        try:
-            payload = json.loads((kernel_root / filename).read_text(encoding="utf-8"))
-            known[kind] = {item["key"] for item in payload[collection] if isinstance(item, dict) and isinstance(item.get("key"), str)}
-        except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
-            raise ValueError(f"cannot validate shared operation contract {key!r} references: {exc}") from exc
-    references = {
-        "workflow": [canonical["workflow"]],
-        "mode": [canonical["mode"]],
-        "output": canonical["outputs"],
-        "evidence": canonical["evidence"],
-    }
-    for kind, values in references.items():
-        if any(not isinstance(value, str) or value not in known[kind] for value in values):
-            raise ValueError(f"shared operation contract {key!r} references an unknown {kind}")
-
-
-def _localized_compatibility_reason(text: str) -> str:
-    match = re.search(r"^\*\*(?:Compatibilidad|Compatibility):\*\*\s*(.+)$", text, re.MULTILINE)
-    return match.group(1).strip() if match else ""
-
-
-def _shared_metadata(key: str, code: str, localized_text: str) -> tuple[OperationMetadata, str]:
-    contract = _shared_contract(key)
-    canonical = contract["canonical"]
-    assert isinstance(canonical, dict)
-    aliases = contract["aliases"]
-    assert isinstance(aliases, list)
-    # The language comes from the Markdown labels below; the descriptor contains no prose.
-    is_english = "MOSDLC operation" in localized_text or "**Does:**" in localized_text
-    labels = {
-        "surface": "Surface" if is_english else "Superficie",
-        "approval": "PM approval" if is_english else "Aprobación PM",
-        "required": "Required" if is_english else "Requeridas",
-        "optional": "Optional" if is_english else "Opcionales",
-        "deliver": "Deliver" if is_english else "Entrega",
-        "connections": "Connections" if is_english else "Conexiones",
-    }
-    canonical_code = str(canonical["code"])
-    compatibility_reason = _localized_compatibility_reason(localized_text)
-    if code == canonical_code:
-        metadata = OperationMetadata(
-            canonical_code=canonical_code,
-            operation_id=str(canonical["operation_id"]),
-            aliases=tuple(str(item) for item in canonical["aliases"]),
-            deprecation=str(canonical["deprecation"]),
-            compatibility_reason=compatibility_reason,
-            shared_contract=key,
-            explicit=True,
-        )
-        required = [item for item in canonical["variables"] if item["required"]]
-        optional = [item for item in canonical["variables"] if not item["required"]]
-        inputs = "\n".join(f"  {item['name']}={item['placeholder']}{'' if item['required'] else ' optional'}" for item in canonical["variables"])
-        outputs = tuple(str(item) for item in canonical["outputs"])
-        output_summary = outputs[0] if len(outputs) == 1 else f"{outputs[0]} (+{' + '.join(outputs[1:])})"
-        composed = "\n".join((
-            f"MOSDLC operation `{canonical['operation_id']}` · Risk: {canonical['risk']}.",
-            f"- {labels['surface']}: {canonical['surface']}",
-            f"- Kernel: {canonical['workflow']} · {canonical['mode']} · {output_summary}",
-            f"- Evidence: {' · '.join(canonical['evidence'])}",
-            f"- {labels['approval']}: {'No' if canonical['pm_approval'] == 'not_required' else 'Yes'}",
-            "",
-            "**Variables**",
-            f"- {labels['required']}: {', '.join(item['name'] for item in required)}",
-            f"- {labels['optional']}: {', '.join(item['name'] for item in optional)}",
-            "",
-            "INPUT:",
-            inputs,
-            "",
-            f"**{labels['deliver']}:** {output_summary}",
-            f"**{labels['connections']}:** {'; '.join(canonical['connections'])}",
-            "",
-            localized_text,
-        ))
-        return metadata, composed
-    matched = [item for item in aliases if isinstance(item, dict) and item.get("code") == code]
-    if len(matched) != 1:
-        raise ValueError(f"shared operation contract {key!r} does not define {code}")
-    alias = matched[0]
-    return OperationMetadata(
-        canonical_code=canonical_code,
-        operation_id="",
-        alias_of=str(alias["alias_of"]),
-        deprecation=str(alias["deprecation"]),
-        compatibility_reason=compatibility_reason,
-        alias_focus_area=str(alias["alias_focus_area"]),
-        shared_contract=key,
-        explicit=True,
-    ), localized_text
 
 
 def load_operation_sources(operations_dir: Path) -> list[OperationSource]:
@@ -348,18 +174,13 @@ def load_operation_sources(operations_dir: Path) -> list[OperationSource]:
         if code is None:
             raise ValueError(f"operation filename has no MOS code: {path.relative_to(root)}")
         text = path.read_text(encoding="utf-8")
-        metadata = parse_operation_metadata(text, code)
-        composed_text = text
-        if metadata.shared_contract:
-            metadata, composed_text = _shared_metadata(metadata.shared_contract, code, text)
         sources.append(
             OperationSource(
                 path=path,
                 relative_path=path.relative_to(root).as_posix(),
                 code=code,
-                text=composed_text,
-                metadata=metadata,
-                localized_text=text,
+                text=text,
+                metadata=parse_operation_metadata(text, code),
             )
         )
     if not sources:
@@ -478,9 +299,7 @@ def validate_operation_catalog(sources: list[OperationSource]) -> list[Operation
             findings.append(OperationCatalogFinding("OPS-011", alias.relative_path, "alias stub must not define an identity or child aliases", "status.blocked"))
         if metadata.deprecation not in {"supported", "deprecated"}:
             findings.append(OperationCatalogFinding("OPS-012", alias.relative_path, "alias must declare supported or deprecated status", "status.blocked"))
-        if not metadata.compatibility_reason or (
-            not canonical.metadata.compatibility_reason and not canonical.metadata.shared_contract
-        ):
+        if not metadata.compatibility_reason or not canonical.metadata.compatibility_reason:
             findings.append(OperationCatalogFinding("OPS-013", alias.relative_path, "canonical and alias compatibility reasons are required", "status.blocked"))
         if metadata.alias_focus_area and metadata.alias_focus_area not in ALLOWED_ALIAS_FOCUS_AREAS:
             findings.append(OperationCatalogFinding("OPS-020", alias.relative_path, "alias focus area is not allowlisted", "status.blocked"))
@@ -488,16 +307,6 @@ def validate_operation_catalog(sources: list[OperationSource]) -> list[Operation
             findings.append(OperationCatalogFinding("OPS-021", alias.relative_path, "alias focus area requires FOCUS_AREA on its canonical contract", "status.blocked"))
         if any(marker in alias.text for marker in ALIAS_CONTRACT_MARKERS):
             findings.append(OperationCatalogFinding("OPS-014", alias.relative_path, "alias stub duplicates operational fields instead of inheriting the canonical prompt", "status.blocked"))
-
-    for source in (item for item in canonicals if item.metadata.shared_contract):
-        contract = _shared_contract(source.metadata.shared_contract)
-        canonical = contract["canonical"]
-        assert isinstance(canonical, dict)
-        unknown_connections = [
-            str(code) for code in canonical["connections"] if str(code) not in unique
-        ]
-        if unknown_connections:
-            findings.append(OperationCatalogFinding("OPS-022", source.relative_path, "shared contract has unknown connections: " + ", ".join(unknown_connections), "status.blocked"))
 
     identities: dict[str, list[OperationSource]] = {}
     signatures: dict[OperationContractSignature, list[OperationSource]] = {}

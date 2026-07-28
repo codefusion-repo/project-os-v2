@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
-import pytest
-
-import tools.operation_catalog as operation_catalog
 from tools.operation_catalog import (
     load_operation_sources,
     validate_bilingual_alias_parity,
@@ -94,41 +90,6 @@ def test_active_alias_metadata_and_bilingual_parity_have_no_findings() -> None:
         assert alias.metadata.alias_of == "MOS-0.4"
         assert alias.metadata.deprecation == "supported"
         assert "**Variables**" not in alias.text
-
-
-def test_maintenance_shared_contract_keeps_machine_fields_neutral_and_localizes_prose() -> None:
-    for operations_dir in (SPANISH_OPERATIONS, ENGLISH_OPERATIONS):
-        sources = {item.code: item for item in load_operation_sources(operations_dir)}
-        canonical = sources["MOS-6.13"]
-        assert canonical.metadata.shared_contract == "maintenance-analysis"
-        assert "- Kernel:" not in canonical.localized_text
-        assert "INPUT:" not in canonical.localized_text
-        assert "**Variables**" not in canonical.localized_text
-        assert "- Kernel:" in canonical.text
-        for code in ("MOS-6.3", "MOS-6.4", "MOS-6.5"):
-            assert sources[code].metadata.shared_contract == "maintenance-analysis"
-            assert "alias_of:" not in sources[code].localized_text
-
-
-def test_shared_contract_references_and_connections_fail_closed(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    contracts = tmp_path / "operation-contracts"
-    contracts.mkdir()
-    monkeypatch.setattr(operation_catalog, "SHARED_CONTRACT_ROOT", contracts)
-    unknown = tmp_path / "unknown"
-    unknown.mkdir()
-    (unknown / "MOS-6.13-test.md").write_text(
-        "<!-- project-os-operation\nshared_contract: missing\n-->", encoding="utf-8"
-    )
-    with pytest.raises(ValueError, match="cannot read shared operation contract"):
-        load_operation_sources(unknown)
-
-    descriptor = json.loads((REPO_ROOT / "operation-contracts/maintenance-analysis.json").read_text(encoding="utf-8"))
-    descriptor["canonical"]["connections"] = ["MOS-9.99"]
-    (contracts / "maintenance-analysis.json").write_text(json.dumps(descriptor), encoding="utf-8")
-    findings = validate_operation_catalog(load_operation_sources(SPANISH_OPERATIONS))
-    assert any(item.code == "OPS-022" and item.status == "status.blocked" for item in findings)
 
 
 def test_alias_is_not_a_separate_outcome_but_resolves_by_code_filename_and_path() -> None:
