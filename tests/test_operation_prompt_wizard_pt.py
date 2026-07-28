@@ -21,12 +21,18 @@ from tools.operation_prompt_wizard import (
     PM_AUTHORIZATION_STATUS_NAME,
     PM_QUESTION_HUMANO_NAME,
     discover_operations,
+    surface_selection_for_language,
 )
 
 if not HAVE_PROMPT_TOOLKIT:
     pytest.skip("prompt_toolkit not installed; enhanced wizard path unavailable", allow_module_level=True)
 
-from tools.operation_prompt_wizard import OperationValidator, run_wizard_pt
+from tools.operation_prompt_wizard import (
+    OperationCompleter,
+    OperationValidator,
+    PromptToolkitWizardAdapter,
+    run_wizard_pt,
+)
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import fragment_list_to_text, to_formatted_text
 
@@ -80,6 +86,26 @@ def mock_prompt(inputs: list[str]):
         return inputs.pop(0)
 
     return replacement
+
+
+def select_with_prompt_toolkit(
+    operations,
+    inputs: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+):
+    calls: list[str] = []
+
+    def replacement(label: str, **_kwargs) -> str:
+        calls.append(label)
+        if not inputs:
+            raise EOFError
+        return inputs.pop(0)
+
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard_prompt_toolkit_ui.prompt", replacement
+    )
+    operation, captured_intent = PromptToolkitWizardAdapter(StringIO()).select(operations, {})
+    return operation, captured_intent, calls
 
 
 def test_full_flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -149,6 +175,102 @@ def test_operation_validator_still_rejects_unmatched_text_without_intent_router(
 
     with pytest.raises(Exception, match="Invalid or ambiguous selection"):
         validator.validate(Document("free-form intent that names no catalog operation"))
+
+
+@pytest.mark.parametrize("selector", ["index", "mos", "filename", "relative_path"])
+def test_prompt_toolkit_exact_selection_stays_a_single_direct_interaction(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, selector: str
+) -> None:
+    operations = discover_operations(setup_catalog_with_intent_router(tmp_path))
+    target = next(operation for operation in operations if operation.mos_code == "MOS-3.5")
+    selection = {
+        "index": str(target.index),
+        "mos": target.mos_code,
+        "filename": target.filename,
+        "relative_path": target.relative_path,
+    }[selector]
+    monkeypatch.setattr(
+        "tools.operation_prompt_wizard_prompt_toolkit_ui.line_ui.select_operation",
+        lambda *_args, **_kwargs: pytest.fail("prompt_toolkit must not delegate selection to line UI"),
+    )
+
+    selected, captured_intent, calls = select_with_prompt_toolkit(
+        operations, [selection], monkeypatch
+    )
+
+    assert selected is not None
+    assert selected.mos_code == "MOS-3.5"
+    assert captured_intent == {}
+    assert len(calls) == 1
+
+
+def test_prompt_toolkit_partial_and_ambiguous_search_keep_completions_and_route_directly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations_path = setup_catalog_with_intent_router(tmp_path)
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.6-correccion-extra.md",
+        "MOS-3.6",
+        "Corrección extra",
+        "PR_NUMBER",
+    )
+    operations = discover_operations(operations_path)
+    completion_codes = {
+        completion.text
+        for completion in OperationCompleter(operations).get_completions(Document("MOS-3"), None)
+    }
+
+    assert {"MOS-3.5", "MOS-3.6"} <= completion_codes
+    for query in ("MOS-3", "corrección"):
+        selected, captured_intent, calls = select_with_prompt_toolkit(
+            operations, [query], monkeypatch
+        )
+        assert selected is not None
+        assert selected.mos_code == INTENT_ROUTING_MOS_CODE
+        assert captured_intent == {PM_QUESTION_HUMANO_NAME: query}
+        assert len(calls) == 1
+
+
+def test_prompt_toolkit_intent_and_navigation_preserve_prompt_sequence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations = discover_operations(setup_catalog_with_intent_router(tmp_path))
+    intent = "necesito decidir el siguiente paso"
+    selected, captured_intent, calls = select_with_prompt_toolkit(
+        operations, [intent], monkeypatch
+    )
+
+    assert selected is not None
+    assert selected.mos_code == INTENT_ROUTING_MOS_CODE
+    assert captured_intent == {PM_QUESTION_HUMANO_NAME: intent}
+    assert len(calls) == 1
+
+    for command in ("/enumerated", "/phases", "?"):
+        selected, captured_intent, calls = select_with_prompt_toolkit(
+            operations, [command, "MOS-3.5"], monkeypatch
+        )
+        assert selected is not None
+        assert selected.mos_code == "MOS-3.5"
+        assert captured_intent == {}
+        assert len(calls) == 2
+
+
+@pytest.mark.parametrize("language", ["es", "en"])
+def test_prompt_toolkit_selection_semantics_are_equal_for_es_and_en(
+    language: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    selection = surface_selection_for_language(language)
+    operations = discover_operations(selection.operations_dir)
+    target = next(operation for operation in operations if operation.mos_code == "MOS-3.5")
+
+    selected, captured_intent, calls = select_with_prompt_toolkit(
+        operations, [target.mos_code or ""], monkeypatch
+    )
+
+    assert selected is not None
+    assert selected.mos_code == target.mos_code
+    assert captured_intent == {}
+    assert len(calls) == 1
 
 
 def test_intent_first_text_with_no_catalog_match_routes_via_mos_r2_pt(

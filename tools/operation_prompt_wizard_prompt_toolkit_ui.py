@@ -8,7 +8,6 @@ from typing import Callable, TextIO
 
 from tools import operation_prompt_wizard_line_ui as line_ui
 from tools.operation_prompt_wizard_core import *  # noqa: F403 - this adapter consumes the full pure contract.
-from tools.operation_prompt_wizard_core import _operation_phase
 
 try:
     from prompt_toolkit import prompt
@@ -31,25 +30,17 @@ if HAVE_PROMPT_TOOLKIT:
 
         def get_completions(self, document, complete_event):
             text = document.text.lower()
-            visible_operations = self.operations if text else canonical_operations(self.operations)
+            visible_operations = (
+                filter_operations(self.operations, text, self.phase_by_operation)
+                if text
+                else canonical_operations(self.operations)
+            )
             for operation in visible_operations:
-                phase = _operation_phase(operation, self.phase_by_operation)
-                if (
-                    text in operation.filename.lower()
-                    or text in operation.path.stem.lower()
-                    or text in operation.title.lower()
-                    or text in operation.description.lower()
-                    or text in operation.relative_path.lower()
-                    or text in operation.phase_path.lower()
-                    or text in (operation.mos_code or "").lower()
-                    or text == str(operation.index)
-                    or (phase and text in phase.lower())
-                ):
-                    yield Completion(
-                        operation.mos_code or operation.relative_path,
-                        start_position=-len(document.text),
-                        display=line_ui.operation_display_line(operation),
-                    )
+                yield Completion(
+                    operation.mos_code or operation.relative_path,
+                    start_position=-len(document.text),
+                    display=line_ui.operation_display_line(operation),
+                )
 
 
     class OperationValidator(Validator):
@@ -80,7 +71,7 @@ if HAVE_PROMPT_TOOLKIT:
 
 
     class PromptToolkitWizardAdapter:
-        """Render prompt_toolkit widgets while delegating all decisions to shared flows."""
+        """Render prompt_toolkit widgets over the shared pure decision rules."""
 
         def __init__(self, output_stream: TextIO):
             self.output_stream = output_stream
@@ -123,28 +114,61 @@ if HAVE_PROMPT_TOOLKIT:
         ) -> tuple[OperationTemplate | None, dict[str, str]]:
             completer = OperationCompleter(operations, phase_by_operation)
             validator = OperationValidator(operations)
-
-            def ask(label: str) -> str:
-                return self._ask(
-                    label,
-                    completer=completer,
-                    validator=validator,
-                    toolbar=(
-                        " <b>Commands</b>: intent text, index/MOS/path, /enumerated "
-                        "(/enumerator, /), /phases (/phase), cancel, ? help."
-                    ),
-                )
-
             captured_intent: dict[str, str] = {}
-            operation = line_ui.select_operation(
-                operations,
-                input_func=ask,
-                output_stream=self.output_stream,
-                phase_by_operation=phase_by_operation,
-                captured_intent=captured_intent,
-                show_command_hints=False,
+            line_ui.print_stage(
+                "Step 1/3", "Search and select an operation", self.output_stream
             )
-            return operation, captured_intent
+            print(
+                "Describe what you want (target, outcome, constraints) to route via "
+                f"{INTENT_ROUTING_MOS_CODE}, or select explicitly by index, MOS code, "
+                "filename, title, relative path, or phase.",
+                file=self.output_stream,
+            )
+            line_ui.print_enumerated_view(operations, self.output_stream)
+
+            while True:
+                try:
+                    selection = self._ask(
+                        "Describe your intent, or search/select operation: ",
+                        completer=completer,
+                        validator=validator,
+                        toolbar=(
+                            " <b>Commands</b>: intent text, index/MOS/path, /enumerated "
+                            "(/enumerator, /), /phases (/phase), cancel, ? help."
+                        ),
+                    ).strip()
+                except (EOFError, KeyboardInterrupt):
+                    return None, captured_intent
+
+                if is_cancel_command(selection):
+                    return None, captured_intent
+                if is_help_command(selection):
+                    line_ui.print_selection_help(self.output_stream)
+                    continue
+                if is_phase_view_command(selection):
+                    line_ui.print_phase_groups(
+                        operations, phase_by_operation, self.output_stream
+                    )
+                    continue
+                if is_enumerated_view_command(selection) or is_search_command(selection):
+                    line_ui.print_enumerated_view(operations, self.output_stream)
+                    continue
+
+                operation = resolve_operation_selection(operations, selection)
+                if operation is not None:
+                    return operation, captured_intent
+                if not selection:
+                    continue
+
+                recommended = intent_routing_operation(operations)
+                if recommended is not None:
+                    captured_intent[PM_QUESTION_HUMANO_NAME] = selection
+                    print(
+                        f"No catalog match for that text. Treating it as your intent and "
+                        f"routing via {recommended.mos_code} — {recommended.title}.",
+                        file=self.output_stream,
+                    )
+                    return recommended, captured_intent
 
         def collect_values(
             self,

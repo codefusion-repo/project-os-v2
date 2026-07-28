@@ -82,7 +82,9 @@ def test_only_the_shared_session_driver_owns_wizard_stages() -> None:
     assert "stage ==" not in inspect.getsource(prompt_toolkit_ui)
     prompt_source = inspect.getsource(prompt_toolkit_ui)
     for shared_decision in (
-        "line_ui.select_operation",
+        "filter_operations",
+        "resolve_operation_selection",
+        "intent_routing_operation",
         "line_ui.collect_values_with_controls",
         "line_ui.collect_route_prompt_path_with_controls",
         "line_ui.choose_preview_action",
