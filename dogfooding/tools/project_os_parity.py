@@ -14,12 +14,14 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from tools.operation_catalog import load_operation_sources
     from tools.operation_prompt_wizard import OperationTemplate, discover_operations
     from tools.project_os_surfaces import REPO_ROOT, SURFACES, ProjectOSSurface
 except ModuleNotFoundError:  # Direct ``python dogfooding/tools/project_os_parity.py`` execution.
     import sys
 
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from tools.operation_catalog import load_operation_sources  # type: ignore[no-redef]
     from tools.operation_prompt_wizard import OperationTemplate, discover_operations  # type: ignore[no-redef]
     from tools.project_os_surfaces import REPO_ROOT, SURFACES, ProjectOSSurface  # type: ignore[no-redef]
 
@@ -337,6 +339,18 @@ def _operation_structural_findings(
     return findings
 
 
+def _shared_contract_findings(es_root: Path, en_root: Path) -> list[str]:
+    """Ensure localized documents point at the same resolved shared contract."""
+
+    es = {item.code: item.metadata.shared_contract for item in load_operation_sources(es_root)}
+    en = {item.code: item.metadata.shared_contract for item in load_operation_sources(en_root)}
+    return [
+        f"shared operation contract reference mismatch: {code}"
+        for code in sorted(set(es) & set(en))
+        if es[code] != en[code]
+    ]
+
+
 def _template_structural_findings(es_root: Path, en_root: Path) -> list[str]:
     """Compare template pairing, machine fields, fences, and copied commands."""
 
@@ -442,6 +456,9 @@ def build_report() -> dict[str, Any]:
             structural_findings.append(f"operation contract mismatch: {code}")
 
     structural_findings.extend(_operation_structural_findings(es_templates, en_templates))
+    structural_findings.extend(
+        _shared_contract_findings(es_surface.root / "operaciones", en_surface.root / "operations")
+    )
     structural_findings.extend(
         _template_structural_findings(
             es_surface.root / "templates",
