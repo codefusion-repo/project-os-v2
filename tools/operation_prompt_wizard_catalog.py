@@ -8,7 +8,7 @@ from typing import Callable, TextIO
 import sys
 
 try:
-    from tools.operation_catalog import load_operation_sources, shared_contract_transitions, validate_operation_catalog
+    from tools.operation_catalog import load_operation_sources, validate_operation_catalog
     from tools.project_os_surfaces import ProjectOSSurface, surface_for_language, surface_for_operations_dir
     from tools.operation_prompt_wizard_core import (
         CUSTOM_SURFACE_LANGUAGE,
@@ -27,7 +27,7 @@ try:
         parse_input_variables,
     )
 except ModuleNotFoundError:  # Direct execution from tools/.
-    from operation_catalog import load_operation_sources, shared_contract_transitions, validate_operation_catalog  # type: ignore[no-redef]
+    from operation_catalog import load_operation_sources, validate_operation_catalog  # type: ignore[no-redef]
     from project_os_surfaces import ProjectOSSurface, surface_for_language, surface_for_operations_dir  # type: ignore[no-redef]
     from operation_prompt_wizard_core import (  # type: ignore[no-redef]
         CUSTOM_SURFACE_LANGUAGE, DEFAULT_LANGUAGE, LANGUAGE_CHOICES, LANGUAGE_QUESTION,
@@ -194,8 +194,6 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 deprecation=source.metadata.deprecation,
                 compatibility_reason=source.metadata.compatibility_reason,
                 alias_focus_area=source.metadata.alias_focus_area,
-                bound_values=source.metadata.bound_values,
-                transitions=shared_contract_transitions(source.metadata.shared_contract) if source.metadata.shared_contract else (),
             )
         )
     for source in (item for item in sources if item.is_alias):
@@ -215,8 +213,6 @@ def discover_operations(operations_dir: Path = DEFAULT_OPERATIONS_DIR) -> list[O
                 deprecation=source.metadata.deprecation,
                 compatibility_reason=source.metadata.compatibility_reason,
                 alias_focus_area=source.metadata.alias_focus_area,
-                bound_values=source.metadata.bound_values,
-                transitions=shared_contract_transitions(source.metadata.shared_contract) if source.metadata.shared_contract else (),
             )
         )
     return operations

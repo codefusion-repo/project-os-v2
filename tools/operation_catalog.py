@@ -23,6 +23,7 @@ OPERATION_ID_PATTERN = re.compile(
     re.IGNORECASE,
 )
 ALLOWED_DEPRECATION_STATES = {"none", "supported", "deprecated"}
+ALLOWED_ALIAS_FOCUS_AREAS = {"performance", "product", "code_quality"}
 ALIAS_CONTRACT_MARKERS = (
     "- Kernel:",
     "- Evidencia:",
@@ -57,7 +58,6 @@ class OperationMetadata:
     deprecation: str = "none"
     compatibility_reason: str = ""
     alias_focus_area: str = ""
-    bound_values: tuple[tuple[str, str], ...] = ()
     shared_contract: str = ""
     explicit: bool = False
 
@@ -88,7 +88,6 @@ class OperationContractSignature:
     variables: tuple[tuple[str, bool], ...]
     surface: tuple[str, ...]
     next_operations: tuple[str, ...]
-    transitions: tuple[tuple[tuple[str, str], str], ...]
 
 
 @dataclass(frozen=True)
@@ -163,8 +162,6 @@ def parse_operation_metadata(text: str, code: str) -> OperationMetadata:
         deprecation=values.get("deprecation", "supported" if alias_of else "none").lower(),
         compatibility_reason=values.get("compatibility_reason", ""),
         alias_focus_area=values.get("alias_focus_area", "").lower(),
-        bound_values=(("FOCUS_AREA", values["alias_focus_area"].lower()),)
-        if values.get("alias_focus_area") else (),
         shared_contract=values.get(SHARED_CONTRACT_REFERENCE, ""),
         explicit=True,
     )
@@ -194,13 +191,13 @@ def _shared_contract(key: str) -> dict[str, object]:
         raise ValueError(f"shared operation contract {key!r} is incomplete")
     required = {
         "code", "operation_id", "aliases", "deprecation", "risk", "surface", "workflow",
-        "phase", "mode", "outputs", "evidence", "pm_approval", "variables", "transitions",
+        "mode", "outputs", "evidence", "pm_approval", "variables", "connections",
     }
     if set(canonical) != required:
         raise ValueError(f"shared operation contract {key!r} has unknown or missing canonical fields")
-    if not all(isinstance(canonical[name], str) for name in ("code", "operation_id", "phase", "deprecation", "risk", "surface", "workflow", "mode", "pm_approval")):
+    if not all(isinstance(canonical[name], str) for name in ("code", "operation_id", "deprecation", "risk", "surface", "workflow", "mode", "pm_approval")):
         raise ValueError(f"shared operation contract {key!r} has invalid canonical values")
-    if not all(isinstance(canonical[name], list) for name in ("aliases", "outputs", "evidence", "variables", "transitions")):
+    if not all(isinstance(canonical[name], list) for name in ("aliases", "outputs", "evidence", "variables", "connections")):
         raise ValueError(f"shared operation contract {key!r} has invalid canonical lists")
     if canonical["deprecation"] not in ALLOWED_DEPRECATION_STATES:
         raise ValueError(f"shared operation contract {key!r} has invalid deprecation")
@@ -208,53 +205,29 @@ def _shared_contract(key: str) -> dict[str, object]:
         raise ValueError(f"shared operation contract {key!r} has invalid risk or surface")
     if canonical["pm_approval"] not in {"not_required", "required"}:
         raise ValueError(f"shared operation contract {key!r} has invalid approval")
-    if not all(isinstance(item, str) for name in ("aliases", "outputs", "evidence") for item in canonical[name]):
+    if not all(isinstance(item, str) for name in ("aliases", "outputs", "evidence", "connections") for item in canonical[name]):
         raise ValueError(f"shared operation contract {key!r} has non-string references")
-    for variable in canonical["variables"]:
-        if not isinstance(variable, dict) or set(variable) - {"name", "required", "placeholder", "allowed_values"} or not {"name", "required", "placeholder"} <= set(variable):
-            raise ValueError(f"shared operation contract {key!r} has invalid variables")
-        if not isinstance(variable["name"], str) or not isinstance(variable["required"], bool) or not isinstance(variable["placeholder"], str):
-            raise ValueError(f"shared operation contract {key!r} has invalid variables")
-        allowed_values = variable.get("allowed_values")
-        if allowed_values is not None and (not isinstance(allowed_values, list) or not allowed_values or not all(isinstance(item, str) for item in allowed_values) or len(set(allowed_values)) != len(allowed_values)):
-            raise ValueError(f"shared operation contract {key!r} has invalid variable allowlist")
+    if not all(isinstance(item, dict) and set(item) == {"name", "required", "placeholder"} and isinstance(item["name"], str) and isinstance(item["required"], bool) and isinstance(item["placeholder"], str) for item in canonical["variables"]):
+        raise ValueError(f"shared operation contract {key!r} has invalid variables")
     variable_names = [item["name"] for item in canonical["variables"]]
     if len(set(variable_names)) != len(variable_names):
         raise ValueError(f"shared operation contract {key!r} has duplicate variables")
     alias_codes: list[str] = []
-    variables_by_name = {item["name"]: item for item in canonical["variables"]}
     for alias in aliases:
-        if not isinstance(alias, dict) or set(alias) != {"code", "alias_of", "deprecation", "bound_values"}:
+        if not isinstance(alias, dict) or set(alias) != {"code", "alias_of", "deprecation", "alias_focus_area"}:
             raise ValueError(f"shared operation contract {key!r} has invalid alias fields")
-        if not all(isinstance(alias[name], str) for name in ("code", "alias_of", "deprecation")) or not isinstance(alias["bound_values"], dict):
+        if not all(isinstance(alias[name], str) for name in alias):
             raise ValueError(f"shared operation contract {key!r} has invalid alias values")
         if alias["alias_of"] != canonical["code"] or alias["deprecation"] not in {"supported", "deprecated"}:
             raise ValueError(f"shared operation contract {key!r} has an invalid alias relation")
-        for name, bound_value in alias["bound_values"].items():
-            variable = variables_by_name.get(name)
-            if not isinstance(name, str) or not isinstance(bound_value, str) or variable is None:
-                raise ValueError(f"shared operation contract {key!r} has an invalid alias binding")
-            allowed_values = variable.get("allowed_values")
-            if isinstance(allowed_values, list) and bound_value not in allowed_values:
-                raise ValueError(f"shared operation contract {key!r} has an invalid alias binding")
+        if alias["alias_focus_area"] not in ALLOWED_ALIAS_FOCUS_AREAS:
+            raise ValueError(f"shared operation contract {key!r} has an invalid alias focus area")
         alias_codes.append(alias["code"])
     if len(set(alias_codes)) != len(alias_codes) or tuple(alias_codes) != tuple(canonical["aliases"]):
         raise ValueError(f"shared operation contract {key!r} has ambiguous aliases")
-    transition_keys: set[tuple[tuple[str, str], ...]] = set()
-    for transition in canonical["transitions"]:
-        if not isinstance(transition, dict) or set(transition) != {"when", "next"} or not isinstance(transition["when"], dict) or not isinstance(transition["next"], str):
-            raise ValueError(f"shared operation contract {key!r} has an invalid transition")
-        when = tuple(sorted(transition["when"].items()))
-        if not when or when in transition_keys:
-            raise ValueError(f"shared operation contract {key!r} has ambiguous transitions")
-        transition_keys.add(when)
-        for name, transition_value in when:
-            variable = variables_by_name.get(name)
-            if not isinstance(transition_value, str) or variable is None:
-                raise ValueError(f"shared operation contract {key!r} has an invalid transition")
-            allowed_values = variable.get("allowed_values")
-            if isinstance(allowed_values, list) and transition_value not in allowed_values:
-                raise ValueError(f"shared operation contract {key!r} has an invalid transition")
+    focus = next((item for item in canonical["variables"] if item["name"] == "FOCUS_AREA"), None)
+    if not {"FOCUS_AREA", "TARGET_REPOSITORY"} <= set(variable_names) or not isinstance(focus, dict) or focus["placeholder"] != "<performance|product|code_quality>":
+        raise ValueError(f"shared operation contract {key!r} has incompatible variables")
     _validate_shared_references(key, canonical)
     return value
 
@@ -287,17 +260,6 @@ def _validate_shared_references(key: str, canonical: dict[str, object]) -> None:
             raise ValueError(f"shared operation contract {key!r} references an unknown {kind}")
 
 
-def shared_contract_transitions(key: str) -> tuple[tuple[tuple[str, str], str], ...]:
-    """Expose deterministic shared transitions without reparsing rendered prose."""
-
-    canonical = _shared_contract(key)["canonical"]
-    assert isinstance(canonical, dict)
-    return tuple(
-        (tuple(sorted(item["when"].items())), item["next"])
-        for item in canonical["transitions"]
-    )
-
-
 def _localized_compatibility_reason(text: str) -> str:
     match = re.search(r"^\*\*(?:Compatibilidad|Compatibility):\*\*\s*(.+)$", text, re.MULTILINE)
     return match.group(1).strip() if match else ""
@@ -317,10 +279,6 @@ def _shared_metadata(key: str, code: str, localized_text: str) -> tuple[Operatio
         "required": "Required" if is_english else "Requeridas",
         "optional": "Optional" if is_english else "Opcionales",
         "deliver": "Deliver" if is_english else "Entrega",
-        "operation": "MOSDLC operation" if is_english else "Operación MOSDLC",
-        "phase": "Phase" if is_english else "Fase",
-        "risk": "Risk" if is_english else "Riesgo",
-        "evidence": "Evidence" if is_english else "Evidencia",
         "connections": "Connections" if is_english else "Conexiones",
     }
     canonical_code = str(canonical["code"])
@@ -337,26 +295,14 @@ def _shared_metadata(key: str, code: str, localized_text: str) -> tuple[Operatio
         )
         required = [item for item in canonical["variables"] if item["required"]]
         optional = [item for item in canonical["variables"] if not item["required"]]
-        inputs = "\n".join(
-            f"  {item['name']}="
-            f"<{ '|'.join(item['allowed_values']) }>" if item.get("allowed_values") else
-            f"  {item['name']}={item['placeholder']}{'' if item['required'] else ' optional'}"
-            for item in canonical["variables"]
-        )
+        inputs = "\n".join(f"  {item['name']}={item['placeholder']}{'' if item['required'] else ' optional'}" for item in canonical["variables"])
         outputs = tuple(str(item) for item in canonical["outputs"])
         output_summary = outputs[0] if len(outputs) == 1 else f"{outputs[0]} (+{' + '.join(outputs[1:])})"
-        routing = "; ".join(
-            f"{' · '.join(f'{name}={value}' for name, value in item['when'].items())} → {item['next']}"
-            for item in canonical["transitions"]
-        )
-        phase = str(canonical["phase"]).removeprefix("phase-")
         composed = "\n".join((
-            localized_text,
-            "",
-            f"{labels['operation']} `{canonical['operation_id']}` · {labels['phase']} {phase} · {labels['risk']}: {canonical['risk']}.",
+            f"MOSDLC operation `{canonical['operation_id']}` · Risk: {canonical['risk']}.",
             f"- {labels['surface']}: {canonical['surface']}",
             f"- Kernel: {canonical['workflow']} · {canonical['mode']} · {output_summary}",
-            f"- {labels['evidence']}: {' · '.join(canonical['evidence'])}",
+            f"- Evidence: {' · '.join(canonical['evidence'])}",
             f"- {labels['approval']}: {'No' if canonical['pm_approval'] == 'not_required' else 'Yes'}",
             "",
             "**Variables**",
@@ -367,7 +313,9 @@ def _shared_metadata(key: str, code: str, localized_text: str) -> tuple[Operatio
             inputs,
             "",
             f"**{labels['deliver']}:** {output_summary}",
-            f"**{labels['connections']}:** {routing}",
+            f"**{labels['connections']}:** {'; '.join(canonical['connections'])}",
+            "",
+            localized_text,
         ))
         return metadata, composed
     matched = [item for item in aliases if isinstance(item, dict) and item.get("code") == code]
@@ -380,8 +328,7 @@ def _shared_metadata(key: str, code: str, localized_text: str) -> tuple[Operatio
         alias_of=str(alias["alias_of"]),
         deprecation=str(alias["deprecation"]),
         compatibility_reason=compatibility_reason,
-        alias_focus_area=str(alias["bound_values"].get("FOCUS_AREA", "")),
-        bound_values=tuple(sorted((str(name), str(value)) for name, value in alias["bound_values"].items())),
+        alias_focus_area=str(alias["alias_focus_area"]),
         shared_contract=key,
         explicit=True,
     ), localized_text
@@ -473,10 +420,6 @@ def _next_operations(text: str) -> tuple[str, ...]:
 
 
 def operation_contract_signature(source: OperationSource) -> OperationContractSignature:
-    transitions = (
-        shared_contract_transitions(source.metadata.shared_contract)
-        if source.metadata.shared_contract else ()
-    )
     return OperationContractSignature(
         workflows=_refs(source.text, "workflow"),
         modes=_refs(source.text, "mode"),
@@ -485,8 +428,7 @@ def operation_contract_signature(source: OperationSource) -> OperationContractSi
         approval_required=_approval_required(source.text),
         variables=_variables(source.text),
         surface=_surface(source.text),
-        next_operations=tuple(sorted({target for _, target in transitions})) or _next_operations(source.text),
-        transitions=transitions,
+        next_operations=_next_operations(source.text),
     )
 
 
@@ -540,6 +482,8 @@ def validate_operation_catalog(sources: list[OperationSource]) -> list[Operation
             not canonical.metadata.compatibility_reason and not canonical.metadata.shared_contract
         ):
             findings.append(OperationCatalogFinding("OPS-013", alias.relative_path, "canonical and alias compatibility reasons are required", "status.blocked"))
+        if metadata.alias_focus_area and metadata.alias_focus_area not in ALLOWED_ALIAS_FOCUS_AREAS:
+            findings.append(OperationCatalogFinding("OPS-020", alias.relative_path, "alias focus area is not allowlisted", "status.blocked"))
         if metadata.alias_focus_area and "FOCUS_AREA" not in dict(_variables(canonical.text)):
             findings.append(OperationCatalogFinding("OPS-021", alias.relative_path, "alias focus area requires FOCUS_AREA on its canonical contract", "status.blocked"))
         if any(marker in alias.text for marker in ALIAS_CONTRACT_MARKERS):
@@ -549,11 +493,11 @@ def validate_operation_catalog(sources: list[OperationSource]) -> list[Operation
         contract = _shared_contract(source.metadata.shared_contract)
         canonical = contract["canonical"]
         assert isinstance(canonical, dict)
-        unknown_transitions = [
-            str(item["next"]) for item in canonical["transitions"] if str(item["next"]) not in unique
+        unknown_connections = [
+            str(code) for code in canonical["connections"] if str(code) not in unique
         ]
-        if unknown_transitions:
-            findings.append(OperationCatalogFinding("OPS-022", source.relative_path, "shared contract has unknown transition targets: " + ", ".join(unknown_transitions), "status.blocked"))
+        if unknown_connections:
+            findings.append(OperationCatalogFinding("OPS-022", source.relative_path, "shared contract has unknown connections: " + ", ".join(unknown_connections), "status.blocked"))
 
     identities: dict[str, list[OperationSource]] = {}
     signatures: dict[OperationContractSignature, list[OperationSource]] = {}
@@ -588,8 +532,8 @@ def validate_bilingual_alias_parity(
     for code in sorted(es):
         left = es[code].metadata
         right = en[code].metadata
-        projection_left = (left.canonical_code, left.operation_id, left.aliases, left.alias_of, left.deprecation, left.bound_values)
-        projection_right = (right.canonical_code, right.operation_id, right.aliases, right.alias_of, right.deprecation, right.bound_values)
+        projection_left = (left.canonical_code, left.operation_id, left.aliases, left.alias_of, left.deprecation, left.alias_focus_area)
+        projection_right = (right.canonical_code, right.operation_id, right.aliases, right.alias_of, right.deprecation, right.alias_focus_area)
         if projection_left != projection_right:
             findings.append(OperationCatalogFinding("OPS-018", code, "canonical/alias metadata drift between ES and EN", "status.blocked"))
     return findings

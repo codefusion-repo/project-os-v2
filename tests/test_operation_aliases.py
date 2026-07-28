@@ -110,28 +110,7 @@ def test_maintenance_shared_contract_keeps_machine_fields_neutral_and_localizes_
             assert "alias_of:" not in sources[code].localized_text
 
 
-@pytest.mark.parametrize(
-    ("operations_dir", "language_markers"),
-    (
-        (SPANISH_OPERATIONS, ("Operación MOSDLC", "Fase 6", "Evidencia", "Conexiones")),
-        (ENGLISH_OPERATIONS, ("MOSDLC operation", "Phase 6", "Evidence", "Connections")),
-    ),
-)
-def test_shared_contract_render_preserves_localized_semantics_and_focus_routing(
-    operations_dir: Path, language_markers: tuple[str, ...]
-) -> None:
-    canonical = next(item for item in discover_operations(operations_dir) if item.mos_code == "MOS-6.13")
-    rendered = render_prompt(canonical, {"TARGET_REPOSITORY": "owner/repo", "FOCUS_AREA": "product"})
-
-    assert all(marker in rendered for marker in language_markers)
-    assert rendered.index(canonical.title) < rendered.index(language_markers[0])
-    assert "Common contract" not in rendered if operations_dir == SPANISH_OPERATIONS else "Contrato común" not in rendered
-    assert "FOCUS_AREA=performance → MOS-6.9" in rendered
-    assert "FOCUS_AREA=product → MOS-6.10" in rendered
-    assert "FOCUS_AREA=code_quality → MOS-3.14" in rendered
-
-
-def test_shared_contract_references_and_transitions_fail_closed(
+def test_shared_contract_references_and_connections_fail_closed(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     contracts = tmp_path / "operation-contracts"
@@ -146,38 +125,10 @@ def test_shared_contract_references_and_transitions_fail_closed(
         load_operation_sources(unknown)
 
     descriptor = json.loads((REPO_ROOT / "operation-contracts/maintenance-analysis.json").read_text(encoding="utf-8"))
-    descriptor["canonical"]["transitions"][0]["next"] = "MOS-9.99"
+    descriptor["canonical"]["connections"] = ["MOS-9.99"]
     (contracts / "maintenance-analysis.json").write_text(json.dumps(descriptor), encoding="utf-8")
     findings = validate_operation_catalog(load_operation_sources(SPANISH_OPERATIONS))
     assert any(item.code == "OPS-022" and item.status == "status.blocked" for item in findings)
-
-    (contracts / "maintenance-analysis.json").write_text("{", encoding="utf-8")
-    with pytest.raises(ValueError, match="cannot read shared operation contract"):
-        load_operation_sources(SPANISH_OPERATIONS)
-
-
-@pytest.mark.parametrize(
-    "mutate",
-    (
-        lambda data: data["canonical"].update({"unknown": True}),
-        lambda data: data["canonical"]["variables"].append(data["canonical"]["variables"][0].copy()),
-        lambda data: data["aliases"][0].update({"alias_of": "MOS-6.3"}),
-        lambda data: data["aliases"][0]["bound_values"].update({"FOCUS_AREA": "mixed"}),
-        lambda data: data["canonical"].update({"workflow": "workflow.missing"}),
-    ),
-)
-def test_shared_descriptor_rejects_incompatible_machine_structure(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutate: object
-) -> None:
-    contracts = tmp_path / "operation-contracts"
-    contracts.mkdir()
-    monkeypatch.setattr(operation_catalog, "SHARED_CONTRACT_ROOT", contracts)
-    descriptor = json.loads((REPO_ROOT / "operation-contracts/maintenance-analysis.json").read_text(encoding="utf-8"))
-    mutate(descriptor)  # type: ignore[operator]
-    (contracts / "maintenance-analysis.json").write_text(json.dumps(descriptor), encoding="utf-8")
-
-    with pytest.raises(ValueError):
-        load_operation_sources(SPANISH_OPERATIONS)
 
 
 def test_alias_is_not_a_separate_outcome_but_resolves_by_code_filename_and_path() -> None:
@@ -309,7 +260,7 @@ def test_bilingual_alias_drift_is_blocking(tmp_path: Path) -> None:
     assert any(item.code == "OPS-018" and item.status == "status.blocked" for item in findings)
 
 
-def test_alias_focus_area_requires_a_matching_canonical_input(tmp_path: Path) -> None:
+def test_alias_focus_area_must_be_allowlisted(tmp_path: Path) -> None:
     _write_canonical(tmp_path / "MOS-6.13-canonical.md", "MOS-6.13", "maintenance", "MOS-6.3")
     alias = tmp_path / "MOS-6.3-alias.md"
     _write_alias(alias, "MOS-6.3", "MOS-6.13")
@@ -322,10 +273,10 @@ def test_alias_focus_area_requires_a_matching_canonical_input(tmp_path: Path) ->
 
     findings = validate_operation_catalog(load_operation_sources(tmp_path))
 
-    assert any(item.code == "OPS-021" and item.status == "status.blocked" for item in findings)
+    assert any(item.code == "OPS-020" and item.status == "status.blocked" for item in findings)
 
 
-def test_alias_focus_area_requires_a_matching_canonical_input_regression(tmp_path: Path) -> None:
+def test_alias_focus_area_requires_a_matching_canonical_input(tmp_path: Path) -> None:
     _write_canonical(tmp_path / "MOS-6.13-canonical.md", "MOS-6.13", "maintenance", "MOS-6.3")
     alias = tmp_path / "MOS-6.3-alias.md"
     _write_alias(alias, "MOS-6.3", "MOS-6.13")

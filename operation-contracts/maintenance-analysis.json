@@ -3,7 +3,6 @@
   "canonical": {
     "code": "MOS-6.13",
     "operation_id": "analyze-maintenance-improvements",
-    "phase": "phase-6",
     "aliases": ["MOS-6.3", "MOS-6.4", "MOS-6.5"],
     "deprecation": "none",
     "risk": "low",
@@ -15,20 +14,16 @@
     "pm_approval": "not_required",
     "variables": [
       {"name": "TARGET_REPOSITORY", "required": true, "placeholder": "<owner/repository>"},
-      {"name": "FOCUS_AREA", "required": true, "placeholder": "<focus area>", "allowed_values": ["performance", "product", "code_quality"]},
+      {"name": "FOCUS_AREA", "required": true, "placeholder": "<performance|product|code_quality>"},
       {"name": "PATH_SCOPE", "required": false, "placeholder": "<path scope>"},
       {"name": "PM_FEEDBACK_HUMANO", "required": false, "placeholder": "<human feedback>"},
       {"name": "PM_QUESTION_HUMANO", "required": false, "placeholder": "<human question>"}
     ],
-    "transitions": [
-      {"when": {"FOCUS_AREA": "performance"}, "next": "MOS-6.9"},
-      {"when": {"FOCUS_AREA": "product"}, "next": "MOS-6.10"},
-      {"when": {"FOCUS_AREA": "code_quality"}, "next": "MOS-3.14"}
-    ]
+    "connections": ["MOS-6.9", "MOS-6.10", "MOS-3.14"]
   },
   "aliases": [
-    {"code": "MOS-6.3", "alias_of": "MOS-6.13", "deprecation": "supported", "bound_values": {"FOCUS_AREA": "performance"}},
-    {"code": "MOS-6.4", "alias_of": "MOS-6.13", "deprecation": "supported", "bound_values": {"FOCUS_AREA": "product"}},
-    {"code": "MOS-6.5", "alias_of": "MOS-6.13", "deprecation": "supported", "bound_values": {"FOCUS_AREA": "code_quality"}}
+    {"code": "MOS-6.3", "alias_of": "MOS-6.13", "deprecation": "supported", "alias_focus_area": "performance"},
+    {"code": "MOS-6.4", "alias_of": "MOS-6.13", "deprecation": "supported", "alias_focus_area": "product"},
+    {"code": "MOS-6.5", "alias_of": "MOS-6.13", "deprecation": "supported", "alias_focus_area": "code_quality"}
   ]
 }
