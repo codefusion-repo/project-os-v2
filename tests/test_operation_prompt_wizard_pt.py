@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import shlex
 import shutil
 import subprocess
 import sys
+from contextlib import suppress
 from io import StringIO
 from pathlib import Path
 
@@ -35,6 +37,9 @@ from tools.operation_prompt_wizard import (
 )
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import fragment_list_to_text, to_formatted_text
+from prompt_toolkit.input.defaults import create_pipe_input
+from prompt_toolkit.output import DummyOutput
+from prompt_toolkit.shortcuts import PromptSession
 
 
 def write_operation(
@@ -229,6 +234,118 @@ def test_prompt_toolkit_partial_and_ambiguous_search_keep_completions_and_route_
         assert selected.mos_code == INTENT_ROUTING_MOS_CODE
         assert captured_intent == {PM_QUESTION_HUMANO_NAME: query}
         assert len(calls) == 1
+
+
+def test_prompt_toolkit_option_selectors_preserve_live_session_completion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations_path = setup_catalog(tmp_path)
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.6-output-path.md",
+        "MOS-3.6",
+        "Output path",
+        "PR_NUMBER",
+        delivery="output.route_prompt, output.status_result",
+    )
+    operations = discover_operations(operations_path)
+    selected_operation = next(operation for operation in operations if operation.mos_code == "MOS-3.5")
+    route_operation = next(operation for operation in operations if operation.mos_code == "MOS-3.6")
+    calls: list[tuple[str, dict]] = []
+    inputs = iter(["MOS-3.5", "1", "2", "cancel", "exit"])
+
+    def recording_prompt(label: str, **kwargs) -> str:
+        calls.append((label, kwargs))
+        return next(inputs)
+
+    monkeypatch.setattr("tools.operation_prompt_wizard_prompt_toolkit_ui.prompt", recording_prompt)
+    adapter = PromptToolkitWizardAdapter(StringIO())
+
+    selected, _ = adapter.select(operations, {})
+    assert selected == selected_operation
+    assert adapter.choose_route_path(route_operation, {}).action == "preview"
+    assert adapter.choose_preview(
+        selected_operation,
+        {},
+        "rendered prompt",
+        tmp_path / "out" / "generated.md",
+        [],
+        False,
+    ) == "cancel"
+    assert adapter.choose_post_write(tmp_path / "out" / "generated.md") == "exit"
+
+    option_prompts = {
+        "Describe your intent, or search/select operation: ",
+        "Selected output path [1 route-prompt / 2 non-route]: ",
+        "Choose action [write/edit/operation/cancel]: ",
+        "Choose action [new/same/edit/path/exit]: ",
+    }
+    live_calls = [kwargs for label, kwargs in calls if label in option_prompts]
+    assert len(live_calls) == len(option_prompts)
+    assert all(kwargs["complete_while_typing"] is None for kwargs in live_calls)
+    authorization_calls = [
+        kwargs for label, kwargs in calls if label.startswith(f"{PM_AUTHORIZATION_STATUS_NAME} ")
+    ]
+    assert len(authorization_calls) == 1
+    assert authorization_calls[0]["complete_while_typing"] is None
+
+
+def test_prompt_toolkit_live_operation_dropdown_filters_with_pipe_input(tmp_path: Path) -> None:
+    operations_path = setup_catalog(tmp_path)
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.51-correccion-extra.md",
+        "MOS-3.51",
+        "Corrección extra",
+        "PR_NUMBER",
+    )
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.52-correccion-final.md",
+        "MOS-3.52",
+        "Corrección final",
+        "SOURCE_REVIEW",
+    )
+    write_operation(
+        operations_path / "fase-3" / "MOS-3.6-other.md",
+        "MOS-3.6",
+        "Other",
+        "WORK_UNIT",
+    )
+    completer = OperationCompleter(discover_operations(operations_path))
+
+    async def verify_dropdown() -> None:
+        with create_pipe_input() as pipe_input:
+            session = PromptSession(
+                completer=completer,
+                input=pipe_input,
+                output=DummyOutput(),
+            )
+            prompt_task = asyncio.create_task(session.prompt_async("Search: "))
+            await asyncio.sleep(0.05)
+            pipe_input.send_text("MOS-3")
+            await asyncio.sleep(0.05)
+            menu = session.default_buffer.complete_state
+            assert menu is not None
+            assert {completion.text for completion in menu.completions} == {
+                "MOS-3.5",
+                "MOS-3.51",
+                "MOS-3.52",
+                "MOS-3.6",
+            }
+
+            pipe_input.send_text(".5")
+            await asyncio.sleep(0.05)
+            filtered_menu = session.default_buffer.complete_state
+            assert filtered_menu is not None
+            assert {completion.text for completion in filtered_menu.completions} == {
+                "MOS-3.5",
+                "MOS-3.51",
+                "MOS-3.52",
+            }
+
+            prompt_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await prompt_task
+
+    asyncio.run(verify_dropdown())
 
 
 def test_prompt_toolkit_intent_and_navigation_preserve_prompt_sequence(

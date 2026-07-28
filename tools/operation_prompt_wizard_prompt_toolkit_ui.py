@@ -84,7 +84,7 @@ if HAVE_PROMPT_TOOLKIT:
             completer=None,
             validator=None,
             default: str = "",
-            complete_while_typing: bool = False,
+            complete_while_typing: bool | None = None,
             toolbar: str | None = None,
         ) -> str:
             return prompt(
