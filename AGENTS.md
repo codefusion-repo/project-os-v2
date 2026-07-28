@@ -23,6 +23,15 @@ KERNEL_REPOSITORY = codefusion-repo/project-os-v2
 KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR
 KERNEL_VERSION_ADOPTED = tracks latest
 
+## Configuración local
+
+La única ruta normal para configurar las referencias portables es un `.envrc`
+local, no trackeado, con los valores absolutos de `PROJECT_OS_TARGET_ROOT` y
+`PROJECT_OS_KERNEL_DIR`. Cárgalo manualmente y de forma explícita en tu
+terminal; no requiere herramientas adicionales. El fast path nunca hace
+`source`, `eval` ni carga `.envrc`; sin variables válidas falla cerrado antes
+del resolver.
+
 ## Resolución del kernel
 
 Antes de trabajo no trivial, lee `project-os-es/kernel/manifest.json` y sigue

@@ -16,6 +16,7 @@ assertions hold on a clean CI runner.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -103,6 +104,73 @@ def test_validate_candidate_rejects_unset_portable_variable(tmp_path: Path) -> N
     )
 
     assert validate_candidate(target / "AGENTS.md", environ={}) is None
+
+
+def test_fast_path_does_not_load_a_local_envrc(tmp_path: Path, monkeypatch) -> None:
+    target, kernel_dir = _coherent_target(tmp_path)
+    (target / "AGENTS.md").write_text(
+        "REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT\n"
+        "KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR\n",
+        encoding="utf-8",
+    )
+    (target / ".envrc").write_text(
+        f"export PROJECT_OS_TARGET_ROOT={target}\n"
+        f"export PROJECT_OS_KERNEL_DIR={kernel_dir}\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.delenv("PROJECT_OS_TARGET_ROOT", raising=False)
+    monkeypatch.delenv("PROJECT_OS_KERNEL_DIR", raising=False)
+
+    assert (
+        main(
+            [
+                "--start-dir",
+                str(target),
+                "--actor",
+                "actor.browser_chat",
+                "--workflow",
+                "workflow.pm_intake",
+                "--mode",
+                "mode.review_only",
+            ]
+        )
+        == 1
+    )
+
+
+def test_manual_envrc_load_configures_the_fast_path(tmp_path: Path) -> None:
+    target, kernel_dir = _coherent_target(tmp_path)
+    (target / "AGENTS.md").write_text(
+        "REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT\n"
+        "KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR\n",
+        encoding="utf-8",
+    )
+    envrc = target / ".envrc"
+    envrc.write_text(
+        f"export PROJECT_OS_TARGET_ROOT={target}\n"
+        f"export PROJECT_OS_KERNEL_DIR={kernel_dir}\n",
+        encoding="utf-8",
+    )
+
+    completed = subprocess.run(
+        [
+            "/bin/sh",
+            "-c",
+            '. "$1"; "$2" "$3" --actor actor.browser_chat --workflow workflow.pm_intake --mode mode.review_only',
+            "sh",
+            str(envrc),
+            sys.executable,
+            str(REPO_ROOT / "tools" / "project_os_fast_path.py"),
+        ],
+        cwd=target,
+        env={"PATH": os.environ["PATH"]},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0
 
 
 def test_validate_candidate_rejects_a_literal_containing_a_dollar_sign(tmp_path: Path) -> None:
