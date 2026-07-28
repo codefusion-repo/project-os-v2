@@ -743,26 +743,51 @@ def test_line_search_for_a_maintenance_alias_keeps_its_linked_focus(
 ) -> None:
     operations = operations_for(language)
     alias = next(item for item in operations if item.mos_code == mos_code)
-    answers = iter([alias.relative_path, alias.relative_path])
-
-    selected = select_operation(
-        operations,
-        input_func=lambda _prompt: next(answers),
-        output_stream=StringIO(),
+    partial_queries = (
+        f"{alias.mos_code}-",
+        alias.filename[:-2],
+        alias.path.stem[:-2],
+        alias.relative_path[:-2],
     )
+    selectors = (
+        str(alias.index),
+        alias.mos_code,
+        alias.filename,
+        alias.path.stem,
+        alias.relative_path,
+    )
+    general_view = StringIO()
+    display_operations(operations, general_view)
+    assert f"{alias.mos_code} → canonical" not in general_view.getvalue()
 
-    assert selected == alias
-    values = collect_values_with_controls(
-        selected,
-        input_func=lambda prompt: {
-            "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
-            "PATH_SCOPE": "",
-            "PM_FEEDBACK_HUMANO": "",
-            "PM_QUESTION_HUMANO": "",
-        }[prompt.split(" ", 1)[0]],
-        output_stream=StringIO(),
-    ).values
-    assert values["FOCUS_AREA"] == focus
+    for query in partial_queries:
+        for selector in selectors:
+            stream = StringIO()
+            selected = select_operation(
+                operations,
+                input_func=answers(query, selector),
+                output_stream=stream,
+            )
+
+            assert selected == alias
+            transcript = stream.getvalue()
+            assert f"{alias.mos_code} → canonical {alias.resolved_canonical_code}" in transcript
+            prompts: list[str] = []
+            values = collect_values_with_controls(
+                selected,
+                input_func=lambda prompt: (
+                    prompts.append(prompt),
+                    {
+                        "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
+                        "PATH_SCOPE": "",
+                        "PM_FEEDBACK_HUMANO": "",
+                        "PM_QUESTION_HUMANO": "",
+                    }[prompt.split(" ", 1)[0]],
+                )[1],
+                output_stream=StringIO(),
+            ).values
+            assert values["FOCUS_AREA"] == focus
+            assert all(not prompt.startswith("FOCUS_AREA ") for prompt in prompts)
 
 
 @pytest.mark.parametrize("language", ("es", "en"))
