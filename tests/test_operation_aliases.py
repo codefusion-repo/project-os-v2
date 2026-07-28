@@ -219,3 +219,35 @@ def test_bilingual_alias_drift_is_blocking(tmp_path: Path) -> None:
         load_operation_sources(es), load_operation_sources(en)
     )
     assert any(item.code == "OPS-018" and item.status == "status.blocked" for item in findings)
+
+
+def test_alias_focus_area_must_be_allowlisted(tmp_path: Path) -> None:
+    _write_canonical(tmp_path / "MOS-6.13-canonical.md", "MOS-6.13", "maintenance", "MOS-6.3")
+    alias = tmp_path / "MOS-6.3-alias.md"
+    _write_alias(alias, "MOS-6.3", "MOS-6.13")
+    alias.write_text(
+        alias.read_text(encoding="utf-8").replace(
+            "deprecation: supported", "deprecation: supported\nalias_focus_area: mixed"
+        ),
+        encoding="utf-8",
+    )
+
+    findings = validate_operation_catalog(load_operation_sources(tmp_path))
+
+    assert any(item.code == "OPS-020" and item.status == "status.blocked" for item in findings)
+
+
+def test_alias_focus_area_requires_a_matching_canonical_input(tmp_path: Path) -> None:
+    _write_canonical(tmp_path / "MOS-6.13-canonical.md", "MOS-6.13", "maintenance", "MOS-6.3")
+    alias = tmp_path / "MOS-6.3-alias.md"
+    _write_alias(alias, "MOS-6.3", "MOS-6.13")
+    alias.write_text(
+        alias.read_text(encoding="utf-8").replace(
+            "deprecation: supported", "deprecation: supported\nalias_focus_area: performance"
+        ),
+        encoding="utf-8",
+    )
+
+    findings = validate_operation_catalog(load_operation_sources(tmp_path))
+
+    assert any(item.code == "OPS-021" and item.status == "status.blocked" for item in findings)

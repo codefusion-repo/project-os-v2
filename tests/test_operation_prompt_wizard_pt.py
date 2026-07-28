@@ -22,6 +22,7 @@ from tools.operation_prompt_wizard import (
     PM_AUTHORIZATION_PENDING,
     PM_AUTHORIZATION_STATUS_NAME,
     PM_QUESTION_HUMANO_NAME,
+    REPO_ROOT,
     discover_operations,
     surface_selection_for_language,
 )
@@ -161,6 +162,30 @@ def test_cancel_at_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
     operations = setup_catalog(tmp_path)
     monkeypatch.setattr("tools.operation_prompt_wizard.prompt", mock_prompt(["cancel"]))
     assert run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out") is None
+
+
+@pytest.mark.parametrize(
+    ("language", "operations_dir"),
+    (
+        ("es", REPO_ROOT / "project-os-es" / "operaciones"),
+        ("en", REPO_ROOT / "project-os-en" / "operations"),
+    ),
+)
+def test_prompt_toolkit_dynamic_selection_resolves_maintenance_aliases(
+    language: str, operations_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operations = discover_operations(operations_dir)
+
+    alias, captured_intent, calls = select_with_prompt_toolkit(
+        operations, ["MOS-6.3"], monkeypatch
+    )
+
+    assert alias is not None
+    assert alias.mos_code == "MOS-6.3"
+    assert alias.resolved_canonical_code == "MOS-6.13"
+    assert alias.alias_focus_area == "performance"
+    assert captured_intent == {}
+    assert calls
 
 
 def test_operation_validator_accepts_intent_text_when_catalog_has_intent_router(

@@ -203,6 +203,8 @@ def variable_summary_lines(operation: OperationTemplate) -> list[str]:
             lines.append(
                 f"Canonical path: {operation.canonical_path.relative_to(operation.catalog_root).as_posix()}"
             )
+        if operation.alias_focus_area:
+            lines.append(f"Linked focus: FOCUS_AREA={operation.alias_focus_area}")
     lines.append(f"Path: {operation.relative_path}")
     variables = wizard_variables(operation)
     required = [variable for variable in variables if variable.required]
@@ -445,6 +447,10 @@ def collect_values_with_controls(
             commands += ", /hydration override"
         print(f"{commands}, ? help.", file=output_stream)
     for variable in variables:
+        bound_value = alias_bound_values(operation).get(variable.name)
+        if bound_value is not None:
+            values[variable.name] = bound_value
+            continue
         if is_pm_authorization_status_variable(variable.name):
             print_pm_authorization_assistance(output_stream)
         if is_optional_skill_variable(variable.name):

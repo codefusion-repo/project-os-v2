@@ -125,7 +125,8 @@ como es ni en.
 Cada operación canónica conserva el prompt completo y una identidad operativa
 estable en su propio Markdown. Cuando existen códigos históricos compatibles,
 la metadata `project-os-operation` del canónico declara `canonical_code`,
-`operation_id`, `aliases`, `deprecation` y `compatibility_reason`. El archivo
+`operation_id`, `aliases`, `deprecation` y `compatibility_reason`. Un alias que
+liga el foco histórico de mantenimiento también declara `alias_focus_area`. El archivo
 del alias es solo un stub que apunta mediante `alias_of`; nunca repite workflow,
 mode, outputs, evidencia, aprobación, variables ni conexiones. Por tanto, el
 Markdown canónico es la única fuente de semántica operativa.
@@ -136,6 +137,11 @@ soportado, no deprecado) y `MOS-3.14` (canónica para cualquier auditoría) /
 muestra solo las canónicas en las vistas normales, pero resuelve los aliases de
 forma explícita por código, filename o path, informa el código canónico y
 renderiza exactamente su contrato y variables.
+
+`MOS-6.13` es la operación canónica para analizar mejoras de mantenimiento. Sus
+aliases soportados `MOS-6.3`, `MOS-6.4` y `MOS-6.5` ligan respectivamente
+`FOCUS_AREA=performance`, `product` y `code_quality`, sin duplicar el contrato
+ni pedir ese foco de nuevo.
 
 La auditoría inicial clasificó como relacionadas pero materialmente distintas
 las familias de solicitud/entrega de assets (`MOS-3.15`–`MOS-3.22`), los flujos
@@ -364,9 +370,9 @@ alcance.
 
 - [MOS-6.1 — Revisar seguridad para production readiness](fase-6/MOS-6.1-revisar-seguridad-para-production-readiness.md)
 - [MOS-6.2 — Revisar gaps funcionales para producción](fase-6/MOS-6.2-revisar-gaps-funcionales-para-produccion.md)
-- [MOS-6.3 — Analizar mejoras de rendimiento](fase-6/MOS-6.3-analizar-mejoras-de-rendimiento.md)
-- [MOS-6.4 — Analizar mejoras de producto](fase-6/MOS-6.4-analizar-mejoras-de-producto.md)
-- [MOS-6.5 — Analizar gaps de calidad de código](fase-6/MOS-6.5-analizar-gaps-de-calidad-de-codigo.md)
+- [MOS-6.3 — Alias de análisis de rendimiento](fase-6/MOS-6.3-analizar-mejoras-de-rendimiento.md)
+- [MOS-6.4 — Alias de análisis de producto](fase-6/MOS-6.4-analizar-mejoras-de-producto.md)
+- [MOS-6.5 — Alias de análisis de calidad de código](fase-6/MOS-6.5-analizar-gaps-de-calidad-de-codigo.md)
 - [MOS-6.6 — Auditar código muerto](fase-6/MOS-6.6-auditar-codigo-muerto.md)
 - [MOS-6.7 — Procesar resultados de seguridad de producción](fase-6/MOS-6.7-procesar-resultados-de-seguridad-de-produccion.md)
 - [MOS-6.8 — Procesar resultados de gaps funcionales](fase-6/MOS-6.8-procesar-resultados-de-gaps-funcionales.md)
@@ -374,5 +380,6 @@ alcance.
 - [MOS-6.10 — Procesar mejoras de producto](fase-6/MOS-6.10-procesar-mejoras-de-producto.md)
 - [MOS-6.11 — Alias compatible de MOS-3.14](fase-6/MOS-6.11-procesar-mejoras-de-codigo.md)
 - [MOS-6.12 — Procesar limpieza de código muerto](fase-6/MOS-6.12-procesar-limpieza-de-codigo-muerto.md)
+- [MOS-6.13 — Analizar mejoras de mantenimiento](fase-6/MOS-6.13-analizar-mejoras-de-mantenimiento.md)
 - [MOS-R.17 — Auditar actualizaciones de seguridad de dependencias](fase-6/MOS-R.17-auditar-actualizaciones-de-seguridad-de-dependencias.md)
 - [MOS-R.18 — Auditar configuración de forma segura para secretos](fase-6/MOS-R.18-auditar-configuracion-de-forma-segura-para-secretos.md)

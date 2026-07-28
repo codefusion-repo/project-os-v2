@@ -1,23 +1,12 @@
-# MOS-6.3 — Analizar mejoras de rendimiento
+# MOS-6.3 — Alias compatible de MOS-6.13
 
-Operación MOSDLC `analyze-performance-improvements` · Fase 6 — Mantenimiento y mejoras · Riesgo: low.
-Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, estado vivo, validación, no-autorización, fail-closed, secretos).
+<!-- project-os-operation
+canonical_code: MOS-6.13
+alias_of: MOS-6.13
+deprecation: supported
+compatibility_reason: Este código histórico conserva selección por código, filename y path; resuelve MOS-6.13 con FOCUS_AREA=performance.
+alias_focus_area: performance
+-->
 
-- Superficie: browser_chat
-- Kernel: workflow.review_only · mode.review_only · output.review_result (+output.status_result)
-- Evidencia: evidence.repo_state
-- Aprobación PM: No (read-only)
-
-**Hace:** Analiza y recomienda mejoras de rendimiento.
-**Para:** Priorizar optimizaciones con evidencia.
-**Cómo:** Análisis read-only que entrega cada mejora como hallazgo con su
-referencia, su disposición verificable, la recomendación, los riesgos y lo no
-revisado.
-
-**Variables**
-- Requeridas: TARGET_REPOSITORY
-- Opcionales: PATH_SCOPE, FOCUS, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
-
-**Entrega:** output.review_result (+output.status_result). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
-
-**Conexiones:** Antes: mantenimiento periódico. Después: MOS-6.9. Recomendada: MOS-6.9.
+Alias histórico soportado. Usa el contrato canónico único de
+`MOS-6.13-analizar-mejoras-de-mantenimiento.md`.
