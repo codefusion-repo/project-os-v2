@@ -181,6 +181,8 @@ class OperationTemplate:
     deprecation: str = "none"
     compatibility_reason: str = ""
     alias_focus_area: str = ""
+    bound_values: tuple[tuple[str, str], ...] = ()
+    transitions: tuple[tuple[tuple[str, str], str], ...] = ()
 
     @property
     def filename(self) -> str:
@@ -279,8 +281,10 @@ def canonical_operation_for(
 
 
 def alias_bound_values(operation: OperationTemplate) -> dict[str, str]:
-    """Return the maintenance focus bound by one historical alias, if any."""
+    """Return the values bound by one historical alias, if any."""
 
+    if operation.bound_values:
+        return dict(operation.bound_values)
     return {"FOCUS_AREA": operation.alias_focus_area} if operation.alias_focus_area else {}
 
 

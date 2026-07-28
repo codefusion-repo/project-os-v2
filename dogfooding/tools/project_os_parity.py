@@ -207,6 +207,7 @@ class OperationContract:
     variables: tuple[tuple[str, bool], ...]
     outputs: tuple[str, ...]
     connections: tuple[str, ...]
+    transitions: tuple[tuple[tuple[str, str], str], ...]
 
 
 def load_kernel(surface: ProjectOSSurface) -> dict[str, list[dict[str, Any]]]:
@@ -267,7 +268,8 @@ def operation_contract(operation: OperationTemplate) -> OperationContract:
         raise ValueError(f"incomplete operation metadata: {operation.path}")
     evidence = tuple(re.findall(r"evidence\.[a-z_]+", _line(text, "Evidencia", "Evidence")))
     outputs = tuple(sorted(set(re.findall(r"output\.[a-z_]+", text))))
-    connections = tuple(sorted(set(match.upper() for match in MOS_REF_PATTERN.findall(text.split("**Connections:**", 1)[-1].split("**Conexiones:**", 1)[-1]))))
+    transitions = operation.transitions
+    connections = tuple(sorted({target for _, target in transitions})) if transitions else tuple(sorted(set(match.upper() for match in MOS_REF_PATTERN.findall(text.split("**Connections:**", 1)[-1].split("**Conexiones:**", 1)[-1]))))
     return OperationContract(
         code=operation.mos_code,
         relative_path=operation.relative_path,
@@ -286,6 +288,7 @@ def operation_contract(operation: OperationTemplate) -> OperationContract:
         variables=tuple((variable.name, variable.required) for variable in operation.variables),
         outputs=outputs,
         connections=connections,
+        transitions=transitions,
     )
 
 
@@ -305,6 +308,7 @@ def _mapped_contract(contract: OperationContract) -> dict[str, Any]:
         "variables": contract.variables,
         "outputs": contract.outputs,
         "connections": contract.connections,
+        "transitions": contract.transitions,
     }
 
 
