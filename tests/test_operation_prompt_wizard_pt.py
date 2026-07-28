@@ -23,7 +23,9 @@ from tools.operation_prompt_wizard import (
     PM_AUTHORIZATION_STATUS_NAME,
     PM_QUESTION_HUMANO_NAME,
     REPO_ROOT,
+    collect_values_with_controls,
     discover_operations,
+    resolve_operation_selection,
     surface_selection_for_language,
 )
 
@@ -371,6 +373,63 @@ def test_prompt_toolkit_live_operation_dropdown_filters_with_pipe_input(tmp_path
                 await prompt_task
 
     asyncio.run(verify_dropdown())
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+@pytest.mark.parametrize(
+    ("mos_code", "focus"),
+    (("MOS-6.3", "performance"), ("MOS-6.4", "product"), ("MOS-6.5", "code_quality")),
+)
+@pytest.mark.parametrize("selector", ("filename", "relative_path"))
+def test_prompt_toolkit_alias_dropdown_acceptance_preserves_linked_focus(
+    language: str, mos_code: str, focus: str, selector: str
+) -> None:
+    operations = discover_operations(surface_selection_for_language(language).operations_dir)
+    alias = next(operation for operation in operations if operation.mos_code == mos_code)
+    completer = OperationCompleter(operations)
+
+    async def accept_dropdown_completion() -> str:
+        with create_pipe_input() as pipe_input:
+            session = PromptSession(completer=completer, input=pipe_input, output=DummyOutput())
+            prompt_task = asyncio.create_task(session.prompt_async("Search: "))
+            await asyncio.sleep(0.05)
+            pipe_input.send_text(getattr(alias, selector)[:-1])
+            await asyncio.sleep(0.05)
+            menu = session.default_buffer.complete_state
+            assert menu is not None
+            assert [completion.text for completion in menu.completions] == [mos_code]
+            pipe_input.send_text("\t\r")
+            return await prompt_task
+
+    selected = resolve_operation_selection(operations, asyncio.run(accept_dropdown_completion()))
+    assert selected == alias
+    prompts: list[str] = []
+    values = collect_values_with_controls(
+        selected,
+        input_func=lambda prompt: (prompts.append(prompt), {
+            "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
+            "PATH_SCOPE": "",
+            "PM_FEEDBACK_HUMANO": "",
+            "PM_QUESTION_HUMANO": "",
+        }[prompt.split(" ", 1)[0]])[1],
+        output_stream=StringIO(),
+    ).values
+    assert values["FOCUS_AREA"] == focus
+    assert all(not prompt.startswith("FOCUS_AREA ") for prompt in prompts)
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+@pytest.mark.parametrize("mos_code", ("MOS-6.3", "MOS-6.4", "MOS-6.5"))
+def test_prompt_toolkit_specific_alias_code_completion_keeps_its_identity(
+    language: str, mos_code: str
+) -> None:
+    operations = discover_operations(surface_selection_for_language(language).operations_dir)
+    alias = next(operation for operation in operations if operation.mos_code == mos_code)
+
+    completions = list(OperationCompleter(operations).get_completions(Document(mos_code), None))
+
+    assert [completion.text for completion in completions] == [mos_code]
+    assert resolve_operation_selection(operations, completions[0].text) == alias
 
 
 def test_prompt_toolkit_intent_and_navigation_preserve_prompt_sequence(

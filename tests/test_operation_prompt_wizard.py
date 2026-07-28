@@ -734,6 +734,38 @@ def test_maintenance_aliases_bind_their_focus_without_a_second_contract(
 
 
 @pytest.mark.parametrize("language", ("es", "en"))
+@pytest.mark.parametrize(
+    ("mos_code", "focus"),
+    (("MOS-6.3", "performance"), ("MOS-6.4", "product"), ("MOS-6.5", "code_quality")),
+)
+def test_line_search_for_a_maintenance_alias_keeps_its_linked_focus(
+    language: str, mos_code: str, focus: str
+) -> None:
+    operations = operations_for(language)
+    alias = next(item for item in operations if item.mos_code == mos_code)
+    answers = iter([alias.relative_path, alias.relative_path])
+
+    selected = select_operation(
+        operations,
+        input_func=lambda _prompt: next(answers),
+        output_stream=StringIO(),
+    )
+
+    assert selected == alias
+    values = collect_values_with_controls(
+        selected,
+        input_func=lambda prompt: {
+            "TARGET_REPOSITORY": "codefusion-repo/project-os-v2",
+            "PATH_SCOPE": "",
+            "PM_FEEDBACK_HUMANO": "",
+            "PM_QUESTION_HUMANO": "",
+        }[prompt.split(" ", 1)[0]],
+        output_stream=StringIO(),
+    ).values
+    assert values["FOCUS_AREA"] == focus
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
 def test_maintenance_canonical_requires_an_explicit_allowlisted_focus(language: str) -> None:
     operations = operations_for(language)
     canonical = next(item for item in operations if item.mos_code == "MOS-6.13")

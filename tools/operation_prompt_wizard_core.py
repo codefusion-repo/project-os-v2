@@ -431,6 +431,25 @@ def filter_operations(
             searchable.add(phase.lower())
         if any(normalized in value for value in searchable if value):
             matches.append(operation)
+    # The compact catalog normally represents aliases through their canonical
+    # operation.  A query that names an alias's stable identity is different:
+    # accepting that result must retain its bound compatibility values.
+    explicitly_matched_aliases: dict[Path, OperationTemplate] = {}
+    for operation in matches:
+        if operation.is_alias and any(
+            normalized in identity
+            for identity in (
+                operation.filename.lower(),
+                operation.path.stem.lower(),
+                operation.relative_path.lower(),
+                (operation.mos_code or "").lower(),
+            )
+        ):
+            explicitly_matched_aliases[operation.path] = operation
+
+    if len(explicitly_matched_aliases) == 1:
+        return list(explicitly_matched_aliases.values())
+
     canonical_matches: dict[Path, OperationTemplate] = {}
     for operation in matches:
         canonical = canonical_operation_for(operations, operation)
