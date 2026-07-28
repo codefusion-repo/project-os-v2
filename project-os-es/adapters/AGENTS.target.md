@@ -50,33 +50,10 @@ Si tu `AGENTS.md` usa un path absoluto literal en `KERNEL_LOCAL_PATH` en vez
 de la referencia portable, sustituye `$PROJECT_OS_KERNEL_DIR` por esa misma
 ruta literal en el comando.
 
-`tools/project_os_fast_path.py` es la única fuente ejecutable de esta lógica:
-localiza el `AGENTS.md` raíz subiendo desde el directorio actual, valida cada
-candidato completo y sigue subiendo cuando no sea el bootloader raíz coherente
-con el target resuelto, de modo que un `AGENTS.md` intermedio de una subcarpeta
-no detiene la búsqueda. Lee los dos campos persistidos, acepta solo la
-referencia portable exacta o un literal absoluto y comprueba la identidad
-estructural del kernel antes del resolver; no usa `eval`, no expande nombres
-arbitrarios e invoca `tools/project_os_resolve.py` exactamente una vez, propagando sin alterar
-cualquier código de salida no cero. Ningún bootloader, adapter ni doc
-reimplementa esta búsqueda ni la validación: todos son consumidores de este
-mismo módulo. Como referencia de depuración no ejecutable, `--agents-file`
-valida un único candidato puntual sin recorrer el árbol: `python
-tools/project_os_fast_path.py --agents-file RUTA/AGENTS.md --actor <actor>
---workflow <workflow> --mode <mode>` devuelve el código reservado 111 cuando
-ese archivo por sí solo no es un candidato coherente, distinto de cualquier
-veredicto real del resolver.
-
-El alcance de esas comprobaciones es estructural y demostrable: exigen que el
-`AGENTS.md` seleccionado sea el del target resuelto, rechazan referencias fuera
-del allowlist, paths relativos, kernels ubicados en otra superficie y manifests
-ilegibles, no activos o de otro idioma, y no invocan el resolver cuando ninguna
-ruta ascendente las satisface. Continuar la búsqueda no relaja ninguna: un
-candidato solo se acepta si él mismo las cumple todas, y el resolver se invoca
-una sola vez sobre el candidato aceptado. No verifican procedencia del repositorio, commit, firma, hash ni
-integridad del checkout, así que no son un trust anchor: un directorio local que
-reproduzca esa estructura sigue siendo ejecutable. Si un código no cero del
-resolver aborta el fast path, ningún paso posterior queda habilitado.
+`tools/project_os_fast_path.py` es la única fuente ejecutable: falla cerrado
+si no puede establecer una adopción estructuralmente coherente y delega
+exactamente una vez en `tools/project_os_resolve.py`. Los bootloaders y
+adapters son consumidores de esa entrada, no implementaciones alternativas.
 
 El resolver acelera la resolución; el manifest sigue siendo canónico. Ambos
 solo dan forma y nunca autorizan una acción. Consulta artefactos, templates y

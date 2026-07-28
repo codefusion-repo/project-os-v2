@@ -70,8 +70,6 @@ def test_target_terminal_adapter_uses_only_portable_allowlisted_path_references(
     assert "REPOSITORY_LOCAL_PATH = $PROJECT_OS_TARGET_ROOT" in target_adapter
     assert "KERNEL_LOCAL_PATH = $PROJECT_OS_KERNEL_DIR" in target_adapter
     assert "$PWD" not in target_adapter
-    assert "eval" in target_adapter
-    assert "no usa `eval`" in target_adapter
     assert 'python "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py"' in target_adapter
     assert "tools/project_os_resolve.py" in target_adapter
     assert "select_target_bootloader" not in target_adapter
@@ -91,6 +89,24 @@ def test_no_consumer_reimplements_the_upward_agents_search() -> None:
         assert "KERNEL_REF=$(sed" not in text, path
         assert "while test" not in text, path
         assert 'python "$PROJECT_OS_KERNEL_DIR/../../tools/project_os_fast_path.py"' in text, path
+
+
+def test_terminal_bootloaders_exclude_internal_fast_path_debugging_details() -> None:
+    bootloaders = (
+        REPO_ROOT / "AGENTS.md",
+        REPO_ROOT / "project-os-es/adapters/AGENTS.target.md",
+        REPO_ROOT / "project-os-en/adapters/AGENTS.target.md",
+    )
+    internal_details = (
+        "--agents-file",
+        "111",
+        "select_target_bootloader",
+        "KERNEL_REF=$(sed",
+        "while test",
+    )
+    for path in bootloaders:
+        text = path.read_text(encoding="utf-8")
+        assert not any(detail in text for detail in internal_details), path
 
 
 def test_browser_adapter_keeps_its_read_only_manual_resolution_boundary() -> None:
