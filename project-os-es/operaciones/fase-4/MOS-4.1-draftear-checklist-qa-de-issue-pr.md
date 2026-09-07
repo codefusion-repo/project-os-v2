@@ -12,6 +12,11 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 **Para:** Cubrir lo no automatizable con QA humano dirigido.
 **Cómo:** Extrae criterios del issue/PR a pasos verificables por un humano.
 
+El checklist es evidencia de la unidad primaria reconstruida, no una nueva
+unidad. Conserva su scope, clase y PR cuando aplique. QA requerido debe quedar
+satisfecho antes del GO de closeout; puede prepararse tras implementación o
+durante review, sin exigir un GO previo.
+
 **Variables**
 - Requeridas: QA_SOURCE
 - Opcionales: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
@@ -25,4 +30,4 @@ fuentes incompatibles igualmente vigentes devuelven `status.needs_context`.
 
 **Entrega:** output.status_result. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-3.7. Después: MOS-4.4. Recomendada: MOS-4.4.
+**Conexiones:** Antes: implementación por MOS-3.4 o review por MOS-3.7. Después: MOS-4.4. Recomendada: MOS-4.4.

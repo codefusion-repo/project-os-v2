@@ -20,8 +20,8 @@ metadata derivada ni autorizan nada. El resto de la metadata se reconstruye desd
 la evidencia viva y se muestra resuelta para inspección, no se vuelve a pedir.
 Browser chat lee la unidad viva y sus relaciones, localiza el PR
 existente cuando aplique, lee su conversación completa, selecciona el último review
-vigente con `blocking-correction` sin resolver e incorpora sus addenda PM
-posteriores como parte del mismo source basis, reconstruye o conserva la
+vigente (técnico o QA humano) con `blocking-correction` sin resolver e incorpora
+sus addenda PM posteriores como parte del mismo source basis, reconstruye o conserva la
 `CHANGE_CLASS` de la unidad. Con esos valores resueltos completa `WORK_UNIT`,
 `SOURCE_REVIEW`, `PR_NUMBER` y `CHANGE_CLASS` en el route-prompt
 para que el receptor terminal verifique el contrato; nunca los inventa. Cuando
@@ -42,6 +42,20 @@ las propuestas de solución del reviewer son advisory. El browser chat puede
 recomendar un skill opcional e infiere `RECOMMENDED_TERMINAL_AGENT_FAMILY` según el
 trabajo. La recomendación es advisory, no autoriza nada y el feedback explícito del
 PM puede reemplazarla.
+
+La corrección conserva la unidad primaria, PR, rama existente, clase y scope
+originales; no crea issue ni PR de corrección. Una fuente QA se procesa con este
+mismo contrato: reconstruye desde `QA_RESULT` la relación con `WORK_UNIT` y el
+PR y usa `SOURCE_REVIEW` para referenciar el review humano o comentario QA exacto
+que contiene los `blocking-correction` vigentes. Lee también los reviews y
+addenda aplicables; no sustituyas un blocking vigente por otro ni inventes un
+review técnico para aceptar QA. Fuente insuficiente o conflicto material falla
+cerrado. No fuerces un PR si la clase y política del target admiten la unidad sin
+él; conserva en su registro equivalente la fuente y validación, sin inferir
+permiso para publicarlas. Toda corrección del PR vuelve a MOS-3.7 sobre el head
+corregido, con el correction report append-only exigido arriba. La autorización
+exacta y la forma compacta se verifican como en MOS-3.4; compartir unidad no
+reutiliza automáticamente un grant anterior.
 
 **Variables**
 - Requeridas: WORK_UNIT

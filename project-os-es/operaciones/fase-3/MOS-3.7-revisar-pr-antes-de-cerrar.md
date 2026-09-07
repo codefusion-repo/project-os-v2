@@ -37,6 +37,11 @@ final read-only. Si ese bundle se pierde, queda obsoleto o el cierre falla,
 vuelve a ejecutar esta operación sobre la evidencia vigente para regenerarlo; una
 verificación posterior independiente de postcondiciones usa MOS-3.27.
 
+Reconstruye la misma unidad primaria y PR al recibir review, QA o un
+correction report. QA manual requerido pendiente o fallido impide GO: usa
+MOS-4.1/MOS-4.4 para completarlo dentro de esa unidad. El closeout no crea otra
+unidad ni permite omitir findings bloqueantes o validar un head anterior.
+
 **Variables**
 - Requeridas: PR_NUMBER
 - Opcionales: EXECUTION_REPORT, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)

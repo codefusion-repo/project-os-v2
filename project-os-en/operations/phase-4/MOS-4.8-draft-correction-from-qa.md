@@ -10,7 +10,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Draft the correction prompt from QA results.
 **For:** To fix QA blockers without expanding the scope.
-**How:** Encapsulate QA_RESULT in a delegated correction path.
+**How:** Read and apply MOS-3.5 as the sole correction contract in this same
+response. From `QA_RESULT`, reconstruct `WORK_UNIT`, `PR_NUMBER`,
+`SOURCE_REVIEW`, class, and branch without asking for another locator. Transport
+only `blocking-correction` within the original scope: retain unit and PR,
+require exact authorization, real validation, an append-only correction report,
+and review of the corrected head per MOS-3.5. Use its compact route-prompt form.
+Keep this compatible entry point; it creates no additional unit, semantics,
+or handoff.
 
 **Variables**
 - Required: QA_RESULT

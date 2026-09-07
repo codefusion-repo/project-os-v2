@@ -12,6 +12,11 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 **For:** To cover non-automatable checks with directed human QA.
 **How:** Extract issue/PR criteria in human-verifiable steps.
 
+The checklist is evidence for the reconstructed primary unit, not a new
+unit. Retain its scope, class, and PR when applicable. Required QA must be
+satisfied before closeout GO; it can be prepared after implementation or during
+review, without requiring a prior GO.
+
 **Variables**
 - Required: QA_SOURCE
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
@@ -25,4 +30,4 @@ incompatible sources equally active return `status.needs_context`.
 
 **Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-3.7. Next: MOS-4.4. Recommended: MOS-4.4.
+**Connections:** Previous: implementation via MOS-3.4 or review via MOS-3.7. Next: MOS-4.4. Recommended: MOS-4.4.

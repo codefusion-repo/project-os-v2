@@ -10,7 +10,12 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Draft follow-up from QA results.
 **For:** To defer non-blocking QA findings with traceability.
-**How:** Follow-up creation bundle for the Human PM.
+**How:** Use MOS-3.3 as the sole follow-up contract: `QA_RESULT` is its
+already available `FOLLOW_UP_SOURCE`. Read and apply that contract in this same
+response, including materiality, independence, grouping, unit reuse, and
+no-action. Do not ask for another locator or turn each QA finding into an issue.
+Keep this compatible entry point; it is neither a separate semantic contract
+nor a mandatory handoff.
 
 **Variables**
 - Required: QA_RESULT

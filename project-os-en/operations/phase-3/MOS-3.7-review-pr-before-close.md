@@ -37,6 +37,11 @@ that bundle is lost, becomes stale, or the closure fails, run this operation
 again over the current evidence to regenerate it; a later independent
 postcondition verification uses MOS-3.27.
 
+Reconstruct the same primary unit and PR when receiving review, QA, or a
+correction report. Pending or failed required manual QA prevents GO: use
+MOS-4.1/MOS-4.4 to complete it within that unit. Closeout creates no additional
+unit and cannot omit blockers or validate a previous head.
+
 **Variables**
 - Required: PR_NUMBER
 - Optional: EXECUTION_REPORT, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)

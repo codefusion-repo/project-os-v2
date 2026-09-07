@@ -82,6 +82,34 @@ a rutas raíz.
    propuestas de implementación son advisory y nunca se copian automáticamente
    a reglas, campos, archivos o tests.
 
+## Continuidad de la unidad primaria
+
+Reconstruye `WORK_UNIT` y sus relaciones vivas antes de continuar: el outcome,
+scope, criterios, `CHANGE_CLASS`, PR y rama existentes cuando apliquen, y la
+fuente de review o QA. Planificación, implementación, review, QA, corrección,
+re-review, handoff y closeout conservan esa unidad mientras completen el mismo
+outcome. Cambiar de fase, agente o sesión, producir un output o checklist, o
+corregir el mismo PR no crea otra unidad ni otro PR. Reutiliza referencias
+verificables sin pedir identificadores ya reconstruibles; una relación material
+ambigua o ausente falla cerrado. No añadas un registro ni estado durable de
+lifecycle.
+
+La continuidad no amplía scope ni comparte autorización: cada acción material
+conserva su aprobación exacta, evidencia, preflight, validación y review. Un
+blocking del mismo outcome conserva unidad, PR, clase y scope por MOS-3.5,
+incluida su fuente QA; un follow-up de cualquier origen consume MOS-3.3. QA y
+auditoría no son razones suficientes para crear trabajo.
+
+Antes de otra unidad, comprueba materialidad e independencia por MOS-3.3 y
+agrupa findings que compartan un único outcome y criterios de salida. Separa
+resultados observables distintos con criterios propios, priorización
+independiente o trabajo innecesario para completar el outcome actual; tampoco
+absorbas trabajo que requiere una decisión material separada o un boundary de
+autorización/seguridad diferente. Esa separación requiere resolver su scope y
+sus gates antes de actuar. Reducir unidades nunca justifica mega-issues ni
+scope creep. Un permiso separado para una acción ya perteneciente al mismo
+outcome no crea por sí solo otra unidad.
+
 ## Cómo usar una operación
 
 Copia el archivo de la operación como prompt, completa sus variables y

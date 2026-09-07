@@ -10,7 +10,14 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Process the issue/PR human-checklist result.
 **For:** To convert human QA into correction, follow-up or advancement.
-**How:** Classify blockers and non-blockers without executing anything.
+**How:** Apply the materiality gate and dispositions from MOS-3.7 to the QA
+result for the same unit: `blocking-correction` consumes MOS-3.5;
+`non-blocking-follow-up` consumes MOS-3.3, with grouping and independence;
+`preference`, `accepted-risk`, and `invalid-finding` create no work. Deliver the
+applicable canonical output in the same response without another selection or
+locator. Execute no mutations. Pending or failed required QA prevents GO;
+satisfied QA allows returning to MOS-3.7 with its evidence, without creating a
+unit or replacing review or closeout authorization.
 
 **Variables**
 - Required: QA_RESULT
@@ -27,4 +34,4 @@ never fails closed.
 
 **Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-4.1. Next: MOS-4.8, MOS-4.7 or MOS-3.7. Recommended: MOS-4.8 for blockers.
+**Connections:** Previous: MOS-4.1. Next: MOS-3.5 for blocking-correction, MOS-3.3 for follow-up, or MOS-3.7. MOS-4.8/MOS-4.7 retain compatible QA entry points. Recommended: MOS-3.5 only for blocking-correction.

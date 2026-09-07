@@ -25,6 +25,17 @@ inequívoca —el review, la auditoría, la revisión de seguridad o el issue qu
 acaba de trabajar en esta sesión— no vuelvas a pedirla; cuando no exista, pide
 solo `FOLLOW_UP_SOURCE` y reconstruye desde ahí sus relaciones.
 
+Este es el contrato canónico de follow-up también para QA y auditoría. Antes
+de draftear, descarta `preference`, `accepted-risk` e `invalid-finding`; agrupa
+findings relacionados por outcome y criterios de salida, no uno por issue.
+Verifica si una unidad viva ya cubre ese resultado y reutilízala sin duplicarla.
+Cada unidad adicional debe demostrar criterios propios e independencia de scope
+y priorización, además de materialidad y razón para diferir. Una corrección
+necesaria para completar el outcome original permanece en su unidad por MOS-3.5;
+trabajo fuera de ese scope no se incorpora para reducir el conteo. Conserva en
+el source basis las referencias de todos los findings agrupados, también
+`QA_RESULT` cuando sea la fuente, sin recapturar el locator.
+
 **Variables**
 - Requeridas: ninguna
 - Opcionales: FOLLOW_UP_SOURCE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO

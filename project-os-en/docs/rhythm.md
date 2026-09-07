@@ -20,6 +20,15 @@ validation, and report density:
 Issues, PRs, branches, and GitHub are available adapters, never universal
 requirements of the model.
 
+[Work unit continuity](../operations/README.md#primary-work-unit-continuity)
+spans planning, implementation, review, QA, correction, handoff, and closeout.
+Required QA precedes GO: MOS-4.1 → MOS-4.4 reuses MOS-3.5 for correction of the
+same PR and MOS-3.3 for material, independent follow-ups grouped by outcome.
+MOS-4.8/MOS-4.7 retain compatible QA entry points consuming those contracts in
+the same response. For sequential roadmaps, MOS-3.1 verifies predecessor
+completion before drafting a single next unit; another phase or separate
+approval does not create units.
+
 ## Core loop for standard changes
 
 1. Reconstruct the live roadmap, work unit, repository, and prior decisions.

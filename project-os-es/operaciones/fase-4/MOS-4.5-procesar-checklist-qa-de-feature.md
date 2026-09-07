@@ -10,7 +10,11 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Procesa el resultado del checklist humano de descripción/feature.
 **Para:** Cerrar el loop de QA de features sin issue ancla.
-**Cómo:** Clasifica hallazgos hacia issue nuevo, corrección o no-op.
+**Cómo:** Reconstruye si la feature ya pertenece a una unidad viva. Aplica
+materialidad y disposiciones como MOS-4.4: corrección del mismo outcome por
+MOS-3.5, follow-up por MOS-3.3 y demás disposiciones sin trabajo nuevo. Solo usa
+MOS-3.8 si falta unidad y hay un outcome material con scope y criterios propios;
+agrupa antes por outcome, nunca crees un issue solo por entrar a QA.
 
 **Variables**
 - Requeridas: QA_RESULT
@@ -18,4 +22,4 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.status_result (+output.route_prompt, output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-4.2. Después: MOS-3.8 o MOS-4.7. Recomendada: MOS-3.8 si nace trabajo nuevo.
+**Conexiones:** Antes: MOS-4.2. Después: MOS-3.5, MOS-3.3 o MOS-3.8 según la clasificación; MOS-4.7 conserva la entrada QA compatible. Recomendada: MOS-3.8 si nace trabajo nuevo.

@@ -18,6 +18,17 @@ sigue con el Humano PM. Para una intención de implementación, cuando el
 resultado de creación se pueda verificar en vivo, continúa a MOS-3.4 según
 MOS-R.2 sin otra selección MOS ni locator redundante.
 
+Antes de draftear, verifica si ya existe una unidad para el outcome y
+reutilízala; no crees otra por planificación o handoff. En un roadmap secuencial,
+identifica si existe predecessor; cuando exista, verifica su completitud
+material desde scope, criterios, PR, review/QA, validación y cierre vivos: un GO, un PR integrado o un
+issue cerrado aislados no prueban el outcome. Si sigue materialmente abierto,
+conserva esa unidad y reporta el siguiente paso seguro con `output.status_result`,
+sin draftear la fase siguiente. Si falta evidencia, falla cerrado. Una vez
+completo, infiere y draftea una única unidad para el siguiente outcome real,
+reutilizando una existente si la hay; nunca un set anticipado por enumeración
+del roadmap. Una prioridad material ambigua vuelve al PM.
+
 **Variables**
 - Requeridas: — (ninguna)
 - Opcionales: ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)

@@ -74,7 +74,8 @@ retype a reconstructible identifier, class, branch, or level. No derived value
 grants permission.
 
 When the route prompt corrects an already-reviewed PR (MOS-3.5), the block adds
-`SOURCE_REVIEW` with the exact reference to the source review or comment and
+`SOURCE_REVIEW` with the exact reference to the source review or comment
+(including human QA through MOS-4.8 → MOS-3.5) and
 `PR_NUMBER`, reconstructed like the rest of the metadata. The
 final instruction requires publishing exactly one append-only correction report
 on that PR with the previous head, the corrected head, the `blocking-correction`

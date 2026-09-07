@@ -25,6 +25,17 @@ live source —the review, audit, security review, or issue just worked on in th
 session— do not ask for it again; when none exists, ask only for
 `FOLLOW_UP_SOURCE` and reconstruct its relations from there.
 
+This is also the canonical follow-up contract for QA and audit. Before
+drafting, discard `preference`, `accepted-risk`, and `invalid-finding`; group
+related findings by outcome and exit criteria, not one issue per finding.
+Check whether a live unit already covers that result and reuse it without
+duplication. Each additional unit must demonstrate its own criteria and
+independent scope and prioritization, as well as materiality and a reason to
+defer. A correction needed to complete the original outcome remains in its
+unit through MOS-3.5; work outside that scope is not absorbed to reduce counts.
+Keep references to all grouped findings in the source basis, including
+`QA_RESULT` when it is the source, without recapturing the locator.
+
 **Variables**
 - Required: none
 - Optional: FOLLOW_UP_SOURCE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO
