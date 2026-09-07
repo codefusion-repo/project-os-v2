@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from dataclasses import replace
 import inspect
 
 import pytest
@@ -106,3 +107,53 @@ def test_programmatic_value_collection_keeps_the_optional_skill_catalog_fallback
     result = wizard.collect_values(operation, input_func=lambda _prompt: "none")
 
     assert result == {"OPTIONAL_SKILL": "none"}
+
+
+def intent_router() -> OperationTemplate:
+    return replace(
+        route_operation(), path=Path("MOS-R.2-router.md"),
+        text="**Deliver:** output.status_result.\n",
+        variables=(InputVariable("PM_QUESTION_HUMANO", "<intent>", False, ""),),
+    )
+
+
+def test_captured_intent_previews_without_recapture_and_keeps_edit_and_cancel() -> None:
+    values = {"PM_QUESTION_HUMANO": "Implement the identified work unit within its scope."}
+    session = transition_session(
+        WizardSession(), "selected", operation=intent_router(), captured_intent=values,
+    )
+    assert session.stage == "preview"
+    assert session.values == values
+    assert not session.include_route_prompt_authorization
+    edited = transition_session(session, "preview_edit")
+    assert edited.stage == "collect_values"
+    assert edited.values == values
+    assert transition_session(session, "preview_cancel").stage == "exit"
+    other = transition_session(session, "selected", operation=route_operation())
+    assert other.stage == "collect_values"
+    assert "PM_QUESTION_HUMANO" not in other.values
+
+
+@pytest.mark.parametrize("case", ("explicit", "blank", "secret", "required", "authorization", "undeclared"))
+def test_intent_preview_never_bypasses_declared_inputs_or_validation(case: str) -> None:
+    operation = intent_router()
+    captured = {"PM_QUESTION_HUMANO": "Implement the identified work unit."}
+    if case == "explicit":
+        captured = {}
+    elif case == "blank":
+        captured["PM_QUESTION_HUMANO"] = " "
+    elif case == "secret":
+        captured["PM_QUESTION_HUMANO"] = "AKIA" + "ABCDEFGHIJKLMNOP"
+    elif case == "required":
+        operation = replace(operation, variables=operation.variables + (
+            InputVariable("ROUTING_SOURCE", "<source>", True, ""),
+        ))
+    elif case == "authorization":
+        operation = replace(operation, text="**Deliver:** output.route_prompt.\n")
+    elif case == "undeclared":
+        operation = replace(operation, variables=())
+    session = transition_session(
+        WizardSession(), "selected", operation=operation, captured_intent=captured,
+    )
+    assert session.stage == "collect_values"
+    assert not session.include_route_prompt_authorization

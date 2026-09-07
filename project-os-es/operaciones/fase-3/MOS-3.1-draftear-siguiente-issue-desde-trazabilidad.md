@@ -12,6 +12,12 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 **Para:** Crear el siguiente issue único sin perder el hilo del roadmap.
 **Cómo:** Lee estado vivo y draftea el bundle de creación para el Humano PM.
 
+Si llega desde MOS-R.2, reutiliza intención, constraints y source basis para
+draftear una sola unidad; no pidas al PM que los capture otra vez. La creación
+sigue con el Humano PM. Para una intención de implementación, cuando el
+resultado de creación se pueda verificar en vivo, continúa a MOS-3.4 según
+MOS-R.2 sin otra selección MOS ni locator redundante.
+
 **Variables**
 - Requeridas: — (ninguna)
 - Opcionales: ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)

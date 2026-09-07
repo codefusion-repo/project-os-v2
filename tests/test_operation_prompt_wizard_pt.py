@@ -481,7 +481,7 @@ def test_intent_first_text_with_no_catalog_match_routes_via_mos_r2_pt(
     intent_text = "quiero saber que operacion sigue para el issue 500 del roadmap"
     monkeypatch.setattr(
         "tools.operation_prompt_wizard.prompt",
-        mock_prompt([intent_text, "", "", "", "write", "exit"]),
+        mock_prompt([intent_text, "write", "exit"]),
     )
     stream = StringIO()
     result = run_wizard_pt(operations_dir=operations, output_dir=tmp_path / "out", output_stream=stream)

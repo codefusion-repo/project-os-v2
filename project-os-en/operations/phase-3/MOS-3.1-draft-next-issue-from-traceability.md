@@ -12,6 +12,12 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 **For:** To create the next unique issue without losing track of the roadmap.
 **How:** Read live state and draft the issue-creation bundle for the Human PM.
 
+When arriving from MOS-R.2, reuse intent, constraints, and source basis to
+draft a single unit; do not ask the PM to capture them again. Creation remains
+with the Human PM. For implementation intent, once the creation result is
+live-verifiable, continue to MOS-3.4 per MOS-R.2 without another MOS selection
+or redundant locator.
+
 **Variables**
 - Required: — (none)
 - Optional: ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)

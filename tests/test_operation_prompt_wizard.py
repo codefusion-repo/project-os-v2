@@ -265,7 +265,7 @@ def test_run_wizard_intent_first_end_to_end_prefills_pm_question_humano(tmp_path
     output = run_wizard(
         language="es",
         output_dir=tmp_path,
-        input_func=answers(intent_text, "", "", "", "write", "exit"),
+        input_func=answers(intent_text, "write", "exit"),
         output_stream=StringIO(),
     )
 
