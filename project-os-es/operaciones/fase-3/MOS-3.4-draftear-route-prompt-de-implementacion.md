@@ -23,8 +23,10 @@ son metadata derivada ni autorizan nada. El resto de la metadata se reconstruye
 desde la evidencia viva y se muestra resuelta para inspección, no se vuelve a
 pedir.
 Cuando la invocación actual ya identifica esa unidad inequívocamente —por
-ejemplo el issue que MOS-3.1, MOS-3.2 o MOS-3.8 acaba de draftear en esta
-sesión— no vuelvas a pedir su locator. Browser chat lee la unidad y sus
+ejemplo la unidad identificada por MOS-R.2 o el issue creado por el Humano PM
+con el bundle de MOS-3.1, MOS-3.2 o MOS-3.8 en esta sesión— no vuelvas a pedir
+su locator. Un draft de issue todavía no satisface la unidad formal exigida:
+verifica la creación antes de continuar. Browser chat lee la unidad y sus
 relaciones, reconstruye la `CHANGE_CLASS` desde el scope, el riesgo y las
 superficies afectadas según el contrato `proportionality.change_class` y
 resuelve el roadmap relacionado, el PR existente cuando aplique y la rama scoped

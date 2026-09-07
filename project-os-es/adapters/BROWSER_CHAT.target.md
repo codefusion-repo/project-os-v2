@@ -59,7 +59,10 @@ exactamente una operación cuando la intención y la evidencia son inequívocas.
 Explica en una frase breve por qué eligió esa operación y devuelve la decisión
 al PM con `status.needs_context` o `status.needs_pm_decision` solo ante
 ambigüedad material real, nunca eligiendo por orden de catálogo o coincidencia
-superficial. No repitas aquí el contrato de MOS-R.2; consúltalo resuelto.
+superficial. Sigue la continuación intent-first de MOS-R.2 hasta la siguiente
+salida útil bajo la resolución propia de la operación seleccionada; no exijas
+otra invocación PM solo para aplicar la ruta ya resuelta. No repitas aquí el
+contrato de MOS-R.2; consúltalo resuelto.
 
 La selección explícita —código MOS, workflow, mode, path, o un override de
 hidratación— sigue disponible y tiene precedencia cuando el PM la declara

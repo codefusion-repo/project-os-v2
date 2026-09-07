@@ -942,8 +942,27 @@ def transition_session(
         next_values.update(captured_intent or {})
         if operation is not None:
             next_values.update(alias_bound_values(operation))
-        return replace(session, stage="collect_values", operation=operation, values=next_values,
-                       include_route_prompt_authorization=False)
+        # Free text is already the router's human input. Preview it once the
+        # declared inputs pass the same validation as manual collection; the
+        # browser resolves live evidence, and preview/edit remains available.
+        preview_intent = (
+            operation is not None
+            and not operation.is_alias
+            and operation.mos_code == INTENT_ROUTING_MOS_CODE
+            and bool((captured_intent or {}).get(PM_QUESTION_HUMANO_NAME, "").strip())
+            and any(v.name == PM_QUESTION_HUMANO_NAME for v in operation.variables)
+            and all(
+                validate_variable_value(
+                    v, next_values.get(v.name, ""), current_values=next_values
+                ) is None
+                for v in wizard_variables(operation)
+            )
+        )
+        return replace(
+            session, stage="preview" if preview_intent else "collect_values",
+            operation=operation, values=next_values,
+            include_route_prompt_authorization=False,
+        )
     if event == "selection_cancel":
         return replace(session, stage="post_write" if session.current_prompt_path else "exit")
     if event == "values_cancel":

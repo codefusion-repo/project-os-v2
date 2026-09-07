@@ -43,8 +43,10 @@ and select exactly one operation when the intent and the evidence are
 unambiguous. Explain in one short sentence why that operation was chosen and
 return the decision to the PM with `status.needs_context` or
 `status.needs_pm_decision` only on real material ambiguity, never by catalog
-order or surface-level keyword overlap. Do not restate MOS-R.2's contract
-here; consult it resolved.
+order or surface-level keyword overlap. Follow MOS-R.2's intent-first
+continuation to the next useful output under the selected operation's own
+resolution; do not require another PM invocation just to apply the resolved
+route. Do not restate MOS-R.2's contract here; consult it resolved.
 
 Explicit selection — MOS code, workflow, mode, path, or a hydration override —
 remains available and takes precedence whenever the PM states it directly.

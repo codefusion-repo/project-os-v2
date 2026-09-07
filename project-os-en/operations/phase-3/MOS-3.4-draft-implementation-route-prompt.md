@@ -21,9 +21,11 @@ identify the unit, `OPTIONAL_SKILL`, PM feedback or questions, the explicit
 `/hydration` override, and the applicable exact authorization; they are not
 derived metadata and authorize nothing. The rest of the metadata is reconstructed
 from live evidence and shown resolved for inspection, not asked again. When the current invocation
-already identifies that unit unambiguously —for example the issue MOS-3.1,
-MOS-3.2, or MOS-3.8 just drafted in this session— do not ask for its locator
-again. Browser chat reads the unit and its relations, reconstructs
+already identifies that unit unambiguously —for example the unit identified by
+MOS-R.2 or the issue the Human PM created with the MOS-3.1, MOS-3.2, or MOS-3.8
+bundle in this session— do not ask for its locator again. An issue draft does
+not yet satisfy a required formal unit: verify creation before continuing.
+Browser chat reads the unit and its relations, reconstructs
 `CHANGE_CLASS` from the scope, risk, and affected surfaces per the
 `proportionality.change_class` contract, and resolves the related
 roadmap, the existing PR when applicable, and the scoped branch

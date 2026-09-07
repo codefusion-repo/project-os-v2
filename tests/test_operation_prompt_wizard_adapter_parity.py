@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from io import StringIO
 import subprocess
 import sys
 
@@ -95,3 +96,39 @@ def test_documented_direct_script_entrypoint_resolves_its_package() -> None:
     assert completed.returncode == 1
     assert "ModuleNotFoundError" not in completed.stderr
     assert "Session surface: es" in completed.stdout
+
+
+@pytest.mark.skipif(not wizard.HAVE_PROMPT_TOOLKIT, reason="prompt_toolkit is unavailable")
+@pytest.mark.parametrize("language", ("es", "en"))
+@pytest.mark.parametrize("intent", (
+    "Implement the live issue example/target#42 within its scope; no merge or close.",
+    "Prepare implementation of the next roadmap outcome in example/target; a formal unit is still needed.",
+    "I want to proceed but have not decided which of two outcomes to prioritize.",
+))
+def test_intent_uses_one_capture_and_one_preview_in_both_adapters(
+    language: str, intent: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    artifacts = []
+    for adapter in ("line", "prompt_toolkit"):
+        remaining = [intent, "write", "exit"]
+        calls = []
+
+        def answer(*args, **kwargs):
+            calls.append(args)
+            assert remaining, "Unexpected recapture or selection question"
+            return remaining.pop(0)
+
+        kwargs = dict(language=language, output_dir=tmp_path / adapter, output_stream=StringIO())
+        if adapter == "line":
+            path = wizard.run_wizard(input_func=answer, **kwargs)
+        else:
+            monkeypatch.setattr(wizard, "prompt", answer)
+            path = wizard.run_wizard_pt(**kwargs)
+        assert path is not None
+        assert len(calls) == 3
+        assert remaining == []
+        content = path.read_text(encoding="utf-8")
+        assert f"PM_QUESTION_HUMANO={intent}\n" in content
+        assert "PM_AUTHORIZATION_STATUS=" not in content
+        artifacts.append(content)
+    assert artifacts[0] == artifacts[1]
