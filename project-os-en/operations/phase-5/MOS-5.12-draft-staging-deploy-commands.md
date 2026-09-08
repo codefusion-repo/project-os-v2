@@ -10,7 +10,10 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Draft the bundle of staging deployment commands from the target-owned commands in Project-specific notes.
 **For:** To prepare the execution of the staging deployment without inventing commands.
-**How:** Build a copy-safe bundle only from target-owned commands; never print secrets.
+**How:** Delegate the bundle to MOS-R.12 with `TARGET_ENVIRONMENT=staging`
+and current evidence for the same unit. Consume its readiness, exact ref,
+target-owned commands, approval, rollback, and verification gates; deliver
+the draft in this response without another selection or locator.
 
 **Variables**
 - Required: TARGET_REPOSITORY

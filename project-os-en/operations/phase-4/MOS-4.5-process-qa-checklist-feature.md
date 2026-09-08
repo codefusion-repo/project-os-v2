@@ -15,6 +15,8 @@ Apply materiality and dispositions as in MOS-4.4: same-outcome correction throug
 MOS-3.5, follow-up through MOS-3.3, and other dispositions without new work. Use
 MOS-3.8 only when no unit exists and there is a material outcome with its own
 scope and criteria; group by outcome first, never create an issue merely for QA.
+With satisfied QA, also consume MOS-4.4 continuity toward review, release, or
+environment readiness with the same evidence and gates.
 
 **Variables**
 - Required: QA_RESULT

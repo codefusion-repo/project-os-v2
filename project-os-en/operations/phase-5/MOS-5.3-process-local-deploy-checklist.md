@@ -10,7 +10,12 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Process the result of the human steps for local deployment.
 **For:** To confirm readiness or derive gaps before continuing.
-**How:** Sort the CHECKLIST_RESULT toward continue, correct, or stop.
+**How:** Compare CHECKLIST_RESULT with the checklist unit, ref, and
+environment and apply MOS-R.11 without recapturing valid evidence. With
+sufficient readiness, consume MOS-5.10 in this response; require no
+further checklist or selection. Stale or failed results retain blockers;
+correction or rollback disposition and approval follow their own routes.
+Only an already executed deployment proceeds to MOS-R.13 verification.
 
 **Variables**
 - Required: CHECKLIST_RESULT

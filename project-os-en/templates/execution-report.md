@@ -11,6 +11,13 @@ template's `full/debug` block. Use only the block for the resolved density;
 never combine densities. PM-facing traceability lives in the block itself — in
 `full/debug`, `Reviewed evidence`; no density adds a receipt block.
 
+For deployment, use the resolved density's evidence, validation, risk, and
+remaining-work sections to retain unit, target, environment, action,
+expected/observed ref, exact approval, and reused/renewed evidence with source
+and reason. Distinguish execution from post-deploy verification, record
+applicable rollback and the next gate; claim neither success without verified
+postconditions nor another environment's authorization through continuity.
+
 ## Minimal density
 
 ```markdown

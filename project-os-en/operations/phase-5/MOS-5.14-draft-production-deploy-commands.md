@@ -10,7 +10,10 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Draft the production deployment command bundle from the target-owned commands in Project-specific notes.
 **For:** To prepare the execution of the production deployment without inventing commands.
-**How:** Build a copy-safe bundle only from target-owned commands; never print secrets.
+**How:** Delegate the bundle to MOS-R.12 with `TARGET_ENVIRONMENT=production`
+and current evidence for the same unit. Consume its readiness, exact ref,
+target-owned commands, approval, rollback, and verification gates; deliver
+the draft in this response without another selection or locator.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -23,4 +26,4 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.pm_command_bundle. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-5.9. Next: MOS-5.15 or execution of the Human PM. Recommended: running the Human PM by default.
+**Connections:** Previous: MOS-5.7/MOS-R.11 or MOS-5.9 with sufficient readiness. Next: MOS-5.15, execution by Human PM; then MOS-R.13. Recommended: exact human production gate.

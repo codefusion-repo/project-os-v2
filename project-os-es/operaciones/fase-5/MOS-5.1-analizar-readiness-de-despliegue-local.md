@@ -10,7 +10,11 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Analiza readiness y configuración necesaria del despliegue local.
 **Para:** Preparar un despliegue local seguro y reproducible.
-**Cómo:** Analiza read-only desde target notes y repo; toda configuración con escritura va por ruta delegada aprobada.
+**Cómo:** Delega la revisión en MOS-R.11 con `TARGET_ENVIRONMENT=local`
+y las relaciones vivas ya reconstruidas; aplica su evidencia y gates.
+Solo comprobaciones humanas pendientes consumen MOS-5.2; readiness
+suficiente consume MOS-5.10 en la misma respuesta, sin recaptura.
+Toda configuración con escritura conserva su aprobación y límites propios.
 
 **Variables**
 - Requeridas: TARGET_REPOSITORY
@@ -22,4 +26,4 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.status_result. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-4.6. Después: MOS-5.2, MOS-5.10. Recomendada: MOS-5.2.
+**Conexiones:** Antes: QA/release o entorno previo si el target lo exige. Después: MOS-5.2 solo para checks humanos pendientes; MOS-5.10 con readiness suficiente. Recomendada: la salida segura resuelta por MOS-R.11, sin otra selección.

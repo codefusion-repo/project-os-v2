@@ -10,7 +10,13 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Process a successful, partial, or failed deployment into a continue, fix, or rollback path.
 **For:** To decide next path with evidence, not unverified deploy output.
-**How:** Compare DEPLOYMENT_RESULT with MOS-R.13 evidence and redact any sensitive output.
+**How:** Compare DEPLOYMENT_RESULT with MOS-R.13 evidence for the same unit,
+target, ref, and environment. Verified success allows reconstructing readiness
+for the pending intended environment through MOS-R.11, renewing its specific
+evidence and showing its exact gate; it does not imply promotion. On failure,
+retain the unit, classify correction through the applicable route or PM rollback
+decision through MOS-R.15; follow-up requires MOS-3.3 materiality and independence.
+Deliver the safe output in the same response and redact any sensitive data.
 
 **Variables**
 - Required: DEPLOYMENT_RESULT, TARGET_ENVIRONMENT
@@ -23,4 +29,4 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.status_result (+drafts if applicable). If the result or verification is unreadable, or the continue/rollback election is pending, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-R.13. Next: MOS-R.15 if failed and PM chooses rollback; MOS-3.3 for follow-ups. Recommended: MOS-R.15 only if rollback was chosen.
+**Connections:** Previous: MOS-R.13. Next: MOS-R.11 for a pending environment with verified success; MOS-R.15 if PM chooses rollback; unit correction or MOS-3.3 only for an independent outcome. Recommended: the same unit's next safe action, without automatic promotion.

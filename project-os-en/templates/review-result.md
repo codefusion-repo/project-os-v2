@@ -12,7 +12,9 @@ not add a receipt block.
 
 ## Evidence reviewed
 
-- {{Diff, final files, comments, validation, docs}}
+- {{Diff, final files, comments, validation, docs. For QA/readiness: same unit,
+  target, covered ref and environment; reused/renewed evidence with source and
+  reason under the common continuity contract.}}
 
 ## Scope comparison
 
@@ -37,8 +39,10 @@ independent scope and a reason to defer it, and the other dispositions force no 
 
 ## Verdict or recommendation
 
-{{GO, NO-GO, needs_context, follow-up or recommendation. On GO, the closeout
-bundle and its final verification accompany this same response.}}
+{{GO, NO-GO, needs_context, follow-up, or recommendation. Only resolved GO from
+workflow.review_before_close delivers closeout and verification in this response.
+Readiness identifies next action, responsible party, evidence, exact approval,
+applicable rollback, and postconditions; it authorizes neither release nor deploy.}}
 
 ## Risks
 

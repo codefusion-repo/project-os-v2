@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from tools.operation_prompt_wizard import discover_operations
-from dogfooding.tools.project_os_parity import build_report, load_kernel
+from dogfooding.tools.project_os_parity import build_report, load_kernel, operation_inventory
 from tools.project_os_resolve import DEFAULT_KERNEL_DIR, resolve
 from tools.project_os_surfaces import SURFACES
 from tools.validate_kernel import validate_kernel
@@ -33,6 +33,29 @@ SPANISH_PROSE_PATTERN = re.compile(
 )
 # These machine values and variable names are stable contracts, not prose.
 SPANISH_TOKEN_ALLOWLIST = ("no_resuelto", "resuelto", "PM_FEEDBACK_HUMANO", "PM_QUESTION_HUMANO")
+
+
+@pytest.mark.parametrize(
+    "catalog",
+    (REPO_ROOT / "project-os-es/operaciones", REPO_ROOT / "project-os-en/operations"),
+)
+def test_environment_execution_metadata_keeps_production_human(catalog: Path) -> None:
+    operations = operation_inventory(catalog)
+
+    for code in ("MOS-5.11", "MOS-5.13"):
+        deployment = operations[code]
+        assert deployment.surface == "terminal_agent"
+        assert deployment.kernel == (
+            "workflow.deployment", "mode.delegated_deploy_execution", "output.execution_report",
+        )
+        assert deployment.approval == "required"
+        assert {"evidence.exact_ref", "evidence.deployment_readiness"} <= set(deployment.evidence)
+
+    production = operations["MOS-5.15"]
+    assert production.surface == "human_pm"
+    assert production.kernel == ("output.execution_report",)
+    assert production.approval == "required"
+    assert {"evidence.exact_ref", "evidence.deployment_readiness"} <= set(production.evidence)
 
 
 def test_kernel_and_operation_contracts_have_no_parity_findings() -> None:

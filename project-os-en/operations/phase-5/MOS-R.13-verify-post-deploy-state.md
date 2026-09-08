@@ -5,12 +5,20 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 - Surface: browser_chat / terminal_agent
 - Kernel: workflow.review_only · mode.review_only · output.status_result
-- Evidence: evidence.repo_state, evidence.validation_output
+- Evidence: evidence.repo_state, evidence.validation_output, evidence.exact_ref
 - PM approval: No (read-only verification)
 
 **Does:** Check the post-deployment status of the target environment.
 **For:** To confirm that the deployment was healthy with evidence of health or smoke.
-**How:** Use only target-owned checks and report redacted evidence.
+**How:** Reconstruct unit, target, environment, expected ref, and actually
+deployed ref from verifiable sources; compare identity and postconditions with
+readiness and execution results. Use only read-only target-owned checks of the
+current deployment, with source, coverage, and redacted results. A successful
+exit code, previous QA, or another environment's health does not prove
+post-deploy success. Ref mismatch or failed checks block; unreadable evidence
+is not PASS. Deliver the result to MOS-R.14 without recapture or starting another
+environment. When MOS-R.16 consumes this check for a rollback, return recovery
+evidence there instead of restarting deployment-result processing.
 
 **Variables**
 - Required: TARGET_ENVIRONMENT

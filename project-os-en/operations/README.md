@@ -53,6 +53,85 @@ Resolve that separate scope and its gates before acting. Fewer units never
 justify mega-issues or scope creep. Separate permission for an action already
 belonging to the same outcome does not itself create another unit.
 
+## QA → release → deployment continuity
+
+The same unit rule covers readiness, release, local deployment, staging,
+production, rollback, and verification of the same outcome. Reconstruct the
+unit even if its PR was merged or closed; closure does not prove that the target
+environment was reached. Do not open another unit or PR for a transition. A gap
+requiring code returns to the applicable correction route and its approval;
+do not treat a closed PR as editable. An independent outcome follows MOS-3.3.
+
+Start from the already identifiable QA, review, release, or deployment result
+and follow its live relations. Retain verifiable outcome, criteria, class,
+target, ref, and intended environment; ask only for a missing material decision
+or source. Success in one environment does not select the next. Handoffs and
+agent changes carry references, not a new transcription or readiness snapshot.
+
+### Reusable evidence
+
+Before each transition check the live source and its applicability to the
+current action. In the existing output's evidence, state what is reused, what
+is renewed and why, with verifiable source, ref, environment, and coverage when
+applicable. Revalidating a source need not rerun a still-valid test.
+
+| Existing evidence | Retain when | Renew or block when |
+| --- | --- | --- |
+| Scope and criteria (`evidence.issue_scope` / `evidence.source_basis`) | Outcome and criteria remain current in the same unit. | Scope changes or a verifiable material relation is missing. |
+| Accepted QA and review dispositions | The source identifies covered criteria, ref, and environment; acceptance and dispositions still apply. | Coverage changes, risk increases, or a PM decision conflicts. Pending/failed QA never becomes PASS; an accepted risk retains its scope and exempts no hard gate. |
+| `evidence.validation_output` | Verifiable result for the same exact SHA/ref and required coverage, with applicable environment/conditions. Equivalent CI meets the same limits. | New code/ref, environment, or risk requires affected tests; expired/unreadable sources or insufficient coverage prevent reuse. Validation of another head, including pre-merge, never certifies the current ref; validate the resulting ref. |
+| `evidence.exact_ref` | Immutable identity remains verifiable from the target source. | Verify again for every action requiring it: a moving branch or tag does not prove the SHA; change or mismatch invalidates dependent claims. |
+| `evidence.repo_state` | Reconstructed live for the action, including applicable relations, diff, merge, and checks. | A previous report replaces neither current state nor preflight before writes. |
+| `evidence.target_adoption` | Adapter, `Project-specific notes`, commands, and constraints remain current for that target and environment. | Adoption, configuration, or commands change; target-owned paths are missing or ambiguous. Never inspect secret values to fill the gap. |
+| Readiness / `evidence.deployment_readiness` | Its checks still cover the required target, ref, environment, risk, rollback, and postconditions. | Reassess when any of these or an applicable decision changes; staging health does not certify production, and post-deploy verification must cover the current deployment. |
+| Applicable durable PM decisions and `evidence.pm_approval` | Source, temporal order, and exact `decision_key` still govern the action under the kernel. | A later conflicting decision needs PM resolution; permission for another action/target/environment/ref does not transfer. Evidence reuse never expands authority. |
+
+Renew only affected evidence, with verifiable justification: retain stable
+criteria and environment-independent tests of the same ref, but add checks for
+the new environment and increased risk. If independence cannot be established,
+renew before advancing. Add no cache, registry, persistent fields, or durable
+lifecycle state to the existing contracts.
+
+### Next action and gate
+
+Show a short route to the intended environment in the applicable output, with
+only actions the outcome needs. For every material action identify unit,
+target, ref, environment when applicable, responsible party, evidence/validation,
+current or pending exact authorization, rollback/recovery, and postconditions.
+Use `not applicable` with a reason where appropriate. This map is execution
+evidence, not a new artifact or durable plan.
+
+| Action | Existing contract and gate | Recovery and verification |
+| --- | --- | --- |
+| Merge | MOS-3.7: class-level review and required QA on the current head; GO delivers closeout under its contract, executed by Human PM. Outside that contract retain exact merge approval. | Target-specific reversal; verify merge and resulting ref. GO authorizes no tag, Release, or deploy. |
+| Tag | MOS-3.10 → MOS-3.11: readiness of the resulting ref and exact PM approval for tag and push; Human PM executes. | Verify tag/ref identity; never move or delete it as implicit recovery. |
+| GitHub Release | MOS-3.10 → MOS-3.12: verified tag/ref, notes, and exact Release approval; Human PM executes. | Verify object and tag; editing/deleting artifacts needs its own decision. |
+| Configuration/settings | Existing target route, exact approval for that write, and compatible surface; secret and production limits remain. | Target-owned recovery and configuration checks without sensitive values. |
+| Local deploy | MOS-R.11 → MOS-R.12; MOS-5.11 only with supported target, owned commands, and exact local authorization. | Applicable rollback and MOS-R.13 on the deployed ref. |
+| Staging deploy | MOS-R.11 → MOS-R.12; MOS-5.13 only with supported target and exact staging authorization, without inheriting local permission. | Staging rollback and MOS-R.13 with environment-specific checks. |
+| Production deploy | MOS-5.7/5.8/5.9 → MOS-5.14 → MOS-5.15: production readiness and required human checks; exact approval and execution by Human PM. | Prepared production rollback and MOS-R.13 verification; staging PASS grants neither permission nor production readiness. |
+| Rollback | MOS-R.14 → MOS-R.15: decision and exact approval for target/environment/action/recovery ref; Human PM executes. | Tested target-owned route; MOS-R.16 verifies restored ref and health. Never automatic. |
+| Post-deploy verification | MOS-R.13, read-only, target-owned checks of observed target/environment/ref; authorizes no corrections. | On failure MOS-R.14 determines the route; no recovery runs by inference. |
+
+Compose these operations in the same response when evidence and decisions
+suffice, resolving each output's workflow/actor/mode before using it. Ask for no
+additional MOS selection or reconstructible locator. MOS-R.11 owns the shared
+environment review; MOS-R.12 owns shared drafting. MOS-5.* entry points delegate
+to them and retain human checklists when checks are actually missing. QA and
+release retain MOS-4.4, MOS-3.7, and MOS-3.10–MOS-3.12; release is not mandatory
+if the target does not require it.
+
+This does not chain writes: stop at the first pending material authorization,
+failed readiness, unverifiable ref, failed/missing required validation,
+missing environment evidence or missing/ambiguous commands, undefined mandatory
+rollback, or unresolved secret/configuration boundary. Report the gate and next
+safe action with `output.status_result`; do not combine actions separated by a
+pending gate in an executable block. A permitted draft clearly identifies its
+pending execution approval. Local/staging require resolving `workflow.deployment` /
+`mode.delegated_deploy_execution`, preflight, and exact approval before executing
+one environment at a time. Production remains Human PM; browser chat only reads
+or drafts. Passing one gate neither executes nor authorizes the next.
+
 Explicit resolver example:
 
 ```sh
@@ -299,7 +378,7 @@ declaring `TARGET_REPOSITORY` because no other evidence identifies their reach.
 - [MOS-5.12 — Draft staging deploy commands](phase-5/MOS-5.12-draft-staging-deploy-commands.md)
 - [MOS-5.13 — Execute staging deploy](phase-5/MOS-5.13-execute-staging-deploy.md)
 - [MOS-5.14 — Draft production deploy commands](phase-5/MOS-5.14-draft-production-deploy-commands.md)
-- [MOS-5.15 — Execute production deploy](phase-5/MOS-5.15-execute-production-deploy.md)
+- [MOS-5.15 — Production deploy (Human PM)](phase-5/MOS-5.15-execute-production-deploy.md)
 - [MOS-5.2 — Draft local deploy checklist](phase-5/MOS-5.2-draft-local-deploy-checklist.md)
 - [MOS-5.3 — Process local deploy checklist](phase-5/MOS-5.3-process-local-deploy-checklist.md)
 - [MOS-5.4 — Analyze staging deploy readiness](phase-5/MOS-5.4-analyze-staging-deploy-readiness.md)

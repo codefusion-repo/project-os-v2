@@ -10,7 +10,11 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Draft the human QA checklist for production readiness.
 **For:** To verify actual preparation before considering production.
-**How:** Cross-sectional readiness checklist verifiable by a human.
+**How:** Cross-sectional readiness checklist verifiable by a human. Apply the
+common continuity contract to the unit, criteria, ref, and intended environment;
+retain current human checks and distinguish pending or affected ones. The QA
+result feeds MOS-4.6; it replaces neither environment-specific MOS-R.11 readiness
+nor production approval.
 
 **Variables**
 - Required: — (none)

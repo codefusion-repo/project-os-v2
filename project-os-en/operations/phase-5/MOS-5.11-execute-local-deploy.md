@@ -5,12 +5,21 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 - Surface: terminal_agent
 - Kernel: workflow.deployment · mode.delegated_deploy_execution · output.execution_report
-- Evidence: evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.deployment_readiness, evidence.validation_output, evidence.repo_state
+- Evidence: evidence.pm_approval, evidence.source_basis, evidence.target_adoption, evidence.deployment_readiness, evidence.validation_output, evidence.repo_state, evidence.exact_ref
 - PM approval: Yes (exact for target, environment, and action; never implicit)
 
 **Does:** Run local deployment/debug by terminal agent only if the target supports it.
 **For:** To test local in-house dogfood deployments without repetitive manual steps.
-**How:** Execute only target-owned commands under exact approval and report redacted.
+**How:** Reconstruct the same unit and consume MOS-R.11/MOS-R.12
+evidence for `local` under the common continuity contract. Before
+execution, revalidate exact ref, state/preflight, adoption, readiness,
+validation, and exact target/environment/action/ref approval under the
+resolved delegated workflow and mode. Reuse still-valid tests; renew
+affected ones and block on any material gap. Execute only approved
+target-owned commands, with applicable rollback prepared. Verify
+post-deploy through MOS-R.13 before reporting success, including
+expected/observed ref and reused/renewed evidence. Start no other
+environment or rollback by inference.
 
 **Variables**
 - Required: TARGET_REPOSITORY

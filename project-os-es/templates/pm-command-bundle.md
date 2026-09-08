@@ -27,6 +27,24 @@ resuelto. Los demás consumidores de `output.pm_command_bundle`, incluidos
 conservan sus aprobaciones exactas. No cambia la autoridad de implementación,
 corrección, deploy, release, settings ni otros workflows.
 
+## Release y entornos (cuando aplique)
+
+Consume la continuidad QA → release → deployment del contrato común de
+operaciones. En el scope y condiciones ya existentes nombra la misma unidad,
+target, ref exacta, entorno y acción, fuente de readiness/validación y evidencia
+reutilizada o renovada con razón. Expón responsable, aprobación exacta vigente
+o pendiente, rollback/recuperación y postcondiciones; no copies un registro de
+estado ni pidas de nuevo referencias reconstruibles.
+
+Separa tag, GitHub Release, settings y cada entorno según sus gates. Un draft
+admitido por su operación puede mostrar el permiso de ejecución pendiente;
+no se presenta como autorizado ni junta acciones de gates pendientes en un
+solo bloque ejecutable. Evidencia material insuficiente impide el bundle de
+ejecución. Producción y rollback conservan ejecución humana; local/staging
+delegados requieren su resolución, preflight y aprobación exacta propios.
+Usa comandos/checks target-owned y termina con verificación del ref observado
+y postcondiciones. No reclames éxito solo por el exit code del deploy.
+
 ## Forma por defecto
 
 El bundle por defecto es una secuencia corta, lineal y legible que el PM puede

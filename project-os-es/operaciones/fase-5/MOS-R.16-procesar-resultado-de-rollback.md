@@ -10,7 +10,12 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Procesa el resultado de un rollback ejecutado hacia incidente, corrección o cierre.
 **Para:** Cerrar el incidente de despliegue con trazabilidad y evidencia post-rollback.
-**Cómo:** Clasifica ROLLBACK_RESULT como restaurado, parcial o fallido solo cuando la evidencia lo sostiene.
+**Cómo:** Conserva la unidad y contrasta ROLLBACK_RESULT con target, entorno y
+ref de recuperación aprobados. Verifica ref restaurado y salud con checks
+target-owned posteriores al rollback; reutiliza MOS-R.13 para esa comprobación
+read-only. Solo evidencia actual suficiente permite clasificar restaurado,
+parcial o fallido; haber ejecutado el comando no demuestra recuperación.
+Readiness anterior al fallo queda pendiente de reevaluación antes de reintentar.
 
 **Variables**
 - Requeridas: ROLLBACK_RESULT, TARGET_ENVIRONMENT

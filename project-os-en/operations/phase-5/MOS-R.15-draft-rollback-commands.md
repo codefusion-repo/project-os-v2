@@ -10,7 +10,12 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Draft commands or rollback path for a failed deployment.
 **For:** To return to a safe state without improvising under pressure.
-**How:** Use only target-owned rollback paths and keep warnings outside of executable blocks.
+**How:** Reuse the target-owned route tested during readiness only if still
+applicable; verify unit, target, environment, deployed ref, and exact recovery
+ref. Show command/path, human responsible party, current or pending exact
+approval, recovery validation, and postconditions for MOS-R.16. Deploy approval
+does not authorize rollback. Keep warnings outside executable blocks; data or
+configuration changes require their own gates.
 
 **Variables**
 - Required: TARGET_REPOSITORY, TARGET_ENVIRONMENT

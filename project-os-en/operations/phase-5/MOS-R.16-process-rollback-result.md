@@ -10,7 +10,12 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Process an executed rollback result into an incident, correction, or closure path.
 **For:** To close the deployment incident with traceability and post-rollback evidence.
-**How:** Classify ROLLBACK_RESULT as restored, partial, or failed only when the evidence supports that result.
+**How:** Retain the unit and compare ROLLBACK_RESULT with approved target,
+environment, and recovery ref. Verify restored ref and health through
+target-owned checks after rollback; reuse MOS-R.13 for that read-only check.
+Only sufficient current evidence supports classifying restored, partial, or
+failed; running the command does not prove recovery. Readiness from before the
+failure must be reassessed before retrying.
 
 **Variables**
 - Required: ROLLBACK_RESULT, TARGET_ENVIRONMENT

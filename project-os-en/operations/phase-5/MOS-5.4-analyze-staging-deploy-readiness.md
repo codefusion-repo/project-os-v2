@@ -10,7 +10,11 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Analyze the readiness and required configuration of the staging deployment.
 **For:** To prepare a secure and reproducible staging deployment.
-**How:** Perform a read-only review of target notes and the repository; every configuration write goes through an approved delegated route.
+**How:** Delegate review to MOS-R.11 with `TARGET_ENVIRONMENT=staging`
+and already reconstructed live relations; apply its evidence and gates.
+Only pending human checks consume MOS-5.5; sufficient readiness
+consumes MOS-5.12 in the same response without recapture. Every
+configuration write retains its own approval and limits.
 
 **Variables**
 - Required: TARGET_REPOSITORY
@@ -22,4 +26,4 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.status_result. If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-R.13 from local deployment. Next: MOS-5.5, MOS-5.12. Recommended: MOS-5.5.
+**Connections:** Previous: QA/release or prior environment when required by the target. Next: MOS-5.5 only for pending human checks; MOS-5.12 with sufficient readiness. Recommended: the safe output resolved by MOS-R.11, without another selection.

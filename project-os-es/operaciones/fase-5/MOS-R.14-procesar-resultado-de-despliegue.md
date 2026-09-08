@@ -10,7 +10,13 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Procesa un despliegue exitoso, parcial o fallido hacia continuar, corregir o rollback.
 **Para:** Decidir la ruta siguiente con evidencia, no con output de deploy sin verificar.
-**Cómo:** Cruza DEPLOYMENT_RESULT con evidencia MOS-R.13 y redacta cualquier salida sensible.
+**Cómo:** Cruza DEPLOYMENT_RESULT con evidencia MOS-R.13 de la misma unidad,
+target, ref y entorno. Éxito verificado permite reconstruir readiness del
+entorno objetivo pendiente por MOS-R.11, renovando su evidencia específica y
+mostrando su gate exacto; no implica promoción. Ante fallo, conserva la unidad,
+clasifica corrección por la ruta aplicable o decisión PM de rollback por
+MOS-R.15; follow-up solo con materialidad e independencia por MOS-3.3.
+Entrega la salida segura en la misma respuesta y redacta cualquier dato sensible.
 
 **Variables**
 - Requeridas: DEPLOYMENT_RESULT, TARGET_ENVIRONMENT
@@ -23,4 +29,4 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.status_result (+drafts si aplica). Ante resultado o verificación ilegible, o elección continuar/rollback pendiente: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-R.13. Después: MOS-R.15 si falló y el PM elige rollback; MOS-3.3 para follow-ups. Recomendada: MOS-R.15 solo si rollback fue elegido.
+**Conexiones:** Antes: MOS-R.13. Después: MOS-R.11 para entorno pendiente con éxito verificado; MOS-R.15 si el PM elige rollback; corrección de la unidad o MOS-3.3 solo para outcome independiente. Recomendada: la siguiente acción segura de la misma unidad, sin promoción automática.

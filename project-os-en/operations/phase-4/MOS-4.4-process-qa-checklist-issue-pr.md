@@ -19,6 +19,14 @@ locator. Execute no mutations. Pending or failed required QA prevents GO;
 satisfied QA allows returning to MOS-3.7 with its evidence, without creating a
 unit or replacing review or closeout authorization.
 
+Deliver that evidence with covered criteria/dispositions, ref, and environment,
+and what is reused or pending renewal under the common contract. When the
+outcome includes release or deployment, reconstruct its next gate: MOS-3.7 if
+review is missing, MOS-3.10 after verified merge if release is required, or
+MOS-R.11 for the intended environment when its prerequisites are satisfied.
+Compose the next safe output with its resolved kernel without another selector
+or locator; QA PASS authorizes no merge, Release, or environment.
+
 **Variables**
 - Required: QA_RESULT
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)
@@ -34,4 +42,4 @@ never fails closed.
 
 **Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-4.1. Next: MOS-3.5 for blocking-correction, MOS-3.3 for follow-up, or MOS-3.7. MOS-4.8/MOS-4.7 retain compatible QA entry points. Recommended: MOS-3.5 only for blocking-correction.
+**Connections:** Previous: MOS-4.1. Next: MOS-3.5 for blocking-correction, MOS-3.3 for follow-up, MOS-3.7 if review is missing, MOS-3.10 if release applies after merge, or MOS-R.11 for the pending environment. MOS-4.8/MOS-4.7 retain compatible QA entry points. Recommended: the same unit's next safe output.

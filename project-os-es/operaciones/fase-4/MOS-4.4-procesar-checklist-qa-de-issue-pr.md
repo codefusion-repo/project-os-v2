@@ -19,6 +19,14 @@ No ejecutes mutaciones. QA requerido pendiente o fallido impide GO; QA
 satisfecho permite volver a MOS-3.7 con su evidencia, sin crear unidad ni
 sustituir review o autorización de closeout.
 
+Entrega esa evidencia con criterios/disposiciones, ref y entorno cubiertos y
+lo reutilizado o pendiente de renovar según el contrato común. Cuando el
+outcome incluye release o deployment, reconstruye su siguiente gate: MOS-3.7
+si falta review, MOS-3.10 tras merge verificado si requiere release, o MOS-R.11
+para el entorno objetivo cuando sus prerrequisitos estén satisfechos. Compón
+la siguiente salida segura con su kernel resuelto sin otro selector ni locator;
+QA PASS no autoriza merge, Release ni ningún entorno.
+
 **Variables**
 - Requeridas: QA_RESULT
 - Opcionales: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
@@ -34,4 +42,4 @@ reconstruible nunca falla cerrado.
 
 **Entrega:** output.status_result (+output.route_prompt, output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-4.1. Después: MOS-3.5 para blocking-correction, MOS-3.3 para follow-up o MOS-3.7. MOS-4.8/MOS-4.7 conservan entradas QA compatibles. Recomendada: MOS-3.5 solo para blocking-correction.
+**Conexiones:** Antes: MOS-4.1. Después: MOS-3.5 para blocking-correction, MOS-3.3 para follow-up, MOS-3.7 si falta review, MOS-3.10 si corresponde release tras merge o MOS-R.11 para el entorno pendiente. MOS-4.8/MOS-4.7 conservan entradas QA compatibles. Recomendada: siguiente salida segura de la misma unidad.

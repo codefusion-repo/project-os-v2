@@ -10,7 +10,12 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Procesa el resultado de los pasos humanos del despliegue local.
 **Para:** Confirmar readiness o derivar gaps antes de continuar.
-**Cómo:** Clasifica el CHECKLIST_RESULT hacia continuar, corregir o detener.
+**Cómo:** Contrasta CHECKLIST_RESULT con la unidad, ref y entorno del
+checklist y aplica MOS-R.11 sin recapturar evidencia válida. Si readiness
+es suficiente, consume MOS-5.10 en esta respuesta; no exige otro
+checklist ni selección. Resultado obsoleto o fallido conserva sus blockers;
+la disposición y aprobación de corrección o rollback siguen sus rutas.
+Solo un despliegue ya ejecutado pasa a verificación por MOS-R.13.
 
 **Variables**
 - Requeridas: CHECKLIST_RESULT
