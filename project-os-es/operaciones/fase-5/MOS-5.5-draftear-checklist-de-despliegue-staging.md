@@ -10,7 +10,10 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea el checklist humano de despliegue staging nombrando variables y pasos, nunca valores secretos.
 **Para:** Guiar los pasos humanos del despliegue staging.
-**Cómo:** Checklist copy-safe para el Humano PM; secretos solo como nombres de variable.
+**Cómo:** Consume los gaps humanos de MOS-R.11 para la misma unidad, ref y
+entorno `staging`. Conserva resultados aún válidos con sus fuentes y
+draftea solo comprobaciones pendientes o que requieren renovación; nunca
+omite QA o aceptación humana exigidos. Nombra variables, nunca secretos.
 
 **Variables**
 - Requeridas: TARGET_REPOSITORY

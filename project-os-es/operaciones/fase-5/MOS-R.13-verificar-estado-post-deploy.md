@@ -5,12 +5,20 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 - Superficie: browser_chat / terminal_agent
 - Kernel: workflow.review_only · mode.review_only · output.status_result
-- Evidencia: evidence.repo_state, evidence.validation_output
+- Evidencia: evidence.repo_state, evidence.validation_output, evidence.exact_ref
 - Aprobación PM: No (verificación read-only)
 
 **Hace:** Verifica el estado post-deploy del entorno objetivo.
 **Para:** Confirmar que el despliegue quedó saludable con evidencia de salud o smoke.
-**Cómo:** Usa solo checks target-owned y reporta evidencia redactada.
+**Cómo:** Reconstruye unidad, target, entorno, ref esperado y ref realmente
+desplegado desde fuentes verificables; compara identidad y postcondiciones con
+readiness y el resultado de ejecución. Usa solo checks read-only target-owned
+del despliegue actual, con fuente, alcance y resultados redactados. Exit code
+exitoso, QA previo o salud de otro entorno no prueban éxito post-deploy.
+Ref discrepante o checks fallidos bloquean; evidencia ilegible no es PASS.
+Entrega el resultado a MOS-R.14 sin recaptura y sin iniciar otro entorno;
+cuando MOS-R.16 consume esta comprobación para un rollback, devuelve allí la
+evidencia de recuperación en vez de reiniciar el procesamiento de deployment.
 
 **Variables**
 - Requeridas: TARGET_ENVIRONMENT

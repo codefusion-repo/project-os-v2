@@ -5,12 +5,16 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 - Surface: browser_chat → human_pm
 - Kernel: workflow.release_readiness · mode.review_only · output.pm_command_bundle
-- Evidence: evidence.repo_state, evidence.validation_output
+- Evidence: evidence.repo_state, evidence.validation_output, evidence.exact_ref
 - PM approval: Yes (the Human PM authorizes and runs the tag)
 
 **Does:** Draft the git tag creation bundle for GitHub.
 **For:** To publish a simple tag when readiness justifies it.
-**How:** Provide a copy-safe bundle for the Human PM to run the tag and push commands.
+**How:** Consume current MOS-3.10 evidence and the common continuity contract
+without recapturing unit, criteria, or still-valid validation. Verify exact ref
+and approval to create/push that tag; inherit no permission from merge. The
+copy-safe bundle names tag, ref, responsible party, recovery, and identity
+verification. Human PM executes tag and push; an approved tag authorizes no Release.
 
 **Variables**
 - Required: — (none)

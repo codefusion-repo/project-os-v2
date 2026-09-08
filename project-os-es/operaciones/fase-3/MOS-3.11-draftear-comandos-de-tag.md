@@ -5,12 +5,16 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 - Superficie: browser_chat → human_pm
 - Kernel: workflow.release_readiness · mode.review_only · output.pm_command_bundle
-- Evidencia: evidence.repo_state, evidence.validation_output
+- Evidencia: evidence.repo_state, evidence.validation_output, evidence.exact_ref
 - Aprobación PM: Sí (el Humano PM autoriza y ejecuta el tag)
 
 **Hace:** Draftea el bundle de creación de tag git para GitHub.
 **Para:** Publicar un tag simple cuando el readiness lo justifica.
-**Cómo:** Bundle copy-safe; el Humano PM ejecuta tag y push.
+**Cómo:** Consume la evidencia vigente de MOS-3.10 y la continuidad del contrato
+común, sin recapturar unidad, criterios ni validación aún válida. Verifica ref
+exacta y aprobación de crear/pushear ese tag; no heredes permiso del merge.
+El bundle copy-safe nombra tag, ref, responsable, recuperación y verificación
+de identidad. El Humano PM ejecuta tag y push; tag aprobado no autoriza Release.
 
 **Variables**
 - Requeridas: — (ninguna)

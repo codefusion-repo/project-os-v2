@@ -15,6 +15,8 @@ materialidad y disposiciones como MOS-4.4: corrección del mismo outcome por
 MOS-3.5, follow-up por MOS-3.3 y demás disposiciones sin trabajo nuevo. Solo usa
 MOS-3.8 si falta unidad y hay un outcome material con scope y criterios propios;
 agrupa antes por outcome, nunca crees un issue solo por entrar a QA.
+Con QA satisfecho, consume también la continuidad hacia review, release o
+readiness del entorno de MOS-4.4 con la misma evidencia y gates.
 
 **Variables**
 - Requeridas: QA_RESULT

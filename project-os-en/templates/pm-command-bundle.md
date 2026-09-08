@@ -27,6 +27,24 @@ GO. Other consumers of `output.pm_command_bundle`, including
 retain their exact approvals. It does not change authority for implementation,
 correction, deploy, release, settings, or other workflows.
 
+## Release and environments (when applicable)
+
+Consume the operations' common QA → release → deployment continuity contract.
+In the existing scope and conditions name the same unit, target, exact ref,
+environment, action, readiness/validation source, and reused or renewed evidence
+with reasons. Show responsible party, current or pending exact approval,
+rollback/recovery, and postconditions; copy no state registry and ask for no
+reconstructible references again.
+
+Separate tag, GitHub Release, settings, and each environment by their gates. A
+draft allowed by its operation may show pending execution permission; it is not
+presented as authorized and does not combine actions with pending gates in one
+executable block. Insufficient material evidence prevents the execution bundle.
+Production and rollback retain human execution; delegated local/staging require
+their own resolution, preflight, and exact approval. Use target-owned commands/
+checks and finish with observed ref and postcondition verification. Do not claim
+success merely from the deploy exit code.
+
 ## Default shape
 
 The default bundle is a short linear sequence that the PM can copy

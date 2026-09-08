@@ -6,6 +6,12 @@ its canonical resolution without padding it with repeated rules.
 PM-facing traceability: `Required source or decision` is the canonical
 representation. Do not add a receipt block.
 
+For QA/readiness/deployment, use the existing blocks to identify the same unit,
+target, ref, and environment; reused/renewed evidence sources and reasons;
+pending gate, responsible party, exact approval, applicable rollback, and
+postconditions. Follow the common continuity contract without creating
+persistent state or turning a resolved read/draft status into execution authority.
+
 ```markdown
 ## Status
 

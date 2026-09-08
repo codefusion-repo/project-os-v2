@@ -17,6 +17,12 @@ unidad. Conserva su scope, clase y PR cuando aplique. QA requerido debe quedar
 satisfecho antes del GO de closeout; puede prepararse tras implementación o
 durante review, sin exigir un GO previo.
 
+Liga cada resultado a criterios, ref exacta y entorno cubiertos, con fuente y
+disposición humana verificables. Por el contrato común de continuidad, conserva
+comprobaciones aceptadas aún vigentes y pide solo QA faltante o afectado por
+ref, entorno o riesgo. No copies un PASS a otro head ni conviertas QA diferido
+en aceptación; esta evidencia alimenta review y readiness de la misma unidad.
+
 **Variables**
 - Requeridas: QA_SOURCE
 - Opcionales: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)

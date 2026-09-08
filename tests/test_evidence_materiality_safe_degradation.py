@@ -218,6 +218,85 @@ def test_equivalent_ci_requires_the_exact_ref_and_tag_readiness_cannot_omit_sha(
     assert evidence["evidence.exact_ref"]["source"]["equivalents"] == []
 
 
+@pytest.mark.parametrize("kernel_dir", (ES_KERNEL, EN_KERNEL))
+def test_release_readiness_hydrates_ref_validation_without_execution_authority(
+    kernel_dir: Path,
+) -> None:
+    result = resolve(
+        "actor.browser_chat", "workflow.release_readiness", "mode.review_only",
+        kernel_dir=kernel_dir,
+    )
+
+    assert result["estado"] == "status.resolved"
+    workflow = result["resuelto"]["workflow"]
+    minimum = {item["key"]: item for item in workflow["minimum_evidence"]}
+    assert set(minimum) == {
+        "evidence.repo_state", "evidence.validation_output", "evidence.exact_ref",
+    }
+    assert all(item["revalidation_required_before_write"] for item in minimum.values())
+    assert minimum["evidence.validation_output"]["hard_gate"] is True
+    assert minimum["evidence.exact_ref"]["hard_gate"] is True
+    assert all(
+        output["action_class"] in {"action.read_only", "action.draft_only"}
+        for output in workflow["allowed_outputs"]
+    )
+
+
+@pytest.mark.parametrize("kernel_dir", (ES_KERNEL, EN_KERNEL))
+def test_deployment_hydrates_all_material_gates_and_critical_review(kernel_dir: Path) -> None:
+    # Resolution exposes obligations. Live ref/approval/readiness checks remain
+    # the consuming agent's responsibility; this is not a deployment simulator.
+    result = resolve(
+        "actor.terminal_agent", "workflow.deployment", "mode.delegated_deploy_execution",
+        kernel_dir=kernel_dir, change_class="change_class.critical",
+    )
+
+    assert result["estado"] == "status.resolved"
+    workflow = result["resuelto"]["workflow"]
+    minimum = {item["key"]: item for item in workflow["minimum_evidence"]}
+    assert set(minimum) == {
+        "evidence.pm_approval", "evidence.source_basis", "evidence.target_adoption",
+        "evidence.deployment_readiness", "evidence.validation_output",
+        "evidence.repo_state", "evidence.exact_ref",
+    }
+    assert minimum == {item["key"]: item for item in workflow["required_evidence"]}
+    assert all(
+        item["materiality"] == "material" and item["revalidation_required_before_write"]
+        for item in minimum.values()
+    )
+    assert all(
+        minimum[key]["hard_gate"]
+        for key in (
+            "evidence.pm_approval", "evidence.deployment_readiness",
+            "evidence.validation_output", "evidence.exact_ref",
+        )
+    )
+    outputs = {item["key"]: item for item in workflow["allowed_outputs"]}
+    assert set(outputs) == {"output.execution_report", "output.status_result"}
+    assert outputs["output.execution_report"]["allows_non_material_gaps"] is False
+    change_class = result["resuelto"]["change_class"]
+    assert change_class["review_level"] == "review.independent"
+    assert change_class["validation_level"] == "validation.broad"
+
+
+@pytest.mark.parametrize("kernel_dir", (ES_KERNEL, EN_KERNEL))
+@pytest.mark.parametrize(
+    ("actor", "workflow", "mode"),
+    (
+        ("actor.browser_chat", "workflow.deployment", "mode.delegated_deploy_execution"),
+        ("actor.browser_chat", "workflow.issue_implementation", "mode.delegated_commit_pr"),
+    ),
+)
+def test_continuity_cannot_reuse_an_incompatible_execution_selection(
+    kernel_dir: Path, actor: str, workflow: str, mode: str,
+) -> None:
+    result = resolve(actor, workflow, mode, kernel_dir=kernel_dir, change_class="change_class.critical")
+
+    assert result["estado"] == "status.blocked"
+    assert result["resuelto"] is None
+    assert result["errores"]
+
+
 def test_gap_capable_output_templates_expose_every_canonical_field() -> None:
     outputs = {item["key"]: item for item in load(ES_KERNEL / "salidas.json")["outputs"]}
     artifacts = load(ES_KERNEL / "artefactos.json")["artefactos"]

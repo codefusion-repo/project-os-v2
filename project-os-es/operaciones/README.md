@@ -110,6 +110,86 @@ sus gates antes de actuar. Reducir unidades nunca justifica mega-issues ni
 scope creep. Un permiso separado para una acción ya perteneciente al mismo
 outcome no crea por sí solo otra unidad.
 
+## Continuidad QA → release → deployment
+
+La misma regla de unidad cubre readiness, release, despliegue local, staging,
+producción, rollback y verificación del mismo outcome. Reconstruye la unidad
+incluso si su PR ya fue mergeado o cerrado; su cierre no prueba que se alcanzó
+el entorno objetivo. No abras otra unidad ni otro PR por transición. Un gap
+que requiera código vuelve a la ruta de corrección aplicable y su aprobación;
+si el PR anterior ya está cerrado, no lo trates como editable. Un resultado
+independiente sigue el gate de MOS-3.3.
+
+Parte del resultado QA, review, release o deployment ya identificable y sigue
+sus relaciones vivas. Conserva outcome, criterios, clase, target, ref y entorno
+objetivo verificables; pide solo la decisión o fuente material que falte. El
+entorno no se infiere del éxito del anterior. Un handoff o cambio de agente
+transporta referencias, no una nueva transcripción ni un snapshot de readiness.
+
+### Evidencia reutilizable
+
+Antes de cada transición contrasta la fuente viva y su aplicabilidad a la
+acción actual. En la evidencia del output existente indica qué se reutiliza,
+qué se renueva y por qué, con fuente verificable, ref, entorno y alcance cuando
+apliquen. Revalidar una fuente no obliga a repetir una prueba aún válida.
+
+| Evidencia existente | Se conserva cuando | Se renueva o bloquea cuando |
+| --- | --- | --- |
+| Scope y criterios (`evidence.issue_scope` / `evidence.source_basis`) | El outcome y los criterios siguen vigentes en la misma unidad. | Cambia el scope o falta una relación material verificable. |
+| QA aceptado y disposiciones de review | La fuente identifica criterios, ref y entorno cubiertos; aceptación y disposiciones siguen aplicando. | Cambia lo cubierto, aumenta el riesgo o hay decisión PM incompatible. QA pendiente/fallido no se convierte en PASS; un riesgo aceptado conserva su alcance y no exime hard gates. |
+| `evidence.validation_output` | Resultado verificable para la misma SHA/ref exacta y alcance requerido, con entorno/condiciones todavía aplicables. CI equivalente cumple esos mismos límites. | Nuevo código/ref, entorno o riesgo exige pruebas afectadas; fuente expirada, ilegible o alcance insuficiente impide reutilizarla. Validación de otro head, incluso pre-merge, nunca certifica el ref actual; valida el ref resultante. |
+| `evidence.exact_ref` | La identidad inmutable sigue verificable en la fuente del target. | Verifica de nuevo en cada acción que la requiere: una rama o tag móvil no prueba la SHA; cambio o discrepancia invalida los claims dependientes. |
+| `evidence.repo_state` | Se reconstruye en vivo para la acción, incluidas relaciones, diff, merge y checks aplicables. | Un reporte anterior no sustituye estado actual ni preflight antes de writes. |
+| `evidence.target_adoption` | Adapter, `Project-specific notes`, comandos y constraints siguen vigentes para ese target y entorno. | Cambian adopción, configuración o comandos; faltan rutas propias del target o son ambiguas. Nunca inspecciones valores secretos para rellenar el gap. |
+| Readiness / `evidence.deployment_readiness` | Sus comprobaciones siguen cubriendo target, ref, entorno, riesgo, rollback y postcondiciones exigidos. | Reevalúa al cambiar cualquiera de ellos o una decisión aplicable; salud de staging no certifica producción, y la verificación posterior debe ser del despliegue actual. |
+| Decisiones PM durables aplicables y `evidence.pm_approval` | Fuente, orden temporal y `decision_key` exacta siguen gobernando la acción según el kernel. | Una decisión posterior incompatible exige resolución PM; un permiso de otra acción/target/entorno/ref no se traslada. Nunca amplíes autoridad por reutilizar evidencia. |
+
+Renueva únicamente lo afectado, con justificación verificable: conserva criterios
+estables y pruebas del mismo ref independientes del entorno, pero añade los
+checks propios del nuevo entorno y los exigidos por mayor riesgo. Si no puedes
+demostrar independencia, renueva antes de avanzar. No añadas cache, registry,
+campos persistentes ni estado durable de lifecycle a los contratos existentes.
+
+### Acción y gate siguientes
+
+Muestra en el output aplicable una ruta corta hasta el entorno objetivo, solo
+con acciones que el outcome necesita. Para cada acción material identifica
+unidad, target, ref, entorno si aplica, responsable, evidencia/validación,
+autorización exacta vigente o pendiente, rollback/recuperación y postcondiciones.
+Usa `no aplica` con razón donde corresponda. Este mapa es evidencia de ejecución,
+no un nuevo artefacto ni un plan durable.
+
+| Acción | Contrato existente y gate | Recuperación y verificación |
+| --- | --- | --- |
+| Merge | MOS-3.7: review de la clase y QA requerido sobre el head vigente; GO entrega el closeout bajo su contrato, ejecutado por Humano PM. Fuera de ese contrato conserva aprobación exacta de merge. | Reversión según target; comprobar merge y ref resultante. GO no autoriza tag, Release ni deploy. |
+| Tag | MOS-3.10 → MOS-3.11: readiness del ref resultante y aprobación PM exacta de tag y push; ejecuta Humano PM. | Verificar identidad del tag/ref; nunca moverlo o borrarlo como recuperación implícita. |
+| GitHub Release | MOS-3.10 → MOS-3.12: tag/ref verificados, notas y aprobación exacta de Release; ejecuta Humano PM. | Comprobar objeto y tag; editar/borrar artefactos exige decisión propia. |
+| Configuración/settings | Ruta existente del target, aprobación exacta de esa escritura y superficie compatible; secretos y producción conservan sus límites. | Recuperación target-owned y comprobación de configuración sin valores sensibles. |
+| Deploy local | MOS-R.11 → MOS-R.12; MOS-5.11 solo con target compatible, comandos propios y autorización exacta local. | Rollback aplicable y MOS-R.13 sobre el ref desplegado. |
+| Deploy staging | MOS-R.11 → MOS-R.12; MOS-5.13 solo con target compatible y autorización exacta staging, sin heredar permiso local. | Rollback de staging y MOS-R.13 con checks propios del entorno. |
+| Deploy producción | MOS-5.7/5.8/5.9 → MOS-5.14 → MOS-5.15: readiness y checks humanos requeridos de producción; aprobación exacta y ejecución por Humano PM. | Rollback de producción preparado y verificación MOS-R.13; staging PASS no concede permiso ni readiness productiva. |
+| Rollback | MOS-R.14 → MOS-R.15: decisión y aprobación exacta por target/entorno/acción/ref de recuperación; ejecuta Humano PM. | Ruta target-owned probada; MOS-R.16 verifica ref restaurado y salud. Nunca es automático. |
+| Verificación post-deploy | MOS-R.13, read-only, checks target-owned sobre target/entorno/ref observados; no autoriza correcciones. | Ante fallo, MOS-R.14 decide ruta; ninguna recuperación se ejecuta por inferencia. |
+
+Compón estas operaciones en la misma respuesta cuando evidencia y decisiones
+sean suficientes, resolviendo el workflow/actor/mode de cada salida antes de
+usarlo. No pidas otra selección MOS ni locator ya reconstruible. MOS-R.11 es
+la revisión común por entorno; MOS-R.12, el drafteo común. Las entradas MOS-5.*
+delegan en ellos y conservan sus checklists humanos cuando realmente faltan
+comprobaciones. QA y release conservan MOS-4.4, MOS-3.7 y MOS-3.10–MOS-3.12;
+release no es un paso obligatorio si el target no lo requiere.
+
+Esto no encadena writes: detente en la primera autorización material pendiente,
+readiness fallida, ref no verificable, validación requerida fallida/ausente,
+evidencia de entorno o comandos faltantes/ambiguos, rollback obligatorio no
+definido o boundary de secretos/configuración sin resolver. Informa el gate y
+la siguiente acción segura con `output.status_result`; no juntes acciones
+separadas por un gate pendiente en un bloque ejecutable. Un draft permitido
+identifica claramente su aprobación de ejecución pendiente. Local/staging
+requieren resolver `workflow.deployment` / `mode.delegated_deploy_execution`, preflight y aprobación
+exacta antes de ejecutar un entorno por vez. Producción permanece Humano PM;
+browser chat solo lee o draftea. Pasar un gate no ejecuta ni autoriza el siguiente.
+
 ## Cómo usar una operación
 
 Copia el archivo de la operación como prompt, completa sus variables y

@@ -17,6 +17,12 @@ unit. Retain its scope, class, and PR when applicable. Required QA must be
 satisfied before closeout GO; it can be prepared after implementation or during
 review, without requiring a prior GO.
 
+Bind each result to covered criteria, exact ref, and environment, with
+verifiable source and human disposition. Under the common continuity contract,
+retain still-current accepted checks and request only missing QA or checks
+affected by ref, environment, or risk. Do not copy PASS to another head or turn
+deferred QA into acceptance; this evidence feeds the same unit's review and readiness.
+
 **Variables**
 - Required: QA_SOURCE
 - Optional: PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)

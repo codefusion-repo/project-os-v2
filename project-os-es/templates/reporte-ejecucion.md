@@ -12,6 +12,13 @@ resuelta; no combines densidades. La trazabilidad PM-facing vive en el propio
 bloque —en `full/debug`, `Evidencia revisada`—; ninguna densidad agrega un
 bloque de recibo.
 
+Para deployment, usa las secciones de evidencia, validación, riesgos y trabajo
+restante de la densidad resuelta para conservar unidad, target, entorno, acción,
+ref esperado/observado, aprobación exacta y evidencia reutilizada/renovada con
+fuente y razón. Distingue ejecución de verificación post-deploy, registra
+rollback aplicable y siguiente gate; no declares éxito sin postcondiciones
+verificadas ni autorización de otro entorno por continuidad.
+
 ## Densidad minimal
 
 ```markdown

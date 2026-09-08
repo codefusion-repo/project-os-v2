@@ -10,7 +10,10 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea el bundle de comandos de despliegue local desde los comandos target-owned de Project-specific notes.
 **Para:** Preparar la ejecución del despliegue local sin inventar comandos.
-**Cómo:** Bundle copy-safe solo desde comandos target-owned; nunca imprime secretos.
+**Cómo:** Delega el bundle en MOS-R.12 con `TARGET_ENVIRONMENT=local`
+y la evidencia vigente de la misma unidad. Consume sus gates de readiness,
+ref exacta, comandos target-owned, aprobación, rollback y verificación;
+entrega el draft en esta respuesta, sin otra selección ni locator.
 
 **Variables**
 - Requeridas: TARGET_REPOSITORY

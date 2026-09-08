@@ -10,7 +10,10 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea el bundle de comandos de despliegue de producción desde los comandos target-owned de Project-specific notes.
 **Para:** Preparar la ejecución del despliegue de producción sin inventar comandos.
-**Cómo:** Bundle copy-safe solo desde comandos target-owned; nunca imprime secretos.
+**Cómo:** Delega el bundle en MOS-R.12 con `TARGET_ENVIRONMENT=production`
+y la evidencia vigente de la misma unidad. Consume sus gates de readiness,
+ref exacta, comandos target-owned, aprobación, rollback y verificación;
+entrega el draft en esta respuesta, sin otra selección ni locator.
 
 **Variables**
 - Requeridas: TARGET_REPOSITORY
@@ -23,4 +26,4 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.pm_command_bundle. Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-5.9. Después: MOS-5.15 o ejecución del Humano PM. Recomendada: ejecución del Humano PM por defecto.
+**Conexiones:** Antes: MOS-5.7/MOS-R.11 o MOS-5.9 con readiness suficiente. Después: MOS-5.15, ejecución por Humano PM; luego MOS-R.13. Recomendada: gate humano exacto de producción.

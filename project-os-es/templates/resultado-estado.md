@@ -6,6 +6,12 @@ su resolución canónica sin rellenar con reglas repetidas.
 Trazabilidad PM-facing: `Fuente o decision requerida` es la representación
 canónica. No agregues un bloque de recibo.
 
+En QA/readiness/deployment, usa los bloques existentes para identificar la misma
+unidad, target, ref y entorno; fuentes de evidencia reutilizada/renovada y razón;
+gate pendiente, responsable, aprobación exacta, rollback y postcondiciones
+aplicables. Sigue el contrato común de continuidad sin crear estado persistente
+ni convertir un estado resuelto de lectura/draft en autorización de ejecución.
+
 ```markdown
 ## Estado
 

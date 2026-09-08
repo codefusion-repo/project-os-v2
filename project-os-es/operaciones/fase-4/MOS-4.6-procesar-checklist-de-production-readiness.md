@@ -10,7 +10,12 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Procesa el resultado del checklist humano de production readiness.
 **Para:** Decidir si el proyecto avanza hacia despliegue.
-**Cómo:** Clasifica gaps de readiness y recomienda la fase segura.
+**Cómo:** Conserva unidad, criterios, ref, entorno y disposiciones del QA
+verificable según MOS-4.4 y el contrato común. QA pendiente/fallido conserva su
+gate; no se convierte en PASS ni en permiso de producción. Con evidencia
+suficiente consume MOS-R.11 para el entorno objetivo ya reconstruido, con su
+workflow resuelto, sin otra selección de fase ni locator. Renueva solo lo que
+requiera ese entorno/ref/riesgo y entrega el siguiente draft o gate pendiente.
 
 **Variables**
 - Requeridas: QA_RESULT
@@ -18,4 +23,4 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Entrega:** output.status_result (+output.route_prompt, output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-4.3. Después: MOS-5.1 o MOS-6.1 según gaps. Recomendada: MOS-R.4 antes de la Fase 5.
+**Conexiones:** Antes: MOS-4.3. Después: MOS-4.4 para disposiciones QA o MOS-R.11 para readiness del entorno objetivo. Recomendada: siguiente salida segura en la misma unidad; nunca producción por inferencia.

@@ -10,7 +10,12 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea comandos o ruta de rollback para un despliegue fallido.
 **Para:** Volver a un estado seguro sin improvisar bajo presión.
-**Cómo:** Usa solo rutas de rollback target-owned y conserva advertencias fuera de bloques ejecutables.
+**Cómo:** Reutiliza la ruta target-owned probada durante readiness solo si
+sigue aplicable; verifica unidad, target, entorno, ref desplegado y ref exacto
+de recuperación. Expón comando/ruta, responsable humano, aprobación exacta
+vigente o pendiente, validación de recuperación y postcondiciones para MOS-R.16.
+La aprobación de deploy no autoriza rollback. Conserva advertencias fuera de
+bloques ejecutables; cambiar datos o configuración exige sus gates propios.
 
 **Variables**
 - Requeridas: TARGET_REPOSITORY, TARGET_ENVIRONMENT

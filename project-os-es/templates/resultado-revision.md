@@ -12,7 +12,9 @@ agregues un bloque de recibo.
 
 ## Evidencia revisada
 
-- {{Diff, archivos finales, comentarios, validacion, docs.}}
+- {{Diff, archivos finales, comentarios, validacion, docs. Para QA/readiness:
+  misma unidad, target, ref y entorno cubiertos; evidencia reutilizada/renovada
+  con fuente y razón según el contrato común de continuidad.}}
 
 ## Comparacion contra scope
 
@@ -36,8 +38,10 @@ independiente y razon para diferirlo, y las demas disposiciones no fuerzan cambi
 
 ## Veredicto o recomendacion
 
-{{GO, NO-GO, needs_context, follow-up o recomendacion. Con GO, el bundle de
-closeout y su verificacion final acompanan esta misma respuesta.}}
+{{GO, NO-GO, needs_context, follow-up o recomendacion. Solo el GO resuelto de
+workflow.review_before_close entrega closeout y verificación en esta respuesta.
+Readiness identifica siguiente acción, responsable, evidencia, autorización
+exacta, rollback y postcondiciones aplicables; no autoriza release ni deploy.}}
 
 ## Riesgos
 

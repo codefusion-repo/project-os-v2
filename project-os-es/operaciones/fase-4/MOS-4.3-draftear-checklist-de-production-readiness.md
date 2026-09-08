@@ -10,7 +10,11 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea el checklist humano de QA de production readiness.
 **Para:** Verificar preparación real antes de considerar producción.
-**Cómo:** Checklist transversal de readiness verificable por un humano.
+**Cómo:** Checklist transversal de readiness verificable por un humano. Aplica
+la continuidad del contrato común a la unidad, criterios, ref y entorno objetivo;
+conserva comprobaciones humanas vigentes y distingue las pendientes o afectadas.
+El resultado QA alimenta MOS-4.6; no sustituye readiness específica del entorno
+por MOS-R.11 ni aprobación productiva.
 
 **Variables**
 - Requeridas: — (ninguna)

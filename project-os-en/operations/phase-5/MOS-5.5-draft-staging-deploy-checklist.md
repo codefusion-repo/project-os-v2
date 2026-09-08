@@ -10,7 +10,10 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Draft the human staging deployment checklist naming variables and steps, never secret values.
 **For:** To guide the human steps of the staging deployment.
-**How:** Copy-safe checklist for the Human PM; secrets only as variable names.
+**How:** Consume MOS-R.11 human gaps for the same unit, ref, and
+`staging` environment. Retain still-valid results with their sources
+and draft only pending checks or those needing renewal; never omit
+required QA or human acceptance. Name variables, never secrets.
 
 **Variables**
 - Required: TARGET_REPOSITORY
