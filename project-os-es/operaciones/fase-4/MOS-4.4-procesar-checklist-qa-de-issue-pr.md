@@ -10,7 +10,14 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Procesa el resultado del checklist humano de issue/PR.
 **Para:** Convertir QA humano en corrección, follow-up o avance.
-**Cómo:** Clasifica bloqueantes y no bloqueantes sin ejecutar nada.
+**Cómo:** Aplica el gate de materialidad y las disposiciones de MOS-3.7 al
+resultado QA de la misma unidad: `blocking-correction` consume MOS-3.5;
+`non-blocking-follow-up` consume MOS-3.3, con agrupación e independencia;
+`preference`, `accepted-risk` e `invalid-finding` no crean trabajo. Entrega la
+salida canónica aplicable en la misma respuesta sin otra selección ni locator.
+No ejecutes mutaciones. QA requerido pendiente o fallido impide GO; QA
+satisfecho permite volver a MOS-3.7 con su evidencia, sin crear unidad ni
+sustituir review o autorización de closeout.
 
 **Variables**
 - Requeridas: QA_RESULT
@@ -27,4 +34,4 @@ reconstruible nunca falla cerrado.
 
 **Entrega:** output.status_result (+output.route_prompt, output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
 
-**Conexiones:** Antes: MOS-4.1. Después: MOS-4.8, MOS-4.7 o MOS-3.7. Recomendada: MOS-4.8 para bloqueantes.
+**Conexiones:** Antes: MOS-4.1. Después: MOS-3.5 para blocking-correction, MOS-3.3 para follow-up o MOS-3.7. MOS-4.8/MOS-4.7 conservan entradas QA compatibles. Recomendada: MOS-3.5 solo para blocking-correction.

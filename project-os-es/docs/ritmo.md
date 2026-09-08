@@ -28,6 +28,15 @@ Issues, PRs, branches y GitHub son adapters disponibles, no requisitos
 universales del modelo: otro tracker o registro del target puede representar
 la unidad viva.
 
+La [continuidad de unidad](../operaciones/README.md#continuidad-de-la-unidad-primaria)
+se conserva durante planificación, implementación, review, QA, corrección,
+handoff y closeout. QA requerido precede al GO: MOS-4.1 → MOS-4.4 reutiliza
+MOS-3.5 para corrección del mismo PR y MOS-3.3 para follow-ups materiales e
+independientes, agrupados por outcome. MOS-4.8/MOS-4.7 mantienen entradas QA
+compatibles que consumen esos contratos en la misma respuesta. En roadmaps
+secuenciales, MOS-3.1 verifica completitud del predecessor antes de draftear una
+única unidad siguiente; otra fase o una aprobación separada no crean unidades.
+
 ## El ciclo central
 
 1. **Elige el siguiente outcome.** Desde el roadmap canónico y la
@@ -110,7 +119,8 @@ el prompt de cada una vive en el catálogo):
 - **Sin terminal agent:** plan de implementación manual (MOS-3.30) →
   ejecución PM/humana → procesar resultado (MOS-3.31) → review normal.
 - **QA humano:** checklist (MOS-4.1) → tú lo ejecutas → procesar resultado
-  (MOS-4.4) → corrección (MOS-4.8) o follow-up (MOS-4.7).
+  (MOS-4.4) → corrección (MOS-3.5) o follow-up (MOS-3.3), en la misma unidad
+  mientras el outcome sea el mismo.
 - **Seguridad / auditoría read-only:** solicitar revisión (MOS-3.23) →
   procesar hallazgos (MOS-3.25) → follow-ups (MOS-3.3) o correcciones
   (MOS-3.5).

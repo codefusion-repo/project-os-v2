@@ -18,6 +18,17 @@ with the Human PM. For implementation intent, once the creation result is
 live-verifiable, continue to MOS-3.4 per MOS-R.2 without another MOS selection
 or redundant locator.
 
+Before drafting, check whether a unit already exists for the outcome and
+reuse it; do not create another for planning or handoff. For a sequential
+roadmap, identify whether a predecessor exists; when it does, verify material
+completion from live scope, criteria, PR, review/QA, validation, and closure: an isolated GO, merged
+PR, or closed issue does not prove the outcome. If it remains materially open,
+retain that unit and report the next safe step with `output.status_result`,
+without drafting the next phase. Missing evidence fails closed. Once complete,
+infer and draft a single unit for the next real outcome, reusing an existing
+one if present; never an advance set merely enumerated from the roadmap.
+Material priority ambiguity returns to the PM.
+
 **Variables**
 - Required: — (none)
 - Optional: ROADMAP_ISSUE, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (PM feedback and questions are context only and never authorize an action)

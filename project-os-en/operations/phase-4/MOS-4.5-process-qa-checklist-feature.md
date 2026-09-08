@@ -10,7 +10,11 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Does:** Process the human description-or-feature checklist result.
 **For:** To close the features QA loop without anchor issue.
-**How:** Classify findings into a new issue, correction, or no-op.
+**How:** Reconstruct whether the feature already belongs to a live unit.
+Apply materiality and dispositions as in MOS-4.4: same-outcome correction through
+MOS-3.5, follow-up through MOS-3.3, and other dispositions without new work. Use
+MOS-3.8 only when no unit exists and there is a material outcome with its own
+scope and criteria; group by outcome first, never create an issue merely for QA.
 
 **Variables**
 - Required: QA_RESULT
@@ -18,4 +22,4 @@ Common contract: `project-os-en/operations/README.md` (kernel resolution, live s
 
 **Deliver:** output.status_result (+output.route_prompt, output.pm_command_bundle). If evidence, scope, or approval is missing or ambiguous, fail closed: report with `output.status_result` and return the decision to the PM.
 
-**Connections:** Previous: MOS-4.2. Next: MOS-3.8 or MOS-4.7. Recommended: MOS-3.8 if new work is created.
+**Connections:** Previous: MOS-4.2. Next: MOS-3.5, MOS-3.3, or MOS-3.8 according to classification; MOS-4.7 retains the compatible QA entry point. Recommended: MOS-3.8 if new work is created.

@@ -32,16 +32,32 @@ accionable con scope independiente y razón para diferirlo, y solo
 se registra como un correction report append-only —review fuente, head anterior,
 head corregido, findings abordados y validación— sin editar el body ni
 comentarios previos, y alimenta un nuevo MOS-3.7 sobre el head corregido. Con GO,
-draftea en la misma respuesta el bundle completo de closeout y su verificación
-final read-only. Si ese bundle se pierde, queda obsoleto o el cierre falla,
+el review resuelto es el gate de closeout: entrega directamente en la misma
+respuesta el bundle completo de ready cuando aplique, merge, cierre y cleanup,
+con verificación final read-only, según `project-os-es/templates/pm-command-bundle.md`.
+No solicita otra ronda de aprobación PM por acción para entregar ese bundle.
+El Humano PM lo ejecuta; `browser_chat` nunca ejecuta esas acciones y el GO no
+delega su ejecución al agente. Esta regla se limita a
+`workflow.review_before_close`; implementación, corrección, deploy, release,
+settings y los demás workflows conservan sus aprobaciones exactas.
+
+Si ese bundle se pierde, queda obsoleto o el cierre falla,
 vuelve a ejecutar esta operación sobre la evidencia vigente para regenerarlo; una
 verificación posterior independiente de postcondiciones usa MOS-3.27.
+
+Reconstruye la misma unidad primaria y PR al recibir review, QA o un
+correction report. QA manual requerido pendiente o fallido impide GO: usa
+MOS-4.1/MOS-4.4 para completarlo dentro de esa unidad. El closeout no crea otra
+unidad ni permite omitir findings bloqueantes o validar un head anterior.
 
 **Variables**
 - Requeridas: PR_NUMBER
 - Opcionales: EXECUTION_REPORT, PM_FEEDBACK_HUMANO, PM_QUESTION_HUMANO (el feedback y la pregunta del PM son contexto humano; nunca autorizan nada)
 
-**Entrega:** output.review_result (+output.pm_command_bundle). Ante evidencia, alcance o aprobación faltante o ambigua: fail-closed — informa con output.status_result y devuelve la decisión al PM.
+**Entrega:** output.review_result (+output.pm_command_bundle con GO resuelto).
+Ante evidencia o alcance faltante o ambiguo, validación fallida o un gate de
+review pendiente: fail-closed con output.status_result. No convierte la
+entrega del bundle tras GO en una nueva solicitud de aprobación PM por acción.
 
 **Conexiones:** Antes: MOS-3.4 o MOS-3.5. Después: con GO, el closeout y su
 verificación van en la misma respuesta; MOS-3.5 solo con findings

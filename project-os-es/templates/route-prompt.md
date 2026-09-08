@@ -72,7 +72,8 @@ reescrito un identificador, una clase, una rama o un nivel reconstruibles.
 Ningún valor derivado concede permisos.
 
 Cuando el route prompt corrige un PR ya revisado (MOS-3.5), el bloque agrega
-`SOURCE_REVIEW` con la referencia exacta al review o comentario fuente y
+`SOURCE_REVIEW` con la referencia exacta al review o comentario fuente
+(incluido QA humano por MOS-4.8 → MOS-3.5) y
 `PR_NUMBER`, reconstruidos igual que el resto de la metadata. La
 instrucción final exige publicar exactamente un correction report append-only en
 ese PR con head anterior, head corregido, mapa de `blocking-correction` y

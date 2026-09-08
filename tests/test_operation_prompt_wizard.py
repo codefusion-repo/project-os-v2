@@ -1687,3 +1687,48 @@ def test_cleanup_never_removes_unmarked_file_and_secret_looking_input_is_rejecte
         "gh" + "p_" + "abcdefghijklmnop",
     )
     assert error is not None
+
+
+@pytest.mark.parametrize("language", ("es", "en"))
+@pytest.mark.parametrize(
+    "code,locator,source,route_path",
+    (
+        ("MOS-3.1", "ROADMAP_ISSUE", "roadmap fixture", False),
+        ("MOS-3.3", "FOLLOW_UP_SOURCE", "QA comment on fixture PR", False),
+        ("MOS-3.4", "WORK_UNIT", "fixture unit", True),
+        ("MOS-3.5", "WORK_UNIT", "fixture unit", True),
+        ("MOS-3.7", "PR_NUMBER", "123", False),
+        ("MOS-4.1", "QA_SOURCE", "fixture unit", False),
+        ("MOS-4.4", "QA_RESULT", "QA comment on fixture PR", False),
+        ("MOS-4.4", "QA_RESULT", "QA comment on fixture PR", True),
+        ("MOS-4.5", "QA_RESULT", "QA feature result", False),
+        ("MOS-4.5", "QA_RESULT", "QA feature result", True),
+        ("MOS-4.7", "QA_RESULT", "QA comment on fixture PR", False),
+        ("MOS-4.8", "QA_RESULT", "QA comment on fixture PR", True),
+    ),
+)
+def test_lifecycle_catalog_transports_source_without_inventing_relations_or_grants(
+    language: str, code: str, locator: str, source: str, route_path: bool,
+) -> None:
+    """Exercise the real parser/renderer, not an invented lifecycle evaluator."""
+    operation = next(item for item in operations_for(language) if item.mos_code == code)
+    values = {locator: source}
+    if route_path:
+        values[PM_AUTHORIZATION_STATUS_NAME] = PM_AUTHORIZATION_PENDING
+    rendered = render_prompt(
+        operation, values, include_route_prompt_authorization=route_path,
+    )
+    inputs = dict(
+        line.strip().split("=", 1)
+        for line in rendered.split("\nINPUT:\n", 1)[1].splitlines()
+        if "=" in line
+    )
+    assert inputs[locator] == source
+    assert {key: value for key, value in inputs.items() if value} == values
+    assert not ((set(DERIVED_IDENTIFIERS) - {locator}) & inputs.keys())
+    assert (PM_AUTHORIZATION_STATUS_NAME in inputs) is route_path
+    assert PM_AUTHORIZATION_GRANTED not in inputs.values()
+
+    # A fresh rendering cannot infer a grant from the source or phase.
+    fresh = render_prompt(operation, {locator: source})
+    assert f"{PM_AUTHORIZATION_STATUS_NAME}={PM_AUTHORIZATION_GRANTED}" not in fresh

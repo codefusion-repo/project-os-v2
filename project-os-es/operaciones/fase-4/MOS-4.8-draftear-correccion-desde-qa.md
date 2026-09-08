@@ -10,7 +10,13 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea el prompt de corrección desde resultados de QA.
 **Para:** Corregir bloqueantes de QA sin expandir el scope.
-**Cómo:** Encapsula el QA_RESULT en una ruta de corrección delegada.
+**Cómo:** Lee y aplica MOS-3.5 como único contrato de corrección en esta misma
+respuesta. Desde `QA_RESULT` reconstruye `WORK_UNIT`, `PR_NUMBER`,
+`SOURCE_REVIEW`, clase y rama sin pedir otro locator. Solo transporta
+`blocking-correction` del scope original: conserva unidad y PR, exige autorización
+exacta, validación real, correction report append-only y re-review del head
+corregido conforme a MOS-3.5. Usa su forma compacta de route prompt. Conserva
+esta entrada compatible; no crea unidad, semántica ni handoff adicionales.
 
 **Variables**
 - Requeridas: QA_RESULT

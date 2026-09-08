@@ -20,8 +20,8 @@ derived metadata and authorize nothing. The rest of the metadata is reconstructe
 from live evidence and shown resolved for inspection, not asked again. Browser
 chat reads the live unit and its relations, locates the existing
 PR when applicable, reads its full conversation, selects the latest active review
-with unresolved `blocking-correction` findings and incorporates its later PM
-addenda as part of the same source basis, reconstructs or preserves the unit's
+(technical or human QA) with unresolved `blocking-correction` findings and
+incorporates its later PM addenda as part of the same source basis, reconstructs or preserves the unit's
 `CHANGE_CLASS`. With those resolved values it fills `WORK_UNIT`,
 `SOURCE_REVIEW`, `PR_NUMBER`, and `CHANGE_CLASS` in the route
 prompt so the terminal receiver verifies the contract; it never invents them. When
@@ -41,6 +41,20 @@ material breach and its observable criterion are binding; the reviewer's wording
 and solution proposals are advisory. Browser chat may recommend an optional skill
 and infer `RECOMMENDED_TERMINAL_AGENT_FAMILY` from the work. The recommendation is
 advisory, authorizes nothing, and may be overridden by explicit PM feedback.
+
+Correction retains the original primary unit, PR, existing branch, class,
+and scope; it creates no correction issue or PR. A QA source uses this same
+contract: reconstruct the relation from `QA_RESULT` to `WORK_UNIT` and the PR,
+and use `SOURCE_REVIEW` to reference the exact human review or QA comment
+holding the active `blocking-correction` findings. Also read applicable reviews
+and addenda; do not replace one active blocker with another or invent a
+technical review to accept QA. Insufficient source evidence or material conflict
+fails closed. Do not force a PR when the class and target policy admit a unit
+without one; retain the source and validation in its equivalent record, without
+inferring permission to publish them. Every PR correction returns to MOS-3.7 on
+the corrected head, with the append-only correction report required above.
+Verify exact authorization and compact form as in MOS-3.4; sharing a unit does
+not automatically reuse a previous grant.
 
 **Variables**
 - Required: WORK_UNIT

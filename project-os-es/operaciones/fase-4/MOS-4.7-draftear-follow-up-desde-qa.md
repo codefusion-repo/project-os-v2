@@ -10,7 +10,12 @@ Contrato común: `project-os-es/operaciones/README.md` (resolución de kernel, e
 
 **Hace:** Draftea follow-up desde resultados de QA.
 **Para:** Diferir hallazgos de QA no bloqueantes con trazabilidad.
-**Cómo:** Bundle de creación de follow-up para el Humano PM.
+**Cómo:** Usa MOS-3.3 como único contrato de follow-up: `QA_RESULT` es su
+`FOLLOW_UP_SOURCE` ya disponible. Lee y aplica ese contrato en esta misma
+respuesta, incluidos materialidad, independencia, agrupación, reutilización de
+unidad y no-action. No pidas otro locator ni conviertas cada finding QA en un
+issue. Conserva esta entrada compatible; no es otra semántica ni un handoff
+obligatorio.
 
 **Variables**
 - Requeridas: QA_RESULT

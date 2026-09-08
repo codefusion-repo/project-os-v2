@@ -160,7 +160,7 @@
       "required_behavior": [
         "compare the real implementation and validation against work-unit scope, out of scope, and acceptance criteria",
         "classify every finding with a verifiable disposition: blocking-correction, non-blocking-follow-up, preference, accepted-risk, or invalid-finding; only blocking-correction requires correction before closure",
-        "when the verdict is GO, deliver the closeout bundle and its final verification in the same response"
+        "when workflow.review_before_close is resolved with a GO verdict, that GO is the closeout gate: deliver the complete bundle of ready when applicable, merge, closure, and cleanup with final verification directly in the same response, without requesting another round of PM approval per action; the human PM executes the bundle and browser_chat never executes those actions; this does not delegate execution to the agent or change exact approvals for other workflows"
       ],
       "required_evidence": [
         "evidence.issue_scope",

@@ -160,7 +160,7 @@
       "required_behavior": [
         "comparar la implementacion y la validacion reales contra scope, out of scope y acceptance criteria de la unidad de trabajo",
         "clasificar cada hallazgo con una disposicion verificable: blocking-correction, non-blocking-follow-up, preference, accepted-risk o invalid-finding; solo blocking-correction exige correccion antes del cierre",
-        "cuando el veredicto es GO, entregar en la misma respuesta el bundle de closeout y su verificacion final"
+        "cuando workflow.review_before_close queda resuelto con veredicto GO, ese GO es el gate de closeout: entregar directamente en la misma respuesta el bundle completo de ready cuando aplique, merge, cierre y cleanup con verificacion final, sin solicitar otra ronda de aprobacion PM por accion; el Humano PM ejecuta el bundle y browser_chat nunca ejecuta esas acciones; esto no delega ejecucion al agente ni cambia las aprobaciones exactas de otros workflows"
       ],
       "required_evidence": [
         "evidence.issue_scope",

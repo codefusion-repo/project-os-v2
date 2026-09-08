@@ -26,6 +26,33 @@ This directory is the English PM-facing MOSDLC (Modern AI SDLC Operations) catal
     advisory and are never copied automatically into rules, fields, files, or
     tests.
 
+## Primary work unit continuity
+
+Reconstruct `WORK_UNIT` and its live relations before continuing: outcome,
+scope, criteria, `CHANGE_CLASS`, existing PR and branch when applicable, and the
+review or QA source. Planning, implementation, review, QA, correction,
+re-review, handoff, and closeout retain that unit while completing the same
+outcome. Changing phase, agent, or session, producing an output or checklist,
+or correcting the same PR creates neither another unit nor another PR. Reuse
+verifiable references without asking for reconstructible identifiers; a missing
+or ambiguous material relation fails closed. Add no lifecycle registry or
+durable state.
+
+Continuity neither expands scope nor shares authorization: every material
+action retains its exact approval, evidence, preflight, validation, and review.
+A blocker for the same outcome retains unit, PR, class, and scope through
+MOS-3.5, including its QA source; a follow-up from any origin consumes MOS-3.3.
+QA and audit are not sufficient reasons to create work.
+
+Before another unit, check materiality and independence through MOS-3.3 and
+group findings sharing one outcome and exit criteria. Separate distinct
+observable results with their own criteria, independent prioritization, or work
+unnecessary to complete the current outcome; do not absorb work requiring a
+separate material decision or a different authorization/security boundary.
+Resolve that separate scope and its gates before acting. Fewer units never
+justify mega-issues or scope creep. Separate permission for an action already
+belonging to the same outcome does not itself create another unit.
+
 Explicit resolver example:
 
 ```sh
