@@ -6,6 +6,27 @@ repeat it or create alternative rules for PM-facing commands. It neither stores
 live state nor authorizes actions: before drafting, read the repository, issue,
 PR, branch, paths, and reviewed head SHA live.
 
+## Closeout after GO
+
+When `workflow.review_before_close` is resolved with a GO verdict over the
+current unit and head, that GO is the closeout gate. Deliver the complete
+bundle directly in the same response: ready if the PR is still a draft, merge
+of the reviewed head, evidence and unit closure, branch cleanup, and final
+read-only verification. Do not request a second round of PM approval for each
+action or withhold parts of the bundle pending that approval.
+
+The human PM executes the bundle; `browser_chat` only drafts it and never
+executes ready, merge, closure, or cleanup. GO does not delegate execution to
+the agent. Preserve operational conditions: exact targets, the reviewed head,
+and cleanup only after confirming the merge. If evidence changes or the bundle
+becomes stale, return to `workflow.review_before_close` before using it.
+
+This delivery rule is exclusive to `workflow.review_before_close` with resolved
+GO. Other consumers of `output.pm_command_bundle`, including
+`workflow.pm_intake`, `workflow.release_readiness`, and `workflow.target_adoption`,
+retain their exact approvals. It does not change authority for implementation,
+correction, deploy, release, settings, or other workflows.
+
 ## Default shape
 
 The default bundle is a short linear sequence that the PM can copy
@@ -90,7 +111,8 @@ gh pr comment <pr-number> --repo <owner/repo> --body-file /tmp/pr-comment.md
 ```
 
 Mark a draft as ready. Include this only when evidence confirms it remains a
-draft and exact PM approval exists for that transition.
+draft. Include it directly in closeout after resolved GO; outside that route,
+exact PM approval is required for the transition.
 
 ```sh
 gh pr ready <pr-number> --repo <owner/repo>
@@ -104,8 +126,10 @@ gh pr merge <pr-number> --repo <owner/repo> --merge --delete-branch \
   --match-head-commit <reviewed-head-sha> --body "Closes #<issue-number>."
 ```
 
-Close the issue through a body file. Include this only with exact approval for
-closure; merge does not imply closure.
+Close the issue through a body file. In closeout after resolved GO, include
+the evidence and explicit closure if the unit remains open after the merge.
+Outside that route, exact approval for closure is required; merge does not
+imply closure.
 
 ```sh
 cat > /tmp/issue-close.md <<'ISSUE_CLOSE_END'
@@ -116,8 +140,8 @@ gh issue comment <issue-number> --repo <owner/repo> --body-file /tmp/issue-close
 gh issue close <issue-number> --repo <owner/repo>
 ```
 
-Update and clean up locally. Include this only after merge is confirmed and the
-exact path and branch have been reviewed.
+Update and clean up locally. Include this in the closeout bundle after GO with
+the exact reviewed path and branch; the PM runs it only after confirming merge.
 
 ```sh
 git -C <local-path> switch main
